@@ -1,0 +1,118 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>nz.co.fortytwo.signalk</groupId>
+	<artifactId>artemis-server</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>artemis-server</name>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<artemis.version>2.0.0-SNAPSHOT</artemis.version>
+	</properties>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+	<organization>
+		<name>Tasman Consulting Ltd</name>
+		<url>www.42.co.nz</url>
+	</organization>
+	<developers>
+		<developer>
+			<id>rob42</id>
+			<name>Robert Huitema</name>
+			<email>robert@42.co.nz</email>
+		</developer>
+	</developers>
+	<repositories>
+		<repository>
+			<id>apache.snapshots</id>
+			<name>Apache Development Snapshot Repository</name>
+			<url>https://repository.apache.org/content/repositories/snapshots/</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+	<dependencies>
+		<!-- <dependency> -->
+		<!-- <groupId>org.apache.activemq</groupId> -->
+		<!-- <artifactId>apache-artemis</artifactId> -->
+		<!-- <version>1.5.1</version> -->
+		<!-- </dependency> -->
+		<dependency>
+			<groupId>nz.co.fortytwo.signalk.core</groupId>
+			<artifactId>signalk-core-java</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.logmanager</groupId>
+			<artifactId>jboss-logmanager</artifactId>
+			<version>1.5.3.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>artemis-server</artifactId>
+			<version>${artemis.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>artemis-jms-server</artifactId>
+			<version>${artemis.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>artemis-jms-client</artifactId>
+			<version>${artemis.version}</version>
+		</dependency>
+				<!-- commons and misc = apache licence -->
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.4</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
+		</dependency>
+		
+	</dependencies>
+	<build>
+		<plugins>
+<!-- 			<plugin> -->
+<!-- 				<groupId>org.apache.activemq</groupId> -->
+<!-- 				<artifactId>artemis-maven-plugin</artifactId> -->
+<!-- 				<executions> -->
+<!-- 					<execution> -->
+<!-- 						<id>runClient</id> -->
+<!-- 						<goals> -->
+<!-- 							<goal>runClient</goal> -->
+<!-- 						</goals> -->
+<!-- 						<configuration> -->
+<!-- 							<clientClass>org.apache.activemq.artemis.jms.example.EmbeddedExample</clientClass> -->
+<!-- 						</configuration> -->
+<!-- 					</execution> -->
+<!-- 				</executions> -->
+<!-- 				<dependencies> -->
+<!-- 					<dependency> -->
+<!-- 						<groupId>org.apache.activemq.examples.broker</groupId> -->
+<!-- 						<artifactId>embedded</artifactId> -->
+<!-- 						<version>${project.version}</version> -->
+<!-- 					</dependency> -->
+<!-- 				</dependencies> -->
+<!-- 			</plugin> -->
+		</plugins>
+	</build>
+</project>

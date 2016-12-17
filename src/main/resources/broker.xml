@@ -1,0 +1,81 @@
+<?xml version='1.0'?>
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more contributor 
+	license agreements. See the NOTICE file distributed with this work for additional 
+	information regarding copyright ownership. The ASF licenses this file to 
+	you under the Apache License, Version 2.0 (the "License"); you may not use 
+	this file except in compliance with the License. You may obtain a copy of 
+	the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required 
+	by applicable law or agreed to in writing, software distributed under the 
+	License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS 
+	OF ANY KIND, either express or implied. See the License for the specific 
+	language governing permissions and limitations under the License. -->
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="urn:activemq" xsi:schemaLocation="urn:activemq /schema/artemis-server.xsd">
+
+	<core xmlns="urn:activemq:core">
+
+		<persistence-enabled>false</persistence-enabled>
+		<graceful-shutdown-timeout>5000</graceful-shutdown-timeout>
+		<connectors>
+			<connector name="in-vm">vm://0</connector>
+			<connector name="netty">tcp://localhost:61617</connector>
+
+		</connectors>
+
+		<acceptors>
+			<acceptor name="in-vm">vm://0</acceptor>
+			<acceptor name="netty">tcp://localhost:61617</acceptor>
+
+		</acceptors>
+
+		<address-settings>
+			<address-setting match="vessels.#">
+				<last-value-queue>true</last-value-queue>
+				<auto-create-queues>true</auto-create-queues>
+				<auto-delete-queues>true</auto-delete-queues>
+			</address-setting>
+
+			<address-setting match="config.#">
+				<last-value-queue>true</last-value-queue>
+				<auto-create-queues>true</auto-create-queues>
+				<auto-delete-queues>true</auto-delete-queues>
+			</address-setting>
+		</address-settings>
+		
+		<!-- <divert name="nmea0183-divert"> -->
+		<!-- <address>jms.queue.nmea0183</address> -->
+		<!-- <forwarding-address>jms.queue.priceForwarding</forwarding-address> -->
+		<!-- <filter string="office='New York'" /> -->
+		<!-- <transformer-class-name> -->
+		<!-- org.apache.activemq.artemis.jms.example.AddForwardingTimeTransformer -->
+		<!-- </transformer-class-name> -->
+		<!-- <exclusive>true</exclusive> -->
+		<!-- </divert> -->
+
+		<!-- Other config -->
+		<security-enabled>true</security-enabled>
+		<security-settings>
+			<!--security for example queue -->
+			<security-setting match="vessels.#">
+				<permission type="createDurableQueue" roles="guest" />
+				<permission type="deleteDurableQueue" roles="guest" />
+				<permission type="createNonDurableQueue" roles="guest" />
+				<permission type="deleteNonDurableQueue" roles="guest" />
+				<permission type="consume" roles="guest" />
+				<permission type="send" roles="guest" />
+				<permission type="browse" roles="guest" />
+			</security-setting> 
+			<security-setting match="vessels.urn:mrn:imo:mmsi:123456789.navigation.datum.#">
+				<permission type="createDurableQueue" roles="admin" />
+				<permission type="deleteDurableQueue" roles="admin" />
+				<permission type="createNonDurableQueue" roles="admin" />
+				<permission type="deleteNonDurableQueue" roles="admin" />
+				<permission type="consume" roles="admin" />
+				<permission type="send" roles="admin" />
+				<permission type="browse" roles="admin" />
+			</security-setting>
+		</security-settings>
+
+	</core>
+</configuration>
