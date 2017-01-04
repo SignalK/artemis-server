@@ -30,6 +30,11 @@
 		</acceptors>
 
 		<address-settings>
+			<address-setting match="incoming.#">
+				<last-value-queue>false</last-value-queue>
+				<auto-create-queues>true</auto-create-queues>
+				<auto-delete-queues>true</auto-delete-queues>
+			</address-setting>
 			<address-setting match="vessels.#">
 				<last-value-queue>true</last-value-queue>
 				<auto-create-queues>true</auto-create-queues>
@@ -42,21 +47,41 @@
 				<auto-delete-queues>true</auto-delete-queues>
 			</address-setting>
 		</address-settings>
-		
-		<!-- <divert name="nmea0183-divert"> -->
-		<!-- <address>jms.queue.nmea0183</address> -->
-		<!-- <forwarding-address>jms.queue.priceForwarding</forwarding-address> -->
-		<!-- <filter string="office='New York'" /> -->
-		<!-- <transformer-class-name> -->
-		<!-- org.apache.activemq.artemis.jms.example.AddForwardingTimeTransformer -->
-		<!-- </transformer-class-name> -->
-		<!-- <exclusive>true</exclusive> -->
-		<!-- </divert> -->
-
+		<queues>
+			<queue name="vessels">
+				<address>vessels.#</address>
+				<durable>true</durable>
+			</queue>
+			<queue name="incoming.delta">
+				<address>incoming.delta</address>
+				<durable>true</durable>
+			</queue>
+			<queue name="incoming.processed">
+				<address>incoming.processed</address>
+				<durable>true</durable>
+			</queue>
+		</queues>
+		<diverts>
+			<divert name="incoming-delta-divert">
+				<address>incoming.delta</address>
+				<forwarding-address>incoming.processed</forwarding-address>
+				<!-- <filter string="office='New York'" /> -->
+				<transformer-class-name>
+					nz.co.fortytwo.signalk.artemis.divert.UnpackUpdateMsg
+				</transformer-class-name>
+				<exclusive>true</exclusive>
+			</divert>
+		</diverts>
 		<!-- Other config -->
 		<security-enabled>true</security-enabled>
 		<security-settings>
 			<!--security for example queue -->
+			<security-setting match="incoming.#">
+				<permission type="createDurableQueue" roles="guest" />
+				<permission type="createNonDurableQueue" roles="guest" />
+				<permission type="send" roles="guest" />
+
+			</security-setting>
 			<security-setting match="vessels.#">
 				<permission type="createDurableQueue" roles="guest" />
 				<permission type="deleteDurableQueue" roles="guest" />
@@ -65,7 +90,7 @@
 				<permission type="consume" roles="guest" />
 				<permission type="send" roles="guest" />
 				<permission type="browse" roles="guest" />
-			</security-setting> 
+			</security-setting>
 			<security-setting match="vessels.urn:mrn:imo:mmsi:123456789.navigation.datum.#">
 				<permission type="createDurableQueue" roles="admin" />
 				<permission type="deleteDurableQueue" roles="admin" />

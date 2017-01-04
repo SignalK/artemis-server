@@ -25,42 +25,42 @@ import org.apache.activemq.artemis.spi.core.security.ActiveMQSecurityManagerImpl
  * ActiveMQ Artemis embedded with JMS
  */
 public final class ArtemisServer {
-	
-	static EmbeddedActiveMQ embedded;
 
-   public ArtemisServer() throws Exception{
-      // Step 1. Create ActiveMQ Artemis core configuration, and set the properties accordingly
-	   System.setProperty("java.util.logging.manager","org.jboss.logmanager.LogManager");
-	  // System.setProperty("logging.configuration","classpath://logging.properties");
-	   embedded = new EmbeddedActiveMQ();
-	   SecurityConfiguration conf = new SecurityConfiguration();
-	   conf.addUser("guest", "guest");
-	   conf.addRole("guest", "guest");
-	   conf.addUser("admin", "admin");
-	   conf.addRole("admin", "guest");
-	   conf.addRole("admin", "admin");
-	   ActiveMQSecurityManager securityManager = new ActiveMQSecurityManagerImpl(conf);
-	   embedded.setSecurityManager(securityManager );
-	   
-	  
-	   embedded.start();
-	   
-	   addShutdownHook(embedded);
-     
-   }
+	public static EmbeddedActiveMQ embedded;
 
-private static void addShutdownHook(final EmbeddedActiveMQ embedded) {
-	Runtime.getRuntime().addShutdownHook(new Thread("shutdown-hook") {
-        @Override
-        public void run() {
-           try {
-        	   embedded.stop();
-           } catch (Exception e) {
-              e.printStackTrace();
-           }
-        }
-});
-	
+	public ArtemisServer() throws Exception {
+		// Step 1. Create ActiveMQ Artemis core configuration, and set the
+		// properties accordingly
+		System.setProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager");
+		// System.setProperty("logging.configuration","classpath://logging.properties");
+		embedded = new EmbeddedActiveMQ();
+		SecurityConfiguration conf = new SecurityConfiguration();
+		conf.addUser("guest", "guest");
+		conf.addRole("guest", "guest");
+		conf.addUser("admin", "admin");
+		conf.addRole("admin", "guest");
+		conf.addRole("admin", "admin");
+		
+		ActiveMQSecurityManager securityManager = new ActiveMQSecurityManagerImpl(conf);
+		
+		embedded.setSecurityManager(securityManager);
+		embedded.start();
+
+		addShutdownHook(embedded);
+
+	}
+
+	private static void addShutdownHook(final EmbeddedActiveMQ embedded) {
+		Runtime.getRuntime().addShutdownHook(new Thread("shutdown-hook") {
+			@Override
+			public void run() {
+				try {
+					embedded.stop();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+
+	}
 }
-}
-

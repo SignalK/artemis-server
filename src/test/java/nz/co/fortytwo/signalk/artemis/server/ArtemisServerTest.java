@@ -20,29 +20,37 @@ import org.apache.activemq.artemis.core.remoting.impl.netty.NettyConnectorFactor
 import org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants;
 import org.apache.activemq.artemis.core.server.RoutingType;
 import org.apache.commons.io.FileUtils;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.divert.UnpackUpdateMsg;
 import nz.co.fortytwo.signalk.handler.DeltaToMapConverter;
 import nz.co.fortytwo.signalk.model.SignalKModel;
 
 public class ArtemisServerTest {
-	static ArtemisServer server;
+	 ArtemisServer server;
 
-	@BeforeClass
-	public static void startServer() throws Exception {
+	@Before
+	public  void startServer() throws Exception {
 		server = new ArtemisServer();
+	}
+	
+	@After
+	public  void stopServer() throws Exception {
+		server.embedded.stop();
 	}
 
 	@Test
 	public void checkSimpleVMConnection() throws Exception {
 
-		ClientSession session = getVmSession("guest","guest");
+		ClientSession session = getVmSession("guest", "guest");
 		session.start();
 		// session.createAddress(new SimpleString("vessels.#"),
 		// RoutingType.MULTICAST, true);
-		session.createQueue("vessels.#", RoutingType.MULTICAST, "vessels", true);
+		//session.createQueue("vessels.#", RoutingType.MULTICAST, "vessels", true);
 
 		ClientProducer producer = session.createProducer("vessels.example");
 
@@ -81,31 +89,29 @@ public class ArtemisServerTest {
 		session.close();
 	}
 
-
-
 	@Test
 	public void shouldReadPartialKeysForGuest() throws Exception {
 
-		ClientSession session = getVmSession("guest","guest");
+		ClientSession session = getVmSession("guest", "guest");
 		session.start();
 		// session.createAddress(new SimpleString("vessels.#"),
 		// RoutingType.MULTICAST, true);
-		session.createQueue("vessels.#", RoutingType.MULTICAST, "vessels", true);
+		//session.createQueue("vessels.#", RoutingType.MULTICAST, "vessels", true);
 		DeltaToMapConverter conv = new DeltaToMapConverter();
 		ClientProducer producer = session.createProducer();
 		int c = 0;
 		for (String line : FileUtils.readLines(new File("./src/test/resources/samples/signalkKeesLog.txt"))) {
-			
+
 			// get json
 			SignalKModel map = conv.handle(Json.read(line));
 			for (String key : map.getKeys()) {
 				ClientMessage message = session.createMessage(true);
 				message.getBodyBuffer().writeString(map.getFullData().get(key).toString());
 				message.putStringProperty("_AMQ_LVQ_NAME", key);
-				try{
+				try {
 					producer.send(key, message);
-				}catch(ActiveMQSecurityException se){
-					
+				} catch (ActiveMQSecurityException se) {
+					System.out.println("Security: Reject "+key);
 				}
 				System.out.println("Sent: " + key + "=" + map.getFullData().get(key).toString());
 				c++;
@@ -113,17 +119,18 @@ public class ArtemisServerTest {
 		}
 		int d = 0;
 		// now read partial
-		ClientConsumer consumer = session.createConsumer("vessels", "_AMQ_LVQ_NAME like 'vessels.urn:mrn:imo:mmsi:123456789.navigation.%.value'", true);
+		ClientConsumer consumer = session.createConsumer("vessels",
+				"_AMQ_LVQ_NAME like 'vessels.urn:mrn:imo:mmsi:123456789.navigation.%.value'", true);
 		ClientMessage msgReceived = null;
 		while ((msgReceived = consumer.receive(10)) != null) {
 			String recv = msgReceived.getBodyBuffer().readString();
-			System.out.println("message = " +msgReceived.getAddress()+", "+ recv);
-			//System.out.println("message = " +msgReceived.toString());
+			System.out.println("message = " + msgReceived.getAddress() + ", " + recv);
+			// System.out.println("message = " +msgReceived.toString());
 			d++;
 		}
 		consumer.close();
 		session.close();
-		System.out.println("Sent = " + c+", recd="+d);
+		System.out.println("Sent = " + c + ", recd=" + d);
 		assertEquals(9761, c);
 		assertEquals(11, d);
 	}
@@ -131,58 +138,51 @@ public class ArtemisServerTest {
 	@Test
 	public void shouldReadPartialKeysForAdmin() throws Exception {
 
-		ClientSession session = getVmSession("admin","admin");
+		ClientSession session = getVmSession("guest", "guest");
 		session.start();
 		// session.createAddress(new SimpleString("vessels.#"),
 		// RoutingType.MULTICAST, true);
-		session.createQueue("vessels.#", RoutingType.MULTICAST, "vessels", true);
-		DeltaToMapConverter conv = new DeltaToMapConverter();
+		
 		ClientProducer producer = session.createProducer();
 		int c = 0;
 		for (String line : FileUtils.readLines(new File("./src/test/resources/samples/signalkKeesLog.txt"))) {
-			
-			// get json
-			SignalKModel map = conv.handle(Json.read(line));
-			for (String key : map.getKeys()) {
-				ClientMessage message = session.createMessage(true);
-				message.getBodyBuffer().writeString(map.getFullData().get(key).toString());
-				message.putStringProperty("_AMQ_LVQ_NAME", key);
-				try{
-					producer.send(key, message);
-				}catch(ActiveMQSecurityException se){
-					
-				}
-				System.out.println("Sent: " + key + "=" + map.getFullData().get(key).toString());
-				c++;
-			}
+
+			ClientMessage message = session.createMessage(true);
+			message.getBodyBuffer().writeString(line);
+			producer.send("incoming.delta", message);
+			System.out.println("Sent: "  + line);
+			c++;
+
 		}
 		int d = 0;
 		// now read partial
-		ClientConsumer consumer = session.createConsumer("vessels", "_AMQ_LVQ_NAME like 'vessels.urn:mrn:imo:mmsi:123456789.navigation.%.value'", true);
+		ClientConsumer consumer = session.createConsumer("vessels",
+				"_AMQ_LVQ_NAME like 'vessels.urn:mrn:imo:mmsi:123456789.navigation.%.value'", true);
 		ClientMessage msgReceived = null;
 		while ((msgReceived = consumer.receive(10)) != null) {
 			String recv = msgReceived.getBodyBuffer().readString();
-			System.out.println("message = " +msgReceived.getAddress()+", "+ recv);
-			//System.out.println("message = " +msgReceived.toString());
+			System.out.println("message = " + msgReceived.getAddress() + ", " + recv);
+			// System.out.println("message = " +msgReceived.toString());
 			d++;
 		}
 		consumer.close();
 		session.close();
-		System.out.println("Sent = " + c+", recd="+d);
-		assertEquals(9761, c);
+		System.out.println("Sent = " + c + ", recd=" + d);
+		assertEquals(1000, c);
 		assertEquals(16, d);
 	}
 
 	@Test
 	public void checkSimpleTCPConnection() throws Exception {
 
-		ClientSession session = getLocalhostClientSession("guest","guest");
+		ClientSession session = getLocalhostClientSession("guest", "guest");
 
-		session.createQueue("vessels.#", RoutingType.ANYCAST, "vessels", true);
+		//session.createQueue("vessels.#", RoutingType.ANYCAST, "vessels", true);
 
 		ClientProducer producer = session.createProducer("vessels.example");
 
 		ClientMessage message = session.createMessage(true);
+		message.putStringProperty("_AMQ_LVQ_NAME", "KEY_1");
 		message.getBodyBuffer().writeString("Hello");
 		producer.send(message);
 
@@ -205,9 +205,9 @@ public class ArtemisServerTest {
 		ClientSessionFactory nettyFactory = ActiveMQClient
 				.createServerLocatorWithoutHA(new TransportConfiguration(InVMConnectorFactory.class.getName()))
 				.createSessionFactory();
-		return nettyFactory.createSession(user,password,false, true, true, false, 10);
+		return nettyFactory.createSession(user, password, false, true, true, false, 10);
 	}
-	
+
 	public ClientSession getLocalhostClientSession(String user, String password) throws Exception {
 		Map<String, Object> connectionParams = new HashMap<String, Object>();
 
@@ -217,7 +217,7 @@ public class ArtemisServerTest {
 				.createServerLocatorWithoutHA(
 						new TransportConfiguration(NettyConnectorFactory.class.getName(), connectionParams))
 				.createSessionFactory();
-		return nettyFactory.createSession(user,password,false, true, true, false, 10);
+		return nettyFactory.createSession(user, password, false, true, true, false, 10);
 	}
 
 }
