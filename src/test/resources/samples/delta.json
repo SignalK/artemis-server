@@ -1,0 +1,1 @@
+{"context": "vessels.urn:mrn:imo:mmsi:123456789","updates":[{"source": {"type": "NMEA2000","src": "1-37","pgn":127251,"label": "sources.N2000-01.037"},"timestamp": "2016-06-20T10:33:36Z","values":[{"path": "navigation.rateOfTurn","value": 0.108908}]}]}
