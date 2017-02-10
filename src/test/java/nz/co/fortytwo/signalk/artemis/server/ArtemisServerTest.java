@@ -20,6 +20,8 @@ import org.apache.activemq.artemis.core.remoting.impl.netty.NettyConnectorFactor
 import org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants;
 import org.apache.activemq.artemis.core.server.RoutingType;
 import org.apache.commons.io.FileUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -27,13 +29,14 @@ import org.junit.Test;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.divert.UnpackUpdateMsg;
+import nz.co.fortytwo.signalk.artemis.intercept.SessionInterceptor;
 import nz.co.fortytwo.signalk.handler.DeltaToMapConverter;
 import nz.co.fortytwo.signalk.model.SignalKModel;
 import nz.co.fortytwo.signalk.util.SignalKConstants;
 
 public class ArtemisServerTest {
 	 ArtemisServer server;
-
+	 private static Logger logger = LogManager.getLogger(ArtemisServerTest.class);
 	@Before
 	public  void startServer() throws Exception {
 		server = new ArtemisServer();
@@ -75,7 +78,7 @@ public class ArtemisServerTest {
 		ClientMessage msgReceived = consumer.receive(10);
 		String recv = msgReceived.getBodyBuffer().readString();
 		consumer.close();
-		System.out.println("message = " + recv);
+		if(logger.isDebugEnabled())logger.debug("message = " + recv);
 		assertEquals("Hello2", recv);
 		consumer = session.createConsumer("vessels", true);
 		msgReceived = consumer.receive(10);
@@ -85,8 +88,8 @@ public class ArtemisServerTest {
 		msgReceived = consumer.receive(10);
 		assertNotNull(msgReceived);
 		assertEquals("Hello3", msgReceived.getBodyBuffer().readString());
-		System.out.println("message3 = " + msgReceived.getAddress());
-		System.out.println("message3 = " + msgReceived.toString());
+		if(logger.isDebugEnabled())logger.debug("message3 = " + msgReceived.getAddress());
+		if(logger.isDebugEnabled())logger.debug("message3 = " + msgReceived.toString());
 		session.close();
 	}
 
@@ -106,7 +109,7 @@ public class ArtemisServerTest {
 			ClientMessage message = session.createMessage(true);
 			message.getBodyBuffer().writeString(line);
 			producer.send("incoming.delta", message);
-			System.out.println("Sent:"  + message.getMessageID()+":"+ line);
+			if(logger.isDebugEnabled())logger.debug("Sent:"  + message.getMessageID()+":"+ line);
 			c++;
 
 		}
@@ -117,13 +120,13 @@ public class ArtemisServerTest {
 		ClientMessage msgReceived = null;
 		while ((msgReceived = consumer.receive(10)) != null) {
 			String recv = msgReceived.getBodyBuffer().readString();
-			System.out.println("message = " + msgReceived.getAddress() + ", " + recv);
-			// System.out.println("message = " +msgReceived.toString());
+			if(logger.isDebugEnabled())logger.debug("message = " + msgReceived.getAddress() + ", " + recv);
+			// if(logger.isDebugEnabled())logger.debug("message = " +msgReceived.toString());
 			d++;
 		}
 		consumer.close();
 		session.close();
-		System.out.println("Sent = " + c + ", recd=" + d);
+		if(logger.isDebugEnabled())logger.debug("Sent = " + c + ", recd=" + d);
 		assertEquals(1000, c);
 		assertEquals(11, d);
 	}
@@ -144,7 +147,7 @@ public class ArtemisServerTest {
 			ClientMessage message = session.createMessage(true);
 			message.getBodyBuffer().writeString(line);
 			producer.send("incoming.delta", message);
-			System.out.println("Sent:"  + message.getMessageID()+":"+ line);
+			if(logger.isDebugEnabled())logger.debug("Sent:"  + message.getMessageID()+":"+ line);
 			c++;
 
 		}
@@ -155,13 +158,13 @@ public class ArtemisServerTest {
 		ClientMessage msgReceived = null;
 		while ((msgReceived = consumer.receive(10)) != null) {
 			String recv = msgReceived.getBodyBuffer().readString();
-			System.out.println("message = "  + msgReceived.getMessageID()+":" + msgReceived.getAddress() + ", " + recv);
-			// System.out.println("message = " +msgReceived.toString());
+			if(logger.isDebugEnabled())logger.debug("message = "  + msgReceived.getMessageID()+":" + msgReceived.getAddress() + ", " + recv);
+			// if(logger.isDebugEnabled())logger.debug("message = " +msgReceived.toString());
 			d++;
 		}
 		consumer.close();
 		session.close();
-		System.out.println("Sent = " + c + ", recd=" + d);
+		if(logger.isDebugEnabled())logger.debug("Sent = " + c + ", recd=" + d);
 		assertEquals(1000, c);
 		assertEquals(16, d);
 	}
@@ -188,7 +191,7 @@ public class ArtemisServerTest {
 		ClientMessage msgReceived = consumer.receive();
 
 		String recv = msgReceived.getBodyBuffer().readString();
-		System.out.println("message = " + recv);
+		if(logger.isDebugEnabled())logger.debug("message = " + recv);
 		assertEquals("Hello", recv);
 		msgReceived = consumer1.receive(100);
 		assertNotNull(msgReceived);

@@ -35,6 +35,11 @@
 				<auto-create-queues>true</auto-create-queues>
 				<auto-delete-queues>true</auto-delete-queues>
 			</address-setting>
+			<address-setting match="outgoing.#">
+				<last-value-queue>false</last-value-queue>
+				<auto-create-queues>true</auto-create-queues>
+				<auto-delete-queues>true</auto-delete-queues>
+			</address-setting>
 			<address-setting match="vessels.#">
 				<last-value-queue>true</last-value-queue>
 				<auto-create-queues>true</auto-create-queues>
@@ -56,6 +61,10 @@
 				<address>incoming.delta</address>
 				<durable>true</durable>
 			</queue>
+			<queue name="outgoing.reply">
+				<address>outgoing.reply</address>
+				<durable>true</durable>
+			</queue>
 			<queue name="incoming.processed">
 				<address>incoming.processed</address>
 				<durable>true</durable>
@@ -74,6 +83,14 @@
 				</transformer-class-name>
 				<exclusive>true</exclusive>
 			</divert>
+			<divert name="incoming-subscribe-divert">
+				<address>incoming.delta</address>
+				<forwarding-address>incoming.processed</forwarding-address>
+				<transformer-class-name>
+					nz.co.fortytwo.signalk.artemis.divert.SubscribeMsg
+				</transformer-class-name>
+				<exclusive>true</exclusive>
+			</divert>
 		</diverts>
 		<!-- Other config -->
 		<security-enabled>true</security-enabled>
@@ -84,6 +101,12 @@
 				<permission type="createNonDurableQueue" roles="guest" />
 				<permission type="send" roles="guest" />
 
+			</security-setting>
+			<security-setting match="outgoing.#">
+				<permission type="createDurableQueue" roles="guest" />
+				<permission type="createNonDurableQueue" roles="guest" />
+				<permission type="consume" roles="guest" />
+				<permission type="send" roles="guest" />
 			</security-setting>
 			<security-setting match="vessels.#">
 				<permission type="createDurableQueue" roles="guest" />
