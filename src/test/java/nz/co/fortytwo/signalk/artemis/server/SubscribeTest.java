@@ -72,6 +72,27 @@ public class SubscribeTest {
 	}
 
 	@Test
+	public void shouldStartNetty() throws Exception {
+		ClientSession session = Util.getLocalhostClientSession("admin", "admin");
+		
+		try {
+			session.start();
+			ClientProducer producer = session.createProducer();
+
+			for (String line : FileUtils.readLines(new File("./src/test/resources/samples/signalkKeesLog.txt"))) {
+
+				ClientMessage message = session.createMessage(true);
+				message.getBodyBuffer().writeString(line);
+				producer.send("incoming.delta", message);
+				
+			}
+		}finally{
+			session.close();
+		}
+		CountDownLatch latch = new CountDownLatch(1);
+		latch.await(60, TimeUnit.SECONDS);
+	}
+	@Test
 	public void shouldReadPartialKeysForGuest() throws Exception {
 		readPartialKeys("guest", 292);
 	}
@@ -82,15 +103,13 @@ public class SubscribeTest {
 	}
 
 	private void readPartialKeys(String user, int expected) throws Exception{
-		ClientSession session = Util.getVmSession(user, user);
+		ClientSession session = Util.getLocalhostClientSession(user, user);
 	
 		try {
 			session.start();
-
-			//ClientSession session2 = Util.getVmSession("admin", "admin");
-			//session2.start();
-
 			ClientProducer producer = session.createProducer();
+
+			
 			int c = 0;
 			for (String line : FileUtils.readLines(new File("./src/test/resources/samples/signalkKeesLog.txt"))) {
 
@@ -102,15 +121,18 @@ public class SubscribeTest {
 				c++;
 
 			}
-
-			ClientMessage message = session.createMessage(true);
+			//subscribe, and wait for some responses, should be 1 per second
+			ClientMessage subMsg = session.createMessage(true);
 			Json msg = getJson("vessels.urn:mrn:imo:mmsi:123456789", "navigation", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
-			message.getBodyBuffer().writeString(msg.toString());
+			subMsg.getBodyBuffer().writeString(msg.toString());
 			session.createTemporaryQueue("outgoing.reply", "temp-001");
-			message.putStringProperty("AMQ_REPLY_Q", "temp-001");
-			producer.send("incoming.delta", message);
+			subMsg.putStringProperty("AMQ_REPLY_Q", "temp-001");
+			producer.send("incoming.delta", subMsg);
+			
+			
 			CountDownLatch latch = new CountDownLatch(1);
 			latch.await(3, TimeUnit.SECONDS);
+			
 			int d = 0; // now read partial
 			ClientConsumer consumer = session.createConsumer("temp-001", false);
 			ClientMessage msgReceived = null;
@@ -123,7 +145,6 @@ public class SubscribeTest {
 				d++;
 			}
 
-			
 			
 			consumer.close();
 

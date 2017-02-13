@@ -20,6 +20,11 @@ import org.apache.activemq.artemis.core.config.impl.SecurityConfiguration;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.activemq.artemis.spi.core.security.ActiveMQSecurityManager;
 import org.apache.activemq.artemis.spi.core.security.ActiveMQSecurityManagerImpl;
+import org.atmosphere.cpr.ApplicationConfig;
+import org.atmosphere.nettosphere.Config;
+import org.atmosphere.nettosphere.Nettosphere;
+
+import nz.co.fortytwo.signalk.artemis.service.SignalkManagedService;
 
 /**
  * ActiveMQ Artemis embedded with JMS
@@ -47,6 +52,17 @@ public final class ArtemisServer {
 		embedded.start();
 
 		addShutdownHook(embedded);
+		Nettosphere server = new Nettosphere.Builder().config(
+                 new Config.Builder()
+                    .host("0.0.0.0")
+                    .port(8080)
+                    .initParam(ApplicationConfig.PROPERTY_SESSION_SUPPORT, "true")
+                    .resource(SignalkManagedService.class)
+                    .resource("./signalk-static")
+                    //.resource("./src/main/resources/signalk-static")
+                    .build())
+                 .build();
+		 server.start();
 
 	}
 

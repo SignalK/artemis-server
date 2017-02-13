@@ -18,11 +18,13 @@ import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.activemq.artemis.api.core.client.ClientSessionFactory;
 import org.apache.activemq.artemis.core.remoting.impl.invm.InVMConnectorFactory;
 import org.apache.activemq.artemis.core.server.ServerMessage;
+import org.apache.activemq.artemis.core.server.ServerSession;
 import org.apache.activemq.artemis.core.server.cluster.Transformer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.server.ArtemisServer;
 import nz.co.fortytwo.signalk.artemis.server.Subscription;
 import nz.co.fortytwo.signalk.artemis.server.SubscriptionManager;
 import nz.co.fortytwo.signalk.artemis.server.SubscriptionManagerFactory;
@@ -75,13 +77,14 @@ public class SubscribeMsg implements Transformer {
 	@Override
 	public ServerMessage transform(ServerMessage message) {
 
-		if(logger.isDebugEnabled())logger.debug("Processing: " + message);
+		if(logger.isTraceEnabled())logger.trace("Processing: " + message);
 		Json node = Json.read(message.getBodyBuffer().readString());
 		// avoid full signalk syntax
 		if (node.has(vessels))
 			return message;
 		// deal with diff format
 		if (node.has(CONTEXT) && (node.has(SUBSCRIBE))) {
+			if(logger.isDebugEnabled())logger.debug("Processing SUBSCRIBE: " + message);
 			String ctx = node.at(CONTEXT).asString();
 			ctx = Util.fixSelfKey(ctx);
 			Json subscribe = node.at(SUBSCRIBE);
@@ -101,6 +104,7 @@ public class SubscribeMsg implements Transformer {
 		}
 		
 		if (node.has(CONTEXT) && (node.has(UNSUBSCRIBE))) {
+			if(logger.isDebugEnabled())logger.debug("Processing UNSUBSCRIBE: " + message);
 			String ctx = node.at(CONTEXT).asString();
 			ctx = Util.fixSelfKey(ctx);
 			Json subscribe = node.at(UNSUBSCRIBE);
@@ -129,6 +133,7 @@ public class SubscribeMsg implements Transformer {
 		
 			String sessionId = m1.getStringProperty("AMQ_session_id");
 			String destination = m1.getStringProperty("AMQ_REPLY_Q");
+			ServerSession s = ArtemisServer.embedded.getActiveMQServer().getSessionByID(sessionId);
 			
 			if(node.has(ConfigConstants.OUTPUT_TYPE)){
 				String outputType = node.at(ConfigConstants.OUTPUT_TYPE).asString();
@@ -137,8 +142,7 @@ public class SubscribeMsg implements Transformer {
 			
 			if(subscriptions.isArray()){
 				for(Json subscription: subscriptions.asJsonList()){
-					
-					parseSubscribe(sessionId, destination, ctx, subscription);
+					parseSubscribe(sessionId, destination, s.getUsername(), s.getPassword(), ctx, subscription);
 				}
 			}
 			if(logger.isDebugEnabled())logger.debug("processed subscribe  "+node );
@@ -159,9 +163,9 @@ public class SubscribeMsg implements Transformer {
 	 * @param subscription
 	 * @throws Exception 
 	 */
-	private void parseSubscribe(String sessionId, String destination, String context, Json subscription) throws Exception {
+	private void parseSubscribe(String sessionId, String destination, String user, String password, String context, Json subscription) throws Exception {
 		//get values
-		//if(logger.isDebugEnabled())logger.debug("Parsing subscribe  "+subscription );
+		if(logger.isDebugEnabled())logger.debug("Parsing subscribe for : "+user+" : "+password+" : " +subscription );
 		
 		String path = context+"."+subscription.at(PATH).asString();
 		long period = 1000;
@@ -172,14 +176,14 @@ public class SubscribeMsg implements Transformer {
 		if(subscription.at(POLICY)!=null)policy=subscription.at(POLICY).asString();
 		long minPeriod = 0;
 		if(subscription.at(MIN_PERIOD)!=null)minPeriod=subscription.at(MIN_PERIOD).asInteger();
-		Subscription sub = new Subscription(sessionId, path, period, minPeriod, format, policy);
-		sub.setDestination(destination);
+		Subscription sub = new Subscription(sessionId, destination, user, password,  path, period, minPeriod, format, policy);
+		
+		
 		//STOMP, MQTT
 		//if(headers.containsKey(ConfigConstants.DESTINATION)){
 		//	sub.setDestination( headers.get(ConfigConstants.DESTINATION).toString());
 		//}
-		
-		//sub.setActive(false);
+	
 		if(logger.isDebugEnabled())logger.debug("Created subscription; "+sub.toString() );
 		SubscriptionManagerFactory.getInstance().addSubscription(sub);
 		

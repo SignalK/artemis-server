@@ -54,7 +54,7 @@ public class Util {
 
 	public static ClientSession getLocalhostClientSession(String user, String password) throws Exception {
 		Map<String, Object> connectionParams = new HashMap<String, Object>();
-
+		connectionParams.put(TransportConstants.HOST_PROP_NAME, "localhost");
 		connectionParams.put(TransportConstants.PORT_PROP_NAME, 61617);
 
 		ClientSessionFactory nettyFactory = ActiveMQClient

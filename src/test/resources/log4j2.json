@@ -54,11 +54,12 @@
 				"level": "debug"
 			},
 			{
-				"name": "org.apache.camel",
-				"level": "error"
+				"name": "org.atmosphere.nettosphere.BridgeRuntime",
+				"level": "warn"
 			},
+			
 			{
-				"name": "org.apache.camel",
+				"name": "org.apache.activemq.artemis",
 				"level": "error"
 			},
 			{

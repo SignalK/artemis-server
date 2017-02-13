@@ -32,6 +32,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.api.core.client.ClientConsumer;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
@@ -43,6 +44,7 @@ import org.apache.activemq.artemis.core.server.ServerMessage;
 import org.apache.activemq.artemis.core.server.ServerSession;
 import org.apache.activemq.artemis.core.server.impl.MessageReferenceImpl;
 import org.apache.activemq.artemis.core.server.impl.ServerMessageImpl;
+import org.apache.activemq.artemis.spi.core.remoting.ConsumerContext;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -84,40 +86,10 @@ public class SubscriptionManager {
 			if (logger.isDebugEnabled())
 				logger.debug("Adding sub " + sub);
 			subscriptions.add(sub);
-			// create a new route if we have too
-			if (sub.isActive() && !hasExistingRoute(sub)) {
-				ServerSession s = ArtemisServer.embedded.getActiveMQServer().getSessionByID(sub.getSessionId());
-				if (logger.isDebugEnabled())
-					logger.debug("Session is:" + s.getConnectionID() + ", name:" + s.getName());
-				//start polling consumer.
-				Timer t = new Timer(s.getName(), true);
-				t.schedule(new TimerTask() {
-					
-					@Override
-					public void run() {
-						try {
-							ClientSession session = Util.getVmSession(s.getUsername(), s.getPassword());
-							ClientConsumer consumer = session.createConsumer("vessels",
-									"_AMQ_LVQ_NAME like '"+sub.getPath()+".%'", true);
-							ClientMessage msgReceived = null;
-							while ((msgReceived = consumer.receive(10)) != null) {
-								String recv = msgReceived.getBodyBuffer().readString();
-								if(logger.isDebugEnabled())logger.debug("message = "  + msgReceived.getMessageID()+":" + msgReceived.getAddress() + ", " + recv);
-													
-								ClientProducer producer = session.createProducer();
-								msgReceived.setAddress(new SimpleString(sub.getDestination()));
-								producer.send(new SimpleString("outgoing.reply"),msgReceived);
-								if(logger.isDebugEnabled())logger.debug("Sent message = "  + msgReceived.getMessageID()+":" + msgReceived.getAddress() + ", " + recv);
-								
-							}
-						} catch (Exception e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-						
-						
-					}
-				}, 0, sub.getPeriod());
+			// start if we have to.
+			
+			if (!hasExistingRoute(sub)) {
+				sub.setActive(true);
 				if (logger.isDebugEnabled())
 					logger.debug("Started route for sub" + sub);
 				heartbeats.remove(sub.getSessionId());

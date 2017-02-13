@@ -33,8 +33,16 @@ import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.regex.Pattern;
 
+import org.apache.activemq.artemis.api.core.ActiveMQException;
+import org.apache.activemq.artemis.api.core.SimpleString;
+import org.apache.activemq.artemis.api.core.client.ClientConsumer;
+import org.apache.activemq.artemis.api.core.client.ClientMessage;
+import org.apache.activemq.artemis.api.core.client.ClientProducer;
+import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -70,9 +78,15 @@ public class Subscription {
 	Set<String> subscribedPaths = new ConcurrentSet<String>();
 	private String routeId;
 	private String destination;
+	private String user;
+	private String password;
+	private TimerTask task;
+	private Timer timer;
+	ClientSession txSession;
+	ClientProducer producer;
 	//private String outputType;
 
-	public Subscription(String sessionId, String path, long period, long minPeriod, String format, String policy) {
+	public Subscription(String sessionId, String destination, String user, String password, String path, long period, long minPeriod, String format, String policy) throws Exception {
 		this.sessionId = sessionId;
 
 		this.path = Util.sanitizePath(path);
@@ -81,6 +95,56 @@ public class Subscription {
 		this.minPeriod = minPeriod;
 		this.format = format;
 		this.policy = policy;
+		this.destination=destination;
+		this.user=user;
+		this.password=password;
+		
+		
+		task = new TimerTask() {
+			
+			@Override
+			public void run() {
+				ClientSession rxSession = null;
+				ClientConsumer consumer = null;
+				try {
+					//start polling consumer.
+					rxSession = Util.getVmSession(user, password);
+					consumer = rxSession.createConsumer("vessels",
+							"_AMQ_LVQ_NAME like '"+getPath()+".%'", true);
+					
+					ClientMessage msgReceived = null;
+					while ((msgReceived = consumer.receive(10)) != null) {
+						if(logger.isDebugEnabled())logger.debug("message = "  + msgReceived.getMessageID()+":" + msgReceived.getAddress() + ", " + msgReceived.getBodyBuffer().readString());
+						producer.send(new SimpleString("outgoing.reply"),msgReceived);
+						if(logger.isDebugEnabled())logger.debug("Sent message = "  + msgReceived.getMessageID()+":" + msgReceived.getAddress() );
+						
+					}
+					consumer.close();
+					
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}finally {
+					if(consumer!=null){
+						try {
+							consumer.close();
+						} catch (ActiveMQException e) {
+							logger.error(e);
+						}
+					}
+					if(rxSession!=null){
+						try {
+							rxSession.close();
+						} catch (ActiveMQException e) {
+							logger.error(e);
+						}
+					}
+				}
+				
+				
+			}
+		};
+		
 		//SignalKModelFactory.getInstance().getEventBus().register(this);
 		//for(String p: ImmutableList.copyOf(SignalKModelFactory.getInstance().getKeys())){
 		//	if(isSubscribed(p)){
@@ -156,8 +220,27 @@ public class Subscription {
 		return active;
 	}
 
-	public void setActive(boolean active) {
+	public void setActive(boolean active) throws Exception {
 		this.active = active;
+		if(active && (txSession==null || txSession.isClosed())){
+			txSession = Util.getVmSession(user, password);
+		}
+		if(active && (producer==null || producer.isClosed())){
+			producer = txSession.createProducer();
+		}
+		if(!active && timer!=null){
+			timer.cancel();
+			timer=null;
+		}
+		if(!active){
+			if(producer!=null)producer.close();
+			if(txSession!=null)txSession.close();
+		}
+		if(active && timer==null){
+			timer = new Timer(sessionId, true);
+			timer.schedule(task, 0, getPeriod());
+		}
+		
 	}
 
 	public boolean isSameRoute(Subscription sub) {
@@ -291,7 +374,5 @@ public class Subscription {
 	public void setDestination(String destination) {
 		this.destination = destination;
 	}
-
-
 
 }
