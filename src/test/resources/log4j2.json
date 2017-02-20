@@ -60,7 +60,7 @@
 			
 			{
 				"name": "org.apache.activemq.artemis",
-				"level": "error"
+				"level": "warn"
 			},
 			{
 				"name": "mjson",

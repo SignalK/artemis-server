@@ -76,7 +76,7 @@ public class SubscribeMsg implements Transformer {
 	 */
 	@Override
 	public ServerMessage transform(ServerMessage message) {
-
+		if(!"JSON".equals(message.getStringProperty("AMQ_content_type")))return message;
 		if(logger.isTraceEnabled())logger.trace("Processing: " + message);
 		Json node = Json.read(message.getBodyBuffer().readString());
 		// avoid full signalk syntax

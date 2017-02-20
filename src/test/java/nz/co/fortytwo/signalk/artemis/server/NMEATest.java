@@ -25,9 +25,9 @@ import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.util.SignalKConstants;
 
-public class SubscribeTest {
+public class NMEATest {
 	ArtemisServer server;
-	private static Logger logger = LogManager.getLogger(SubscribeTest.class);
+	private static Logger logger = LogManager.getLogger(NMEATest.class);
 
 	@Before
 	public void startServer() throws Exception {
@@ -72,68 +72,41 @@ public class SubscribeTest {
 	}
 
 	@Test
-	public void shouldStartNetty() throws Exception {
-		ClientSession session = Util.getLocalhostClientSession("admin", "admin");
-		
-		try {
-			session.start();
-			ClientProducer producer = session.createProducer();
-
-			for (String line : FileUtils.readLines(new File("./src/test/resources/samples/signalkKeesLog.txt"))) {
-
-				ClientMessage message = session.createMessage(true);
-				message.getBodyBuffer().writeString(line);
-				producer.send("incoming.delta", message);
-				
-			}
-			producer.close();
-		}finally{
-			session.close();
-		}
-		CountDownLatch latch = new CountDownLatch(1);
-		latch.await(60, TimeUnit.SECONDS);
-	}
-	@Test
 	public void shouldReadPartialKeysForGuest() throws Exception {
 		readPartialKeys("guest", 292);
 	}
-	
+
 	@Test
 	public void shouldReadPartialKeysForAdmin() throws Exception {
 		readPartialKeys("admin", 412);
 	}
 
-	private void readPartialKeys(String user, int expected) throws Exception{
+	private void readPartialKeys(String user, int expected) throws Exception {
 		ClientSession session = Util.getLocalhostClientSession(user, user);
-	
+
 		try {
 			session.start();
 			ClientProducer producer = session.createProducer();
 
-			
-			int c = 0;
-			for (String line : FileUtils.readLines(new File("./src/test/resources/samples/signalkKeesLog.txt"))) {
+			ClientMessage message = session.createMessage(true);
+			String line = "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78";
+			message.getBodyBuffer().writeString(line);
+			producer.send("incoming.delta", message);
+			if (logger.isDebugEnabled())
+				logger.debug("Sent:" + message.getMessageID() + ":" + line);
 
-				ClientMessage message = session.createMessage(true);
-				message.getBodyBuffer().writeString(line);
-				producer.send("incoming.delta", message);
-				if (logger.isDebugEnabled())
-					logger.debug("Sent:" + message.getMessageID() + ":" + line);
-				c++;
-
-			}
-			//subscribe, and wait for some responses, should be 1 per second
+			// subscribe, and wait for some responses, should be 1 per second
 			ClientMessage subMsg = session.createMessage(true);
-			Json msg = getJson("vessels.urn:mrn:imo:mmsi:123456789", "navigation", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
+			Json msg = getJson("vessels.self", "navigation", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
 			subMsg.getBodyBuffer().writeString(msg.toString());
 			session.createTemporaryQueue("outgoing.reply", "temp-001");
 			subMsg.putStringProperty("AMQ_REPLY_Q", "temp-001");
 			producer.send("incoming.delta", subMsg);
 			producer.close();
-			
+
 			CountDownLatch latch = new CountDownLatch(1);
 			latch.await(3, TimeUnit.SECONDS);
-			
+
 			int d = 0; // now read partial
 			ClientConsumer consumer = session.createConsumer("temp-001", false);
 			ClientMessage msgReceived = null;
@@ -146,14 +119,7 @@ public class SubscribeTest {
 				d++;
 			}
 
-			
 			consumer.close();
-
-			// session.close();
-			// if(logger.isDebugEnabled())logger.debug("Sent = " + c + ", recd="
-			// +
-			// d);
-			assertEquals(1000, c);
 			assertEquals(expected, d);
 		} finally {
 			session.close();

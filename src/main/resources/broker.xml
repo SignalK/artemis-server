@@ -45,6 +45,11 @@
 				<auto-create-queues>true</auto-create-queues>
 				<auto-delete-queues>true</auto-delete-queues>
 			</address-setting>
+			<address-setting match="sources.#">
+				<last-value-queue>true</last-value-queue>
+				<auto-create-queues>true</auto-create-queues>
+				<auto-delete-queues>true</auto-delete-queues>
+			</address-setting>
 
 			<address-setting match="config.#">
 				<last-value-queue>true</last-value-queue>
@@ -53,6 +58,10 @@
 			</address-setting>
 		</address-settings>
 		<queues>
+			<queue name="sources">
+				<address>sources.#</address>
+				<durable>true</durable>
+			</queue>
 			<queue name="vessels">
 				<address>vessels.#</address>
 				<durable>true</durable>
@@ -71,9 +80,18 @@
 			</queue>
 		</queues>
 		<remoting-incoming-interceptors>
-			<class-name>nz.co.fortytwo.signalk.artemis.intercept.SessionInterceptor</class-name>
+			<class-name>nz.co.fortytwo.signalk.artemis.intercept.SessionInterceptor
+			</class-name>
 		</remoting-incoming-interceptors>
 		<diverts>
+			<divert name="incoming-nmea-0183-divert">
+				<address>incoming.delta</address>
+				<forwarding-address>incoming.processed</forwarding-address>
+				<transformer-class-name>
+					nz.co.fortytwo.signalk.artemis.divert.NMEAMsg
+				</transformer-class-name>
+				<exclusive>true</exclusive>
+			</divert>
 			<divert name="incoming-delta-divert">
 				<address>incoming.delta</address>
 				<forwarding-address>incoming.processed</forwarding-address>
@@ -83,6 +101,7 @@
 				</transformer-class-name>
 				<exclusive>true</exclusive>
 			</divert>
+
 			<divert name="incoming-subscribe-divert">
 				<address>incoming.delta</address>
 				<forwarding-address>incoming.processed</forwarding-address>
@@ -109,6 +128,15 @@
 				<permission type="send" roles="guest" />
 			</security-setting>
 			<security-setting match="vessels.#">
+				<permission type="createDurableQueue" roles="guest" />
+				<permission type="deleteDurableQueue" roles="guest" />
+				<permission type="createNonDurableQueue" roles="guest" />
+				<permission type="deleteNonDurableQueue" roles="guest" />
+				<permission type="consume" roles="guest" />
+				<permission type="send" roles="guest" />
+				<permission type="browse" roles="guest" />
+			</security-setting>
+			<security-setting match="sources.#">
 				<permission type="createDurableQueue" roles="guest" />
 				<permission type="deleteDurableQueue" roles="guest" />
 				<permission type="createNonDurableQueue" roles="guest" />
