@@ -58,6 +58,10 @@
 			</address-setting>
 		</address-settings>
 		<queues>
+			<queue name="config">
+				<address>config.#</address>
+				<durable>true</durable>
+			</queue>
 			<queue name="sources">
 				<address>sources.#</address>
 				<durable>true</durable>
@@ -101,6 +105,15 @@
 				</transformer-class-name>
 				<exclusive>true</exclusive>
 			</divert>
+			<divert name="incoming-full-divert">
+				<address>incoming.delta</address>
+				<forwarding-address>incoming.processed</forwarding-address>
+				<!-- <filter string="office='New York'" /> -->
+				<transformer-class-name>
+					nz.co.fortytwo.signalk.artemis.divert.FullMsg
+				</transformer-class-name>
+				<exclusive>true</exclusive>
+			</divert>
 
 			<divert name="incoming-subscribe-divert">
 				<address>incoming.delta</address>
@@ -135,6 +148,15 @@
 				<permission type="consume" roles="guest" />
 				<permission type="send" roles="guest" />
 				<permission type="browse" roles="guest" />
+			</security-setting>
+			<security-setting match="config.#">
+				<permission type="createDurableQueue" roles="admin" />
+				<permission type="deleteDurableQueue" roles="admin" />
+				<permission type="createNonDurableQueue" roles="admin" />
+				<permission type="deleteNonDurableQueue" roles="admin" />
+				<permission type="consume" roles="admin" />
+				<permission type="send" roles="admin" />
+				<permission type="browse" roles="admin" />
 			</security-setting>
 			<security-setting match="sources.#">
 				<permission type="createDurableQueue" roles="guest" />

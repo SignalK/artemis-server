@@ -1,5 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.divert;
 
+import static nz.co.fortytwo.signalk.util.SignalKConstants.CONFIG;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.CONTEXT;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.PATH;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.PUT;
@@ -84,7 +85,7 @@ public class UnpackUpdateMsg implements Transformer {
 		if (node.has(vessels))
 			return message;
 		// deal with diff format
-		if (node.has(CONTEXT) && (node.has(UPDATES) || node.has(PUT))) {
+		if (node.has(CONTEXT) && (node.has(UPDATES) || node.has(PUT) || node.has(CONFIG))) {
 			// if(logger.isDebugEnabled())logger.debug("processing delta "+node
 			// );
 
@@ -92,30 +93,35 @@ public class UnpackUpdateMsg implements Transformer {
 			String ctx = node.at(CONTEXT).asString();
 			ctx = Util.fixSelfKey(ctx);
 			// Json pathNode = temp.addNode(path);
-			Json updates = node.at(UPDATES);
-			if (updates == null)
-				updates = node.at(PUT);
-			if (updates == null)
-				return message;
-
-			for (Json update : updates.asJsonList()) {
-
-				try {
-					parseUpdate(update, ctx, message);
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-
-				}
-
-			}
-
-			// if(logger.isDebugEnabled())logger.debug("DeltaToMapConverter
-			// processed diff "+temp );
+			
+			parseUpdates(node.at(UPDATES), ctx, message);
+			parseUpdates(node.at(PUT), ctx, message);
+			parseUpdates(node.at(CONFIG), ctx, message);
+			
 			return message;
 		}
 		return message;
 
+	}
+
+	/**
+	 * Unpack (if not null), and process each entry.
+	 * @param updates
+	 * @param ctx
+	 * @param message
+	 */
+	private void parseUpdates(Json updates, String ctx, ServerMessage message) {
+		if (updates == null) return;
+		for (Json update : updates.asJsonList()) {
+
+			try {
+				parseUpdate(update, ctx, message);
+			} catch (Exception e) {
+				logger.error(e.getMessage(),e);
+			}
+
+		}
+		
 	}
 
 	protected void parseUpdate(Json update, String ctx, ServerMessage m1) throws Exception {
@@ -149,39 +155,23 @@ public class UnpackUpdateMsg implements Transformer {
 
 				String ts = update.at(timestamp).asString();
 
-				sendMsg(ctx + dot + key + dot + timestamp, ts, sess);
+				Util.sendMsg(ctx + dot + key + dot + timestamp, ts, sess);
 			}
 		}
 
 	}
 
-	private void sendMsg(String key, Object ts, ServerSession sess) throws Exception {
-		
-		ServerMessage m2 = new ServerMessageImpl(new Double(Math.random()).longValue(),64);
-		m2.writeBodyBufferString(ts.toString());
-		m2.setAddress(new SimpleString(key));
-		m2.putStringProperty("_AMQ_LVQ_NAME", key);
-		//m2.putStringProperty(Message.HDR_VALIDATED_USER.toString(), sess.getUsername());
-		
-		//if(logger.isDebugEnabled())logger.debug("Processing dup: user="+sess.getUsername()+", " + m2);
-		try {
-			sess.send(m2, true);
-		}catch( ActiveMQSecurityException se){
-			logger.warn(se.getMessage());
-		} catch (Exception e1) {
-			logger.error(e1.getMessage(),e1);
-		}
-	}
+	
 
 	protected void addRecursively(String ctx, Json j, ServerSession sess) throws Exception {
 		if (j == null)
 			return;
 		if (j.isNull()) {
-			sendMsg(ctx, ObjectUtils.NULL, sess);
+			Util.sendMsg(ctx, ObjectUtils.NULL, sess);
 		} else if (j.isPrimitive()) {
-			sendMsg(ctx + dot + j.getParentKey(), j.getValue(), sess);
+			Util.sendMsg(ctx + dot + j.getParentKey(), j.getValue(), sess);
 		} else if (j.isArray()) {
-			sendMsg(ctx + dot + j.getParentKey(), j, sess);
+			Util.sendMsg(ctx + dot + j.getParentKey(), j, sess);
 		} else {
 			for (Json child : j.asJsonMap().values()) {
 				if (value.equals(j.getParentKey())) {

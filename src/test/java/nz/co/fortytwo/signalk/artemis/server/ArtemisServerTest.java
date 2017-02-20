@@ -2,6 +2,7 @@ package nz.co.fortytwo.signalk.artemis.server;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.util.HashMap;
@@ -35,15 +36,16 @@ import nz.co.fortytwo.signalk.model.SignalKModel;
 import nz.co.fortytwo.signalk.util.SignalKConstants;
 
 public class ArtemisServerTest {
-	 ArtemisServer server;
-	 private static Logger logger = LogManager.getLogger(ArtemisServerTest.class);
+	ArtemisServer server;
+	private static Logger logger = LogManager.getLogger(ArtemisServerTest.class);
+
 	@Before
-	public  void startServer() throws Exception {
+	public void startServer() throws Exception {
 		server = new ArtemisServer();
 	}
-	
+
 	@After
-	public  void stopServer() throws Exception {
+	public void stopServer() throws Exception {
 		server.embedded.stop();
 	}
 
@@ -54,7 +56,8 @@ public class ArtemisServerTest {
 		session.start();
 		// session.createAddress(new SimpleString("vessels.#"),
 		// RoutingType.MULTICAST, true);
-		//session.createQueue("vessels.#", RoutingType.MULTICAST, "vessels", true);
+		// session.createQueue("vessels.#", RoutingType.MULTICAST, "vessels",
+		// true);
 
 		ClientProducer producer = session.createProducer("vessels.example");
 
@@ -78,7 +81,8 @@ public class ArtemisServerTest {
 		ClientMessage msgReceived = consumer.receive(10);
 		String recv = msgReceived.getBodyBuffer().readString();
 		consumer.close();
-		if(logger.isDebugEnabled())logger.debug("message = " + recv);
+		if (logger.isDebugEnabled())
+			logger.debug("message = " + recv);
 		assertEquals("Hello2", recv);
 		consumer = session.createConsumer("vessels", true);
 		msgReceived = consumer.receive(10);
@@ -88,8 +92,10 @@ public class ArtemisServerTest {
 		msgReceived = consumer.receive(10);
 		assertNotNull(msgReceived);
 		assertEquals("Hello3", msgReceived.getBodyBuffer().readString());
-		if(logger.isDebugEnabled())logger.debug("message3 = " + msgReceived.getAddress());
-		if(logger.isDebugEnabled())logger.debug("message3 = " + msgReceived.toString());
+		if (logger.isDebugEnabled())
+			logger.debug("message3 = " + msgReceived.getAddress());
+		if (logger.isDebugEnabled())
+			logger.debug("message3 = " + msgReceived.toString());
 		session.close();
 	}
 
@@ -98,10 +104,10 @@ public class ArtemisServerTest {
 
 		ClientSession session = getVmSession("guest", "guest");
 		session.start();
-		
+
 		ClientSession session2 = getVmSession("admin", "admin");
 		session2.start();
-		
+
 		ClientProducer producer = session.createProducer();
 		int c = 0;
 		for (String line : FileUtils.readLines(new File("./src/test/resources/samples/signalkKeesLog.txt"))) {
@@ -109,7 +115,8 @@ public class ArtemisServerTest {
 			ClientMessage message = session.createMessage(true);
 			message.getBodyBuffer().writeString(line);
 			producer.send("incoming.delta", message);
-			if(logger.isDebugEnabled())logger.debug("Sent:"  + message.getMessageID()+":"+ line);
+			if (logger.isDebugEnabled())
+				logger.debug("Sent:" + message.getMessageID() + ":" + line);
 			c++;
 
 		}
@@ -120,13 +127,16 @@ public class ArtemisServerTest {
 		ClientMessage msgReceived = null;
 		while ((msgReceived = consumer.receive(10)) != null) {
 			String recv = msgReceived.getBodyBuffer().readString();
-			if(logger.isDebugEnabled())logger.debug("message = " + msgReceived.getAddress() + ", " + recv);
-			// if(logger.isDebugEnabled())logger.debug("message = " +msgReceived.toString());
+			if (logger.isDebugEnabled())
+				logger.debug("message = " + msgReceived.getAddress() + ", " + recv);
+			// if(logger.isDebugEnabled())logger.debug("message = "
+			// +msgReceived.toString());
 			d++;
 		}
 		consumer.close();
 		session.close();
-		if(logger.isDebugEnabled())logger.debug("Sent = " + c + ", recd=" + d);
+		if (logger.isDebugEnabled())
+			logger.debug("Sent = " + c + ", recd=" + d);
 		assertEquals(1000, c);
 		assertEquals(11, d);
 	}
@@ -136,10 +146,10 @@ public class ArtemisServerTest {
 
 		ClientSession session = getVmSession("admin", "admin");
 		session.start();
-		
+
 		ClientSession session2 = getVmSession("admin", "admin");
 		session2.start();
-		
+
 		ClientProducer producer = session.createProducer();
 		int c = 0;
 		for (String line : FileUtils.readLines(new File("./src/test/resources/samples/signalkKeesLog.txt"))) {
@@ -147,7 +157,8 @@ public class ArtemisServerTest {
 			ClientMessage message = session.createMessage(true);
 			message.getBodyBuffer().writeString(line);
 			producer.send("incoming.delta", message);
-			if(logger.isDebugEnabled())logger.debug("Sent:"  + message.getMessageID()+":"+ line);
+			if (logger.isDebugEnabled())
+				logger.debug("Sent:" + message.getMessageID() + ":" + line);
 			c++;
 
 		}
@@ -158,23 +169,80 @@ public class ArtemisServerTest {
 		ClientMessage msgReceived = null;
 		while ((msgReceived = consumer.receive(10)) != null) {
 			String recv = msgReceived.getBodyBuffer().readString();
-			if(logger.isDebugEnabled())logger.debug("message = "  + msgReceived.getMessageID()+":" + msgReceived.getAddress() + ", " + recv);
-			// if(logger.isDebugEnabled())logger.debug("message = " +msgReceived.toString());
+			if (logger.isDebugEnabled())
+				logger.debug("message = " + msgReceived.getMessageID() + ":" + msgReceived.getAddress() + ", " + recv);
+			// if(logger.isDebugEnabled())logger.debug("message = "
+			// +msgReceived.toString());
 			d++;
 		}
 		consumer.close();
 		session.close();
-		if(logger.isDebugEnabled())logger.debug("Sent = " + c + ", recd=" + d);
+		if (logger.isDebugEnabled())
+			logger.debug("Sent = " + c + ", recd=" + d);
 		assertEquals(1000, c);
 		assertEquals(16, d);
 	}
+
+	@Test
+	public void shouldReadConfigForAdmin() throws Exception {
+		shouldReadConfigForUser("admin", 36);
+	}
+	
+	@Test
+	public void shouldReadConfigForGuest() throws Exception {
+		try{
+			shouldReadConfigForUser("guest", 0);
+		}catch (ActiveMQSecurityException se){
+			return;
+		}
+		fail("Shoud throw security exception");
+	}
+	
+	
+	public void shouldReadConfigForUser(String user, int items) throws Exception {
+		ClientSession session = getVmSession(user, user);
+		session.start();
+
+		ClientProducer producer = session.createProducer();
+		int c = 0;
+
+		String config = FileUtils.readFileToString(new File("./src/test/resources/samples/signalk-config.json"));
+		ClientMessage message = session.createMessage(true);
+		message.getBodyBuffer().writeString(config);
+		producer.send("incoming.delta", message);
+		if (logger.isDebugEnabled())
+			logger.debug("Sent:" + message.getMessageID() + ":" + config);
+
+		int d = 0;
+		// now read config
+		ClientConsumer consumer = session.createConsumer("config",
+				"_AMQ_LVQ_NAME like 'config.%'", true);
+		ClientMessage msgReceived = null;
+		while ((msgReceived = consumer.receive(10)) != null) {
+			String recv = msgReceived.getBodyBuffer().readString();
+			if (logger.isDebugEnabled())
+				logger.debug("message = " + msgReceived.getMessageID() + ":" + msgReceived.getAddress() + ", " + recv);
+			// if(logger.isDebugEnabled())logger.debug("message = "
+			// +msgReceived.toString());
+			d++;
+		}
+		consumer.close();
+		session.close();
+		if (logger.isDebugEnabled())
+			logger.debug("Sent = " + c + ", recd=" + d);
+		
+		assertEquals(items, d);
+	}
+	
+	
 
 	@Test
 	public void checkSimpleTCPConnection() throws Exception {
 
 		ClientSession session = getLocalhostClientSession("guest", "guest");
 
-		//session.createQueue("vessels.#", RoutingType.ANYCAST, "vessels", true);
+		// session.createQueue("vessels.#", RoutingType.ANYCAST, "vessels",
+		// true);
 
 		ClientProducer producer = session.createProducer("vessels.example");
 
@@ -191,14 +259,13 @@ public class ArtemisServerTest {
 		ClientMessage msgReceived = consumer.receive();
 
 		String recv = msgReceived.getBodyBuffer().readString();
-		if(logger.isDebugEnabled())logger.debug("message = " + recv);
+		if (logger.isDebugEnabled())
+			logger.debug("message = " + recv);
 		assertEquals("Hello", recv);
 		msgReceived = consumer1.receive(100);
 		assertNotNull(msgReceived);
 		session.close();
 	}
-	
-	
 
 	public ClientSession getVmSession(String user, String password) throws Exception {
 		ClientSessionFactory nettyFactory = ActiveMQClient
