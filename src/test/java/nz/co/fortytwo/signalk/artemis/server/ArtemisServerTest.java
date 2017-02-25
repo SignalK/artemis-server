@@ -55,10 +55,6 @@ public class ArtemisServerTest {
 
 		ClientSession session = Util.getVmSession("guest", "guest");
 		session.start();
-		// session.createAddress(new SimpleString("vessels.#"),
-		// RoutingType.MULTICAST, true);
-		// session.createQueue("vessels.#", RoutingType.MULTICAST, "vessels",
-		// true);
 
 		ClientProducer producer = session.createProducer("vessels.example");
 
@@ -231,9 +227,6 @@ public class ArtemisServerTest {
 	public void checkSimpleTCPConnection() throws Exception {
 
 		ClientSession session = Util.getLocalhostClientSession("guest", "guest");
-
-		// session.createQueue("vessels.#", RoutingType.ANYCAST, "vessels",
-		// true);
 
 		ClientProducer producer = session.createProducer("vessels.example");
 

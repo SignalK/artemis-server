@@ -16,9 +16,6 @@ package nz.co.fortytwo.signalk.artemis.server;
  * limitations under the License.
  */
 
-import java.io.File;
-import java.io.IOException;
-
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
@@ -27,16 +24,13 @@ import org.apache.activemq.artemis.core.server.ActiveMQServer;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.activemq.artemis.spi.core.security.ActiveMQSecurityManager;
 import org.apache.activemq.artemis.spi.core.security.ActiveMQSecurityManagerImpl;
-import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.jmx.Server;
 import org.atmosphere.cpr.ApplicationConfig;
 import org.atmosphere.nettosphere.Config;
 import org.atmosphere.nettosphere.Nettosphere;
 
 import mjson.Json;
-import nz.co.fortytwo.signalk.artemis.divert.UnpackUpdateMsg;
 import nz.co.fortytwo.signalk.artemis.service.SignalkManagedService;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
@@ -131,5 +125,13 @@ public final class ArtemisServer {
 
 	public static ActiveMQServer getActiveMQServer() {
 		return embedded.getActiveMQServer();
+	}
+	
+	
+	
+	public static void main(String[] args) throws Exception {
+		
+		new ArtemisServer();
+
 	}
 }
