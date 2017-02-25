@@ -109,7 +109,7 @@ public class FullMsg implements Transformer {
 		if (node.has(CONTEXT))
 			return message;
 		String sessionId = message.getStringProperty("AMQ_session_id");
-		ServerSession sess = ArtemisServer.embedded.getActiveMQServer().getSessionByID(sessionId);
+		ServerSession sess = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
 		// deal with full format
 		if (node.has(vessels) || node.has(CONFIG) || node.has(resources)) {
 			if (logger.isDebugEnabled())

@@ -6,7 +6,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
-import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -36,7 +35,7 @@ public class SubscribeTest {
 
 	@After
 	public void stopServer() throws Exception {
-		server.embedded.stop();
+		server.stop();
 	}
 
 	@Test
@@ -53,8 +52,6 @@ public class SubscribeTest {
 			Json msg = getJson("vessels." + SignalKConstants.self, "navigation", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
 			message.getBodyBuffer().writeString(msg.toString());
 			producer.send(message);
-
-			ClientSession clientSession = session.start();
 
 			ClientConsumer consumer = session.createConsumer("vessels", true);
 			ClientConsumer consumer1 = session.createConsumer("vessels", true);

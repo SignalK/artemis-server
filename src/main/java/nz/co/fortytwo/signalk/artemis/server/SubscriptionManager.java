@@ -197,8 +197,7 @@ public class SubscriptionManager {
 			}
 			s.setActive(true);
 			if (!hasExistingRoute(s)) {
-				// RouteManager routeManager =
-				// RouteManagerFactory.getInstance();
+				// RouteManager routeManager = RouteManagerFactory.getInstance();
 				// SignalkRouteFactory.configureSubscribeTimer(routeManager, s);
 			}
 

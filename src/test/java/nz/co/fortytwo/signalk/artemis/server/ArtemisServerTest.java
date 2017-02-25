@@ -31,6 +31,7 @@ import org.junit.Test;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.divert.UnpackUpdateMsg;
 import nz.co.fortytwo.signalk.artemis.intercept.SessionInterceptor;
+import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.handler.DeltaToMapConverter;
 import nz.co.fortytwo.signalk.model.SignalKModel;
 import nz.co.fortytwo.signalk.util.SignalKConstants;
@@ -46,13 +47,13 @@ public class ArtemisServerTest {
 
 	@After
 	public void stopServer() throws Exception {
-		server.embedded.stop();
+		server.stop();
 	}
 
 	@Test
 	public void checkSimpleVMConnection() throws Exception {
 
-		ClientSession session = getVmSession("guest", "guest");
+		ClientSession session = Util.getVmSession("guest", "guest");
 		session.start();
 		// session.createAddress(new SimpleString("vessels.#"),
 		// RoutingType.MULTICAST, true);
@@ -102,10 +103,10 @@ public class ArtemisServerTest {
 	@Test
 	public void shouldReadPartialKeysForGuest() throws Exception {
 
-		ClientSession session = getVmSession("guest", "guest");
+		ClientSession session = Util.getVmSession("guest", "guest");
 		session.start();
 
-		ClientSession session2 = getVmSession("admin", "admin");
+		ClientSession session2 = Util.getVmSession("admin", "admin");
 		session2.start();
 
 		ClientProducer producer = session.createProducer();
@@ -144,10 +145,10 @@ public class ArtemisServerTest {
 	@Test
 	public void shouldReadPartialKeysForAdmin() throws Exception {
 
-		ClientSession session = getVmSession("admin", "admin");
+		ClientSession session = Util.getVmSession("admin", "admin");
 		session.start();
 
-		ClientSession session2 = getVmSession("admin", "admin");
+		ClientSession session2 = Util.getVmSession("admin", "admin");
 		session2.start();
 
 		ClientProducer producer = session.createProducer();
@@ -189,29 +190,19 @@ public class ArtemisServerTest {
 	}
 	
 	@Test
-	public void shouldReadConfigForGuest() throws Exception {
+	public void shouldNotReadConfigForGuest() throws Exception {
 		try{
 			shouldReadConfigForUser("guest", 0);
 		}catch (ActiveMQSecurityException se){
 			return;
 		}
-		fail("Shoud throw security exception");
+		fail("Should throw security exception");
 	}
 	
 	
 	public void shouldReadConfigForUser(String user, int items) throws Exception {
-		ClientSession session = getVmSession(user, user);
+		ClientSession session = Util.getVmSession(user, user);
 		session.start();
-
-		ClientProducer producer = session.createProducer();
-		int c = 0;
-
-		String config = FileUtils.readFileToString(new File("./src/test/resources/samples/signalk-config.json"));
-		ClientMessage message = session.createMessage(true);
-		message.getBodyBuffer().writeString(config);
-		producer.send("incoming.delta", message);
-		if (logger.isDebugEnabled())
-			logger.debug("Sent:" + message.getMessageID() + ":" + config);
 
 		int d = 0;
 		// now read config
@@ -229,7 +220,7 @@ public class ArtemisServerTest {
 		consumer.close();
 		session.close();
 		if (logger.isDebugEnabled())
-			logger.debug("Sent = " + c + ", recd=" + d);
+			logger.debug("Recd=" + d);
 		
 		assertEquals(items, d);
 	}
@@ -239,7 +230,7 @@ public class ArtemisServerTest {
 	@Test
 	public void checkSimpleTCPConnection() throws Exception {
 
-		ClientSession session = getLocalhostClientSession("guest", "guest");
+		ClientSession session = Util.getLocalhostClientSession("guest", "guest");
 
 		// session.createQueue("vessels.#", RoutingType.ANYCAST, "vessels",
 		// true);
@@ -267,23 +258,6 @@ public class ArtemisServerTest {
 		session.close();
 	}
 
-	public ClientSession getVmSession(String user, String password) throws Exception {
-		ClientSessionFactory nettyFactory = ActiveMQClient
-				.createServerLocatorWithoutHA(new TransportConfiguration(InVMConnectorFactory.class.getName()))
-				.createSessionFactory();
-		return nettyFactory.createSession(user, password, false, true, true, false, 10);
-	}
-
-	public ClientSession getLocalhostClientSession(String user, String password) throws Exception {
-		Map<String, Object> connectionParams = new HashMap<String, Object>();
-
-		connectionParams.put(TransportConstants.PORT_PROP_NAME, 61617);
-
-		ClientSessionFactory nettyFactory = ActiveMQClient
-				.createServerLocatorWithoutHA(
-						new TransportConfiguration(NettyConnectorFactory.class.getName(), connectionParams))
-				.createSessionFactory();
-		return nettyFactory.createSession(user, password, false, true, true, false, 10);
-	}
+	
 
 }

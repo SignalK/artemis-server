@@ -91,7 +91,7 @@ public class NMEAMsg implements Transformer {
 	public ServerMessage transform(ServerMessage message) {
 		if(!"0183".equals(message.getStringProperty("AMQ_content_type")))return message;
 		String sessionId = message.getStringProperty("AMQ_session_id");
-		ServerSession sess = ArtemisServer.embedded.getActiveMQServer().getSessionByID(sessionId);
+		ServerSession sess = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
 		String bodyStr = message.getBodyBuffer().readString();
 		logger.debug("Message: " +bodyStr);
 		

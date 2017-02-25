@@ -129,7 +129,7 @@ public class UnpackUpdateMsg implements Transformer {
 		// DateTime timestamp = DateTime.parse(ts,fmt);
 		if(logger.isDebugEnabled())logger.debug("message m1 = "  + m1.getMessageID()+":" + m1.getAddress() + ", " + m1.getPropertyNames());
 		String sessionId = m1.getStringProperty("AMQ_session_id");
-		ServerSession sess = ArtemisServer.embedded.getActiveMQServer().getSessionByID(sessionId);
+		ServerSession sess = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
 		if(logger.isDebugEnabled())logger.debug("SessionId:"+sessionId+", found "+sess);
 		// grab values and add
 		Json array = update.at(values);

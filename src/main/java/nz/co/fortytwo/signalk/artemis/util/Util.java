@@ -9,9 +9,16 @@ import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels_dot_self_dot;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InterfaceAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.regex.Pattern;
 
 import org.apache.activemq.artemis.api.core.ActiveMQSecurityException;
@@ -27,10 +34,15 @@ import org.apache.activemq.artemis.core.server.ServerMessage;
 import org.apache.activemq.artemis.core.server.ServerSession;
 import org.apache.activemq.artemis.core.server.impl.ServerMessageImpl;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import mjson.Json;
+import nz.co.fortytwo.signalk.util.ConfigConstants;
 import nz.co.fortytwo.signalk.util.JsonSerializer;
+import nz.co.fortytwo.signalk.util.SignalKConstants;
+
 
 public class Util {
 
@@ -108,18 +120,123 @@ public class Util {
 		}
 
 	}
+	
+	public static Json load(){
+		File jsonFile = new File(SIGNALK_MODEL_SAVE_FILE);
+		logger.info("Checking for previous state: "+jsonFile.getAbsolutePath());
+		if(jsonFile.exists()){
+			try{
+				Json temp = Json.read(jsonFile.toURI().toURL());
+				logger.info("   Saved state loaded from "+SIGNALK_MODEL_SAVE_FILE);
+				return temp;
+			}catch(Exception ex){
+				logger.error(ex.getMessage());
+			}
+		}else{
+			logger.info("   Saved state not found");
+		}
+		return Json.nil();
+	}
+	public static Json loadConfig() throws IOException{
+		File jsonFile = new File(SIGNALK_CFG_SAVE_FILE);
+		logger.info("Checking for previous config: "+jsonFile.getAbsolutePath());
+		
+		if(!jsonFile.exists()){
+			logger.info("   Saved config not found, creating default");
+			ConcurrentSkipListMap<String, Object> model = new ConcurrentSkipListMap<>();
+			setDefaults(model);
+			//write a new one for next time
+			//create a uuid
+			String self = SignalKConstants.URN_UUID+UUID.randomUUID().toString();
+			model.put(ConfigConstants.UUID, self);
+			saveConfig(model);
+			
+		}
+		Json temp = Json.read(jsonFile.toURI().toURL());
+		return temp;
+	}
 
+	/**
+	 * Config defaults
+	 * 
+	 * @param props
+	 */
+	public static void setDefaults(SortedMap<String, Object> model) {
+		// populate sensible defaults here
+		model.put(ConfigConstants.UUID, "self");
+		model.put(ConfigConstants.WEBSOCKET_PORT, 3000);
+		model.put(ConfigConstants.REST_PORT, 8080);
+		model.put(ConfigConstants.STORAGE_ROOT, "./storage/");
+		model.put(ConfigConstants.STATIC_DIR, "./signalk-static/");
+		model.put(ConfigConstants.MAP_DIR, "./mapcache/");
+		model.put(ConfigConstants.DEMO, false);
+		model.put(ConfigConstants.STREAM_URL,
+				"motu.log");
+		model.put(ConfigConstants.USBDRIVE, "/media/usb0");
+		model.put(
+				ConfigConstants.SERIAL_PORTS,
+				"[\"/dev/ttyUSB0\",\"/dev/ttyUSB1\",\"/dev/ttyUSB2\",\"/dev/ttyACM0\",\"/dev/ttyACM1\",\"/dev/ttyACM2\"]");
+		if (SystemUtils.IS_OS_WINDOWS) {
+			model.put(ConfigConstants.SERIAL_PORTS,
+					"[\"COM1\",\"COM2\",\"COM3\",\"COM4\"]");
+		}
+		model.put(ConfigConstants.SERIAL_PORT_BAUD, 38400);
+		model.put(ConfigConstants.ENABLE_SERIAL, true);
+		model.put(ConfigConstants.TCP_PORT, 55555);
+		model.put(ConfigConstants.UDP_PORT, 55554);
+		model.put(ConfigConstants.TCP_NMEA_PORT, 55557);
+		model.put(ConfigConstants.UDP_NMEA_PORT, 55556);
+		model.put(ConfigConstants.STOMP_PORT, 61613);
+		model.put(ConfigConstants.MQTT_PORT, 1883);
+		model.put(ConfigConstants.CLOCK_source, "system");
+		
+		model.put(ConfigConstants.HAWTIO_PORT, 8000);
+		model.put(ConfigConstants.HAWTIO_AUTHENTICATE, false);
+		model.put(ConfigConstants.HAWTIO_CONTEXT, "/hawtio");
+		model.put(ConfigConstants.HAWTIO_WAR,
+				"./hawtio/hawtio-default-offline-1.4.48.war");
+		model.put(ConfigConstants.HAWTIO_START, false);
+		
+		model.put(ConfigConstants.JOLOKIA_PORT, 8001);
+		model.put(ConfigConstants.JOLOKIA_AUTHENTICATE, false);
+		model.put(ConfigConstants.JOLOKIA_CONTEXT, "/jolokia");
+		model.put(ConfigConstants.JOLOKIA_WAR,
+				"./hawtio/jolokia-war-1.3.3.war");
+		
+		model.put(ConfigConstants.VERSION, "v1.0.0");
+		model.put(ConfigConstants.ALLOW_INSTALL, true);
+		model.put(ConfigConstants.ALLOW_UPGRADE, true);
+		model.put(ConfigConstants.GENERATE_NMEA0183, true);
+		model.put(ConfigConstants.ZEROCONF_AUTO, true);
+		model.put(ConfigConstants.START_MQTT, true);
+		model.put(ConfigConstants.START_STOMP, true);
+		//control config, only local networks
+		Json ips = Json.array();
+		Enumeration<NetworkInterface> interfaces;
+		try {
+			interfaces = NetworkInterface.getNetworkInterfaces();
+			
+			while(interfaces.hasMoreElements()){
+				NetworkInterface i = interfaces.nextElement();
+				for( InterfaceAddress iAddress :i.getInterfaceAddresses()){
+					//ignore IPV6 for now.
+					if(iAddress.getAddress().getAddress().length>4)continue;
+					ips.add(iAddress.getAddress().getHostAddress()+"/"+ iAddress.getNetworkPrefixLength());
+				}
+			}
+			model.put(ConfigConstants.SECURITY_CONFIG, ips.toString());
+		} catch (SocketException e) {
+			logger.error(e.getMessage(),e);
+		}
+
+	}
 	public static void sendMsg(String key, Object ts, ServerSession sess) throws Exception {
 
 		ServerMessage m2 = new ServerMessageImpl(new Double(Math.random()).longValue(), 64);
 		m2.writeBodyBufferString(ts.toString());
 		m2.setAddress(new SimpleString(key));
 		m2.putStringProperty("_AMQ_LVQ_NAME", key);
-		// m2.putStringProperty(Message.HDR_VALIDATED_USER.toString(),
-		// sess.getUsername());
-
-		// if(logger.isDebugEnabled())logger.debug("Processing dup:
-		// user="+sess.getUsername()+", " + m2);
+		
 		try {
 			sess.send(m2, true);
 		} catch (ActiveMQSecurityException se) {

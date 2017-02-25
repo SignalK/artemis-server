@@ -133,7 +133,7 @@ public class SubscribeMsg implements Transformer {
 		
 			String sessionId = m1.getStringProperty("AMQ_session_id");
 			String destination = m1.getStringProperty("AMQ_REPLY_Q");
-			ServerSession s = ArtemisServer.embedded.getActiveMQServer().getSessionByID(sessionId);
+			ServerSession s = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
 			
 			if(node.has(ConfigConstants.OUTPUT_TYPE)){
 				String outputType = node.at(ConfigConstants.OUTPUT_TYPE).asString();

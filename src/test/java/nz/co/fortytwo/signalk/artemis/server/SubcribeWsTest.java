@@ -74,7 +74,7 @@ public class SubcribeWsTest {
 
 	@After
 	public void stopServer() throws Exception {
-		server.embedded.stop();
+		server.stop();
 	}
 	@Test
     public void shouldGetWsUrl() throws Exception {

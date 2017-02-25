@@ -38,7 +38,7 @@ public class SessionInterceptor implements Interceptor {
 			// realPacket.toString());
 			Message msg = realPacket.getMessage();
 			msg.putStringProperty("AMQ_content_type", getContentType(msg));
-			for (ServerSession s : ArtemisServer.embedded.getActiveMQServer()
+			for (ServerSession s : ArtemisServer.getActiveMQServer()
 					.getSessions(connection.getID().toString())) {
 				if (s.getConnectionID().equals(connection.getID())) {
 					// if(logger.isDebugEnabled())logger.debug("Session
