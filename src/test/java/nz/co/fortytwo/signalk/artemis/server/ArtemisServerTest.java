@@ -47,7 +47,7 @@ public class ArtemisServerTest {
 
 	@After
 	public void stopServer() throws Exception {
-		server.stop();
+		if(server!=null)server.stop();
 	}
 
 	@Test
@@ -181,8 +181,44 @@ public class ArtemisServerTest {
 	}
 
 	@Test
+	public void shouldEditConfigForAdmin() throws Exception {
+		Map<String, Object> model = shouldReadConfigForUser("admin", 38);
+		//check String
+		assertEquals("system", model.get("config.server.clock.src"));
+		//check boolean
+		assertEquals("true", model.get("config.server.apps.install.allow"));
+		//check int
+		assertEquals("38400", model.get("config.server.serial.baud"));
+		
+		
+		
+		ClientSession session = Util.getVmSession("admin", "admin");
+
+		ClientProducer producer = session.createProducer();
+		session.start();
+		
+		ClientMessage message = session.createMessage(true);
+		message.getBodyBuffer().writeString("{ \"config\": { \"server\": { \"clock\": { \"src\": \"gps\" } } }}");
+		producer.send("incoming.delta", message);
+		
+		model = shouldReadConfigForUser("admin", 38);
+		assertEquals("gps", model.get("config.server.clock.src"));
+		
+		message = session.createMessage(true);
+		message.getBodyBuffer().writeString("{ \"config\": { \"server\": { \"clock\": { \"src\": \"system\" } } }}");
+		producer.send("incoming.delta", message);
+		
+		model = shouldReadConfigForUser("admin", 38);
+		assertEquals("system", model.get("config.server.clock.src"));
+		
+		session.close();
+		
+		
+	}
+	
+	@Test
 	public void shouldReadConfigForAdmin() throws Exception {
-		shouldReadConfigForUser("admin", 36);
+		shouldReadConfigForUser("admin", 38);
 	}
 	
 	@Test
@@ -196,7 +232,8 @@ public class ArtemisServerTest {
 	}
 	
 	
-	public void shouldReadConfigForUser(String user, int items) throws Exception {
+	public Map<String,Object> shouldReadConfigForUser(String user, int items) throws Exception {
+		Map<String,Object> model = new HashMap<>();
 		ClientSession session = Util.getVmSession(user, user);
 		session.start();
 
@@ -209,8 +246,7 @@ public class ArtemisServerTest {
 			String recv = msgReceived.getBodyBuffer().readString();
 			if (logger.isDebugEnabled())
 				logger.debug("message = " + msgReceived.getMessageID() + ":" + msgReceived.getAddress() + ", " + recv);
-			// if(logger.isDebugEnabled())logger.debug("message = "
-			// +msgReceived.toString());
+			model.put(msgReceived.getAddress().toString(), recv);
 			d++;
 		}
 		consumer.close();
@@ -219,6 +255,7 @@ public class ArtemisServerTest {
 			logger.debug("Recd=" + d);
 		
 		assertEquals(items, d);
+		return model;
 	}
 	
 	

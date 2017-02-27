@@ -50,7 +50,7 @@ public class Util {
 	private static Pattern selfMatch = Pattern.compile("\\.self\\.");
 	private static Pattern selfEndMatch = Pattern.compile("\\.self$");
 	private static final String SIGNALK_MODEL_SAVE_FILE = "./conf/self.json";
-	private static final String SIGNALK_CFG_SAVE_FILE = "./conf/signalk-config.json";
+	public static final String SIGNALK_CFG_SAVE_FILE = "./conf/signalk-config.json";
 
 	public static String fixSelfKey(String key) {
 		key = selfMatch.matcher(key).replaceAll(dot + self + dot);
@@ -137,13 +137,12 @@ public class Util {
 		}
 		return Json.nil();
 	}
-	public static Json loadConfig() throws IOException{
+	public static SortedMap<String, Object> loadConfig(SortedMap<String, Object> model) throws IOException{
 		File jsonFile = new File(SIGNALK_CFG_SAVE_FILE);
 		logger.info("Checking for previous config: "+jsonFile.getAbsolutePath());
 		
 		if(!jsonFile.exists()){
 			logger.info("   Saved config not found, creating default");
-			ConcurrentSkipListMap<String, Object> model = new ConcurrentSkipListMap<>();
 			setDefaults(model);
 			//write a new one for next time
 			//create a uuid
@@ -151,9 +150,12 @@ public class Util {
 			model.put(ConfigConstants.UUID, self);
 			saveConfig(model);
 			
+		}else{
+			Json json = Json.read(jsonFile.toURI().toURL());
+			JsonSerializer ser = new JsonSerializer();
+			model = ser.read(json);
 		}
-		Json temp = Json.read(jsonFile.toURI().toURL());
-		return temp;
+		return model;
 	}
 
 	/**
@@ -225,6 +227,11 @@ public class Util {
 				}
 			}
 			model.put(ConfigConstants.SECURITY_CONFIG, ips.toString());
+			
+			//default users
+			model.put(Config.ADMIN_USER, "admin");
+			model.put(Config.ADMIN_PWD, "admin");
+			
 		} catch (SocketException e) {
 			logger.error(e.getMessage(),e);
 		}
