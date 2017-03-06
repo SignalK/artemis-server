@@ -12,6 +12,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import nz.co.fortytwo.signalk.artemis.server.ArtemisServer;
+import nz.co.fortytwo.signalk.artemis.util.Config;
 
 /**
  * A way to acquire the session in a message
@@ -37,13 +38,13 @@ public class SessionInterceptor implements Interceptor {
 			// if(logger.isDebugEnabled())logger.debug("SessionSendMessage: " +
 			// realPacket.toString());
 			Message msg = realPacket.getMessage();
-			msg.putStringProperty("AMQ_content_type", getContentType(msg));
+			msg.putStringProperty(Config.AMQ_CONTENT_TYPE, getContentType(msg));
 			for (ServerSession s : ArtemisServer.getActiveMQServer()
 					.getSessions(connection.getID().toString())) {
 				if (s.getConnectionID().equals(connection.getID())) {
 					// if(logger.isDebugEnabled())logger.debug("Session
 					// is:"+s.getConnectionID()+", name:"+s.getName());
-					msg.putStringProperty("AMQ_session_id", s.getName());
+					msg.putStringProperty(Config.AMQ_SESSION_ID, s.getName());
 				} else {
 					// if(logger.isDebugEnabled())logger.debug("Session not
 					// found for:"+s.getConnectionID()+", name:"+s.getName());
@@ -78,7 +79,7 @@ public class SessionInterceptor implements Interceptor {
 			} else if (msg.startsWith("$")) {
 				return "0183";
 			} else if (msg.startsWith("{") && msg.endsWith("}")) {
-				return "JSON";
+				return Config.JSON;
 			}
 		}
 		return null;

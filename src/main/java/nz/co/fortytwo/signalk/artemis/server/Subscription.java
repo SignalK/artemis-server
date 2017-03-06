@@ -31,7 +31,9 @@ import static nz.co.fortytwo.signalk.util.SignalKConstants.timestamp;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -51,6 +53,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.eventbus.Subscribe;
 
 import io.netty.util.internal.ConcurrentSet;
+import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.model.event.PathEvent;
 //import nz.co.fortytwo.signalk.model.impl.SignalKModelFactory;
@@ -113,11 +117,33 @@ public class Subscription {
 							"_AMQ_LVQ_NAME like '"+getPath()+".%'", true);
 					
 					ClientMessage msgReceived = null;
+					HashMap< String, HashMap<String, HashMap<String,List<ClientMessage>>>> msgs = new HashMap<>();
 					while ((msgReceived = consumer.receive(10)) != null) {
-						if(logger.isDebugEnabled())logger.debug("message = "  + msgReceived.getMessageID()+":" + msgReceived.getAddress() + ", " + msgReceived.getBodyBuffer().readString());
-						producer.send(new SimpleString("outgoing.reply"),msgReceived);
-						if(logger.isDebugEnabled())logger.debug("Sent message = "  + msgReceived.getMessageID()+":" + msgReceived.getAddress() );
-						
+						if(logger.isDebugEnabled())logger.debug("message = "  + msgReceived.getMessageID()+":" + msgReceived.getAddress() );
+						String ctx = Util.getContext(msgReceived.getAddress().toString());
+						HashMap< String,HashMap<String,List<ClientMessage>>> ctxMap = msgs.get(ctx);
+						if(ctxMap==null){
+							ctxMap=new HashMap<>();
+							msgs.put(ctx, ctxMap);
+						}
+						HashMap<String,List<ClientMessage>> tsMap = ctxMap.get(msgReceived.getStringProperty(timestamp));
+						if(tsMap==null){
+							tsMap=new HashMap<>();
+							ctxMap.put(msgReceived.getStringProperty(timestamp), tsMap);
+						}
+						List<ClientMessage> srcMap = tsMap.get(msgReceived.getStringProperty(source));
+						if(srcMap==null){
+							srcMap=new ArrayList<>();
+							tsMap.put(msgReceived.getStringProperty(source), srcMap);
+						}
+						srcMap.add( msgReceived);
+					}
+					Json deltas = Util.generateDelta(msgs);
+					for( Json delta : deltas.asJsonList() ){
+						ClientMessage txMsg = txSession.createMessage(true);
+						txMsg.getBodyBuffer().writeString(delta.toString());
+						producer.send(new SimpleString("outgoing.reply."+destination),txMsg);
+						if(logger.isDebugEnabled())logger.debug("json = "+delta);
 					}
 					consumer.close();
 					

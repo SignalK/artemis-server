@@ -28,6 +28,7 @@ import nz.co.fortytwo.signalk.artemis.server.ArtemisServer;
 import nz.co.fortytwo.signalk.artemis.server.Subscription;
 import nz.co.fortytwo.signalk.artemis.server.SubscriptionManager;
 import nz.co.fortytwo.signalk.artemis.server.SubscriptionManagerFactory;
+import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.util.ConfigConstants;
 import nz.co.fortytwo.signalk.util.Util;
 
@@ -76,7 +77,7 @@ public class SubscribeMsg implements Transformer {
 	 */
 	@Override
 	public ServerMessage transform(ServerMessage message) {
-		if(!"JSON".equals(message.getStringProperty("AMQ_content_type")))return message;
+		if(!Config.JSON.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))return message;
 		if(logger.isTraceEnabled())logger.trace("Processing: " + message);
 		Json node = Json.read(message.getBodyBuffer().readString());
 		// avoid full signalk syntax
@@ -131,8 +132,8 @@ public class SubscribeMsg implements Transformer {
 			//MQTT and STOMP wont have created proper session links
 	
 		
-			String sessionId = m1.getStringProperty("AMQ_session_id");
-			String destination = m1.getStringProperty("AMQ_REPLY_Q");
+			String sessionId = m1.getStringProperty(Config.AMQ_SESSION_ID);
+			String destination = m1.getStringProperty(Config.AMQ_REPLY_Q);
 			ServerSession s = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
 			
 			if(node.has(ConfigConstants.OUTPUT_TYPE)){

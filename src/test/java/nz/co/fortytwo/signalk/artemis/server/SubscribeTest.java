@@ -13,6 +13,7 @@ import org.apache.activemq.artemis.api.core.client.ClientConsumer;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
+import org.apache.activemq.artemis.core.server.RoutingType;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -39,30 +40,37 @@ public class SubscribeTest {
 	}
 
 	@Test
-	public void checkSimpleSubscribe() throws Exception {
+	public void checkSelfSubscribe() throws Exception {
 
 		ClientSession session = Util.getLocalhostClientSession("guest", "guest");
 		try {
-			// session.createQueue("vessels.#", RoutingType.ANYCAST, "vessels",
-			// true);
+			session.start();
 
 			ClientProducer producer = session.createProducer("incoming.delta");
 
 			ClientMessage message = session.createMessage(true);
 			Json msg = getJson("vessels." + SignalKConstants.self, "navigation", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
 			message.getBodyBuffer().writeString(msg.toString());
+			session.createTemporaryQueue("outgoing.reply", "temp-001");
+			message.putStringProperty("AMQ_REPLY_Q", "temp-001");
 			producer.send(message);
-
-			ClientConsumer consumer = session.createConsumer("vessels", true);
-			ClientConsumer consumer1 = session.createConsumer("vessels", true);
-
+			
+			message = session.createMessage(true);
+			String line = "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78";
+			message.getBodyBuffer().writeString(line);
+			producer.send("incoming.delta", message);
+			
+			producer.close();
+			
+			ClientConsumer consumer = session.createConsumer("temp-001",false);
+			CountDownLatch latch = new CountDownLatch(1);
+			latch.await(3, TimeUnit.SECONDS);
 			ClientMessage msgReceived = consumer.receive();
-
 			String recv = msgReceived.getBodyBuffer().readString();
 			logger.debug("rcvd message = " + recv);
 			// assertEquals("Hello", recv);
-			msgReceived = consumer1.receive(100);
 			assertNotNull(msgReceived);
+			consumer.close();
 		} finally {
 			session.close();
 		}
@@ -92,12 +100,12 @@ public class SubscribeTest {
 	}
 	@Test
 	public void shouldReadPartialKeysForGuest() throws Exception {
-		readPartialKeys("guest", 292);
+		readPartialKeys("guest", 52);
 	}
 	
 	@Test
 	public void shouldReadPartialKeysForAdmin() throws Exception {
-		readPartialKeys("admin", 412);
+		readPartialKeys("admin", 72);
 	}
 
 	private void readPartialKeys(String user, int expected) throws Exception{
@@ -123,7 +131,7 @@ public class SubscribeTest {
 			ClientMessage subMsg = session.createMessage(true);
 			Json msg = getJson("vessels.urn:mrn:imo:mmsi:123456789", "navigation", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
 			subMsg.getBodyBuffer().writeString(msg.toString());
-			session.createTemporaryQueue("outgoing.reply", "temp-001");
+			session.createTemporaryQueue("outgoing.reply.temp-001", RoutingType.MULTICAST, "temp-001");
 			subMsg.putStringProperty("AMQ_REPLY_Q", "temp-001");
 			producer.send("incoming.delta", subMsg);
 			producer.close();

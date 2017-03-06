@@ -5,6 +5,7 @@ import java.util.SortedMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
+import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.api.core.client.ClientConsumer;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
@@ -41,6 +42,14 @@ public class Config {
 			logger.error(e.getMessage(), e);
 		}
 	}
+	public static final String _AMQ_LVQ_NAME = "_AMQ_LVQ_NAME";
+	public static final String AMQ_CONTENT_TYPE = "AMQ_content_type";
+	public static final String AMQ_SESSION_ID = "AMQ_session_id";
+	public static final String JSON = "JSON";
+	public static final String _0183 = "0183";
+	public static final String AMQ_REPLY_Q = "AMQ_REPLY_Q";
+	public static final String JAVA_TYPE = "JAVA_TYPE";
+	
 
 	protected Config(){
 		listener = new ConfigListener(map, (String) map.get(ADMIN_USER),

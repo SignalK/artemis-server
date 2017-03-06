@@ -29,6 +29,7 @@ import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.server.ArtemisServer;
+import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 
@@ -78,7 +79,7 @@ public class UnpackUpdateMsg implements Transformer {
 	 */
 	@Override
 	public ServerMessage transform(ServerMessage message) {
-		if(!"JSON".equals(message.getStringProperty("AMQ_content_type")))return message;
+		if(!Config.JSON.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))return message;
 		//if(logger.isDebugEnabled())logger.debug("Processing: " + message);
 		Json node = Json.read(message.getBodyBuffer().readString());
 		// avoid full signalk syntax
@@ -128,12 +129,19 @@ public class UnpackUpdateMsg implements Transformer {
 
 		// DateTime timestamp = DateTime.parse(ts,fmt);
 		if(logger.isDebugEnabled())logger.debug("message m1 = "  + m1.getMessageID()+":" + m1.getAddress() + ", " + m1.getPropertyNames());
-		String sessionId = m1.getStringProperty("AMQ_session_id");
+		String sessionId = m1.getStringProperty(Config.AMQ_SESSION_ID);
 		ServerSession sess = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
 		if(logger.isDebugEnabled())logger.debug("SessionId:"+sessionId+", found "+sess);
 		// grab values and add
 		Json array = update.at(values);
-
+		Json src = null;
+		if (update.has(source)) {
+			src = update.at(source);
+		}
+		String timeStamp = nz.co.fortytwo.signalk.util.Util.getIsoTimeString();
+		if (update.has(timestamp)) {
+			timeStamp = update.at(timestamp).asString();
+		}
 		for (Json e : array.asJsonList()) {
 
 			if (e == null || e.isNull() || !e.has(PATH))
@@ -141,54 +149,36 @@ public class UnpackUpdateMsg implements Transformer {
 			String key = e.at(PATH).asString();
 			// temp.put(ctx+"."+key, e.at(value).getValue());
 			if (e.has(value)) {
-
-				addRecursively(ctx + dot + key, e.at(value), sess);
+				addRecursively(ctx + dot + key, e.at(value),  timeStamp, src, sess);
 			}
 
-			if (update.has(source)) {
-
-				// TODO:generate a proper src ref.
-				addRecursively(ctx + dot + key, update.at(source), sess);
-			}
-
-			if (update.has(timestamp)) {
-
-				String ts = update.at(timestamp).asString();
-
-				Util.sendMsg(ctx + dot + key + dot + timestamp, ts, sess);
-			}
 		}
 
 	}
 
 	
 
-	protected void addRecursively(String ctx, Json j, ServerSession sess) throws Exception {
+	protected void addRecursively(String ctx, Json j, String timeStamp, Json src, ServerSession sess) throws Exception {
 		if (j == null)
 			return;
 		if (j.isNull()) {
-			Util.sendMsg(ctx, ObjectUtils.NULL, sess);
+			Util.sendMsg(ctx, ObjectUtils.NULL, timeStamp, src, sess);
 		} else if (j.isPrimitive()) {
-			Util.sendMsg(ctx + dot + j.getParentKey(), j.getValue(), sess);
+			Util.sendMsg(ctx + dot + j.getParentKey(), j.getValue(),timeStamp, src, sess);
 		} else if (j.isArray()) {
-			Util.sendMsg(ctx + dot + j.getParentKey(), j, sess);
+			Util.sendMsg(ctx + dot + j.getParentKey(), j, timeStamp, src,sess);
 		} else {
 			for (Json child : j.asJsonMap().values()) {
 				if (value.equals(j.getParentKey())) {
-					addRecursively(ctx, child, sess);
+					addRecursively(ctx, child, timeStamp, src,sess);
 				} else {
-					addRecursively(ctx + dot + j.getParentKey(), child, sess);
+					addRecursively(ctx + dot + j.getParentKey(), child, timeStamp, src, sess);
 				}
 			}
 		}
 
 	}
 
-	public ClientSession getVmSession(String user, String password) throws Exception {
-		ClientSessionFactory nettyFactory = ActiveMQClient
-				.createServerLocatorWithoutHA(new TransportConfiguration(InVMConnectorFactory.class.getName()))
-				.createSessionFactory();
-		return nettyFactory.createSession(user, password, false, true, true, false, 10);
-	}
+	
 
 }

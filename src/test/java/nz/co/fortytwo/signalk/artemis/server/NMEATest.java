@@ -3,10 +3,7 @@ package nz.co.fortytwo.signalk.artemis.server;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.FORMAT_DELTA;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.POLICY_FIXED;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
-import java.io.File;
-import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -14,7 +11,7 @@ import org.apache.activemq.artemis.api.core.client.ClientConsumer;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
-import org.apache.commons.io.FileUtils;
+import org.apache.activemq.artemis.core.server.RoutingType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.After;
@@ -22,8 +19,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
-import nz.co.fortytwo.signalk.util.SignalKConstants;
 
 public class NMEATest {
 	ArtemisServer server;
@@ -39,46 +36,16 @@ public class NMEATest {
 		server.stop();
 	}
 
-	@Test
-	public void checkSimpleSubscribe() throws Exception {
-
-		ClientSession session = Util.getLocalhostClientSession("guest", "guest");
-		try {
-			// session.createQueue("vessels.#", RoutingType.ANYCAST, "vessels",
-			// true);
-
-			ClientProducer producer = session.createProducer("incoming.delta");
-
-			ClientMessage message = session.createMessage(true);
-			Json msg = getJson("vessels." + SignalKConstants.self, "navigation", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
-			message.getBodyBuffer().writeString(msg.toString());
-			producer.send(message);
-
-			ClientSession clientSession = session.start();
-
-			ClientConsumer consumer = session.createConsumer("vessels", true);
-			ClientConsumer consumer1 = session.createConsumer("vessels", true);
-
-			ClientMessage msgReceived = consumer.receive();
-
-			String recv = msgReceived.getBodyBuffer().readString();
-			logger.debug("rcvd message = " + recv);
-			// assertEquals("Hello", recv);
-			msgReceived = consumer1.receive(100);
-			assertNotNull(msgReceived);
-		} finally {
-			session.close();
-		}
-	}
+	
 
 	@Test
 	public void shouldReadPartialKeysForGuest() throws Exception {
-		readPartialKeys("guest", 292);
+		readPartialKeys("guest", 16);
 	}
 
 	@Test
 	public void shouldReadPartialKeysForAdmin() throws Exception {
-		readPartialKeys("admin", 412);
+		readPartialKeys("admin", 16);
 	}
 
 	private void readPartialKeys(String user, int expected) throws Exception {
@@ -99,7 +66,7 @@ public class NMEATest {
 			ClientMessage subMsg = session.createMessage(true);
 			Json msg = getJson("vessels.self", "navigation", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
 			subMsg.getBodyBuffer().writeString(msg.toString());
-			session.createTemporaryQueue("outgoing.reply", "temp-001");
+			session.createTemporaryQueue("outgoing.reply.temp-001",RoutingType.MULTICAST, "temp-001");
 			subMsg.putStringProperty("AMQ_REPLY_Q", "temp-001");
 			producer.send("incoming.delta", subMsg);
 			producer.close();
@@ -113,7 +80,7 @@ public class NMEATest {
 			while ((msgReceived = consumer.receive(10)) != null) {
 				String recv = msgReceived.getBodyBuffer().readString();
 				if (logger.isDebugEnabled())
-					logger.debug("Client message = " + msgReceived.getAddress() + ", " + recv); //
+					logger.debug("Client message = " + msgReceived.getStringProperty(Config._AMQ_LVQ_NAME) + ", " + recv); //
 				if (logger.isDebugEnabled())
 					logger.debug("Client message = " + msgReceived.toString());
 				d++;

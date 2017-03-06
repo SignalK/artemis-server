@@ -1,5 +1,7 @@
 package nz.co.fortytwo.signalk.artemis.server;
 
+import static nz.co.fortytwo.signalk.util.SignalKConstants.source;
+import static nz.co.fortytwo.signalk.util.SignalKConstants.timestamp;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
@@ -31,6 +33,7 @@ import org.junit.Test;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.divert.UnpackUpdateMsg;
 import nz.co.fortytwo.signalk.artemis.intercept.SessionInterceptor;
+import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.handler.DeltaToMapConverter;
 import nz.co.fortytwo.signalk.model.SignalKModel;
@@ -60,17 +63,17 @@ public class ArtemisServerTest {
 
 		ClientMessage message = session.createMessage(true);
 		message.getBodyBuffer().writeString("Hello1");
-		message.putStringProperty("_AMQ_LVQ_NAME", "KEY_1");
+		message.putStringProperty(Config._AMQ_LVQ_NAME, "KEY_1");
 		producer.send("vessels.example", message);
 
 		message = session.createMessage(true);
 		message.getBodyBuffer().writeString("Hello2");
-		message.putStringProperty("_AMQ_LVQ_NAME", "KEY_1");
+		message.putStringProperty(Config._AMQ_LVQ_NAME, "KEY_1");
 		producer.send("vessels.example", message);
 
 		message = session.createMessage(true);
 		message.getBodyBuffer().writeString("Hello3");
-		message.putStringProperty("_AMQ_LVQ_NAME", "KEY_2");
+		message.putStringProperty(Config._AMQ_LVQ_NAME, "KEY_2");
 		producer.send("vessels.example.navigation", message);
 
 		ClientConsumer consumer = session.createConsumer("vessels", true);
@@ -120,12 +123,14 @@ public class ArtemisServerTest {
 		int d = 0;
 		// now read partial
 		ClientConsumer consumer = session.createConsumer("vessels",
-				"_AMQ_LVQ_NAME like 'vessels.urn:mrn:imo:mmsi:123456789.navigation.%.value'", true);
+				"_AMQ_LVQ_NAME like 'vessels.urn:mrn:imo:mmsi:123456789.navigation.%'", true);
 		ClientMessage msgReceived = null;
 		while ((msgReceived = consumer.receive(10)) != null) {
 			String recv = msgReceived.getBodyBuffer().readString();
 			if (logger.isDebugEnabled())
 				logger.debug("message = " + msgReceived.getAddress() + ", " + recv);
+				logger.debug("message timestamp: " + msgReceived.getStringProperty(timestamp));
+				logger.debug("message source: " + msgReceived.getStringProperty(source));
 			// if(logger.isDebugEnabled())logger.debug("message = "
 			// +msgReceived.toString());
 			d++;
@@ -135,7 +140,7 @@ public class ArtemisServerTest {
 		if (logger.isDebugEnabled())
 			logger.debug("Sent = " + c + ", recd=" + d);
 		assertEquals(1000, c);
-		assertEquals(11, d);
+		assertEquals(13, d);
 	}
 
 	@Test
@@ -162,7 +167,7 @@ public class ArtemisServerTest {
 		int d = 0;
 		// now read partial
 		ClientConsumer consumer = session.createConsumer("vessels",
-				"_AMQ_LVQ_NAME like 'vessels.urn:mrn:imo:mmsi:123456789.navigation.%.value'", true);
+				"_AMQ_LVQ_NAME like 'vessels.urn:mrn:imo:mmsi:123456789.navigation.%'", true);
 		ClientMessage msgReceived = null;
 		while ((msgReceived = consumer.receive(10)) != null) {
 			String recv = msgReceived.getBodyBuffer().readString();
@@ -177,7 +182,7 @@ public class ArtemisServerTest {
 		if (logger.isDebugEnabled())
 			logger.debug("Sent = " + c + ", recd=" + d);
 		assertEquals(1000, c);
-		assertEquals(16, d);
+		assertEquals(18, d);
 	}
 
 	@Test
@@ -212,8 +217,7 @@ public class ArtemisServerTest {
 		assertEquals("system", model.get("config.server.clock.src"));
 		
 		session.close();
-		
-		
+
 	}
 	
 	@Test
@@ -268,7 +272,7 @@ public class ArtemisServerTest {
 		ClientProducer producer = session.createProducer("vessels.example");
 
 		ClientMessage message = session.createMessage(true);
-		message.putStringProperty("_AMQ_LVQ_NAME", "KEY_1");
+		message.putStringProperty(Config._AMQ_LVQ_NAME, "KEY_1");
 		message.getBodyBuffer().writeString("Hello");
 		producer.send(message);
 

@@ -63,8 +63,10 @@ import net.sf.marineapi.nmea.sentence.RMCSentence;
 import net.sf.marineapi.nmea.sentence.Sentence;
 import net.sf.marineapi.nmea.sentence.VHWSentence;
 import nz.co.fortytwo.signalk.artemis.server.ArtemisServer;
+import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.util.ConfigConstants;
-import nz.co.fortytwo.signalk.util.Util;
+
 
 /**
  * Processes NMEA sentences in the body of a message, firing events to
@@ -89,8 +91,8 @@ public class NMEAMsg implements Transformer {
 
 	@Override
 	public ServerMessage transform(ServerMessage message) {
-		if(!"0183".equals(message.getStringProperty("AMQ_content_type")))return message;
-		String sessionId = message.getStringProperty("AMQ_session_id");
+		if(!Config._0183.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))return message;
+		String sessionId = message.getStringProperty(Config.AMQ_SESSION_ID);
 		ServerSession sess = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
 		String bodyStr = message.getBodyBuffer().readString();
 		logger.debug("Message: " +bodyStr);
@@ -132,16 +134,15 @@ public class NMEAMsg implements Transformer {
 			logger.warn("NMEA Sentence is invalid:" + sentence.toSentence());
 			return;
 		}
-		String now = Util.getIsoTimeString();
+		String now = nz.co.fortytwo.signalk.util.Util.getIsoTimeString();
 		if (StringUtils.isBlank(device))
 			device = UNKNOWN;
 		// A general rule of sources.protocol.bus.device.data
-		String source = "0183." + device + dot + sentence.getTalkerId() + dot + sentence.getSentenceId();
-		sendMsg("sources."+source+".value", sentence.toSentence(), sess);
-		sendMsg("sources."+source+"."+timestamp, now, sess);
+		String srcRef = "0183." + device + dot + sentence.getTalkerId() + dot + sentence.getSentenceId();
+		Util.sendSourceMsg(srcRef+".value", sentence.toSentence(),now, sess);
 		
 		try {
-			SentenceEventSource src = new SentenceEventSource(source, now, sess);
+			SentenceEventSource src = new SentenceEventSource(srcRef, now, sess);
 			SentenceEvent se = new SentenceEvent(src, sentence);
 			listener.sentenceRead(se);
 		} catch (Exception e) {
@@ -150,27 +151,7 @@ public class NMEAMsg implements Transformer {
 
 	}
 
-	private void sendMsg(String key, Object ts, ServerSession sess) throws Exception {
-		if (logger.isDebugEnabled())
-			logger.debug("Send Key:"+key+", value:"+ts.toString());
-		ServerMessage m2 = new ServerMessageImpl(new Double(Math.random()).longValue(), 64);
-		m2.writeBodyBufferString(ts.toString());
-		m2.setAddress(new SimpleString(key));
-		m2.putStringProperty("_AMQ_LVQ_NAME", key);
-		// m2.putStringProperty(Message.HDR_VALIDATED_USER.toString(),
-		// sess.getUsername());
-
-		// if(logger.isDebugEnabled())logger.debug("Processing dup:
-		// user="+sess.getUsername()+", " + m2);
-		try {
-			sess.send(m2, true);
-		} catch (ActiveMQSecurityException se) {
-			logger.warn(se.getMessage());
-		} catch (Exception e1) {
-			logger.error(e1.getMessage(), e1);
-		}
-	}
-
+	
 	/**
 	 * Adds NMEA sentence listeners to process NMEA to simple output
 	 * 
@@ -190,11 +171,9 @@ public class NMEAMsg implements Transformer {
 						PositionSentence sen = (PositionSentence) evt.getSentence();
 	
 						if(logger.isDebugEnabled())logger.debug("lat position:" + sen.getPosition().getLatitude() + ", hemi=" + sen.getPosition().getLatitudeHemisphere());
-						sendMsg(vessels_dot_self_dot + nav_position_latitude, sen.getPosition().getLatitude(), src.getSession());
-						sendMsg(vessels_dot_self_dot + nav_position_longitude, sen.getPosition().getLongitude(), src.getSession());
-						sendMsg(vessels_dot_self_dot + nav_position_altitude, sen.getPosition().getAltitude(), src.getSession());
-						sendMsg(vessels_dot_self_dot + nav_position+dot+timestamp, src.getNow(), src.getSession());
-						sendMsg(vessels_dot_self_dot + nav_position+dot+sourceRef, src.getSourceRef(), src.getSession());
+						Util.sendMsg(vessels_dot_self_dot + nav_position_latitude, sen.getPosition().getLatitude(), src.getNow(),src.getSourceRef(), src.getSession());
+						Util.sendMsg(vessels_dot_self_dot + nav_position_longitude, sen.getPosition().getLongitude(), src.getNow(), src.getSourceRef(), src.getSession());
+						Util.sendMsg(vessels_dot_self_dot + nav_position_altitude, sen.getPosition().getAltitude(), src.getNow(), src.getSourceRef(), src.getSession());
 					}
 	
 					if (evt.getSentence() instanceof HeadingSentence) {
@@ -205,16 +184,12 @@ public class NMEAMsg implements Transformer {
 
 							if (sen.isTrue()) {
 								try {
-									sendMsg(vessels_dot_self_dot + nav_courseOverGroundTrue+dot+value, Math.toRadians(sen.getHeading()), src.getSession());
-									sendMsg(vessels_dot_self_dot + nav_courseOverGroundTrue+dot+timestamp, src.getNow(), src.getSession());
-									sendMsg(vessels_dot_self_dot + nav_courseOverGroundTrue+dot+sourceRef, src.getSourceRef(), src.getSession());
+									Util.sendMsg(vessels_dot_self_dot + nav_courseOverGroundTrue+dot+value, Math.toRadians(sen.getHeading()), src.getNow(), src.getSourceRef(), src.getSession());
 								} catch (Exception e) {
 									logger.error(e.getMessage());
 								}
 							} else {
-								sendMsg(vessels_dot_self_dot + nav_courseOverGroundMagnetic+dot+value, Math.toRadians(sen.getHeading()), src.getSession());
-								sendMsg(vessels_dot_self_dot + nav_courseOverGroundMagnetic+dot+timestamp, src.getNow(), src.getSession());
-								sendMsg(vessels_dot_self_dot + nav_courseOverGroundMagnetic+dot+sourceRef, src.getSourceRef(), src.getSession());
+								Util.sendMsg(vessels_dot_self_dot + nav_courseOverGroundMagnetic+dot+value, Math.toRadians(sen.getHeading()), src.getNow(), src.getSourceRef(), src.getSession());
 							}
 						}
 					}
@@ -223,30 +198,22 @@ public class NMEAMsg implements Transformer {
 						RMCSentence sen = (RMCSentence) evt.getSentence();
 						if(rmcClock)Util.checkTime(sen);
 					
-						sendMsg(vessels_dot_self_dot + nav_speedOverGround+dot+value, Util.kntToMs(sen.getSpeed()), src.getSession());
-						sendMsg(vessels_dot_self_dot + nav_speedOverGround+dot+timestamp, src.getNow(), src.getSession());
-						sendMsg(vessels_dot_self_dot + nav_speedOverGround+dot+sourceRef, src.getSourceRef(), src.getSession());
+						Util.sendMsg(vessels_dot_self_dot + nav_speedOverGround+dot+value, Util.kntToMs(sen.getSpeed()), src.getNow(), src.getSourceRef(), src.getSession());
 					}
 					if (evt.getSentence() instanceof VHWSentence) {
 						VHWSentence sen = (VHWSentence) evt.getSentence();
 						//VHW sentence types have both, but true can be empty
 						try {
 							
-							sendMsg(vessels_dot_self_dot + nav_courseOverGroundMagnetic+dot+value, Math.toRadians(sen.getMagneticHeading()), src.getSession());
-							sendMsg(vessels_dot_self_dot + nav_courseOverGroundMagnetic+dot+timestamp, src.getNow(), src.getSession());
-							sendMsg(vessels_dot_self_dot + nav_courseOverGroundMagnetic+dot+sourceRef, src.getSourceRef(), src.getSession());
+							Util.sendMsg(vessels_dot_self_dot + nav_courseOverGroundMagnetic+dot+value, Math.toRadians(sen.getMagneticHeading()), src.getNow(), src.getSourceRef(), src.getSession());
 							
-							sendMsg(vessels_dot_self_dot + nav_courseOverGroundTrue+dot+value, Math.toRadians(sen.getHeading()), src.getSession());
-							sendMsg(vessels_dot_self_dot + nav_courseOverGroundTrue+dot+timestamp, src.getNow(), src.getSession());
-							sendMsg(vessels_dot_self_dot + nav_courseOverGroundTrue+dot+sourceRef, src.getSourceRef(), src.getSession());
+							Util.sendMsg(vessels_dot_self_dot + nav_courseOverGroundTrue+dot+value, Math.toRadians(sen.getHeading()), src.getNow(), src.getSourceRef(), src.getSession());
 							
 						} catch (DataNotAvailableException e) {
 							logger.error(e.getMessage());
 						}
 						
-						sendMsg(vessels_dot_self_dot + nav_speedOverGround+dot+value, Util.kntToMs(sen.getSpeedKnots()), src.getSession());
-						sendMsg(vessels_dot_self_dot + nav_speedOverGround+dot+timestamp, src.getNow(), src.getSession());
-						sendMsg(vessels_dot_self_dot + nav_speedOverGround+dot+sourceRef, src.getSourceRef(), src.getSession());
+						Util.sendMsg(vessels_dot_self_dot + nav_speedOverGround+dot+value, Util.kntToMs(sen.getSpeedKnots()), src.getNow(), src.getSourceRef(), src.getSession());
 					}
 	
 					// MWV wind
@@ -258,24 +225,18 @@ public class NMEAMsg implements Transformer {
 						// relative to bow
 						double angle = sen.getAngle();
 						if(angle>180d)angle=angle-360d;
-						// signalk is -180 to 180 (in radians), negative to port, 0 is bow.
+						// signalk is -180 to 180 (in radians), negative to port, 0 is bow. 
 						double aws = Math.toRadians(angle);
 						
-						sendMsg(vessels_dot_self_dot + env_wind_angleApparent+dot+value, aws, src.getSession());
-						sendMsg(vessels_dot_self_dot + env_wind_angleApparent+dot+timestamp, src.getNow(), src.getSession());
-						sendMsg(vessels_dot_self_dot + env_wind_angleApparent+dot+sourceRef, src.getSourceRef(), src.getSession());
+						Util.sendMsg(vessels_dot_self_dot + env_wind_angleApparent+dot+value, aws, src.getNow(), src.getSourceRef(), src.getSession());
 						
-						sendMsg(vessels_dot_self_dot + env_wind_speedApparent+dot+value, Util.kntToMs(sen.getSpeed()), src.getSession());
-						sendMsg(vessels_dot_self_dot + env_wind_speedApparent+dot+timestamp, src.getNow(), src.getSession());
-						sendMsg(vessels_dot_self_dot + env_wind_speedApparent+dot+sourceRef, src.getSourceRef(), src.getSession());
+						Util.sendMsg(vessels_dot_self_dot + env_wind_speedApparent+dot+value, Util.kntToMs(sen.getSpeed()), src.getNow(), src.getSourceRef(), src.getSession());
 					}
 					
 					if (evt.getSentence() instanceof DepthSentence) {
 						DepthSentence sen = (DepthSentence) evt.getSentence();
 						// in meters
-						sendMsg(vessels_dot_self_dot + env_depth_belowTransducer+dot+value, sen.getDepth(), src.getSession());
-						sendMsg(vessels_dot_self_dot + env_depth_belowTransducer+dot+timestamp, src.getNow(), src.getSession());
-						sendMsg(vessels_dot_self_dot + env_depth_belowTransducer+dot+sourceRef, src.getSourceRef(), src.getSession());
+						Util.sendMsg(vessels_dot_self_dot + env_depth_belowTransducer+dot+value, sen.getDepth(), src.getNow(), src.getSourceRef(), src.getSession());
 					}
 				}catch (DataNotAvailableException e){
 					logger.error(e.getMessage()+":"+evt.getSentence().toSentence());

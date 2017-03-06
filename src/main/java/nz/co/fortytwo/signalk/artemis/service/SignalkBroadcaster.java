@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.cpr.Broadcaster;
 
+import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class SignalkBroadcaster {
@@ -75,7 +76,7 @@ public class SignalkBroadcaster {
 		}
 		ClientMessage msg = session.createMessage(true);
 		msg.getBodyBuffer().writeString(message);
-		msg.putStringProperty("AMQ_REPLY_Q", tempQ.toString());
+		msg.putStringProperty(Config.AMQ_REPLY_Q, tempQ.toString());
 		producer.send("incoming.delta", msg);
 		if (logger.isDebugEnabled())
 			logger.debug("Sent:" + msg.getMessageID() + ":" + message);

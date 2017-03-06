@@ -82,9 +82,9 @@ public class SubcribeWsTest {
         final AsyncHttpClient c = new AsyncHttpClient();
         
         //get a sessionid
-        Response r1 = c.prepareGet("http://localhost:"+restPort+SIGNALK_AUTH+"/demo/pass").execute().get();
-        assertEquals(200, r1.getStatusCode());
-        Response r2 = c.prepareGet("http://localhost:"+restPort+SIGNALK_DISCOVERY).setCookies(r1.getCookies()).execute().get();
+        //Response r1 = c.prepareGet("http://localhost:"+restPort+SIGNALK_AUTH+"/demo/pass").execute().get();
+       // assertEquals(200, r1.getStatusCode());
+        Response r2 = c.prepareGet("http://localhost:"+restPort+SIGNALK_DISCOVERY).execute().get();
         Json json = Json.read(r2.getResponseBody());
         assertEquals("ws://localhost:"+wsPort+SIGNALK_WS, json.at("endpoints").at("v1").at(websocketUrl).asString());
         c.close();
@@ -133,7 +133,7 @@ public class SubcribeWsTest {
 		}
       
         latch3.await(10, TimeUnit.SECONDS);
-        
+        assertTrue(received.size()>1);
         //assertTrue(latch3.await(15, TimeUnit.SECONDS));
         String fullMsg = null;
         for(String msg : received){
