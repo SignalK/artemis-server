@@ -354,37 +354,41 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 					for (ClientMessage msg : msgs.get(ctx).get(ts).get(src)) {
 						String type = msg.getSimpleStringProperty(Config.JAVA_TYPE).toString();
 						Json val = null;
+						String key = msg.getAddress().toString().substring(ctx.length()+1);
+						if(key.endsWith(dot+value))
+							key = key.substring(0, key.lastIndexOf(dot));
+						
 						switch (type) {
 						
 						case "Long":
-							val = Json.object(PATH, msg.getAddress().toString().substring(ctx.length()+1), value, 
+							val = Json.object(PATH, key, value, 
 									msg.getBodyBuffer().readLong());
 							break;
 						case "Double":
-							val = Json.object(PATH, msg.getAddress().toString().substring(ctx.length()+1), value, 
+							val = Json.object(PATH, key, value, 
 									msg.getBodyBuffer().readDouble());
 							break;
 						case "Float":
-							val = Json.object(PATH, msg.getAddress().toString().substring(ctx.length()+1), value, 
+							val = Json.object(PATH, key, value, 
 									msg.getBodyBuffer().readFloat());
 							break;
 						case "Integer":
-							val = Json.object(PATH, msg.getAddress().toString().substring(ctx.length()+1), value, 
+							val = Json.object(PATH, key, value, 
 									msg.getBodyBuffer().readInt());
 							break;
 						case "Short":
-							val = Json.object(PATH, msg.getAddress().toString().substring(ctx.length()+1), value, 
+							val = Json.object(PATH, key, value, 
 									msg.getBodyBuffer().readShort());
 							break;
 						case "Boolean":
-							val = Json.object(PATH, msg.getAddress().toString().substring(ctx.length()+1), value, 
+							val = Json.object(PATH, key, value, 
 									msg.getBodyBuffer().readBoolean());
 							break;
 						case "String":
-							val = Json.object(PATH, msg.getAddress().toString().substring(ctx.length()+1), value, msg.getBodyBuffer().readString());
+							val = Json.object(PATH, key, value, msg.getBodyBuffer().readString());
 							break;
 						case "Json":
-							val = Json.object(PATH, msg.getAddress().toString().substring(ctx.length()+1), value, msg.getBodyBuffer().readString());
+							val = Json.object(PATH, key, value, msg.getBodyBuffer().readString());
 							break;
 						default:
 							break;
