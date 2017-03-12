@@ -49,7 +49,10 @@ public class Config {
 	public static final String _0183 = "0183";
 	public static final String AMQ_REPLY_Q = "AMQ_REPLY_Q";
 	public static final String JAVA_TYPE = "JAVA_TYPE";
-	
+	public static final String SK_TYPE = "SK_TYPE";
+	public static final String SK_TYPE_COMPOSITE = "SK_COMPOSITE";
+	public static final String SK_TYPE_VALUE = "SK_VALUE";
+	public static final String SK_TYPE_ATTRIBUTE = "SK_ATTRIBUTE";
 
 	protected Config(){
 		listener = new ConfigListener(map, (String) map.get(ADMIN_USER),

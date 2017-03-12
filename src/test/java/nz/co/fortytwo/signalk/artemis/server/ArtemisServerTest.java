@@ -126,7 +126,7 @@ public class ArtemisServerTest {
 				"_AMQ_LVQ_NAME like 'vessels.urn:mrn:imo:mmsi:123456789.navigation.%'", true);
 		ClientMessage msgReceived = null;
 		while ((msgReceived = consumer.receive(10)) != null) {
-			String recv = msgReceived.getBodyBuffer().readString();
+			Object recv = Util.readBodyBuffer(msgReceived);
 			if (logger.isDebugEnabled())
 				logger.debug("message = " + msgReceived.getAddress() + ", " + recv);
 				logger.debug("message timestamp: " + msgReceived.getStringProperty(timestamp));
@@ -140,7 +140,7 @@ public class ArtemisServerTest {
 		if (logger.isDebugEnabled())
 			logger.debug("Sent = " + c + ", recd=" + d);
 		assertEquals(1000, c);
-		assertEquals(13, d);
+		assertEquals(12, d);
 	}
 
 	@Test
@@ -170,7 +170,18 @@ public class ArtemisServerTest {
 				"_AMQ_LVQ_NAME like 'vessels.urn:mrn:imo:mmsi:123456789.navigation.%'", true);
 		ClientMessage msgReceived = null;
 		while ((msgReceived = consumer.receive(10)) != null) {
-			String recv = msgReceived.getBodyBuffer().readString();
+			d++;
+			logger.debug(msgReceived.getAddress().toString()+":bytes:"+msgReceived.getBodyBuffer().readableBytes());
+			if(msgReceived.getBodyBuffer().readableBytes()==1){
+				logger.debug("Value:"+msgReceived.getBodyBuffer().readBoolean());
+				continue;
+			}
+			if(msgReceived.getBodyBuffer().readableBytes()==0){
+				logger.debug("Value:"+null);
+				continue;
+			}
+			Object recv = Util.readBodyBuffer(msgReceived);
+			
 			if (logger.isDebugEnabled())
 				logger.debug("message = " + msgReceived.getMessageID() + ":" + msgReceived.getAddress() + ", " + recv);
 			// if(logger.isDebugEnabled())logger.debug("message = "
@@ -182,7 +193,7 @@ public class ArtemisServerTest {
 		if (logger.isDebugEnabled())
 			logger.debug("Sent = " + c + ", recd=" + d);
 		assertEquals(1000, c);
-		assertEquals(18, d);
+		assertEquals(34, d);
 	}
 
 	@Test
@@ -191,9 +202,9 @@ public class ArtemisServerTest {
 		//check String
 		assertEquals("system", model.get("config.server.clock.src"));
 		//check boolean
-		assertEquals("true", model.get("config.server.apps.install.allow"));
+		assertEquals(true, model.get("config.server.apps.install.allow"));
 		//check int
-		assertEquals("38400", model.get("config.server.serial.baud"));
+		assertEquals(38400L, model.get("config.server.serial.baud"));
 		
 		
 		
@@ -247,11 +258,14 @@ public class ArtemisServerTest {
 				"_AMQ_LVQ_NAME like 'config.%'", true);
 		ClientMessage msgReceived = null;
 		while ((msgReceived = consumer.receive(10)) != null) {
-			String recv = msgReceived.getBodyBuffer().readString();
+			logger.debug(msgReceived.getAddress().toString()+":bytes:"+msgReceived.getBodyBuffer().readableBytes());
+			d++;
+			
+			Object recv = Util.readBodyBuffer(msgReceived);
 			if (logger.isDebugEnabled())
 				logger.debug("message = " + msgReceived.getMessageID() + ":" + msgReceived.getAddress() + ", " + recv);
 			model.put(msgReceived.getAddress().toString(), recv);
-			d++;
+			
 		}
 		consumer.close();
 		session.close();
@@ -273,6 +287,7 @@ public class ArtemisServerTest {
 
 		ClientMessage message = session.createMessage(true);
 		message.putStringProperty(Config._AMQ_LVQ_NAME, "KEY_1");
+		message.putStringProperty(Config.JAVA_TYPE, "String");
 		message.getBodyBuffer().writeString("Hello");
 		producer.send(message);
 
@@ -283,7 +298,7 @@ public class ArtemisServerTest {
 
 		ClientMessage msgReceived = consumer.receive();
 
-		String recv = msgReceived.getBodyBuffer().readString();
+		Object recv = Util.readBodyBuffer(msgReceived);
 		if (logger.isDebugEnabled())
 			logger.debug("message = " + recv);
 		assertEquals("Hello", recv);

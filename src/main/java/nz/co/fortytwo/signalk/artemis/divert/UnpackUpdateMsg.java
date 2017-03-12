@@ -149,33 +149,24 @@ public class UnpackUpdateMsg implements Transformer {
 			String key = e.at(PATH).asString();
 			// temp.put(ctx+"."+key, e.at(value).getValue());
 			if (e.has(value)) {
-				addRecursively(ctx + dot + key, e.at(value),  timeStamp, src, sess);
+				addEntry(ctx + dot + key, e.at(value),  timeStamp, src, sess);
 			}
 
 		}
 
 	}
-
 	
 
-	protected void addRecursively(String ctx, Json j, String timeStamp, Json src, ServerSession sess) throws Exception {
+	protected void addEntry(String key, Json j, String timeStamp, Json src, ServerSession sess) throws Exception {
 		if (j == null)
 			return;
 		if (j.isNull()) {
-			Util.sendMsg(ctx, ObjectUtils.NULL, timeStamp, src, sess);
+			Util.sendMsg(key, ObjectUtils.NULL, timeStamp, src, sess);
 		} else if (j.isPrimitive()) {
-			Util.sendMsg(ctx + dot + j.getParentKey(), j.getValue(),timeStamp, src, sess);
-		} else if (j.isArray()) {
-			Util.sendMsg(ctx + dot + j.getParentKey(), j, timeStamp, src,sess);
-		} else {
-			for (Json child : j.asJsonMap().values()) {
-				if (value.equals(j.getParentKey())) {
-					addRecursively(ctx, child, timeStamp, src,sess);
-				} else {
-					addRecursively(ctx + dot + j.getParentKey(), child, timeStamp, src, sess);
-				}
-			}
-		}
+			Util.sendMsg(key, j.getValue(),timeStamp, src, sess);
+		} else{
+			Util.sendMsg(key, j.toString(), timeStamp, src,sess);
+		} 
 
 	}
 

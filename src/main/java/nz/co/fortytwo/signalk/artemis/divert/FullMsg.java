@@ -41,6 +41,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import org.apache.activemq.artemis.core.server.ServerMessage;
 import org.apache.activemq.artemis.core.server.ServerSession;
 import org.apache.activemq.artemis.core.server.cluster.Transformer;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -82,37 +83,88 @@ public class FullMsg implements Transformer {
 		if (node.has(vessels) || node.has(CONFIG) || node.has(resources)) {
 			if (logger.isDebugEnabled())
 				logger.debug("processing full  " + node);
-			// process it
-			Map<String, Object> temp = new ConcurrentSkipListMap<>();
-			temp.putAll(ser.read(node));
-			if (logger.isDebugEnabled())
-				logger.debug("FullMsg processed json  " + temp);
-			for(Entry<String, Object> key: temp.entrySet()){
-				try {
-					if(key.getKey().endsWith(dot+timestamp))continue;
-					if(key.getKey().endsWith(dot+source))continue;
-					String fullKey = key.getKey();
-					String timeStamp = nz.co.fortytwo.signalk.util.Util.getIsoTimeString();
-					Object src = UNKNOWN;
-					if(fullKey.endsWith(dot+value)){
-						String path = fullKey.substring(0, fullKey.lastIndexOf(dot)+1);
-						if(temp.containsKey(path+timestamp)){
-							timeStamp = (String) temp.get(path+timestamp);
-						}
-						if(temp.containsKey(path+source)){
-							src = temp.get(path+source);
-						}
-						if(temp.containsKey(path+sourceRef)){
-							src = temp.get(path+sourceRef);
-						}
-					}
-					Util.sendMsg(key.getKey(), key.getValue(), timeStamp, src, sess);
-				} catch (Exception e) {
-					logger.error(e.getMessage(),e);
-				}
+			// process it by recursion
+			try {
+				recurseJson(node, null, sess);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+			
+//			for(Entry<String, Object> key: temp.entrySet()){
+//				try {
+//					if(key.getKey().endsWith(dot+timestamp))continue;
+//					if(key.getKey().endsWith(dot+source))continue;
+//					String fullKey = key.getKey();
+//					String timeStamp = nz.co.fortytwo.signalk.util.Util.getIsoTimeString();
+//					Object src = UNKNOWN;
+//					if(fullKey.endsWith(dot+value)){
+//						String path = fullKey.substring(0, fullKey.lastIndexOf(dot)+1);
+//						if(temp.containsKey(path+timestamp)){
+//							timeStamp = (String) temp.get(path+timestamp);
+//						}
+//						if(temp.containsKey(path+source)){
+//							src = temp.get(path+source);
+//						}
+//						if(temp.containsKey(path+sourceRef)){
+//							src = temp.get(path+sourceRef);
+//						}
+//					}
+//					Util.sendMsg(key.getKey(), key.getValue(), timeStamp, src, sess);
+//				} catch (Exception e) {
+//					logger.error(e.getMessage(),e);
+//				}
+//			}
 		}
 		return message;
+	}
+
+	private void recurseJson(Json node, String key, ServerSession sess ) throws Exception {
+		//check if it has a .value
+		// value type, or attribute type
+		if (logger.isDebugEnabled())
+			logger.debug("processing sub:  " + node);
+		if (node==null || node.isNull()) {
+			Util.sendMsg(key, ObjectUtils.NULL, null, null, sess);
+			return;
+		}
+		if(node.isPrimitive()){
+			//attribute type
+			Util.sendMsg(key, node.getValue(),null, null, sess);
+			return;
+		}
+		if(node.isArray()){
+			//attribute type
+			Util.sendMsg(key, node.toString(),null, null, sess);
+			return;
+		}
+		if(node.has(value)){
+			if(node.at(value).isPrimitive()){
+				//primitive type
+				Util.sendMsg(key, node.at(value).getValue(), node.at(timestamp).asString(), node.at(source), sess);
+			}else{
+				//object
+				Util.sendMsg(key, node.at(value), node.at(timestamp).asString(), node.at(source), sess);
+			}
+			return;
+		}
+		//either composite or path to recurse
+		if(node.has(timestamp)||node.has(source)){
+			//composite
+			Util.sendMsg(key, node.toString(), node.at(timestamp).asString(), node.at(source), sess);
+		}else{
+			//recurse
+			for(String k: node.asJsonMap().keySet()){
+				if(key==null){
+					recurseJson(node.at(k), k, sess);
+				}else{
+					recurseJson(node.at(k), key+dot+k, sess);
+				}
+				
+			}
+		}
+			
+		
 	}
 
 }

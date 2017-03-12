@@ -78,7 +78,7 @@ public class NMEATest {
 			ClientConsumer consumer = session.createConsumer("temp-001", false);
 			ClientMessage msgReceived = null;
 			while ((msgReceived = consumer.receive(10)) != null) {
-				String recv = msgReceived.getBodyBuffer().readString();
+				Object recv = Util.readBodyBuffer(msgReceived);
 				if (logger.isDebugEnabled())
 					logger.debug("Client message = " + msgReceived.getStringProperty(Config._AMQ_LVQ_NAME) + ", " + recv); //
 				if (logger.isDebugEnabled())

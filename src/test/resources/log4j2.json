@@ -54,6 +54,10 @@
 				"level": "debug"
 			},
 			{
+				"name": "nz.co.fortytwo.signalk.artemis.intercept",
+				"level": "warn"
+			},
+			{
 				"name": "org.atmosphere.nettosphere.BridgeRuntime",
 				"level": "warn"
 			},

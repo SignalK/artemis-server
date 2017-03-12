@@ -33,6 +33,7 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.apache.activemq.artemis.api.core.ActiveMQBuffer;
 import org.apache.activemq.artemis.api.core.ActiveMQSecurityException;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.api.core.TransportConfiguration;
@@ -254,11 +255,11 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 
 	public static void sendMsg(String key, Object body, String timeStamp, Object src, ServerSession sess)
 			throws Exception {
-
+		
 		ServerMessage m2 = new ServerMessageImpl(new Double(Math.random()).longValue(), 64);
 		m2.putStringProperty(timestamp, timeStamp);
 		if (src != null) {
-				m2.putStringProperty(source, src.toString());
+			m2.putStringProperty(source, src.toString());
 		}
 		String type =body.getClass().getSimpleName();
 		m2.putStringProperty(Config.JAVA_TYPE, type);
@@ -267,27 +268,43 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 		
 		case "Long":
 			m2.getBodyBuffer().writeLong((long) body);
+			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_VALUE);
 			break;
 		case "Double":
 			m2.getBodyBuffer().writeDouble((double) body);
+			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_VALUE);
 			break;
 		case "Float":
 			m2.getBodyBuffer().writeFloat((float) body);
+			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_VALUE);
 			break;
 		case "Integer":
 			m2.getBodyBuffer().writeInt((int) body);
+			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_VALUE);
 			break;
 		case "Short":
 			m2.getBodyBuffer().writeShort((short) body);
+			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_VALUE);
 			break;
 		case "Boolean":
 			m2.getBodyBuffer().writeBoolean((boolean) body);
+			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_VALUE);
 			break;
 		case "String":
 			m2.getBodyBuffer().writeString( body.toString());
+			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_VALUE);
 			break;
 		case "Json":
-			m2.getBodyBuffer().writeString( body.toString());
+			m2.getBodyBuffer().writeBytes( body.toString().getBytes());
+			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_COMPOSITE);
+			break;
+		case "ObjectJson":
+			m2.getBodyBuffer().writeString( ((Json)body).toString());
+			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_COMPOSITE);
+			break;
+		case "ArrayJson":
+			m2.getBodyBuffer().writeBytes( body.toString().getBytes());
+			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_COMPOSITE);
 			break;
 		default:
 			break;
@@ -352,47 +369,14 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 						valObj.set(sourceRef, src);
 					// now the values
 					for (ClientMessage msg : msgs.get(ctx).get(ts).get(src)) {
-						String type = msg.getSimpleStringProperty(Config.JAVA_TYPE).toString();
-						Json val = null;
+						
 						String key = msg.getAddress().toString().substring(ctx.length()+1);
 						if(key.endsWith(dot+value))
 							key = key.substring(0, key.lastIndexOf(dot));
-						
-						switch (type) {
-						
-						case "Long":
-							val = Json.object(PATH, key, value, 
-									msg.getBodyBuffer().readLong());
-							break;
-						case "Double":
-							val = Json.object(PATH, key, value, 
-									msg.getBodyBuffer().readDouble());
-							break;
-						case "Float":
-							val = Json.object(PATH, key, value, 
-									msg.getBodyBuffer().readFloat());
-							break;
-						case "Integer":
-							val = Json.object(PATH, key, value, 
-									msg.getBodyBuffer().readInt());
-							break;
-						case "Short":
-							val = Json.object(PATH, key, value, 
-									msg.getBodyBuffer().readShort());
-							break;
-						case "Boolean":
-							val = Json.object(PATH, key, value, 
-									msg.getBodyBuffer().readBoolean());
-							break;
-						case "String":
-							val = Json.object(PATH, key, value, msg.getBodyBuffer().readString());
-							break;
-						case "Json":
-							val = Json.object(PATH, key, value, msg.getBodyBuffer().readString());
-							break;
-						default:
-							break;
-						}
+						Object v = Util.readBodyBuffer(msg);
+						logger.debug("Key:"+key+", value"+v);
+						Json val = Json.object(PATH, key );
+						val.set(value,v);
 						valuesArray.add(val);
 					}
 				}
@@ -404,6 +388,38 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 		
 
 		return deltaArray;
+	}
+
+	public static Object readBodyBuffer(ClientMessage msg) {
+		String type = msg.getStringProperty(Config.JAVA_TYPE).toString();
+		logger.debug("Type:"+type);
+		switch (type) {
+		
+		case "Long":
+			return msg.getBodyBuffer().readLong();
+		case "Double":
+			return	msg.getBodyBuffer().readDouble();
+		case "Float":
+			return	msg.getBodyBuffer().readFloat();
+		case "Integer":
+			return	msg.getBodyBuffer().readInt();
+		case "Short":
+			return	msg.getBodyBuffer().readShort();
+		case "Boolean":
+			return	msg.getBodyBuffer().readBoolean();
+		case "String":
+			return msg.getBodyBuffer().readString();
+		case "Json":
+			return Json.read(msg.getBodyBuffer().readString());
+		case "ObjectJson":
+			return Json.read(msg.getBodyBuffer().readString());
+		case "ArrayJson":
+			return Json.read(msg.getBodyBuffer().readString());
+		default:
+			if(msg.getBodyBuffer().readableBytes()==0)return null;
+			return msg.getBodyBuffer().readString();
+		}
+		
 	}
 
 }

@@ -142,6 +142,7 @@ public class Subscription {
 					for( Json delta : deltas.asJsonList() ){
 						ClientMessage txMsg = txSession.createMessage(true);
 						txMsg.getBodyBuffer().writeString(delta.toString());
+						txMsg.putStringProperty(Config.JAVA_TYPE, delta.getClass().getSimpleName());
 						producer.send(new SimpleString("outgoing.reply."+destination),txMsg);
 						if(logger.isDebugEnabled())logger.debug("json = "+delta);
 					}
