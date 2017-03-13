@@ -140,7 +140,7 @@ public class NMEAMsg implements Transformer {
 			device = UNKNOWN;
 		// A general rule of sources.protocol.bus.device.data
 		String srcRef = "0183." + device + dot + sentence.getTalkerId() + dot + sentence.getSentenceId();
-		Util.sendSourceMsg(srcRef+".value", sentence.toSentence(),now, sess);
+		Util.sendSourceMsg(srcRef, sentence.toSentence(),now, sess);
 		
 		try {
 			SentenceEventSource src = new SentenceEventSource(srcRef, now, sess);

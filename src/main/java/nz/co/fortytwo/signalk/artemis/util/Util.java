@@ -67,10 +67,10 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 
 	public static void sendMsg(String string, double value, String now, String sourceRef, ServerSession session)
 			throws Exception {
-		sendMsg(string, (Double) value, now, sourceRef, session);
+		sendMsg(string,  Json.make(value), now, sourceRef, session);
 	}
 
-	public static void sendMsg(String key, Object body, String timeStamp, Object src, ServerSession sess)
+	public static void sendMsg(String key, Json body, String timeStamp, Object src, ServerSession sess)
 			throws Exception {
 		
 		ServerMessage m2 = new ServerMessageImpl(new Double(Math.random()).longValue(), 64);
@@ -82,48 +82,38 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 		m2.putStringProperty(Config.JAVA_TYPE, type);
 		 
 		switch (type) {
-		
-		case "Long":
-			m2.getBodyBuffer().writeLong((long) body);
+		case "NullJson":
+			m2.getBodyBuffer().writeString( body.toString());
 			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_VALUE);
 			break;
-		case "Double":
-			m2.getBodyBuffer().writeDouble((double) body);
+		case "BooleanJson":
+			m2.getBodyBuffer().writeString( body.toString());
 			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_VALUE);
 			break;
-		case "Float":
-			m2.getBodyBuffer().writeFloat((float) body);
+		case "StringJson":
+			m2.getBodyBuffer().writeString( body.toString());
 			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_VALUE);
 			break;
-		case "Integer":
-			m2.getBodyBuffer().writeInt((int) body);
-			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_VALUE);
-			break;
-		case "Short":
-			m2.getBodyBuffer().writeShort((short) body);
-			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_VALUE);
-			break;
-		case "Boolean":
-			m2.getBodyBuffer().writeBoolean((boolean) body);
-			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_VALUE);
-			break;
-		case "String":
+		case "NumberJson":
 			m2.getBodyBuffer().writeString( body.toString());
 			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_VALUE);
 			break;
 		case "Json":
-			m2.getBodyBuffer().writeBytes( body.toString().getBytes());
+			m2.getBodyBuffer().writeString( body.toString());
 			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_COMPOSITE);
 			break;
 		case "ObjectJson":
-			m2.getBodyBuffer().writeString( ((Json)body).toString());
+			m2.getBodyBuffer().writeString(body.toString());
 			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_COMPOSITE);
 			break;
 		case "ArrayJson":
-			m2.getBodyBuffer().writeBytes( body.toString().getBytes());
+			m2.getBodyBuffer().writeString( body.toString());
 			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_COMPOSITE);
 			break;
 		default:
+			logger.error("Unkown Json Class type: "+type);
+			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_VALUE);
+			m2.getBodyBuffer().writeString( body.toString());
 			break;
 		}
 		
@@ -140,7 +130,7 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 	}
 
 	public static void sendSourceMsg(String key, String src, String now, ServerSession sess) throws Exception {
-		sendMsg("sources." + key, src, now, null, sess);
+		sendMsg("sources." + key, Json.read(src), now, null, sess);
 
 	}
 	
@@ -192,18 +182,18 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 					valObj.at(values, valuesArray);
 					// add timestamp
 					valObj.set(timestamp, ts);
-					if(src.contains("{"))
-						valObj.set(source, Json.read(src));
-					else
-						valObj.set(sourceRef, src);
+					//if(src.contains("{"))
+					valObj.set(source, Json.read(src));
+					//else
+					//	valObj.set(sourceRef, src);
 					// now the values
 					for (ClientMessage msg : msgs.get(ctx).get(ts).get(src)) {
 						
 						String key = msg.getAddress().toString().substring(ctx.length()+1);
 						if(key.endsWith(dot+value))
 							key = key.substring(0, key.lastIndexOf(dot));
-						Object v = Util.readBodyBuffer(msg);
-						logger.debug("Key:"+key+", value"+v);
+						Json v = Util.readBodyBuffer(msg);
+						logger.debug("Key: "+key+", value: "+v);
 						Json val = Json.object(PATH, key );
 						val.set(value,v);
 						valuesArray.add(val);
@@ -219,35 +209,12 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 		return deltaArray;
 	}
 
-	public static Object readBodyBuffer(ClientMessage msg) {
-		String type = msg.getStringProperty(Config.JAVA_TYPE).toString();
-		logger.debug("Type:"+type);
-		switch (type) {
-		
-		case "Long":
-			return msg.getBodyBuffer().readLong();
-		case "Double":
-			return	msg.getBodyBuffer().readDouble();
-		case "Float":
-			return	msg.getBodyBuffer().readFloat();
-		case "Integer":
-			return	msg.getBodyBuffer().readInt();
-		case "Short":
-			return	msg.getBodyBuffer().readShort();
-		case "Boolean":
-			return	msg.getBodyBuffer().readBoolean();
-		case "String":
-			return msg.getBodyBuffer().readString();
-		case "Json":
-			return Json.read(msg.getBodyBuffer().readString());
-		case "ObjectJson":
-			return Json.read(msg.getBodyBuffer().readString());
-		case "ArrayJson":
-			return Json.read(msg.getBodyBuffer().readString());
-		default:
-			if(msg.getBodyBuffer().readableBytes()==0)return null;
-			return msg.getBodyBuffer().readString();
+	public static Json readBodyBuffer(ClientMessage msg) {
+		if(msg.getBodyBuffer().readableBytes()==0){
+			logger.debug("Empty msg: "+msg.getAddress()+": "+msg.getBodyBuffer().readableBytes());
+			return Json.nil();
 		}
+		return Json.read(msg.getBodyBuffer().readString());
 		
 	}
 	 

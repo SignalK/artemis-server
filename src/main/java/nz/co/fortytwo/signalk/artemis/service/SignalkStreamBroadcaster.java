@@ -42,7 +42,7 @@ public class SignalkStreamBroadcaster {
 
 	public void onOpen(AtmosphereResource resource) throws Exception {
 		user = "guest";// resource.getRequest().getUserPrincipal().getName();
-		session = Util.getLocalhostClientSession(user, user);
+		session = Util.getVmSession(user, user);
 		logger.debug("Starting session for: "+user);
 		session.start();
 		producer = session.createProducer();

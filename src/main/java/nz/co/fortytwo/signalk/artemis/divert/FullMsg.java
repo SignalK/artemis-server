@@ -91,30 +91,6 @@ public class FullMsg implements Transformer {
 				e.printStackTrace();
 			}
 			
-//			for(Entry<String, Object> key: temp.entrySet()){
-//				try {
-//					if(key.getKey().endsWith(dot+timestamp))continue;
-//					if(key.getKey().endsWith(dot+source))continue;
-//					String fullKey = key.getKey();
-//					String timeStamp = nz.co.fortytwo.signalk.util.Util.getIsoTimeString();
-//					Object src = UNKNOWN;
-//					if(fullKey.endsWith(dot+value)){
-//						String path = fullKey.substring(0, fullKey.lastIndexOf(dot)+1);
-//						if(temp.containsKey(path+timestamp)){
-//							timeStamp = (String) temp.get(path+timestamp);
-//						}
-//						if(temp.containsKey(path+source)){
-//							src = temp.get(path+source);
-//						}
-//						if(temp.containsKey(path+sourceRef)){
-//							src = temp.get(path+sourceRef);
-//						}
-//					}
-//					Util.sendMsg(key.getKey(), key.getValue(), timeStamp, src, sess);
-//				} catch (Exception e) {
-//					logger.error(e.getMessage(),e);
-//				}
-//			}
 		}
 		return message;
 	}
@@ -125,33 +101,27 @@ public class FullMsg implements Transformer {
 		if (logger.isDebugEnabled())
 			logger.debug("processing sub:  " + node);
 		if (node==null || node.isNull()) {
-			Util.sendMsg(key, ObjectUtils.NULL, null, null, sess);
+			Util.sendMsg(key, Json.nil(), null, null, sess);
 			return;
 		}
 		if(node.isPrimitive()){
 			//attribute type
-			Util.sendMsg(key, node.getValue(),null, null, sess);
+			Util.sendMsg(key, node,null, null, sess);
 			return;
 		}
 		if(node.isArray()){
 			//attribute type
-			Util.sendMsg(key, node.toString(),null, null, sess);
+			Util.sendMsg(key, node,null, null, sess);
 			return;
 		}
 		if(node.has(value)){
-			if(node.at(value).isPrimitive()){
-				//primitive type
-				Util.sendMsg(key, node.at(value).getValue(), node.at(timestamp).asString(), node.at(source), sess);
-			}else{
-				//object
-				Util.sendMsg(key, node.at(value), node.at(timestamp).asString(), node.at(source), sess);
-			}
+			Util.sendMsg(key, node.at(value), node.at(timestamp).asString(), node.at(source), sess);
 			return;
 		}
 		//either composite or path to recurse
 		if(node.has(timestamp)||node.has(source)){
 			//composite
-			Util.sendMsg(key, node.toString(), node.at(timestamp).asString(), node.at(source), sess);
+			Util.sendMsg(key, node, node.at(timestamp).asString(), node.at(source), sess);
 		}else{
 			//recurse
 			for(String k: node.asJsonMap().keySet()){

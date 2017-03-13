@@ -149,6 +149,7 @@ public class UnpackUpdateMsg implements Transformer {
 			String key = e.at(PATH).asString();
 			// temp.put(ctx+"."+key, e.at(value).getValue());
 			if (e.has(value)) {
+				if(logger.isDebugEnabled())logger.debug("Adding "+e);
 				addEntry(ctx + dot + key, e.at(value),  timeStamp, src, sess);
 			}
 
@@ -160,14 +161,8 @@ public class UnpackUpdateMsg implements Transformer {
 	protected void addEntry(String key, Json j, String timeStamp, Json src, ServerSession sess) throws Exception {
 		if (j == null)
 			return;
-		if (j.isNull()) {
-			Util.sendMsg(key, ObjectUtils.NULL, timeStamp, src, sess);
-		} else if (j.isPrimitive()) {
-			Util.sendMsg(key, j.getValue(),timeStamp, src, sess);
-		} else{
-			Util.sendMsg(key, j.toString(), timeStamp, src,sess);
-		} 
-
+		Util.sendMsg(key, j, timeStamp, src, sess);
+		
 	}
 
 	
