@@ -20,10 +20,10 @@ import org.atmosphere.cpr.HeaderConfig;
 
 import nz.co.fortytwo.signalk.artemis.server.SubscriptionManager;
 
-@ManagedService(path = "/signalk/v1/api")
-public class SignalkManagedService extends SignalkService {
+@ManagedService(path = "/signalk/v1/stream")
+public class SignalkManagedStreamService extends SignalkStreamService {
 
-	private static Logger logger = LogManager.getLogger(SubscriptionManager.class);
+	private static Logger logger = LogManager.getLogger(SignalkManagedStreamService.class);
 
 	private final ConcurrentLinkedQueue<String> uuids = new ConcurrentLinkedQueue<String>();
 
@@ -50,7 +50,7 @@ public class SignalkManagedService extends SignalkService {
 		AtmosphereRequest request = event.getResource().getRequest();
 		String s = request.getHeader(HeaderConfig.X_ATMOSPHERE_TRANSPORT);
 		if (s != null && s.equalsIgnoreCase(HeaderConfig.DISCONNECT_TRANSPORT_MESSAGE)) {
-			SignalkManagedService.super.onClose(event.getResource());
+			SignalkManagedStreamService.super.onClose(event.getResource());
 			uuids.remove(event.getResource().uuid());
 		}
 	}

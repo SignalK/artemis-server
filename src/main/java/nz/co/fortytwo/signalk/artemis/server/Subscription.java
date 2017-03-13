@@ -33,7 +33,6 @@ import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -108,6 +107,7 @@ public class Subscription {
 			
 			@Override
 			public void run() {
+				if(logger.isDebugEnabled())logger.debug("Running for:"+destination+", "+getPath());
 				ClientSession rxSession = null;
 				ClientConsumer consumer = null;
 				try {
@@ -149,8 +149,8 @@ public class Subscription {
 					consumer.close();
 					
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					logger.error(e.getMessage(),e);
+				
 				}finally {
 					if(consumer!=null){
 						try {
@@ -248,6 +248,7 @@ public class Subscription {
 
 	public void setActive(boolean active) throws Exception {
 		this.active = active;
+		if(logger.isDebugEnabled())logger.debug("Set active:"+active);
 		if(active && (txSession==null || txSession.isClosed())){
 			txSession = Util.getVmSession(user, password);
 		}
@@ -265,6 +266,7 @@ public class Subscription {
 		if(active && timer==null){
 			timer = new Timer(sessionId, true);
 			timer.schedule(task, 0, getPeriod());
+			if(logger.isDebugEnabled())logger.debug("Scheduled:"+getPeriod());
 		}
 		
 	}

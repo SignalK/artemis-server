@@ -10,15 +10,18 @@ import org.atmosphere.cpr.BroadcasterFactory;
 import nz.co.fortytwo.signalk.artemis.server.SubscriptionManager;
 
 import javax.servlet.http.HttpSession;
+
+import static nz.co.fortytwo.signalk.util.SignalKConstants.SIGNALK_WS;
+
 import java.awt.*;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public abstract class SignalkService {
+public abstract class SignalkStreamService {
 
-	private static Logger logger = LogManager.getLogger(SignalkService.class);
+	private static Logger logger = LogManager.getLogger(SignalkStreamService.class);
 
 	public static final int PLAYFIELD_WIDTH = 640;
 	public static final int PLAYFIELD_HEIGHT = 480;
@@ -27,17 +30,17 @@ public abstract class SignalkService {
 	protected static final AtomicInteger snakeIds = new AtomicInteger(0);
 	protected static final Random random = new Random();
 
-	protected SignalkBroadcaster signalkBroadcaster;
+	protected SignalkStreamBroadcaster signalkStreamBroadcaster;
 
-	public SignalkService() {
+	public SignalkStreamService() {
 	}
 
 	public void onOpen(AtmosphereResource resource) {
 		logger.debug("onOpen:"+resource);
 		try {
-			signalkBroadcaster().onOpen(resource);
+			signalkStreamBroadcaster().onOpen(resource);
 		
-			signalkBroadcaster().broadcast(String.format("{'type': 'join','data':[%s]}", resource.toString()));
+			signalkStreamBroadcaster().broadcast(String.format("{'type': 'join','data':[%s]}", resource.toString()));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -47,12 +50,12 @@ public abstract class SignalkService {
 	public void onClose(AtmosphereResource resource) {
 		logger.debug("onClose:"+resource);
 		try {
-			signalkBroadcaster().onClose(resource);
+			signalkStreamBroadcaster().onClose(resource);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		signalkBroadcaster().broadcast(
+		signalkStreamBroadcaster().broadcast(
 				String.format("{'type': 'leave', 'id': %d}", ((Integer) resource.session().getAttribute("id"))));
 	}
 
@@ -66,18 +69,18 @@ public abstract class SignalkService {
 		logger.debug("onMessage:"+message);
 		//send to incoming.input
 		try {
-			signalkBroadcaster().onMessage(message);
+			signalkStreamBroadcaster().onMessage(message);
 		} catch (ActiveMQException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
-	SignalkBroadcaster signalkBroadcaster() {
-		if (signalkBroadcaster == null) {
-			signalkBroadcaster = new SignalkBroadcaster(factory().lookup("/signalk/v1/api", true));
+	SignalkStreamBroadcaster signalkStreamBroadcaster() {
+		if (signalkStreamBroadcaster == null) {
+			signalkStreamBroadcaster = new SignalkStreamBroadcaster(factory().lookup(SIGNALK_WS, true));
 		}
-		return signalkBroadcaster;
+		return signalkStreamBroadcaster;
 	}
 
 	abstract BroadcasterFactory factory();

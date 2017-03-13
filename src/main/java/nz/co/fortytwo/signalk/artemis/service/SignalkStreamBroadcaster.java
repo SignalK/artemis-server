@@ -1,5 +1,7 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
+import java.util.UUID;
+
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.api.core.client.ClientConsumer;
@@ -16,9 +18,9 @@ import org.atmosphere.cpr.Broadcaster;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
-public class SignalkBroadcaster {
+public class SignalkStreamBroadcaster {
 
-	private static Logger logger = LogManager.getLogger(SignalkBroadcaster.class);
+	private static Logger logger = LogManager.getLogger(SignalkStreamBroadcaster.class);
 
 	private final Broadcaster broadcaster;
 	private ClientSession session;
@@ -26,13 +28,13 @@ public class SignalkBroadcaster {
 	private ClientConsumer consumer;
 	private String user;
 
-	private SimpleString tempQ=new SimpleString("temp-001");
+	private SimpleString tempQ=null;
 
-	public SignalkBroadcaster(Broadcaster broadcaster) {
+	public SignalkStreamBroadcaster(Broadcaster broadcaster) {
 		this.broadcaster = broadcaster;
 	}
 
-	public SignalkBroadcaster broadcast(String message) {
+	public SignalkStreamBroadcaster broadcast(String message) {
 		logger.debug("Sending out to: "+user+" : "+message);
 		broadcaster.broadcast(message);
 		return this;
@@ -44,13 +46,15 @@ public class SignalkBroadcaster {
 		logger.debug("Starting session for: "+user);
 		session.start();
 		producer = session.createProducer();
-		session.createTemporaryQueue(new SimpleString("outgoing.reply"), RoutingType.MULTICAST, tempQ);
-		consumer = session.createConsumer("temp-001", false);
+		String qName = UUID.randomUUID().toString();
+		tempQ=new SimpleString(qName);
+		session.createTemporaryQueue(new SimpleString("outgoing.reply."+qName), RoutingType.MULTICAST, tempQ);
+		consumer = session.createConsumer(tempQ, false);
 		consumer.setMessageHandler(new MessageHandler() {
 			
 			@Override
 			public void onMessage(ClientMessage message) {
-				broadcast(message.getBodyBuffer().readString());
+				broadcast(Util.readBodyBuffer(message).toString());
 			}
 		});
 	}

@@ -43,7 +43,7 @@ import nz.co.fortytwo.signalk.artemis.util.Config;
 import org.atmosphere.nettosphere.Nettosphere;
 
 import mjson.Json;
-import nz.co.fortytwo.signalk.artemis.service.SignalkManagedService;
+import nz.co.fortytwo.signalk.artemis.service.SignalkManagedStreamService;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.util.ConfigConstants;
 import nz.co.fortytwo.signalk.util.SignalKConstants;
@@ -88,7 +88,7 @@ public final class ArtemisServer {
                     .host("0.0.0.0")
                     .port(8080)
                     .initParam(ApplicationConfig.PROPERTY_SESSION_SUPPORT, "true")
-                    .resource(SignalkManagedService.class)
+                    .resource(SignalkManagedStreamService.class)
                     .resource("./signalk-static")
                     //.resource("./src/main/resources/signalk-static")
                     .build())
@@ -99,7 +99,7 @@ public final class ArtemisServer {
 
 	private void load() throws Exception {
 		
-		Json signalk = Util.load();
+		Json signalk = Config.load();
 		//now send in
 		ClientSession session = Util.getVmSession( Config.getConfigProperty(Config.ADMIN_USER),
 				Config.getConfigProperty(Config.ADMIN_PWD));

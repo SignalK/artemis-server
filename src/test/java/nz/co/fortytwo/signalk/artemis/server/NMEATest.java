@@ -40,12 +40,12 @@ public class NMEATest {
 
 	@Test
 	public void shouldReadPartialKeysForGuest() throws Exception {
-		readPartialKeys("guest", 16);
+		readPartialKeys("guest", 4);
 	}
 
 	@Test
 	public void shouldReadPartialKeysForAdmin() throws Exception {
-		readPartialKeys("admin", 16);
+		readPartialKeys("admin", 4);
 	}
 
 	private void readPartialKeys(String user, int expected) throws Exception {

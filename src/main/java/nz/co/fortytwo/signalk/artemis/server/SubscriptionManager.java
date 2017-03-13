@@ -84,14 +84,14 @@ public class SubscriptionManager {
 	public void addSubscription(Subscription sub) throws Exception {
 		if (!subscriptions.contains(sub)) {
 			if (logger.isDebugEnabled())
-				logger.debug("Adding sub " + sub);
+				logger.debug("Adding " + sub);
 			subscriptions.add(sub);
 			// start if we have to.
 			
 			if (!hasExistingRoute(sub)) {
 				sub.setActive(true);
 				if (logger.isDebugEnabled())
-					logger.debug("Started route for sub" + sub);
+					logger.debug("Started route for " + sub);
 				heartbeats.remove(sub.getSessionId());
 			}
 			if (logger.isDebugEnabled())

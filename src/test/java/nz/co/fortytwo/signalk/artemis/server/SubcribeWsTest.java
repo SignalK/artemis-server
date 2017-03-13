@@ -23,25 +23,19 @@
  */
 package nz.co.fortytwo.signalk.artemis.server;
 
-import static nz.co.fortytwo.signalk.util.SignalKConstants.SIGNALK_AUTH;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.SIGNALK_DISCOVERY;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.SIGNALK_WS;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.websocketUrl;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import mjson.Json;
-import nz.co.fortytwo.signalk.artemis.service.SignalkBroadcaster;
-import nz.co.fortytwo.signalk.util.SignalKConstants;
-
-import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -54,6 +48,8 @@ import com.ning.http.client.Response;
 import com.ning.http.client.ws.DefaultWebSocketListener;
 import com.ning.http.client.ws.WebSocket;
 import com.ning.http.client.ws.WebSocketUpgradeHandler;
+
+import mjson.Json;
 
 public class SubcribeWsTest {
  
@@ -86,6 +82,7 @@ public class SubcribeWsTest {
        // assertEquals(200, r1.getStatusCode());
         Response r2 = c.prepareGet("http://localhost:"+restPort+SIGNALK_DISCOVERY).execute().get();
         Json json = Json.read(r2.getResponseBody());
+        logger.debug("Endpoint json:"+json);
         assertEquals("ws://localhost:"+wsPort+SIGNALK_WS, json.at("endpoints").at("v1").at(websocketUrl).asString());
         c.close();
 	}
@@ -96,7 +93,7 @@ public class SubcribeWsTest {
 	    final CountDownLatch latch3 = new CountDownLatch(5);
         final AsyncHttpClient c = new AsyncHttpClient();
         
-       String restUrl = "ws://localhost:8080/signalk/v1/api";
+       String restUrl = "ws://localhost:"+restPort+SIGNALK_WS;
         logger.debug("Open websocket at: "+restUrl);
         WebSocket websocket = c.prepareGet(restUrl).execute(
                 new WebSocketUpgradeHandler.Builder()
@@ -112,6 +109,10 @@ public class SubcribeWsTest {
                             logger.info("received --> " + message);
                             received.add(message);
                         }
+                        @Override
+                        public void onError(Throwable t) {
+                        	 logger.error(t);
+                        }
                       
                     }).build()).get();
 
@@ -126,8 +127,8 @@ public class SubcribeWsTest {
 		for (String line : FileUtils.readLines(new File("./src/test/resources/samples/signalkKeesLog.txt"))) {
 
 			websocket.sendMessage(line);
-			if (logger.isDebugEnabled())
-				logger.debug("Sent:" + line);
+			//if (logger.isDebugEnabled())
+				//logger.debug("Sent:" + line);
 		
 
 		}
@@ -147,9 +148,9 @@ public class SubcribeWsTest {
         //Json sk = Json.read("{\"context\":\"vessels."+SignalKConstants.self+".navigation\",\"updates\":[{\"values\":[{\"path\":\"courseOverGroundTrue\",\"value\":3.0176},{\"path\":\"speedOverGround\",\"value\":3.85}],\"source\":{\"timestamp\":\"2014-08-15T16:00:00.081+00:00\",\"device\":\"/dev/actisense\",\"src\":\"115\",\"pgn\":\"128267\"}}]}");
         //Json sk = Json.read("{\"context\":\"vessels.motu\",\"updates\":[{\"values\":[{\"path\":\"navigation.courseOverGroundTrue\",\"value\":3.0176},{\"path\":\"navigation.speedOverGround\",\"value\":3.85}],\"timestamp\":\"2014-08-15T16:00:00.081+00:00\",\"source\":{\"device\":\"/dev/actisense\",\"src\":\"115\",\"pgn\":\"128267\"}}]}");
         assertNotNull(fullMsg);
-        assertTrue(fullMsg.contains("\"context\":\"vessels.motu\""));
+        assertTrue(fullMsg.contains("\"context\":\"vessels.urn:mrn:imo:mmsi:123456789\""));
         assertTrue(fullMsg.contains("\"path\":\"navigation.courseOverGroundTrue\""));
-        assertTrue(fullMsg.contains("\"value\":3.0176"));
+        assertTrue(fullMsg.contains("\"value\":"));
         assertTrue(fullMsg.contains("\"updates\":[{"));
         
         c.close();

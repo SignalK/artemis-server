@@ -17,11 +17,13 @@ import org.apache.activemq.artemis.core.server.RoutingType;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jgroups.util.UUID;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.util.SignalKConstants;
 
@@ -100,12 +102,12 @@ public class SubscribeTest {
 	}
 	@Test
 	public void shouldReadPartialKeysForGuest() throws Exception {
-		readPartialKeys("guest", 52);
+		readPartialKeys("guest", 6);
 	}
 	
 	@Test
 	public void shouldReadPartialKeysForAdmin() throws Exception {
-		readPartialKeys("admin", 72);
+		readPartialKeys("admin", 6);
 	}
 
 	private void readPartialKeys(String user, int expected) throws Exception{
@@ -131,19 +133,22 @@ public class SubscribeTest {
 			ClientMessage subMsg = session.createMessage(true);
 			Json msg = getJson("vessels.urn:mrn:imo:mmsi:123456789", "navigation", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
 			subMsg.getBodyBuffer().writeString(msg.toString());
-			session.createTemporaryQueue("outgoing.reply.temp-001", RoutingType.MULTICAST, "temp-001");
-			subMsg.putStringProperty("AMQ_REPLY_Q", "temp-001");
+			String tempQ = UUID.randomUUID().toString();
+			session.createTemporaryQueue("outgoing.reply."+tempQ, RoutingType.MULTICAST, tempQ);
+			subMsg.putStringProperty(Config.AMQ_REPLY_Q, tempQ);
 			producer.send("incoming.delta", subMsg);
 			producer.close();
+			logger.debug("Subscribe sent");
 			
 			CountDownLatch latch = new CountDownLatch(1);
-			latch.await(3, TimeUnit.SECONDS);
+			latch.await(5, TimeUnit.SECONDS);
+			logger.debug("Receive started");
 			
 			int d = 0; // now read partial
-			ClientConsumer consumer = session.createConsumer("temp-001", false);
+			ClientConsumer consumer = session.createConsumer(tempQ, false);
 			ClientMessage msgReceived = null;
 			while ((msgReceived = consumer.receive(10)) != null) {
-				String recv = msgReceived.getBodyBuffer().readString();
+				Object recv = Util.readBodyBuffer(msgReceived);
 				if (logger.isDebugEnabled())
 					logger.debug("Client message = " + msgReceived.getAddress() + ", " + recv); //
 				if (logger.isDebugEnabled())
