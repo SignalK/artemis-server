@@ -23,6 +23,7 @@
  */
 package nz.co.fortytwo.signalk.artemis.server;
 
+import static nz.co.fortytwo.signalk.util.SignalKConstants.SIGNALK_API;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.SIGNALK_DISCOVERY;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.SIGNALK_WS;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.websocketUrl;
@@ -36,6 +37,9 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.activemq.artemis.api.core.client.ClientMessage;
+import org.apache.activemq.artemis.api.core.client.ClientProducer;
+import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -50,6 +54,7 @@ import com.ning.http.client.ws.WebSocket;
 import com.ning.http.client.ws.WebSocketUpgradeHandler;
 
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class SubcribeWsTest {
  
@@ -84,6 +89,66 @@ public class SubcribeWsTest {
         Json json = Json.read(r2.getResponseBody());
         logger.debug("Endpoint json:"+json);
         assertEquals("ws://localhost:"+wsPort+SIGNALK_WS, json.at("endpoints").at("v1").at(websocketUrl).asString());
+        c.close();
+	}
+	
+	@Test
+    public void shouldGetApiData() throws Exception {
+		
+		ClientSession session = Util.getVmSession("admin", "admin");
+		session.start();
+
+		ClientProducer producer = session.createProducer();
+		
+		for (String line : FileUtils.readLines(new File("./src/test/resources/samples/signalkKeesLog.txt"))) {
+
+			ClientMessage message = session.createMessage(true);
+			message.getBodyBuffer().writeString(line);
+			producer.send("incoming.delta", message);
+			if (logger.isDebugEnabled())
+				logger.debug("Sent:" + message.getMessageID() + ":" + line);
+		}
+
+		
+        final AsyncHttpClient c = new AsyncHttpClient();
+        
+        //get a sessionid
+        //Response r1 = c.prepareGet("http://localhost:"+restPort+SIGNALK_AUTH+"/demo/pass").execute().get();
+       // assertEquals(200, r1.getStatusCode());
+        Response r2 = c.prepareGet("http://localhost:"+restPort+SIGNALK_API+"/vessels").execute().get();
+        Json json = Json.read(r2.getResponseBody());
+        logger.debug("Endpoint json:"+json);
+       // assertEquals("ws://localhost:"+wsPort+SIGNALK_WS, json.at("endpoints").at("v1").at(websocketUrl).asString());
+        c.close();
+	}
+	
+	@Test
+    public void shouldGetApiSubset() throws Exception {
+		
+		ClientSession session = Util.getVmSession("admin", "admin");
+		session.start();
+
+		ClientProducer producer = session.createProducer();
+		
+		for (String line : FileUtils.readLines(new File("./src/test/resources/samples/signalkKeesLog.txt"))) {
+
+			ClientMessage message = session.createMessage(true);
+			message.getBodyBuffer().writeString(line);
+			producer.send("incoming.delta", message);
+			if (logger.isDebugEnabled())
+				logger.debug("Sent:" + message.getMessageID() + ":" + line);
+		}
+
+		
+        final AsyncHttpClient c = new AsyncHttpClient();
+        
+        //get a sessionid
+        //Response r1 = c.prepareGet("http://localhost:"+restPort+SIGNALK_AUTH+"/demo/pass").execute().get();
+       // assertEquals(200, r1.getStatusCode());
+        Response r2 = c.prepareGet("http://localhost:"+restPort+SIGNALK_API+"/vessels/urn:mrn:imo:mmsi:123456789").execute().get();
+        Json json = Json.read(r2.getResponseBody());
+        logger.debug("Endpoint json:"+json);
+       // assertEquals("ws://localhost:"+wsPort+SIGNALK_WS, json.at("endpoints").at("v1").at(websocketUrl).asString());
         c.close();
 	}
 	

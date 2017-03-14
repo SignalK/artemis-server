@@ -149,9 +149,6 @@ public class ArtemisServerTest {
 		ClientSession session = Util.getVmSession("admin", "admin");
 		session.start();
 
-		ClientSession session2 = Util.getVmSession("admin", "admin");
-		session2.start();
-
 		ClientProducer producer = session.createProducer();
 		int c = 0;
 		for (String line : FileUtils.readLines(new File("./src/test/resources/samples/signalkKeesLog.txt"))) {
