@@ -101,17 +101,17 @@ public class FullMsg implements Transformer {
 		if (logger.isDebugEnabled())
 			logger.debug("processing sub:  " + node);
 		if (node==null || node.isNull()) {
-			Util.sendMsg(key, Json.nil(), null, null, sess);
+			Util.sendMsg(key, Json.nil(), null, (String)null, sess);
 			return;
 		}
 		if(node.isPrimitive()){
 			//attribute type
-			Util.sendMsg(key, node,null, null, sess);
+			Util.sendMsg(key, node,null, (String)null, sess);
 			return;
 		}
 		if(node.isArray()){
 			//attribute type
-			Util.sendMsg(key, node,null, null, sess);
+			Util.sendMsg(key, node,null, (String)null, sess);
 			return;
 		}
 		if(node.has(value)){

@@ -105,8 +105,6 @@ public class ArtemisServerTest {
 		ClientSession session = Util.getVmSession("guest", "guest");
 		session.start();
 
-		ClientSession session2 = Util.getVmSession("admin", "admin");
-		session2.start();
 
 		ClientProducer producer = session.createProducer();
 		int c = 0;
@@ -140,7 +138,7 @@ public class ArtemisServerTest {
 		if (logger.isDebugEnabled())
 			logger.debug("Sent = " + c + ", recd=" + d);
 		assertEquals(1000, c);
-		assertEquals(12, d);
+		assertEquals(27, d);
 	}
 
 	@Test
@@ -168,7 +166,7 @@ public class ArtemisServerTest {
 		ClientMessage msgReceived = null;
 		while ((msgReceived = consumer.receive(10)) != null) {
 			d++;
-			logger.debug(msgReceived.getAddress().toString()+":bytes:"+msgReceived.getBodyBuffer().readableBytes());
+			//logger.debug(msgReceived.getAddress().toString()+":bytes:"+msgReceived.getBodyBuffer().readableBytes());
 			if(msgReceived.getBodyBuffer().readableBytes()==1){
 				logger.debug("Value:"+msgReceived.getBodyBuffer().readBoolean());
 				continue;
@@ -183,25 +181,25 @@ public class ArtemisServerTest {
 				logger.debug("message = " + msgReceived.getMessageID() + ":" + msgReceived.getAddress() + ", " + recv);
 			// if(logger.isDebugEnabled())logger.debug("message = "
 			// +msgReceived.toString());
-			d++;
+			
 		}
 		consumer.close();
 		session.close();
 		if (logger.isDebugEnabled())
 			logger.debug("Sent = " + c + ", recd=" + d);
 		assertEquals(1000, c);
-		assertEquals(34, d);
+		assertEquals(32, d);
 	}
 
 	@Test
 	public void shouldEditConfigForAdmin() throws Exception {
-		Map<String, Object> model = shouldReadConfigForUser("admin", 38);
+		Map<String, Json> model = shouldReadConfigForUser("admin", 38);
 		//check String
-		assertEquals("system", model.get("config.server.clock.src"));
+		assertEquals("system", model.get("config.server.clock.src").asString());
 		//check boolean
-		assertEquals(true, model.get("config.server.apps.install.allow"));
+		assertEquals(true, model.get("config.server.apps.install.allow").asBoolean());
 		//check int
-		assertEquals(38400L, model.get("config.server.serial.baud"));
+		assertEquals(38400L, model.get("config.server.serial.baud").asLong());
 		
 		
 		
@@ -215,14 +213,14 @@ public class ArtemisServerTest {
 		producer.send("incoming.delta", message);
 		
 		model = shouldReadConfigForUser("admin", 38);
-		assertEquals("gps", model.get("config.server.clock.src"));
+		assertEquals("gps", model.get("config.server.clock.src").asString());
 		
 		message = session.createMessage(true);
 		message.getBodyBuffer().writeString("{ \"config\": { \"server\": { \"clock\": { \"src\": \"system\" } } }}");
 		producer.send("incoming.delta", message);
 		
 		model = shouldReadConfigForUser("admin", 38);
-		assertEquals("system", model.get("config.server.clock.src"));
+		assertEquals("system", model.get("config.server.clock.src").asString());
 		
 		session.close();
 
@@ -244,8 +242,8 @@ public class ArtemisServerTest {
 	}
 	
 	
-	public Map<String,Object> shouldReadConfigForUser(String user, int items) throws Exception {
-		Map<String,Object> model = new HashMap<>();
+	public Map<String,Json> shouldReadConfigForUser(String user, int items) throws Exception {
+		Map<String,Json> model = new HashMap<>();
 		ClientSession session = Util.getVmSession(user, user);
 		session.start();
 
@@ -255,10 +253,10 @@ public class ArtemisServerTest {
 				"_AMQ_LVQ_NAME like 'config.%'", true);
 		ClientMessage msgReceived = null;
 		while ((msgReceived = consumer.receive(10)) != null) {
-			logger.debug(msgReceived.getAddress().toString()+":bytes:"+msgReceived.getBodyBuffer().readableBytes());
+			//logger.debug(msgReceived.getAddress().toString()+":bytes:"+msgReceived.getBodyBuffer().readableBytes());
 			d++;
 			
-			Object recv = Util.readBodyBuffer(msgReceived);
+			Json recv = Util.readBodyBuffer(msgReceived);
 			if (logger.isDebugEnabled())
 				logger.debug("message = " + msgReceived.getMessageID() + ":" + msgReceived.getAddress() + ", " + recv);
 			model.put(msgReceived.getAddress().toString(), recv);
@@ -275,34 +273,6 @@ public class ArtemisServerTest {
 	
 	
 
-	@Test
-	public void checkSimpleTCPConnection() throws Exception {
-
-		ClientSession session = Util.getLocalhostClientSession("guest", "guest");
-
-		ClientProducer producer = session.createProducer("vessels.example");
-
-		ClientMessage message = session.createMessage(true);
-		message.putStringProperty(Config._AMQ_LVQ_NAME, "KEY_1");
-		message.putStringProperty(Config.JAVA_TYPE, "String");
-		message.getBodyBuffer().writeString("Hello");
-		producer.send(message);
-
-		session.start();
-
-		ClientConsumer consumer = session.createConsumer("vessels", true);
-		ClientConsumer consumer1 = session.createConsumer("vessels", true);
-
-		ClientMessage msgReceived = consumer.receive();
-
-		Object recv = Util.readBodyBuffer(msgReceived);
-		if (logger.isDebugEnabled())
-			logger.debug("message = " + recv);
-		assertEquals("Hello", recv);
-		msgReceived = consumer1.receive(100);
-		assertNotNull(msgReceived);
-		session.close();
-	}
 
 	
 

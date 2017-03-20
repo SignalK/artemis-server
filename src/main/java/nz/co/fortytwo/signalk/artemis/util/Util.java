@@ -4,10 +4,12 @@ import static nz.co.fortytwo.signalk.util.SignalKConstants.CONTEXT;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.PATH;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.UPDATES;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.dot;
+import static nz.co.fortytwo.signalk.util.SignalKConstants.label;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.self;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.self_str;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.source;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.sourceRef;
+import static nz.co.fortytwo.signalk.util.SignalKConstants.sources;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.timestamp;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.value;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.values;
@@ -33,6 +35,7 @@ import org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants;
 import org.apache.activemq.artemis.core.server.ServerMessage;
 import org.apache.activemq.artemis.core.server.ServerSession;
 import org.apache.activemq.artemis.core.server.impl.ServerMessageImpl;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -65,12 +68,33 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 		return nettyFactory.createSession(user, password, false, true, true, false, 10);
 	}
 
-	public static void sendMsg(String string, double value, String now, String sourceRef, ServerSession session)
+	public static void sendDoubleAsMsg(String key, double value, String timeStamp, String srcRef, ServerSession session)
 			throws Exception {
-		sendMsg(string,  Json.make(value), now, sourceRef, session);
+		if(StringUtils.isNotBlank(srcRef)){
+			sendObjMsg(key+dot+values+dot+srcRef,  Json.make(value), timeStamp, srcRef, session);
+		}else{
+			sendObjMsg(key,  Json.make(value), timeStamp, srcRef, session);
+		}
 	}
 
-	public static void sendMsg(String key, Json body, String timeStamp, Object src, ServerSession sess)
+	public static void sendMsg(String key, Json body, String timeStamp, String srcRef, ServerSession sess) throws Exception{
+		if(StringUtils.isNotBlank(srcRef)){
+			sendObjMsg(key+dot+values+dot+srcRef, body, timeStamp, srcRef, sess);
+		}else{
+			sendObjMsg(key, body, timeStamp, srcRef, sess);
+		}
+	}
+	
+	public static void sendMsg(String key, Json body, String timeStamp, Json src, ServerSession sess) throws Exception{
+		if(src!=null && !src.isNull()){
+			String srclabel = src.at(label).asString();
+			if(srclabel.startsWith(sources))srclabel = srclabel.substring(sources.length()+1);
+			sendObjMsg(key+dot+values+dot+srclabel, body, timeStamp, src, sess);
+		}else{
+			sendObjMsg(key, body, timeStamp, src, sess);
+		}
+	}
+	private static void sendObjMsg(String key, Json body, String timeStamp, Object src, ServerSession sess)
 			throws Exception {
 		
 		ServerMessage m2 = new ServerMessageImpl(new Double(Math.random()).longValue(), 64);
@@ -130,7 +154,7 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 	}
 
 	public static void sendSourceMsg(String key, String src, String now, ServerSession sess) throws Exception {
-		sendMsg("sources." + key, Json.read(src), now, null, sess);
+		sendObjMsg("sources." + key, Json.read(src), now, null, sess);
 
 	}
 	
@@ -190,8 +214,8 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 					for (ClientMessage msg : msgs.get(ctx).get(ts).get(src)) {
 						
 						String key = msg.getAddress().toString().substring(ctx.length()+1);
-						if(key.endsWith(dot+value))
-							key = key.substring(0, key.lastIndexOf(dot));
+						if(key.contains(dot+values+dot))
+							key = key.substring(0, key.indexOf(dot+values+dot));
 						Json v = Util.readBodyBuffer(msg);
 						logger.debug("Key: "+key+", value: "+v);
 						Json val = Json.object(PATH, key );

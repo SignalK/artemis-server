@@ -187,12 +187,12 @@ public class NMEAMsg implements Transformer {
 
 							if (sen.isTrue()) {
 								try {
-									Util.sendMsg(vessels_dot_self_dot + nav_courseOverGroundTrue, Math.toRadians(sen.getHeading()), src.getNow(), src.getSourceRef(), src.getSession());
+									Util.sendDoubleAsMsg(vessels_dot_self_dot + nav_courseOverGroundTrue, Math.toRadians(sen.getHeading()), src.getNow(), src.getSourceRef(), src.getSession());
 								} catch (Exception e) {
 									logger.error(e.getMessage());
 								}
 							} else {
-								Util.sendMsg(vessels_dot_self_dot + nav_courseOverGroundMagnetic, Math.toRadians(sen.getHeading()), src.getNow(), src.getSourceRef(), src.getSession());
+								Util.sendDoubleAsMsg(vessels_dot_self_dot + nav_courseOverGroundMagnetic, Math.toRadians(sen.getHeading()), src.getNow(), src.getSourceRef(), src.getSession());
 							}
 						}
 					}
@@ -201,22 +201,22 @@ public class NMEAMsg implements Transformer {
 						RMCSentence sen = (RMCSentence) evt.getSentence();
 						if(rmcClock)Util.checkTime(sen);
 					
-						Util.sendMsg(vessels_dot_self_dot + nav_speedOverGround, Util.kntToMs(sen.getSpeed()), src.getNow(), src.getSourceRef(), src.getSession());
+						Util.sendDoubleAsMsg(vessels_dot_self_dot + nav_speedOverGround, Util.kntToMs(sen.getSpeed()), src.getNow(), src.getSourceRef(), src.getSession());
 					}
 					if (evt.getSentence() instanceof VHWSentence) {
 						VHWSentence sen = (VHWSentence) evt.getSentence();
 						//VHW sentence types have both, but true can be empty
 						try {
 							
-							Util.sendMsg(vessels_dot_self_dot + nav_courseOverGroundMagnetic, Math.toRadians(sen.getMagneticHeading()), src.getNow(), src.getSourceRef(), src.getSession());
+							Util.sendDoubleAsMsg(vessels_dot_self_dot + nav_courseOverGroundMagnetic, Math.toRadians(sen.getMagneticHeading()), src.getNow(), src.getSourceRef(), src.getSession());
 							
-							Util.sendMsg(vessels_dot_self_dot + nav_courseOverGroundTrue, Math.toRadians(sen.getHeading()), src.getNow(), src.getSourceRef(), src.getSession());
+							Util.sendDoubleAsMsg(vessels_dot_self_dot + nav_courseOverGroundTrue, Math.toRadians(sen.getHeading()), src.getNow(), src.getSourceRef(), src.getSession());
 							
 						} catch (DataNotAvailableException e) {
 							logger.error(e.getMessage());
 						}
 						
-						Util.sendMsg(vessels_dot_self_dot + nav_speedOverGround, Util.kntToMs(sen.getSpeedKnots()), src.getNow(), src.getSourceRef(), src.getSession());
+						Util.sendDoubleAsMsg(vessels_dot_self_dot + nav_speedOverGround, Util.kntToMs(sen.getSpeedKnots()), src.getNow(), src.getSourceRef(), src.getSession());
 					}
 	
 					// MWV wind
@@ -231,15 +231,15 @@ public class NMEAMsg implements Transformer {
 						// signalk is -180 to 180 (in radians), negative to port, 0 is bow. 
 						double aws = Math.toRadians(angle);
 						
-						Util.sendMsg(vessels_dot_self_dot + env_wind_angleApparent, aws, src.getNow(), src.getSourceRef(), src.getSession());
+						Util.sendDoubleAsMsg(vessels_dot_self_dot + env_wind_angleApparent, aws, src.getNow(), src.getSourceRef(), src.getSession());
 						
-						Util.sendMsg(vessels_dot_self_dot + env_wind_speedApparent, Util.kntToMs(sen.getSpeed()), src.getNow(), src.getSourceRef(), src.getSession());
+						Util.sendDoubleAsMsg(vessels_dot_self_dot + env_wind_speedApparent, Util.kntToMs(sen.getSpeed()), src.getNow(), src.getSourceRef(), src.getSession());
 					}
 					
 					if (evt.getSentence() instanceof DepthSentence) {
 						DepthSentence sen = (DepthSentence) evt.getSentence();
 						// in meters
-						Util.sendMsg(vessels_dot_self_dot + env_depth_belowTransducer, sen.getDepth(), src.getNow(), src.getSourceRef(), src.getSession());
+						Util.sendDoubleAsMsg(vessels_dot_self_dot + env_depth_belowTransducer, sen.getDepth(), src.getNow(), src.getSourceRef(), src.getSession());
 					}
 				}catch (DataNotAvailableException e){
 					logger.error(e.getMessage()+":"+evt.getSentence().toSentence());
