@@ -53,8 +53,10 @@ public class SubscribeTest {
 			ClientMessage message = session.createMessage(true);
 			Json msg = getJson("vessels." + SignalKConstants.self, "navigation", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
 			message.getBodyBuffer().writeString(msg.toString());
-			session.createTemporaryQueue("outgoing.reply", "temp-001");
-			message.putStringProperty("AMQ_REPLY_Q", "temp-001");
+			String tempQ = UUID.randomUUID().toString();
+			session.createTemporaryQueue("outgoing.reply."+tempQ, RoutingType.MULTICAST, tempQ);
+			message.putStringProperty(Config.AMQ_REPLY_Q, tempQ);
+			
 			producer.send(message);
 			
 			message = session.createMessage(true);
@@ -64,10 +66,10 @@ public class SubscribeTest {
 			
 			producer.close();
 			
-			ClientConsumer consumer = session.createConsumer("temp-001",false);
+			ClientConsumer consumer = session.createConsumer(tempQ,false);
 			CountDownLatch latch = new CountDownLatch(1);
 			latch.await(3, TimeUnit.SECONDS);
-			ClientMessage msgReceived = consumer.receive();
+			ClientMessage msgReceived = consumer.receive(10000);
 			String recv = msgReceived.getBodyBuffer().readString();
 			logger.debug("rcvd message = " + recv);
 			// assertEquals("Hello", recv);
@@ -98,7 +100,7 @@ public class SubscribeTest {
 			session.close();
 		}
 		CountDownLatch latch = new CountDownLatch(1);
-		latch.await(60, TimeUnit.SECONDS);
+		latch.await(10, TimeUnit.SECONDS);
 	}
 	@Test
 	public void shouldReadPartialKeysForGuest() throws Exception {
