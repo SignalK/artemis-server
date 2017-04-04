@@ -40,6 +40,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
+import nz.co.fortytwo.signalk.util.ConfigConstants;
 
 public class Util extends nz.co.fortytwo.signalk.util.Util {
 
@@ -49,6 +50,25 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 	static final String SIGNALK_MODEL_SAVE_FILE = "./conf/self.json";
 	public static final String SIGNALK_CFG_SAVE_FILE = "./conf/signalk-config.json";
 
+	protected static Pattern selfMatch = null;
+
+    protected static Pattern selfEndMatch = null;
+	/**
+	 * If we receive messages for our UUID, convert to 'self'
+	 * @param key
+	 * @return
+	 */
+	public static String fixSelfKey(String key) {
+		if(selfMatch==null){
+			selfMatch= Pattern.compile("\\."+Config.getConfigProperty(ConfigConstants.UUID)+"\\.");
+			selfEndMatch = Pattern.compile("\\."+Config.getConfigProperty(ConfigConstants.UUID)+"$");
+		}
+        key = selfMatch.matcher(key).replaceAll(".self.");
+        
+        key = selfEndMatch.matcher(key).replaceAll(".self");
+        return key;
+    }
+	
 	public static ClientSession getVmSession(String user, String password) throws Exception {
 		ClientSessionFactory nettyFactory = ActiveMQClient
 				.createServerLocatorWithoutHA(new TransportConfiguration(InVMConnectorFactory.class.getName()))
@@ -135,7 +155,7 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_COMPOSITE);
 			break;
 		default:
-			logger.error("Unkown Json Class type: "+type);
+			logger.error("Unknown Json Class type: "+type);
 			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_VALUE);
 			m2.getBodyBuffer().writeString( body.toString());
 			break;

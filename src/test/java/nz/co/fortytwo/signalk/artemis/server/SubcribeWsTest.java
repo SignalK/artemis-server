@@ -26,8 +26,13 @@ package nz.co.fortytwo.signalk.artemis.server;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.SIGNALK_API;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.SIGNALK_DISCOVERY;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.SIGNALK_WS;
+import static nz.co.fortytwo.signalk.util.SignalKConstants.electrical;
+import static nz.co.fortytwo.signalk.util.SignalKConstants.env;
+import static nz.co.fortytwo.signalk.util.SignalKConstants.nav;
+import static nz.co.fortytwo.signalk.util.SignalKConstants.tanks;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.websocketUrl;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -43,6 +48,7 @@ import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -54,7 +60,9 @@ import com.ning.http.client.ws.WebSocket;
 import com.ning.http.client.ws.WebSocketUpgradeHandler;
 
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
+import nz.co.fortytwo.signalk.util.ConfigConstants;
 
 public class SubcribeWsTest {
  
@@ -112,13 +120,39 @@ public class SubcribeWsTest {
 		
         final AsyncHttpClient c = new AsyncHttpClient();
         
-        //get a sessionid
-        //Response r1 = c.prepareGet("http://localhost:"+restPort+SIGNALK_AUTH+"/demo/pass").execute().get();
-       // assertEquals(200, r1.getStatusCode());
         Response r2 = c.prepareGet("http://localhost:"+restPort+SIGNALK_API+"/vessels").execute().get();
         Json json = Json.read(r2.getResponseBody());
         logger.debug("Endpoint json:"+json);
-       // assertEquals("ws://localhost:"+wsPort+SIGNALK_WS, json.at("endpoints").at("v1").at(websocketUrl).asString());
+        assertTrue(json.has("urn:mrn:imo:mmsi:244690118"));
+        c.close();
+	}
+	@Test
+    public void shouldGetApiSelfData() throws Exception {
+		
+		ClientSession session = Util.getVmSession("admin", "admin");
+		session.start();
+		
+        final AsyncHttpClient c = new AsyncHttpClient();
+        
+        Response r2 = c.prepareGet("http://localhost:"+restPort+SIGNALK_API+"/self").execute().get();
+        String json = r2.getResponseBody();
+        logger.debug("Endpoint json:"+json);
+        assertEquals("\"urn:mrn:signalk:uuid:5da2f032-fc33-43f0-bc24-935bf55a17d1\"", json);
+        c.close();
+	}
+	
+	@Test
+    public void shouldGetApiUUIDData() throws Exception {
+		
+		ClientSession session = Util.getVmSession("admin", "admin");
+		session.start();
+		
+        final AsyncHttpClient c = new AsyncHttpClient();
+        
+        Response r2 = c.prepareGet("http://localhost:"+restPort+SIGNALK_API+"/vessels/"+Config.getConfigProperty(ConfigConstants.UUID)+"/uuid").execute().get();
+        String json = r2.getResponseBody();
+        logger.debug("Endpoint json:"+json);
+        assertEquals("\"urn:mrn:signalk:uuid:5da2f032-fc33-43f0-bc24-935bf55a17d1\"", json);
         c.close();
 	}
 	
@@ -149,6 +183,73 @@ public class SubcribeWsTest {
         Json json = Json.read(r2.getResponseBody());
         logger.debug("Endpoint json:"+json);
        // assertEquals("ws://localhost:"+wsPort+SIGNALK_WS, json.at("endpoints").at("v1").at(websocketUrl).asString());
+        c.close();
+	}
+	
+	@Test
+    public void shouldGetApiForSelf() throws Exception {
+		
+		ClientSession session = Util.getVmSession("admin", "admin");
+		session.start();
+
+		ClientProducer producer = session.createProducer();
+		
+		for (String line : FileUtils.readLines(new File("./src/test/resources/samples/signalkKeesLog.txt"))) {
+
+			ClientMessage message = session.createMessage(true);
+			line=line.replaceAll("urn:mrn:imo:mmsi:123456789",Config.getConfigProperty(ConfigConstants.UUID));
+			message.getBodyBuffer().writeString(line);
+			producer.send("incoming.delta", message);
+			if (logger.isDebugEnabled())
+				logger.debug("Sent:" + message.getMessageID() + ":" + line);
+		}
+
+		
+        final AsyncHttpClient c = new AsyncHttpClient();
+        
+        //get a sessionid
+        //Response r1 = c.prepareGet("http://localhost:"+restPort+SIGNALK_AUTH+"/demo/pass").execute().get();
+       // assertEquals(200, r1.getStatusCode());
+        Response r2 = c.prepareGet("http://localhost:"+restPort+SIGNALK_API+"/vessels/self").execute().get();
+        Json json = Json.read(r2.getResponseBody());
+        logger.debug("Endpoint json:"+json);
+        assertFalse(json.has("NMEA2000"));
+	    assertTrue(json.has(env));
+	    assertTrue(json.has(nav));
+	    assertTrue(json.has(electrical));
+	    assertTrue(json.has(tanks));
+        c.close();
+	}
+	@Test
+    public void shouldGetApiForSources() throws Exception {
+		
+		ClientSession session = Util.getVmSession("admin", "admin");
+		session.start();
+
+		ClientProducer producer = session.createProducer();
+		
+		for (String line : FileUtils.readLines(new File("./src/test/resources/samples/signalkKeesLog.txt"))) {
+
+			ClientMessage message = session.createMessage(true);
+			line=line.replaceAll("urn:mrn:imo:mmsi:123456789",Config.getConfigProperty(ConfigConstants.UUID));
+			message.getBodyBuffer().writeString(line);
+			producer.send("incoming.delta", message);
+			if (logger.isDebugEnabled())
+				logger.debug("Sent:" + message.getMessageID() + ":" + line);
+		}
+
+        final AsyncHttpClient c = new AsyncHttpClient();
+        
+        //get a sessionid
+        //Response r1 = c.prepareGet("http://localhost:"+restPort+SIGNALK_AUTH+"/demo/pass").execute().get();
+       // assertEquals(200, r1.getStatusCode());
+        Response r2 = c.prepareGet("http://localhost:"+restPort+SIGNALK_API+"/sources").execute().get();
+        Json json = Json.read(r2.getResponseBody());
+        logger.debug("Endpoint json:"+json);
+	    assertTrue(json.has("NMEA2000"));
+	    assertFalse(json.has(nav));
+	    assertFalse(json.has(electrical));
+	    assertFalse(json.has(tanks));
         c.close();
 	}
 	

@@ -99,7 +99,7 @@ public class FullMsg implements Transformer {
 		//check if it has a .value
 		// value type, or attribute type
 		if (logger.isDebugEnabled())
-			logger.debug("processing sub:  " + node);
+			logger.debug("processing sub: "+ key+": " + node);
 		if (node==null || node.isNull()) {
 			Util.sendMsg(key, Json.nil(), null, (String)null, sess);
 			return;

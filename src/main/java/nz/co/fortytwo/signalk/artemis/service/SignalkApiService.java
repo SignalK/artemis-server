@@ -38,15 +38,19 @@ public abstract class SignalkApiService {
 	public SignalkApiService() {
 	}
 
-
-
 	public void get(AtmosphereResource resource, String path) {
 		logger.debug("get:"+path);
 		
 		path=path.substring(SIGNALK_API.length()+1);
+		if(path.equals("self"))path="vessels/self/uuid";
 		path=path.replace('/', '.');
+		
 		path=Util.fixSelfKey(path);
 		logger.debug("get:"+path);
+		String queue = path;
+		if(queue.contains("."))
+			queue=queue.substring(0,queue.indexOf("."));
+		//TODO: no security yet!
 		String user = "admin";
 		try {
 			ClientSession rxSession = null;
@@ -54,28 +58,33 @@ public abstract class SignalkApiService {
 			try {
 				//start polling consumer.
 				rxSession = Util.getVmSession(user, user);
-				consumer = rxSession.createConsumer("vessels",
-						"_AMQ_LVQ_NAME like '"+path+".%'", true);
+				consumer = rxSession.createConsumer(queue,
+						"_AMQ_LVQ_NAME = '"+path+"' or _AMQ_LVQ_NAME like '"+path+".%'", true);
 				
 				ClientMessage msgReceived = null;
 				SortedMap< String, Object> msgs = new ConcurrentSkipListMap<>();
 				while ((msgReceived = consumer.receive(10)) != null) {
 					String key = msgReceived.getAddress().toString();
 					if(logger.isDebugEnabled())logger.debug("message = "  + msgReceived.getMessageID()+":" + key );
-					msgs.put(key+dot+value, Util.readBodyBuffer(msgReceived));
 					String ts =msgReceived.getStringProperty(timestamp);
 					String src =msgReceived.getStringProperty(source);
 					if(ts!=null)
 						msgs.put(key+dot+timestamp,ts);
 					if(src!=null)
 						msgs.put(key+dot+source,src);
+					if(ts==null&& src==null){
+						msgs.put(key, Util.readBodyBuffer(msgReceived));
+					}else{
+						msgs.put(key+dot+value, Util.readBodyBuffer(msgReceived));
+					}
 					
 				}
 				if(msgs.size()>0){
 					JsonSerializer ser = new  JsonSerializer();
-					
-					if(logger.isDebugEnabled())logger.debug("json = "+ser.write(msgs));
-					resource.getResponse().write(ser.write(msgs));
+					Json json = Json.read(ser.write(msgs));
+					json = Util.findNode(json, path);
+					if(logger.isDebugEnabled())logger.debug("json = "+json.toString());
+					resource.getResponse().write(json.toString());
 				}else{
 					resource.getResponse().write("{}");
 				}

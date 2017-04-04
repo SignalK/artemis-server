@@ -6,8 +6,10 @@ import static nz.co.fortytwo.signalk.util.SignalKConstants.PATH;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.PUT;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.UPDATES;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.dot;
+import static nz.co.fortytwo.signalk.util.SignalKConstants.label;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.source;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.timestamp;
+import static nz.co.fortytwo.signalk.util.SignalKConstants.type;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.value;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.values;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels;
@@ -131,7 +133,8 @@ public class UnpackUpdateMsg implements Transformer {
 		if(logger.isDebugEnabled())logger.debug("message m1 = "  + m1.getMessageID()+":" + m1.getAddress() + ", " + m1.getPropertyNames());
 		String sessionId = m1.getStringProperty(Config.AMQ_SESSION_ID);
 		ServerSession sess = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
-		if(logger.isDebugEnabled())logger.debug("SessionId:"+sessionId+", found "+sess);
+		String device = sess.getRemotingConnection().getRemoteAddress();
+		if(logger.isDebugEnabled())logger.debug("SessionId:"+sessionId+", found "+sess + " from "+device);
 		// grab values and add
 		Json array = update.at(values);
 		Json src = null;
@@ -161,7 +164,10 @@ public class UnpackUpdateMsg implements Transformer {
 	protected void addEntry(String key, Json j, String timeStamp, Json src, ServerSession sess) throws Exception {
 		if (j == null)
 			return;
-		Util.sendMsg(key, j, timeStamp, src, sess);
+		String srcRef = src.at(type).asString()+dot + sess.getRemotingConnection().getRemoteAddress() + dot + src.at(label).asString();
+		
+		Util.sendSourceMsg(srcRef, (Json)src,timeStamp, sess);
+		Util.sendMsg(key, j, timeStamp, srcRef, sess);
 		
 	}
 

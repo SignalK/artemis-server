@@ -104,6 +104,7 @@ public final class ArtemisServer {
 		ClientSession session = Util.getVmSession( Config.getConfigProperty(Config.ADMIN_USER),
 				Config.getConfigProperty(Config.ADMIN_PWD));
 		try{
+			//this loads the LVQ config queues.
 			ClientProducer producer = session.createProducer();
 			
 			ClientMessage message = session.createMessage(true);		
@@ -116,7 +117,10 @@ public final class ArtemisServer {
 			Json json = Json.read(jsonFile.toURI().toURL());
 			message.getBodyBuffer().writeString(json.toString());
 			producer.send("incoming.delta", message);
-			
+			//now bootstrap the self vessel
+			message = session.createMessage(true);
+			message.getBodyBuffer().writeString("{\"vessels\": { \"self\" : {\"uuid\":\""+Config.getConfigProperty(ConfigConstants.UUID)+"\"}}}");
+			producer.send("incoming.delta", message);
 		}finally{
 			if (session!=null) session.close();
 		}
