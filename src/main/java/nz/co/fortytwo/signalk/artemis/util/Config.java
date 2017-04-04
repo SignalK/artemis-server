@@ -86,7 +86,7 @@ public class Config {
 		
 		Json version = Json.object();
 		String ver = getConfigProperty(ConfigConstants.VERSION);
-		version.set("version", ver.substring(1));
+		version.set("version", ver);
 		version.set(SignalKConstants.websocketUrl, "ws://" + hostname + ":"
 				+ getConfigPropertyInt(ConfigConstants.WEBSOCKET_PORT)
 				+ SignalKConstants.SIGNALK_WS);
@@ -108,7 +108,7 @@ public class Config {
 			version.set(SignalKConstants.mqttPort, "mqtt://" + hostname + ":"
 					+ getConfigPropertyInt(ConfigConstants.MQTT_PORT));
 		Json endpoints = Json.object();
-		endpoints.set(ver.substring(0, 2), version );
+		endpoints.set("v"+ver.substring(0, 1), version );
 		return Json.object().set("endpoints", endpoints);
 	}
 	/**

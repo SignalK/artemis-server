@@ -131,6 +131,7 @@ public class Subscription {
 							tsMap=new HashMap<>();
 							ctxMap.put(msgReceived.getStringProperty(timestamp), tsMap);
 						}
+						if(logger.isDebugEnabled())logger.debug("Source: "+msgReceived.getStringProperty(source));
 						List<ClientMessage> srcMap = tsMap.get(msgReceived.getStringProperty(source));
 						if(srcMap==null){
 							srcMap=new ArrayList<>();

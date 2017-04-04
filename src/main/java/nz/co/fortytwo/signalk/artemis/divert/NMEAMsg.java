@@ -28,6 +28,7 @@ import static nz.co.fortytwo.signalk.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.env_depth_belowTransducer;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.env_wind_angleApparent;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.env_wind_speedApparent;
+import static nz.co.fortytwo.signalk.util.SignalKConstants.label;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.nav_courseOverGroundMagnetic;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.nav_courseOverGroundTrue;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.nav_position;
@@ -37,6 +38,7 @@ import static nz.co.fortytwo.signalk.util.SignalKConstants.nav_position_longitud
 import static nz.co.fortytwo.signalk.util.SignalKConstants.nav_speedOverGround;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.sourceRef;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.timestamp;
+import static nz.co.fortytwo.signalk.util.SignalKConstants.type;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.value;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels_dot_self_dot;
 
@@ -140,7 +142,8 @@ public class NMEAMsg implements Transformer {
 			device = UNKNOWN;
 		// A general rule of sources.protocol.bus.device.data
 		String srcRef = "0183." + device + dot + sentence.getTalkerId() + dot + sentence.getSentenceId();
-		Util.sendSourceMsg(srcRef, sentence.toSentence(),now, sess);
+		
+		Util.sendSourceMsg(srcRef, getSrcJson(sentence,srcRef),now, sess);
 		
 		try {
 			SentenceEventSource src = new SentenceEventSource(srcRef, now, sess);
@@ -153,6 +156,15 @@ public class NMEAMsg implements Transformer {
 	}
 
 	
+	private Json getSrcJson(Sentence sentence, String srcLabel) {
+		Json srcJson = Json.object();
+		srcJson.set(label,srcLabel);
+		srcJson.set(type,"NMEA0183");
+		srcJson.set("talker",sentence.getTalkerId().name());
+		srcJson.set("sentences",sentence.getSentenceId());
+		return srcJson;
+	}
+
 	/**
 	 * Adds NMEA sentence listeners to process NMEA to simple output
 	 * 

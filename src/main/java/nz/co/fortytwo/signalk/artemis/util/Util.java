@@ -158,6 +158,11 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 
 	}
 	
+	public static void sendSourceMsg(String key, Json src, String now, ServerSession sess) throws Exception {
+		sendObjMsg("sources." + key, src, now, null, sess);
+
+	}
+	
 	public static String sanitizePath(String newPath) {
         newPath = newPath.replace('/', '.');
         if (newPath.startsWith(dot)) {
@@ -176,7 +181,7 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 	 *    Key=timestamp
 	 *       key=source
 	 *       	List(messages)
-	 * The method iterate through and creates the deltas as a Json array, one Json delta per context. 
+	 * The method iterates through and creates the deltas as a Json array, one Json delta per context. 
 	 * @param msgs
 	 * @return
 	 */
@@ -207,12 +212,12 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 					// add timestamp
 					valObj.set(timestamp, ts);
 					//if(src.contains("{"))
-					valObj.set(source, Json.read(src));
+					//logger.debug("GenerateDelta:src: "+src);
+					valObj.set(sourceRef, src);
 					//else
 					//	valObj.set(sourceRef, src);
 					// now the values
 					for (ClientMessage msg : msgs.get(ctx).get(ts).get(src)) {
-						
 						String key = msg.getAddress().toString().substring(ctx.length()+1);
 						if(key.contains(dot+values+dot))
 							key = key.substring(0, key.indexOf(dot+values+dot));
