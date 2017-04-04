@@ -27,10 +27,12 @@ import static nz.co.fortytwo.signalk.util.SignalKConstants.CONFIG;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.CONTEXT;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.UNKNOWN;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.dot;
+import static nz.co.fortytwo.signalk.util.SignalKConstants.label;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.resources;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.source;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.sourceRef;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.timestamp;
+import static nz.co.fortytwo.signalk.util.SignalKConstants.type;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.value;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels;
 
@@ -114,14 +116,20 @@ public class FullMsg implements Transformer {
 			Util.sendMsg(key, node,null, (String)null, sess);
 			return;
 		}
+		Json src = node.at(source);
+		String srcRef = null;
+		if(src!=null){
+			srcRef = src.at(type).toString()+dot+sess.getRemotingConnection().getRemoteAddress()+dot+src.at(label).toString();
+			Util.sendSourceMsg(srcRef, (Json)src,node.at(timestamp).asString(), sess);
+		}
 		if(node.has(value)){
-			Util.sendMsg(key, node.at(value), node.at(timestamp).asString(), node.at(source), sess);
+			Util.sendMsg(key, node.at(value), node.at(timestamp).asString(), srcRef, sess);
 			return;
 		}
 		//either composite or path to recurse
 		if(node.has(timestamp)||node.has(source)){
 			//composite
-			Util.sendMsg(key, node, node.at(timestamp).asString(), node.at(source), sess);
+			Util.sendMsg(key, node, node.at(timestamp).asString(), srcRef, sess);
 		}else{
 			//recurse
 			for(String k: node.asJsonMap().keySet()){
