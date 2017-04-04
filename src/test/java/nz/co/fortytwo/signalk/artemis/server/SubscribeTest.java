@@ -149,7 +149,7 @@ public class SubscribeTest {
 			int d = 0; // now read partial
 			ClientConsumer consumer = session.createConsumer(tempQ, false);
 			ClientMessage msgReceived = null;
-			while ((msgReceived = consumer.receive(10)) != null) {
+			while ((msgReceived = consumer.receive(100)) != null) {
 				Object recv = Util.readBodyBuffer(msgReceived);
 				if (logger.isDebugEnabled())
 					logger.debug("Client message = " + msgReceived.getAddress() + ", " + recv); //
