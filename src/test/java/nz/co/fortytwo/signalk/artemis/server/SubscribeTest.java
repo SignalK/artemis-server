@@ -100,7 +100,7 @@ public class SubscribeTest {
 			session.close();
 		}
 		CountDownLatch latch = new CountDownLatch(1);
-		latch.await(10, TimeUnit.SECONDS);
+		latch.await(60, TimeUnit.SECONDS);
 	}
 	@Test
 	public void shouldReadPartialKeysForGuest() throws Exception {

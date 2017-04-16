@@ -35,7 +35,7 @@ public class SignalkStreamBroadcaster {
 	}
 
 	public SignalkStreamBroadcaster broadcast(String message) {
-		logger.debug("Sending out to: "+user+" : "+message);
+		if(logger.isDebugEnabled())logger.debug("Sending out to: "+user+" : "+message);
 		broadcaster.broadcast(message);
 		return this;
 	}
@@ -43,7 +43,7 @@ public class SignalkStreamBroadcaster {
 	public void onOpen(AtmosphereResource resource) throws Exception {
 		user = "guest";// resource.getRequest().getUserPrincipal().getName();
 		session = Util.getVmSession(user, user);
-		logger.debug("Starting session for: "+user);
+		if(logger.isDebugEnabled())logger.debug("Starting session for: "+user);
 		session.start();
 		producer = session.createProducer();
 		String qName = UUID.randomUUID().toString();

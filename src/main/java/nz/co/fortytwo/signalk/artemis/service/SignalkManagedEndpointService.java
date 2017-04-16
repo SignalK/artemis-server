@@ -18,12 +18,12 @@ public class SignalkManagedEndpointService {
 
 	@Ready
 	public void onReady(final AtmosphereResource r) {
-		logger.debug("onReady:"+r);
+		if(logger.isDebugEnabled())logger.debug("onReady:"+r);
 	}
 
 	@Get
 	public void onMessage(AtmosphereResource resource) {
-		logger.debug("onMessage:"+resource);
+		if(logger.isDebugEnabled())logger.debug("onMessage:"+resource);
 		try {
 			// Here we need to find the suspended AtmosphereResource
 			resource.getResponse().getWriter().write(Config.getDiscoveryMsg(resource.getRequest().getLocalName()).toString());

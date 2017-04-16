@@ -19,7 +19,7 @@ public class SignalkManagedApiService extends SignalkApiService {
 
 	@Get
 	public void get(AtmosphereResource resource) {
-		logger.debug("onMessage:"+resource);
+		if(logger.isDebugEnabled())logger.debug("onMessage:"+resource);
 		
 			// Here we need to find the suspended AtmosphereResource
 			super.get(resource, resource.getRequest().getRequestURI().toString());

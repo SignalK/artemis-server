@@ -98,7 +98,7 @@ public class NMEAMsg implements Transformer {
 		String sessionId = message.getStringProperty(Config.AMQ_SESSION_ID);
 		ServerSession sess = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
 		String bodyStr = message.getBodyBuffer().readString();
-		logger.debug("Message: " +bodyStr);
+		if(logger.isDebugEnabled())logger.debug("Message: " +bodyStr);
 		
 		if (StringUtils.isNotBlank(bodyStr) && bodyStr.startsWith("$")) {
 			try {

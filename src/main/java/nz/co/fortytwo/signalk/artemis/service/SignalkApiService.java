@@ -1,11 +1,14 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
+import static nz.co.fortytwo.signalk.util.SignalKConstants.CONFIG;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.SIGNALK_API;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.source;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.timestamp;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.value;
+import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,10 +19,13 @@ import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.client.ClientConsumer;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.protocol.HTTP;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.atmosphere.cpr.AtmosphereResource;
 
+import ch.qos.logback.core.status.Status;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.util.JsonSerializer;
@@ -28,25 +34,18 @@ public abstract class SignalkApiService {
 
 	private static Logger logger = LogManager.getLogger(SignalkApiService.class);
 
-	//public static final int PLAYFIELD_WIDTH = 640;
-	//public static final int PLAYFIELD_HEIGHT = 480;
-	//public static final int GRID_SIZE = 10;
-
-	//protected static final AtomicInteger snakeIds = new AtomicInteger(0);
-	//protected static final Random random = new Random();
-
 	public SignalkApiService() {
 	}
 
 	public void get(AtmosphereResource resource, String path) {
-		logger.debug("get:"+path);
-		
+		if(logger.isDebugEnabled())logger.debug("get:"+path+" for "+resource.getRequest().getRemoteUser());
+	
 		path=path.substring(SIGNALK_API.length()+1);
 		if(path.equals("self"))path="vessels/self/uuid";
 		path=path.replace('/', '.');
 		
 		path=Util.fixSelfKey(path);
-		logger.debug("get:"+path);
+		if(logger.isDebugEnabled())logger.debug("get:"+path);
 		String queue = path;
 		if(queue.contains("."))
 			queue=queue.substring(0,queue.indexOf("."));
@@ -79,10 +78,12 @@ public abstract class SignalkApiService {
 					}
 					
 				}
+				resource.getResponse().setContentType("application/json");
 				if(msgs.size()>0){
 					JsonSerializer ser = new  JsonSerializer();
 					Json json = Json.read(ser.write(msgs));
-					json = Util.findNode(json, path);
+					if(!path.startsWith(CONFIG))
+						json = Util.findNode(json, path);
 					if(logger.isDebugEnabled())logger.debug("json = "+json.toString());
 					resource.getResponse().write(json.toString());
 				}else{

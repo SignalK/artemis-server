@@ -50,6 +50,12 @@
 				<auto-create-queues>true</auto-create-queues>
 				<auto-delete-queues>true</auto-delete-queues>
 			</address-setting>
+			
+			<address-setting match="resources.#">
+				<last-value-queue>true</last-value-queue>
+				<auto-create-queues>true</auto-create-queues>
+				<auto-delete-queues>true</auto-delete-queues>
+			</address-setting>
 
 			<address-setting match="config.#">
 				<last-value-queue>true</last-value-queue>
@@ -60,27 +66,31 @@
 		<queues>
 			<queue name="config">
 				<address>config.#</address>
-				<durable>true</durable>
+				<durable>false</durable>
 			</queue>
 			<queue name="sources">
 				<address>sources.#</address>
-				<durable>true</durable>
+				<durable>false</durable>
+			</queue>
+			<queue name="resources">
+				<address>resources.#</address>
+				<durable>false</durable>
 			</queue>
 			<queue name="vessels">
 				<address>vessels.#</address>
-				<durable>true</durable>
+				<durable>false</durable>
 			</queue>
 			<queue name="incoming.delta">
 				<address>incoming.delta</address>
-				<durable>true</durable>
+				<durable>false</durable>
 			</queue>
 			<queue name="outgoing.reply">
 				<address>outgoing.reply</address>
-				<durable>true</durable>
+				<durable>false</durable>
 			</queue>
 			<queue name="incoming.processed">
 				<address>incoming.processed</address>
-				<durable>true</durable>
+				<durable>false</durable>
 			</queue>
 		</queues>
 		<remoting-incoming-interceptors>
@@ -160,13 +170,23 @@
 			</security-setting>
 			<security-setting match="sources.#">
 				<permission type="createDurableQueue" roles="guest" />
-				<permission type="deleteDurableQueue" roles="guest" />
+				<permission type="deleteDurableQueue" roles="admin" />
 				<permission type="createNonDurableQueue" roles="guest" />
 				<permission type="deleteNonDurableQueue" roles="guest" />
 				<permission type="consume" roles="guest" />
 				<permission type="send" roles="guest" />
 				<permission type="browse" roles="guest" />
 			</security-setting>
+			<security-setting match="resources.#">
+				<permission type="createDurableQueue" roles="guest" />
+				<permission type="deleteDurableQueue" roles="admin" />
+				<permission type="createNonDurableQueue" roles="guest" />
+				<permission type="deleteNonDurableQueue" roles="guest" />
+				<permission type="consume" roles="guest" />
+				<permission type="send" roles="guest" />
+				<permission type="browse" roles="guest" />
+			</security-setting>
+			<!-- for testing security -->
 			<security-setting
 				match="vessels.urn:mrn:imo:mmsi:123456789.navigation.datum.#">
 				<permission type="createDurableQueue" roles="admin" />

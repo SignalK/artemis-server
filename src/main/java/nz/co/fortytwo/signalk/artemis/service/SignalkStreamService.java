@@ -23,20 +23,13 @@ public abstract class SignalkStreamService {
 
 	private static Logger logger = LogManager.getLogger(SignalkStreamService.class);
 
-	public static final int PLAYFIELD_WIDTH = 640;
-	public static final int PLAYFIELD_HEIGHT = 480;
-	public static final int GRID_SIZE = 10;
-
-	protected static final AtomicInteger snakeIds = new AtomicInteger(0);
-	protected static final Random random = new Random();
-
 	protected SignalkStreamBroadcaster signalkStreamBroadcaster;
 
 	public SignalkStreamService() {
 	}
 
 	public void onOpen(AtmosphereResource resource) {
-		logger.debug("onOpen:"+resource);
+		if(logger.isDebugEnabled())logger.debug("onOpen:"+resource);
 		try {
 			signalkStreamBroadcaster().onOpen(resource);
 		
@@ -48,7 +41,7 @@ public abstract class SignalkStreamService {
 	}
 
 	public void onClose(AtmosphereResource resource) {
-		logger.debug("onClose:"+resource);
+		if(logger.isDebugEnabled())logger.debug("onClose:"+resource);
 		try {
 			signalkStreamBroadcaster().onClose(resource);
 		} catch (Exception e) {
@@ -66,7 +59,7 @@ public abstract class SignalkStreamService {
 	 * @param message
 	 */
 	protected void onMessage(AtmosphereResource resource, String message) {
-		logger.debug("onMessage:"+message);
+		if(logger.isDebugEnabled())logger.debug("onMessage:"+message);
 		//send to incoming.input
 		try {
 			signalkStreamBroadcaster().onMessage(message);

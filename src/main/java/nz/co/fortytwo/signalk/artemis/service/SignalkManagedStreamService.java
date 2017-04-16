@@ -35,7 +35,7 @@ public class SignalkManagedStreamService extends SignalkStreamService {
 
 	@Ready
 	public void onReady(final AtmosphereResource r) {
-		logger.debug("onReady:"+r);
+		if(logger.isDebugEnabled())logger.debug("onReady:"+r);
 		if (!uuids.contains(r.uuid())) {
 
 			super.onOpen(r);
@@ -46,7 +46,7 @@ public class SignalkManagedStreamService extends SignalkStreamService {
 
 	@Disconnect
 	public void onDisconnect(AtmosphereResourceEvent event) {
-		logger.debug("onDisconnect:"+event);
+		if(logger.isDebugEnabled())logger.debug("onDisconnect:"+event);
 		AtmosphereRequest request = event.getResource().getRequest();
 		String s = request.getHeader(HeaderConfig.X_ATMOSPHERE_TRANSPORT);
 		if (s != null && s.equalsIgnoreCase(HeaderConfig.DISCONNECT_TRANSPORT_MESSAGE)) {
@@ -57,7 +57,7 @@ public class SignalkManagedStreamService extends SignalkStreamService {
 
 	@Post
 	public void onMessage(AtmosphereResource resource) {
-		logger.debug("onMessage:"+resource);
+		if(logger.isDebugEnabled())logger.debug("onMessage:"+resource);
 		try {
 			// Here we need to find the suspended AtmosphereResource
 			super.onMessage(resourceFactory.find(resource.uuid()), resource.getRequest().getReader().readLine());
