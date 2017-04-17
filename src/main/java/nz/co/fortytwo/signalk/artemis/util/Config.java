@@ -75,12 +75,25 @@ public class Config {
 	protected Config(){
 		listener = new ConfigListener(map, (String) map.get(ADMIN_USER).asString(),
 				(String) map.get(ADMIN_PWD).asString());
-		logger.info("Config listener started for user:" + map.get(ADMIN_USER));
 	}
 	public static Config getInstance() {
 		return config;
 	}
 
+	public static void startConfigListener(){
+		if(listener!=null){
+			Thread t = new Thread(listener);
+			t.setDaemon(true);
+			t.start();
+			logger.info("Config listener started for user:" + map.get(ADMIN_USER));
+		}
+	}
+	
+	public static void stopConfigListener(){
+		if(listener!=null){
+			listener.stop();
+		}
+	}
 	private Map<String, Json> getMap() {
 		return map;
 	}
@@ -286,10 +299,16 @@ public class Config {
 
 		private String user;
 		private String password;
+		private boolean saved = true;
+		private boolean running = true;
 
 		public ConfigListener(SortedMap<String, Json> map, String user, String password) {
 			this.user = user;
 			this.password = password;
+		}
+		
+		public void stop(){
+			running=false;
 		}
 
 		@Override
@@ -299,16 +318,27 @@ public class Config {
 			try {
 				// start polling consumer.
 				rxSession = Util.getVmSession(user, password);
-				consumer = rxSession.createConsumer("vessels", "_AMQ_LVQ_NAME like 'config.%'", true);
+				consumer = rxSession.createConsumer("config", "_AMQ_LVQ_NAME like 'config.%'", true);
 
-				while (true) {
-					ClientMessage msgReceived = consumer.receive(100000);
-					if (msgReceived == null)
+				while (running) {
+					ClientMessage msgReceived = consumer.receive(1000);
+					if (msgReceived == null){
+						//when no changes every 1 seconds we will get a null message, so save first time if we need to.
+						if(!saved){
+							if (logger.isDebugEnabled())
+								logger.debug("ConfigListener: saving config");
+							Config.saveConfig(map);
+							saved=true;
+						}
 						continue;
+					}
+					//if we have changes, we read until there are more and trigger a save later.
+					Json json = Util.readBodyBuffer(msgReceived);
 					if (logger.isDebugEnabled())
-						logger.debug("message = " + msgReceived.getMessageID() + ":" + msgReceived.getAddress() + ", "
-								+ msgReceived.getBodyBuffer().readString());
-					map.put(msgReceived.getAddress().toString(), Util.readBodyBuffer(msgReceived));
+						logger.debug("ConfigListener: message = " + msgReceived.getMessageID() + ":" + msgReceived.getAddress() + ", " + json);
+					map.put(msgReceived.getAddress().toString(), json);
+					saved=false;
+					
 				}
 
 			} catch (Exception e) {
