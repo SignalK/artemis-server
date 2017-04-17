@@ -1,0 +1,37 @@
+Done:
+	REST GET API
+	websockets
+	subscriptions
+	delta
+	full
+	0183
+	n2k (as signalk)
+	security
+	source to srcRef
+	
+TODO:
+	Save self.json
+	serial input
+	REST login/auth
+	MQTT
+	STOMP
+	TCP
+	UDP
+	Alarms
+	Resources
+		charts (upload)
+		tracks
+		routes
+		waypoints
+	AIS
+	Declination
+	Depth
+	Wind
+	Git
+	REST PUT/POST/LIST
+	N2K conversion
+	UI
+	Input filter
+	log conf
+	srcRef to source
+	

@@ -1,0 +1,23 @@
+{
+	"sources": {
+		"INTERNAL_IP": {
+			"testWind": {
+				"src": "115",
+				"pgn": "128267",
+				"label": "testWind",
+				"type": "nmea",
+				"device": "/dev/actisense"
+			}
+		},
+		"null": {
+			"testWind": {
+				"src": "115",
+				"pgn": "128267",
+				"label": "testWind",
+				"type": "nmea",
+				"device": "/dev/actisense"
+			}
+		}
+	}
+
+}

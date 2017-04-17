@@ -50,7 +50,7 @@
 				<auto-create-queues>true</auto-create-queues>
 				<auto-delete-queues>true</auto-delete-queues>
 			</address-setting>
-			
+
 			<address-setting match="resources.#">
 				<last-value-queue>true</last-value-queue>
 				<auto-create-queues>true</auto-create-queues>
@@ -80,6 +80,10 @@
 				<address>vessels.#</address>
 				<durable>false</durable>
 			</queue>
+			<queue name="incoming.raw">
+				<address>incoming.raw</address>
+				<durable>false</durable>
+			</queue>
 			<queue name="incoming.delta">
 				<address>incoming.delta</address>
 				<durable>false</durable>
@@ -98,9 +102,18 @@
 			</class-name>
 		</remoting-incoming-interceptors>
 		<diverts>
+			<divert name="incoming-raw-divert">
+				<address>incoming.raw</address>
+				<forwarding-address>incoming.delta</forwarding-address>
+				<transformer-class-name>
+					nz.co.fortytwo.signalk.artemis.divert.GarbageMsg
+				</transformer-class-name>
+				<exclusive>true</exclusive>
+			</divert>
 			<divert name="incoming-nmea-0183-divert">
 				<address>incoming.delta</address>
 				<forwarding-address>incoming.processed</forwarding-address>
+<!-- 				<filter string="AMQ_content_type='0183'"/> -->
 				<transformer-class-name>
 					nz.co.fortytwo.signalk.artemis.divert.NMEAMsg
 				</transformer-class-name>
@@ -109,7 +122,7 @@
 			<divert name="incoming-delta-divert">
 				<address>incoming.delta</address>
 				<forwarding-address>incoming.processed</forwarding-address>
-				<!-- <filter string="office='New York'" /> -->
+<!-- 				<filter string="AMQ_content_type='JSON_DELTA'"/> -->
 				<transformer-class-name>
 					nz.co.fortytwo.signalk.artemis.divert.UnpackUpdateMsg
 				</transformer-class-name>
@@ -118,7 +131,7 @@
 			<divert name="incoming-full-divert">
 				<address>incoming.delta</address>
 				<forwarding-address>incoming.processed</forwarding-address>
-				<!-- <filter string="office='New York'" /> -->
+<!-- 				<filter string="AMQ_content_type='JSON_FULL'"/> -->
 				<transformer-class-name>
 					nz.co.fortytwo.signalk.artemis.divert.FullMsg
 				</transformer-class-name>
@@ -128,6 +141,7 @@
 			<divert name="incoming-subscribe-divert">
 				<address>incoming.delta</address>
 				<forwarding-address>incoming.processed</forwarding-address>
+				<filter string="AMQ_content_type='JSON_SUBSCRIBE'"/>
 				<transformer-class-name>
 					nz.co.fortytwo.signalk.artemis.divert.SubscribeMsg
 				</transformer-class-name>

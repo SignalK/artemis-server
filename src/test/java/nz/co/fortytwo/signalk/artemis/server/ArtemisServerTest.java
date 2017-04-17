@@ -112,7 +112,7 @@ public class ArtemisServerTest {
 
 			ClientMessage message = session.createMessage(true);
 			message.getBodyBuffer().writeString(line);
-			producer.send("incoming.delta", message);
+			producer.send("incoming.raw", message);
 			if (logger.isDebugEnabled())
 				logger.debug("Sent:" + message.getMessageID() + ":" + line);
 			c++;
@@ -153,7 +153,7 @@ public class ArtemisServerTest {
 
 			ClientMessage message = session.createMessage(true);
 			message.getBodyBuffer().writeString(line);
-			producer.send("incoming.delta", message);
+			producer.send("incoming.raw", message);
 			if (logger.isDebugEnabled())
 				logger.debug("Sent:" + message.getMessageID() + ":" + line);
 			c++;
@@ -210,21 +210,21 @@ public class ArtemisServerTest {
 		
 		ClientMessage message = session.createMessage(true);
 		message.getBodyBuffer().writeString("{ \"config\": { \"server\": { \"clock\": { \"src\": \"gps\" } } }}");
-		producer.send("incoming.delta", message);
+		producer.send("incoming.raw", message);
 		
 		model = shouldReadConfigForUser("admin", 38);
 		assertEquals("gps", model.get("config.server.clock.src").asString());
 		
 		message = session.createMessage(true);
 		message.getBodyBuffer().writeString("{ \"config\": { \"server\": { \"clock\": { \"src\": \"system\" } } }}");
-		producer.send("incoming.delta", message);
+		producer.send("incoming.raw", message);
 		
 		model = shouldReadConfigForUser("admin", 38);
 		assertEquals("system", model.get("config.server.clock.src").asString());
 		
 		session.close();
 
-	}
+	} 
 	
 	@Test
 	public void shouldReadConfigForAdmin() throws Exception {

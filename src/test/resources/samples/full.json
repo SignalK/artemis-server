@@ -1,0 +1,140 @@
+{
+	"vessels": {
+		"motu": {
+			"environment": {
+				"depth": {
+					"surfaceToTransducer": {
+						"values": {
+							"motu": {
+								"value": 0.4572,
+								"$source": "self",
+								"timestamp": "2017-04-16T00:31:11.358Z"
+							},
+							"self": {
+								"value": 0.4572,
+								"$source": "self",
+								"timestamp": "2017-04-16T00:31:37.366Z"
+							}
+						},
+						"value": 0.4572,
+						"$source": "self",
+						"timestamp": "2017-04-16T00:28:53.228Z"
+					},
+					"transducerToKeel": {
+						"values": {
+							"motu": {
+								"value": 1.5,
+								"$source": "self",
+								"timestamp": "2017-04-16T00:31:11.407Z"
+							},
+							"self": {
+								"value": 1.5,
+								"$source": "self",
+								"timestamp": "2017-04-16T00:31:37.367Z"
+							}
+						},
+						"value": 1.5,
+						"$source": "self",
+						"timestamp": "2017-04-16T00:28:53.280Z"
+					},
+					"belowSurface": {
+						"meta": {
+							"warnMethod": "visual",
+							"displayUnit": "ft",
+							"alarmMethod": "visual",
+							"zones": [{
+								"lower": "0.0",
+								"upper": "1.5",
+								"state": "alarm",
+								"message": "Danger"
+							}, {
+								"lower": "1.5",
+								"upper": "1.65",
+								"state": "warn",
+								"message": "Shallow Water"
+							}, {
+								"lower": "1.65",
+								"upper": "9999",
+								"state": "normal",
+								"message": ""
+							}]
+						}
+					}
+				},
+				"wind": {
+					"speedApparent": {
+						"source": "vessels.motu.sources.nmea.0183.MWV",
+						"value": 6.8986404,
+						"$source": "unknown",
+						"timestamp": "2015-03-23T01:57:01.802Z"
+					},
+					"angleApparent": {
+						"source": "vessels.motu.sources.nmea.0183.MWV",
+						"value": 2.0,
+						"$source": "unknown",
+						"timestamp": "2015-03-23T01:57:01.802Z"
+					},
+					"directionTrue": {
+						"values": {
+							"motu": {
+								"value": 2.39065365,
+								"$source": "motu",
+								"timestamp": "2017-04-16T00:31:38.560Z"
+							}
+						},
+						"value": 2.39065365,
+						"$source": "motu",
+						"timestamp": "2017-04-16T00:31:38.560Z"
+					},
+					"speedTrue": {
+						"values": {
+							"motu": {
+								"value": 9.19343593,
+								"$source": "motu",
+								"timestamp": "2017-04-16T00:31:38.562Z"
+							}
+						},
+						"value": 9.19343593,
+						"$source": "motu",
+						"timestamp": "2017-04-16T00:31:38.562Z"
+					}
+				}
+			},
+			"navigation": {
+				"courseOverGroundTrue": {
+					"source": {
+						"src": "115",
+						"pgn": "128267",
+						"label": "testWind",
+						"type": "nmea",
+						"device": "/dev/actisense"
+					},
+					"value": 3.0176,
+					"$source": "INTERNAL_IP.testWind",
+					"timestamp": "2014-08-15T16:00:00.081+00:00"
+				},
+				"speedThroughWater": {
+					"meta": {
+						"unit": "kt"
+					}
+				},
+				"speedOverGround": {
+					"meta": {
+						"unit": "kt"
+					},
+					"source": {
+						"src": "115",
+						"pgn": "128267",
+						"label": "testWind",
+						"type": "nmea",
+						"device": "/dev/actisense"
+					},
+					"value": 3.85,
+					"$source": "INTERNAL_IP.testWind",
+					"timestamp": "2014-08-15T16:00:00.081+00:00"
+				}
+			},
+			"uuid": "motu"
+		}
+	}
+}

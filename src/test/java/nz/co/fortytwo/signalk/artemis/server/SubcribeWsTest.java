@@ -112,7 +112,7 @@ public class SubcribeWsTest {
 
 			ClientMessage message = session.createMessage(true);
 			message.getBodyBuffer().writeString(line);
-			producer.send("incoming.delta", message);
+			producer.send("incoming.raw", message);
 			if (logger.isDebugEnabled())
 				logger.debug("Sent:" + message.getMessageID() + ":" + line);
 		}
@@ -168,7 +168,7 @@ public class SubcribeWsTest {
 
 			ClientMessage message = session.createMessage(true);
 			message.getBodyBuffer().writeString(line);
-			producer.send("incoming.delta", message);
+			producer.send("incoming.raw", message);
 			if (logger.isDebugEnabled())
 				logger.debug("Sent:" + message.getMessageID() + ":" + line);
 		}
@@ -199,7 +199,7 @@ public class SubcribeWsTest {
 			ClientMessage message = session.createMessage(true);
 			line=line.replaceAll("urn:mrn:imo:mmsi:123456789",Config.getConfigProperty(ConfigConstants.UUID));
 			message.getBodyBuffer().writeString(line);
-			producer.send("incoming.delta", message);
+			producer.send("incoming.raw", message);
 			if (logger.isDebugEnabled())
 				logger.debug("Sent:" + message.getMessageID() + ":" + line);
 		}
@@ -233,7 +233,7 @@ public class SubcribeWsTest {
 			ClientMessage message = session.createMessage(true);
 			line=line.replaceAll("urn:mrn:imo:mmsi:123456789",Config.getConfigProperty(ConfigConstants.UUID));
 			message.getBodyBuffer().writeString(line);
-			producer.send("incoming.delta", message);
+			producer.send("incoming.raw", message);
 			if (logger.isDebugEnabled())
 				logger.debug("Sent:" + message.getMessageID() + ":" + line);
 		}

@@ -67,7 +67,7 @@ public class SubscribeMsg implements Transformer {
 	// private ClientSession session;
 	// private ClientProducer producer;
 
-	private static Logger logger = LogManager.getLogger(SubscriptionManager.class);
+	private static Logger logger = LogManager.getLogger(SubscribeMsg.class);
 	/**
 	 * Reads Subscribe format JSON and creates a subscription. Does nothing if
 	 * json is not a subscribe, and returns the original message
@@ -77,7 +77,7 @@ public class SubscribeMsg implements Transformer {
 	 */
 	@Override
 	public ServerMessage transform(ServerMessage message) {
-		if(!Config.JSON.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))return message;
+		if(!Config.JSON_SUBSCRIBE.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))return message;
 		if(logger.isTraceEnabled())logger.trace("Processing: " + message);
 		Json node = Json.read(message.getBodyBuffer().readString());
 		// avoid full signalk syntax

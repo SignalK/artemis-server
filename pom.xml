@@ -10,6 +10,8 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<artemis.version>2.0.0-SNAPSHOT</artemis.version>
+		<camel.version>2.18.3</camel.version>
+		<camel.core.version>2.18.3</camel.core.version>
 	</properties>
 	<licenses>
 		<license>
@@ -37,6 +39,37 @@
 			<snapshots>
 				<enabled>true</enabled>
 			</snapshots>
+		</repository>
+<!-- 		<repository> -->
+<!-- 			<id>java.net jni</id> -->
+<!-- 			<name>java.nt JNI Snapshot Repository</name> -->
+<!-- 			<url>https://maven.java.net/content/repositories/snapshots/</url> -->
+<!-- 		</repository> -->
+<!-- 		<repository> -->
+<!-- 			<id>PJC</id> -->
+<!-- 			<name>Sparetime Repository</name> -->
+<!-- 			<url>http://www.sparetimelabs.com/maven2</url> -->
+<!-- 		</repository> -->
+		<repository>
+			<id>dma AIS</id>
+			<name>DMA AisLib Repository</name>
+			<url>http://repository-dma.forge.cloudbees.com/release</url>
+		</repository>
+		<repository>
+			<id>maven-restlet</id>
+			<name>Public online Restlet repository</name>
+			<url>http://maven.restlet.com</url>
+		</repository>
+		<repository>
+			<id>eclipse-paho</id>
+			<url>https://repo.eclipse.org/content/repositories/paho-releases</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
 		</repository>
 	</repositories>
 	<dependencies>
@@ -96,6 +129,125 @@
 			<artifactId>nettosphere</artifactId>
 			<version>2.4.0</version>
 		</dependency>
+		<!-- serial comms -->
+
+		<!-- jna LGPL, Apache -->
+		<dependency>
+			<groupId>net.java.dev.jna</groupId>
+			<artifactId>jna</artifactId>
+			<version>4.4.0</version>
+		</dependency>
+		<!-- BSD -->
+		<dependency>
+			<groupId>com.github.purejavacomm</groupId>
+			<artifactId>purejavacomm</artifactId>
+			<version>1.0.2.RELEASE</version>
+		</dependency>
+
+		<!-- Camel Apache2 licence -->
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-core</artifactId>
+			<version>${camel.core.version}</version>
+		</dependency>
+		<!-- <dependency> -->
+		<!-- <groupId>org.apache.camel</groupId> -->
+		<!-- <artifactId>camel-spring-security</artifactId> -->
+		<!-- <version>${camel.version}</version> -->
+		<!-- </dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>org.apache.camel</groupId> -->
+		<!-- <artifactId>camel-websocket</artifactId> -->
+		<!-- <version>${camel.core.version}</version> -->
+		<!-- </dependency> -->
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-jms</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+		<!-- <dependency> -->
+		<!-- <groupId>org.apache.camel</groupId> -->
+		<!-- <artifactId>camel-stomp</artifactId> -->
+		<!-- <version>${camel.version}</version> -->
+		<!-- </dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>org.apache.camel</groupId> -->
+		<!-- <artifactId>camel-cometd</artifactId> -->
+		<!-- <version>${camel.version}</version> -->
+		<!-- </dependency> -->
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-xstream</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-stream</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-exec</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-restlet</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.restlet.osgi</groupId>
+			<artifactId>org.restlet.ext.fileupload</artifactId>
+			<version>2.2.2</version>
+		</dependency>
+		<!-- <dependency> -->
+		<!-- <groupId>org.apache.camel</groupId> -->
+		<!-- <artifactId>camel-jetty</artifactId> -->
+		<!-- <version>${camel.version}</version> -->
+		<!-- </dependency> -->
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-test</artifactId>
+			<version>${camel.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-quartz2</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-netty4</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+		<!-- <dependency> -->
+		<!-- <groupId>org.apache.camel</groupId> -->
+		<!-- <artifactId>camel-mqtt</artifactId> -->
+		<!-- <version>${camel.version}</version> -->
+		<!-- </dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>org.apache.camel</groupId> -->
+		<!-- <artifactId>camel-urlrewrite</artifactId> -->
+		<!-- <version>${camel.version}</version> -->
+		<!-- </dependency> -->
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-ahc-ws</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+		<!-- <dependency> -->
+		<!-- <groupId>org.apache.camel</groupId> -->
+		<!-- <artifactId>camel-xmpp</artifactId> -->
+		<!-- <version>${camel.version}</version> -->
+		<!-- </dependency> -->
+		
+		<!-- ais apache licence  -->
+		<dependency>
+			<groupId>dk.dma.ais.lib</groupId>
+			<artifactId>ais-lib-communication</artifactId>
+			<version>2.2</version>
+		</dependency> 
 		<!-- zeroconf apache licence -->
 		<dependency>
 			<groupId>org.jmdns</groupId>

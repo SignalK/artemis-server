@@ -38,7 +38,7 @@ public class SessionInterceptor implements Interceptor {
 			// if(logger.isDebugEnabled())logger.debug("SessionSendMessage: " +
 			// realPacket.toString());
 			Message msg = realPacket.getMessage();
-			msg.putStringProperty(Config.AMQ_CONTENT_TYPE, getContentType(msg));
+			//msg.putStringProperty(Config.AMQ_CONTENT_TYPE, getContentType(msg));
 			for (ServerSession s : ArtemisServer.getActiveMQServer()
 					.getSessions(connection.getID().toString())) {
 				if (s.getConnectionID().equals(connection.getID())) {
@@ -64,6 +64,8 @@ public class SessionInterceptor implements Interceptor {
 	}
 
 	private String getContentType(Message message) {
+		if (logger.isDebugEnabled())
+			logger.debug("Msg body is:" + message.getBodyBuffer().readString());
 		String msg = message.getBodyBuffer().readString();
 		if (msg != null) {
 			msg = msg.trim();

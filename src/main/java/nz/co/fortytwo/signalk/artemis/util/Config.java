@@ -61,6 +61,9 @@ public class Config {
 	public static final String AMQ_CONTENT_TYPE = "AMQ_content_type";
 	public static final String AMQ_SESSION_ID = "AMQ_session_id";
 	public static final String JSON = "JSON";
+	public static final String JSON_FULL = "JSON_FULL";
+	public static final String JSON_DELTA = "JSON_DELTA";
+	public static final String JSON_SUBSCRIBE = "JSON_SUBSCRIBE";
 	public static final String _0183 = "0183";
 	public static final String AMQ_REPLY_Q = "AMQ_REPLY_Q";
 	public static final String JAVA_TYPE = "JAVA_TYPE";

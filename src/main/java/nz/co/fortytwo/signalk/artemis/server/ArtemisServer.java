@@ -35,6 +35,7 @@ import org.apache.activemq.artemis.core.server.ActiveMQServer;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.activemq.artemis.spi.core.security.ActiveMQSecurityManager;
 import org.apache.activemq.artemis.spi.core.security.ActiveMQSecurityManagerImpl;
+import org.apache.camel.main.Main;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
@@ -90,11 +91,13 @@ public final class ArtemisServer {
                     .initParam(ApplicationConfig.PROPERTY_SESSION_SUPPORT, "true")
                     .resource(SignalkManagedStreamService.class)
                     .resource("./signalk-static")
-                    //.resource("./src/main/resources/signalk-static")
                     .build())
                  .build();
 		 server.start();
 
+		// create a new Camel Main so we can easily start Camel
+		Main main = new Main();
+		main.enableHangupSupport();
 	}
 
 	private void load() throws Exception {
@@ -110,17 +113,17 @@ public final class ArtemisServer {
 			ClientMessage message = session.createMessage(true);		
 			
 			message.getBodyBuffer().writeString(signalk.toString());
-			producer.send("incoming.delta", message);
+			producer.send("incoming.raw", message);
 			
 			message = session.createMessage(true);
 			File jsonFile = new File(Util.SIGNALK_CFG_SAVE_FILE);
 			Json json = Json.read(jsonFile.toURI().toURL());
 			message.getBodyBuffer().writeString(json.toString());
-			producer.send("incoming.delta", message);
+			producer.send("incoming.raw", message);
 			//now bootstrap the self vessel
 			message = session.createMessage(true);
 			message.getBodyBuffer().writeString("{\"vessels\": { \"self\" : {\"uuid\":\""+Config.getConfigProperty(ConfigConstants.UUID)+"\"}}}");
-			producer.send("incoming.delta", message);
+			producer.send("incoming.raw", message);
 		}finally{
 			if (session!=null) session.close();
 		}

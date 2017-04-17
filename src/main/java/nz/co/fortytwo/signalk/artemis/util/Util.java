@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.apache.activemq.artemis.api.core.ActiveMQSecurityException;
+import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.api.core.TransportConfiguration;
 import org.apache.activemq.artemis.api.core.client.ActiveMQClient;
@@ -264,6 +265,15 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 			return Json.nil();
 		}
 		return Json.read(msg.getBodyBuffer().readString());
+		
+	}
+
+	public static String readBodyBufferToString(Message msg) {
+		if(msg.getBodyBuffer().readableBytes()==0){
+			return null;
+		}else{
+			return msg.getBodyBuffer().readString();
+		}
 		
 	}
 	 
