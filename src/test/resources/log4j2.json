@@ -49,13 +49,14 @@
 					"ref": "File"
 				}]
 			},
-			"logger": [{
-				"name": "nz.co.fortytwo.signalk",
-				"level": "debug"
-			},
+			"logger": [
 			{
 				"name": "nz.co.fortytwo.signalk.artemis.intercept",
-				"level": "warn"
+				"level": "error"
+			},
+			{
+				"name": "nz.co.fortytwo.signalk",
+				"level": "debug"
 			},
 			{
 				"name": "org.atmosphere.nettosphere.BridgeRuntime",

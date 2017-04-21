@@ -141,7 +141,7 @@
 			<divert name="incoming-subscribe-divert">
 				<address>incoming.delta</address>
 				<forwarding-address>incoming.processed</forwarding-address>
-				<filter string="AMQ_content_type='JSON_SUBSCRIBE'"/>
+<!-- 				<filter string="AMQ_content_type='JSON_SUBSCRIBE'"/> -->
 				<transformer-class-name>
 					nz.co.fortytwo.signalk.artemis.divert.SubscribeMsg
 				</transformer-class-name>

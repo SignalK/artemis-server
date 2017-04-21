@@ -223,8 +223,8 @@ public class Config {
 		return model;
 	}
 
-	public static Json load() {
-		File jsonFile = new File(Util.SIGNALK_MODEL_SAVE_FILE);
+	public static Json load(String fileName) {
+		File jsonFile = new File(fileName);
 		Util.logger.info("Checking for previous state: " + jsonFile.getAbsolutePath());
 		if (jsonFile.exists()) {
 			try {
@@ -246,10 +246,10 @@ public class Config {
 	 * @throws IOException
 	 */
 	public static void saveConfig(Map<String, Json> config) throws IOException {
-		saveConfig(config, new File(Util.SIGNALK_CFG_SAVE_FILE));
+		saveMap(config, new File(Util.SIGNALK_CFG_SAVE_FILE));
 	}
 	
-	public static void saveConfig(Map<String, Json> config, File jsonFile) throws IOException {
+	public static void saveMap(Map<String, Json> config, File jsonFile) throws IOException {
 		if (config != null) {
 			//de-json it
 			SortedMap<String, Object> model = new ConcurrentSkipListMap<>();
@@ -265,7 +265,7 @@ public class Config {
 				buffer.append("{}");
 			}
 			FileUtils.writeStringToFile(jsonFile, buffer.toString(), StandardCharsets.UTF_8);
-			Util.logger.debug("   Saved model state to " + Util.SIGNALK_CFG_SAVE_FILE);
+			Util.logger.debug("   Saved model state to " + jsonFile);
 		}
 	
 	}
@@ -273,7 +273,7 @@ public class Config {
 		try {
 			return (String) config.getMap().get(prop).getValue();
 		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
+			logger.warn(e.getMessage(), e);
 		}
 		return null;
 	}
@@ -284,15 +284,32 @@ public class Config {
 	}
 
 	public static Integer getConfigPropertyInt(String prop) {
-		return config.getMap().get(prop).asInteger();
+		try {
+			return config.getMap().get(prop).asInteger();
+		} catch (Exception e) {
+			logger.warn(e.getMessage(), e);
+		}
+		return null;
+		
 	}
 
 	public static Double getConfigPropertyDouble(String prop) {
-		return config.getMap().get(prop).asDouble();
+		
+		try {
+			return config.getMap().get(prop).asDouble();
+		} catch (Exception e) {
+			logger.warn(e.getMessage(), e);
+		}
+		return null;
 	}
 
 	public static Boolean getConfigPropertyBoolean(String prop) {
-		return config.getMap().get(prop).asBoolean();
+		try {
+			return config.getMap().get(prop).asBoolean();
+		} catch (Exception e) {
+			logger.warn(e.getMessage(), e);
+		}
+		return null;
 	}
 
 	private class ConfigListener implements Runnable {

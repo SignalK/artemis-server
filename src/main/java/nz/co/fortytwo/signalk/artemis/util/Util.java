@@ -48,8 +48,10 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 	static Logger logger = LogManager.getLogger(Util.class);
 	//private static Pattern selfMatch = Pattern.compile("\\.self\\.");
 	//private static Pattern selfEndMatch = Pattern.compile("\\.self$");
-	static final String SIGNALK_MODEL_SAVE_FILE = "./conf/self.json";
+	public static final String SIGNALK_MODEL_SAVE_FILE = "./conf/self.json";
 	public static final String SIGNALK_CFG_SAVE_FILE = "./conf/signalk-config.json";
+	public static final String SIGNALK_RESOURCES_SAVE_FILE = "./conf/resources.json";
+	public static final String SIGNALK_SOURCES_SAVE_FILE = "./conf/sources.json";
 
 	protected static Pattern selfMatch = null;
 
@@ -119,6 +121,7 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 			throws Exception {
 		
 		ServerMessage m2 = new ServerMessageImpl(new Double(Math.random()).longValue(), 64);
+		
 		m2.putStringProperty(timestamp, timeStamp);
 		if (src != null) {
 			m2.putStringProperty(source, src.toString());

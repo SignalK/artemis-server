@@ -4,6 +4,7 @@ import static nz.co.fortytwo.signalk.util.SignalKConstants.CONFIG;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.CONTEXT;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.PATH;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.PUT;
+import static nz.co.fortytwo.signalk.util.SignalKConstants.UNKNOWN;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.UPDATES;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.label;
@@ -164,7 +165,13 @@ public class UnpackUpdateMsg implements Transformer {
 	protected void addEntry(String key, Json j, String timeStamp, Json src, ServerSession sess) throws Exception {
 		if (j == null)
 			return;
-		String srcRef = src.at(type).asString()+dot + sess.getRemotingConnection().getRemoteAddress() + dot + src.at(label).asString();
+		String typeStr = null;
+		if(src.has(type))
+			typeStr= src.at(type).asString();
+		else
+			typeStr = UNKNOWN;
+		
+		String srcRef = typeStr+dot + sess.getRemotingConnection().getRemoteAddress() + dot + src.at(label).asString();
 		
 		Util.sendSourceMsg(srcRef, (Json)src,timeStamp, sess);
 		Util.sendMsg(key, j, timeStamp, srcRef, sess);
