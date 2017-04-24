@@ -106,7 +106,7 @@
 				<address>incoming.raw</address>
 				<forwarding-address>incoming.delta</forwarding-address>
 				<transformer-class-name>
-					nz.co.fortytwo.signalk.artemis.divert.GarbageMsg
+					nz.co.fortytwo.signalk.artemis.divert.GarbageFilter
 				</transformer-class-name>
 				<exclusive>true</exclusive>
 			</divert>

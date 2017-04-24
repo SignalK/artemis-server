@@ -88,7 +88,7 @@ public final class ArtemisServer {
 
 		embedded.setSecurityManager(securityManager);
 		embedded.start();
-
+		
 		load();
 		
 		//now listen for changes and save them
@@ -154,20 +154,20 @@ public final class ArtemisServer {
 
 			ClientMessage message1 = session.createMessage(true);
 			message1.getBodyBuffer().writeString(Config.load(Util.SIGNALK_CFG_SAVE_FILE).toString());
-			producer.send("incoming.raw", message1);
+			producer.send(Config.INCOMING_RAW, message1);
 			
 			// now bootstrap the resources, sources, and vessel
 			ClientMessage message2 = session.createMessage(true);
 			message2.getBodyBuffer().writeString(Config.load(Util.SIGNALK_SOURCES_SAVE_FILE).toString());
-			producer.send("incoming.raw", message2);
+			producer.send(Config.INCOMING_RAW, message2);
 			
 			ClientMessage message3 = session.createMessage(true);
 			message3.getBodyBuffer().writeString(Config.load(Util.SIGNALK_RESOURCES_SAVE_FILE).toString());
-			producer.send("incoming.raw", message3);
+			producer.send(Config.INCOMING_RAW, message3);
 			
 			ClientMessage message4 = session.createMessage(true);
 			message4.getBodyBuffer().writeString(Config.load(Util.SIGNALK_MODEL_SAVE_FILE).toString());
-			producer.send("incoming.raw", message4);
+			producer.send(Config.INCOMING_RAW, message4);
 			
 		} finally {
 			if (session != null)

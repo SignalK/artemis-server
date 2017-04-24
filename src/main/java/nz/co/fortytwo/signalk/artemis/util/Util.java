@@ -18,11 +18,13 @@ import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels_dot_self;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels_dot_self_dot;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ActiveMQSecurityException;
 import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.api.core.SimpleString;
@@ -31,12 +33,16 @@ import org.apache.activemq.artemis.api.core.client.ActiveMQClient;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.activemq.artemis.api.core.client.ClientSessionFactory;
+import org.apache.activemq.artemis.api.core.client.ServerLocator;
 import org.apache.activemq.artemis.core.remoting.impl.invm.InVMConnectorFactory;
 import org.apache.activemq.artemis.core.remoting.impl.netty.NettyConnectorFactory;
 import org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants;
+import org.apache.activemq.artemis.core.server.LargeServerMessage;
 import org.apache.activemq.artemis.core.server.ServerMessage;
 import org.apache.activemq.artemis.core.server.ServerSession;
 import org.apache.activemq.artemis.core.server.impl.ServerMessageImpl;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -53,12 +59,31 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 	public static final String SIGNALK_CFG_SAVE_FILE = "./conf/signalk-config.json";
 	public static final String SIGNALK_RESOURCES_SAVE_FILE = "./conf/resources.json";
 	public static final String SIGNALK_SOURCES_SAVE_FILE = "./conf/sources.json";
-	private static ClientSessionFactory nettyFactory;
-	private static ClientSessionFactory inVmFactory;
+	private static ServerLocator nettyLocator;
+	private static ServerLocator inVmLocator;
 	protected static Pattern selfMatch = null;
 
     protected static Pattern selfEndMatch = null;
+	
     
+    static {
+    	try {
+			inVmLocator = ActiveMQClient
+					.createServerLocatorWithoutHA(new TransportConfiguration(InVMConnectorFactory.class.getName()))
+					.setMinLargeMessageSize(1024*1024);
+					//.createSessionFactory();
+			Map<String, Object> connectionParams = new HashMap<String, Object>();
+			connectionParams.put(TransportConstants.HOST_PROP_NAME, "localhost");
+			connectionParams.put(TransportConstants.PORT_PROP_NAME, 61617);
+			nettyLocator = ActiveMQClient
+					.createServerLocatorWithoutHA(
+							new TransportConfiguration(NettyConnectorFactory.class.getName(), connectionParams))
+					.setMinLargeMessageSize(1024*1024);
+					//.createSessionFactory();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+    }
     public static Json getWelcomeMsg() {
         Json msg = Json.object();
         msg.set(version, Config.getVersion());
@@ -85,28 +110,13 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
     }
 	
 	public static ClientSession getVmSession(String user, String password) throws Exception {
-		if(inVmFactory==null){
-			inVmFactory = ActiveMQClient
-				.createServerLocatorWithoutHA(new TransportConfiguration(InVMConnectorFactory.class.getName()))
-				.setMinLargeMessageSize(200*1024)
-				.createSessionFactory();
-		}
 		
-		return inVmFactory.createSession(user, password, false, true, true, false, 10);
+		return inVmLocator.createSessionFactory().createSession(user, password, false, true, true, false, 10);
 	}
 
-	public static ClientSession getLocalhostClientSession(String user, String password) throws Exception {
-		Map<String, Object> connectionParams = new HashMap<String, Object>();
-		connectionParams.put(TransportConstants.HOST_PROP_NAME, "localhost");
-		connectionParams.put(TransportConstants.PORT_PROP_NAME, 61617);
-		if(nettyFactory==null){
-			nettyFactory = ActiveMQClient
-				.createServerLocatorWithoutHA(
-						new TransportConfiguration(NettyConnectorFactory.class.getName(), connectionParams))
-				.setMinLargeMessageSize(200*1024)
-				.createSessionFactory();
-		}
-		return nettyFactory.createSession(user, password, false, true, true, false, 10);
+	public static  ClientSession getLocalhostClientSession(String user, String password) throws Exception {
+		
+		return nettyLocator.createSessionFactory().createSession(user, password, false, true, true, false, 10);
 	}
 
 	public static void sendDoubleAsMsg(String key, double value, String timeStamp, String srcRef, ServerSession session)
@@ -267,7 +277,7 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 						if(key.contains(dot+values+dot))
 							key = key.substring(0, key.indexOf(dot+values+dot));
 						Json v = Util.readBodyBuffer(msg);
-						logger.debug("Key: "+key+", value: "+v);
+						if(logger.isDebugEnabled())logger.debug("Key: "+key+", value: "+v);
 						Json val = Json.object(PATH, key );
 						val.set(value,v);
 						valuesArray.add(val);
@@ -283,12 +293,12 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 		return deltaArray;
 	}
 
-	public static Json readBodyBuffer(ClientMessage msg) {
+	public static Json readBodyBuffer(Message msg) {
 		if(msg.getBodyBuffer().readableBytes()==0){
-			logger.debug("Empty msg: "+msg.getAddress()+": "+msg.getBodyBuffer().readableBytes());
+			if(logger.isDebugEnabled())logger.debug("Empty msg: "+msg.getAddress()+": "+msg.getBodyBuffer().readableBytes());
 			return Json.nil();
 		}
-		return Json.read(msg.getBodyBuffer().readString());
+		return Json.read(readBodyBufferToString(msg));
 		
 	}
 
@@ -300,5 +310,8 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 		}
 		
 	}
+
+
+	
 	 
 }

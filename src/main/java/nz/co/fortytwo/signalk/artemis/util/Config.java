@@ -80,6 +80,8 @@ public class Config {
 	public static final Object INTERNAL_IP = "INTERNAL_IP";
 	public static final Object EXTERNAL_IP = "EXTERNAL_IP";
 	public static final String AMQ_SUB_DESTINATION = "AMQ_SUB_DESTINATION";
+	
+	public static final String INCOMING_RAW = "incoming.raw";
 
 	protected Config() {
 		listener = new ConfigListener(map, (String) map.get(ADMIN_USER).asString(),
@@ -244,7 +246,7 @@ public class Config {
 		if (jsonFile.exists()) {
 			try {
 				Json temp = Json.read(jsonFile.toURI().toURL());
-				Util.logger.info("   Saved state loaded from " + Util.SIGNALK_MODEL_SAVE_FILE);
+				Util.logger.info("   Saved state loaded from " + fileName);
 				return temp;
 			} catch (Exception ex) {
 				Util.logger.error(ex.getMessage());

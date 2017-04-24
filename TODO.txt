@@ -13,7 +13,8 @@ Done:
 	TCP
 	UDP
 TODO:
-	
+	big messages > 200K
+	UDP fix
 	REST login/auth
 	MQTT
 	STOMP

@@ -16,6 +16,9 @@ import static nz.co.fortytwo.signalk.util.SignalKConstants.resources;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.sources;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels;
 
+import java.io.IOException;
+
+import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.api.core.TransportConfiguration;
 import org.apache.activemq.artemis.api.core.client.ActiveMQClient;
@@ -36,8 +39,9 @@ import nz.co.fortytwo.signalk.artemis.server.Subscription;
 import nz.co.fortytwo.signalk.artemis.server.SubscriptionManager;
 import nz.co.fortytwo.signalk.artemis.server.SubscriptionManagerFactory;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.util.ConfigConstants;
-import nz.co.fortytwo.signalk.util.Util;
+
 
 /*
 *
@@ -70,11 +74,11 @@ import nz.co.fortytwo.signalk.util.Util;
  * 
  */
 
-public class GarbageMsg implements Transformer {
+public class GarbageFilter implements Transformer {
 	// private ClientSession session;
 	// private ClientProducer producer;
 
-	private static Logger logger = LogManager.getLogger(GarbageMsg.class);
+	private static Logger logger = LogManager.getLogger(GarbageFilter.class);
 
 	/**
 	 * Reads msg and drops it if it is not a recognised type
@@ -101,10 +105,15 @@ public class GarbageMsg implements Transformer {
 	}
 
 	protected String getContentType(ServerMessage message) {
+		if (logger.isDebugEnabled()){
+			logger.debug("Msg class: "+message.getClass());
+		}
 		if (message.getBodyBuffer().readableBytes() > 0) {
-			String msg = message.getBodyBuffer().readString();
-			if (logger.isDebugEnabled())
-				logger.debug("Msg body is:" + msg);
+			String msg= Util.readBodyBufferToString(message);
+			
+			if (logger.isDebugEnabled()){
+				logger.debug("Msg class: "+message.getClass() +", body is:" + msg);
+			}
 
 			if (msg != null) {
 				msg = msg.trim();

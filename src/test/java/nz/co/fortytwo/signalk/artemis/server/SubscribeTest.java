@@ -48,7 +48,7 @@ public class SubscribeTest {
 		try {
 			session.start();
 
-			ClientProducer producer = session.createProducer("incoming.raw");
+			ClientProducer producer = session.createProducer(Config.INCOMING_RAW);
 
 			ClientMessage message = session.createMessage(true);
 			Json msg = getJson("vessels." + SignalKConstants.self, "navigation", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
@@ -62,7 +62,7 @@ public class SubscribeTest {
 			message = session.createMessage(true);
 			String line = "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78";
 			message.getBodyBuffer().writeString(line);
-			producer.send("incoming.raw", message);
+			producer.send(Config.INCOMING_RAW, message);
 			
 			producer.close();
 			
@@ -92,7 +92,7 @@ public class SubscribeTest {
 
 				ClientMessage message = session.createMessage(true);
 				message.getBodyBuffer().writeString(line);
-				producer.send("incoming.raw", message);
+				producer.send(Config.INCOMING_RAW, message);
 				
 			}
 			producer.close();
@@ -125,7 +125,7 @@ public class SubscribeTest {
 
 				ClientMessage message = session.createMessage(true);
 				message.getBodyBuffer().writeString(line);
-				producer.send("incoming.raw", message);
+				producer.send(Config.INCOMING_RAW, message);
 				if (logger.isDebugEnabled())
 					logger.debug("Sent:" + message.getMessageID() + ":" + line);
 				c++;
@@ -138,7 +138,7 @@ public class SubscribeTest {
 			String tempQ = UUID.randomUUID().toString();
 			session.createTemporaryQueue("outgoing.reply."+tempQ, RoutingType.MULTICAST, tempQ);
 			subMsg.putStringProperty(Config.AMQ_REPLY_Q, tempQ);
-			producer.send("incoming.raw", subMsg);
+			producer.send(Config.INCOMING_RAW, subMsg);
 			producer.close();
 			logger.debug("Subscribe sent");
 			

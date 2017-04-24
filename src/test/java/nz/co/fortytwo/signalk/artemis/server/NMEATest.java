@@ -58,7 +58,7 @@ public class NMEATest {
 			ClientMessage message = session.createMessage(true);
 			String line = "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78";
 			message.getBodyBuffer().writeString(line);
-			producer.send("incoming.raw", message);
+			producer.send(Config.INCOMING_RAW, message);
 			if (logger.isDebugEnabled())
 				logger.debug("Sent:" + message.getMessageID() + ":" + line);
 
@@ -68,7 +68,7 @@ public class NMEATest {
 			subMsg.getBodyBuffer().writeString(msg.toString());
 			session.createTemporaryQueue("outgoing.reply.temp-001",RoutingType.MULTICAST, "temp-001");
 			subMsg.putStringProperty("AMQ_REPLY_Q", "temp-001");
-			producer.send("incoming.raw", subMsg);
+			producer.send(Config.INCOMING_RAW, subMsg);
 			producer.close();
 
 			CountDownLatch latch = new CountDownLatch(1);

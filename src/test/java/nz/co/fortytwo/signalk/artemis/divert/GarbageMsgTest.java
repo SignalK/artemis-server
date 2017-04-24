@@ -16,7 +16,7 @@ public class GarbageMsgTest {
 
 	@Test
 	public void shouldAvoidGarbage() {
-		GarbageMsg garbage = new GarbageMsg();
+		GarbageFilter garbage = new GarbageFilter();
 		ServerMessage msg = new ServerMessageImpl(123456L,64);
 		msg.getBodyBuffer().writeString("Rubbish");
 		assertNull(garbage.getContentType(msg));
@@ -25,7 +25,7 @@ public class GarbageMsgTest {
 
 	@Test
 	public void shouldProcessNMEA() {
-		GarbageMsg garbage = new GarbageMsg();
+		GarbageFilter garbage = new GarbageFilter();
 		ServerMessage msg = new ServerMessageImpl(123456L,64);
 		msg.getBodyBuffer().writeString("$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78");
 		assertEquals(Config._0183, garbage.getContentType(msg));
@@ -33,7 +33,7 @@ public class GarbageMsgTest {
 	
 	@Test
 	public void shouldProcessDelta() throws IOException {
-		GarbageMsg garbage = new GarbageMsg();
+		GarbageFilter garbage = new GarbageFilter();
 		String body = FileUtils.readFileToString(new File("./src/test/resources/samples/delta.json"));
 		ServerMessage msg = new ServerMessageImpl(123456L,64);
 		msg.getBodyBuffer().writeString(body);
@@ -42,7 +42,7 @@ public class GarbageMsgTest {
 	
 	@Test
 	public void shouldProcessFullVessels() throws IOException {
-		GarbageMsg garbage = new GarbageMsg();
+		GarbageFilter garbage = new GarbageFilter();
 		String body = FileUtils.readFileToString(new File("./src/test/resources/samples/full.json"));
 		ServerMessage msg = new ServerMessageImpl(123456L,64);
 		msg.getBodyBuffer().writeString(body);
@@ -51,7 +51,7 @@ public class GarbageMsgTest {
 	
 	@Test
 	public void shouldProcessFullConfig() throws IOException {
-		GarbageMsg garbage = new GarbageMsg();
+		GarbageFilter garbage = new GarbageFilter();
 		String body = FileUtils.readFileToString(new File("./src/test/resources/samples/signalk-config.json"));
 		ServerMessage msg = new ServerMessageImpl(123456L,64);
 		msg.getBodyBuffer().writeString(body);
@@ -60,7 +60,7 @@ public class GarbageMsgTest {
 
 	@Test
 	public void shouldProcessResources() throws IOException {
-		GarbageMsg garbage = new GarbageMsg();
+		GarbageFilter garbage = new GarbageFilter();
 		String body = FileUtils.readFileToString(new File("./src/test/resources/samples/full_resources.json"));
 		ServerMessage msg = new ServerMessageImpl(123456L,64);
 		msg.getBodyBuffer().writeString(body);
@@ -68,7 +68,7 @@ public class GarbageMsgTest {
 	}
 	@Test
 	public void shouldProcessFullSources() throws IOException {
-		GarbageMsg garbage = new GarbageMsg();
+		GarbageFilter garbage = new GarbageFilter();
 		String body = FileUtils.readFileToString(new File("./src/test/resources/samples/full_sources.json"));
 		ServerMessage msg = new ServerMessageImpl(123456L,64);
 		msg.getBodyBuffer().writeString(body);

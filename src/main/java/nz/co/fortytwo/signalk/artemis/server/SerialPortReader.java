@@ -65,6 +65,7 @@ import purejavacomm.SerialPortEventListener;
  */
 public class SerialPortReader implements Processor {
 
+	
 	private static Logger logger = LogManager.getLogger(SerialPortReader.class);
 	private String portName;
 	private File portFile;
@@ -245,7 +246,7 @@ public class SerialPortReader implements Processor {
 									ClientMessage txMsg = session.createMessage(true);
 									txMsg.getBodyBuffer().writeString(line);
 							
-									producer.send(new SimpleString("incoming.raw"), txMsg);
+									producer.send(new SimpleString(Config.INCOMING_RAW), txMsg);
 									if (logger.isDebugEnabled())
 										logger.debug("json = " + line);
 
@@ -269,7 +270,11 @@ public class SerialPortReader implements Processor {
 		}
 
 		protected void stopReader() {
+			try {
 			serialPort.removeEventListener();
+			} catch (Exception e1) {
+				logger.error(portName, e1);
+			}
 			try {
 				in.close();
 			} catch (IOException e1) {
@@ -290,7 +295,7 @@ public class SerialPortReader implements Processor {
 	 */
 	public void setSession(ClientSession session) throws ActiveMQException {
 		this.session = session;
-		this.producer = session.createProducer("incoming.raw");
+		this.producer = session.createProducer(Config.INCOMING_RAW);
 
 	}
 

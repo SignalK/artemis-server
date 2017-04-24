@@ -102,7 +102,7 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 		for( String hdr: headers.keySet()){
 			ex.putStringProperty(hdr,headers.get(hdr).toString());
 		}
-		producer.send("incoming.raw", ex);
+		producer.send(Config.INCOMING_RAW, ex);
 	}
 
 	@Override

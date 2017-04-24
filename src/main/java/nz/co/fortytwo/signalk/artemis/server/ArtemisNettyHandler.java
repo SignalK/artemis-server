@@ -116,7 +116,7 @@ public class ArtemisNettyHandler extends SimpleChannelInboundHandler<String> {
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
 		// unsubscribe all
 		String session = contextList.inverse().get(ctx);
-		txSession.deleteQueue("outgoing.reply." + session);
+		//txSession.deleteQueue("outgoing.reply." + session);
 		SubscriptionManagerFactory.getInstance().removeSessionId(session);
 		producer.close();
 		txSession.close();
@@ -127,7 +127,7 @@ public class ArtemisNettyHandler extends SimpleChannelInboundHandler<String> {
 	protected void channelRead0(ChannelHandlerContext ctx, String request) throws Exception {
 		if (logger.isDebugEnabled())
 			logger.debug("Request:" + request);
-		ClientMessage ex = txSession.createMessage(true);
+		ClientMessage ex = txSession.createMessage(false);
 		ex.getBodyBuffer().writeString(request);
 		for (String hdr : ctx.attr(msgHeaders).get().keySet()) {
 			ex.putStringProperty(hdr, ctx.attr(msgHeaders).get().get(hdr).toString());
@@ -135,7 +135,7 @@ public class ArtemisNettyHandler extends SimpleChannelInboundHandler<String> {
 		String tempQ = contextList.inverse().get(ctx);
 
 		ex.putStringProperty(Config.AMQ_REPLY_Q, tempQ);
-		producer.send("incoming.raw", ex);
+		producer.send(Config.INCOMING_RAW, ex);
 	}
 
 	private Map<String, Object> getHeaders(ChannelHandlerContext ctx) throws Exception {
