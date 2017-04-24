@@ -64,6 +64,8 @@ public final class ArtemisServer {
 	private SaveListener resourceListener;
 	private SaveListener sourceListener;
 	private nz.co.fortytwo.signalk.artemis.server.SerialPortManager serialPortManager;
+	private nz.co.fortytwo.signalk.artemis.server.NettyServer skServer;
+	private nz.co.fortytwo.signalk.artemis.server.NettyServer nmeaServer;
 
 	public ArtemisServer() throws Exception {
 		Properties props = System.getProperties();
@@ -108,6 +110,16 @@ public final class ArtemisServer {
 				.resource(SignalkManagedStreamService.class).resource("./signalk-static").build()).build();
 		server.start();
 
+		skServer = new NettyServer(null, ConfigConstants.OUTPUT_TCP);
+		skServer.setTcpPort(Config.getConfigPropertyInt(ConfigConstants.TCP_PORT));
+		skServer.setUdpPort(Config.getConfigPropertyInt(ConfigConstants.UDP_PORT));
+		skServer.run();
+		
+		nmeaServer = new NettyServer(null, ConfigConstants.OUTPUT_NMEA);
+		nmeaServer.setTcpPort(Config.getConfigPropertyInt(ConfigConstants.TCP_NMEA_PORT));
+		nmeaServer.setUdpPort(Config.getConfigPropertyInt(ConfigConstants.UDP_NMEA_PORT));
+		nmeaServer.run();
+		
 		// create a new Camel Main so we can easily start Camel
 		Main main = new Main();
 		main.enableHangupSupport();
@@ -175,6 +187,15 @@ public final class ArtemisServer {
 	}
 
 	public void stop() {
+		if(skServer!=null){
+			skServer.shutdownServer();
+			skServer=null;
+		}
+		
+		if(nmeaServer!=null){
+			nmeaServer.shutdownServer();
+			nmeaServer=null;
+		}
 		try {
 			if(serialPortManager!=null)
 				serialPortManager.stopSerial();

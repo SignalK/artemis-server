@@ -8,10 +8,10 @@ Done:
 	n2k (as signalk)
 	security
 	source to srcRef
-	
-TODO:
 	Save self.json
 	serial input
+TODO:
+	
 	REST login/auth
 	MQTT
 	STOMP

@@ -71,6 +71,13 @@ public class Config {
 	public static final String SK_TYPE_COMPOSITE = "SK_COMPOSITE";
 	public static final String SK_TYPE_VALUE = "SK_VALUE";
 	public static final String SK_TYPE_ATTRIBUTE = "SK_ATTRIBUTE";
+	
+    public static final String SK_SEND_TO_ALL = "SK_SEND_TO_ALL";
+	public static final String MSG_SRC_IP = "MSG_SRC_IP";
+	public static final String MSG_SRC_BUS = "MSG_SRC_BUS";
+	public static final String MSG_TYPE = "MSG_TYPE";
+	public static final Object INTERNAL_IP = "INTERNAL_IP";
+	public static final Object EXTERNAL_IP = "EXTERNAL_IP";
 
 	protected Config(){
 		listener = new ConfigListener(map, (String) map.get(ADMIN_USER).asString(),
