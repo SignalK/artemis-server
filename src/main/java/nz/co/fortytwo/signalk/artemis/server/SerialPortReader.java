@@ -84,6 +84,7 @@ public class SerialPortReader implements Processor {
 		queue = new LinkedBlockingQueue<String>(100);
 		session = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
 				Config.getConfigProperty(Config.ADMIN_PWD));
+		producer=session.createProducer();
 	}
 
 	/**

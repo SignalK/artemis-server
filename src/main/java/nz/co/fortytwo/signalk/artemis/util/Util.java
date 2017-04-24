@@ -121,10 +121,13 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 			throws Exception {
 		
 		ServerMessage m2 = new ServerMessageImpl(new Double(Math.random()).longValue(), 64);
-		
 		m2.putStringProperty(timestamp, timeStamp);
 		if (src != null) {
-			m2.putStringProperty(source, src.toString());
+			if(src instanceof String){
+				m2.putStringProperty(sourceRef, src.toString());
+			}else{
+				m2.putStringProperty(source, src.toString());
+			}
 		}
 		String type =body.getClass().getSimpleName();
 		m2.putStringProperty(Config.JAVA_TYPE, type);

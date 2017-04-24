@@ -253,7 +253,7 @@ public class Config {
 		if (config != null) {
 			//de-json it
 			SortedMap<String, Object> model = new ConcurrentSkipListMap<>();
-			for(Entry<String, Json> e : config.entrySet()){
+			for (Entry<String, Json> e : config.entrySet()) {
 				model.put(e.getKey(), e.getValue().getValue());
 			}
 			JsonSerializer ser = new JsonSerializer();

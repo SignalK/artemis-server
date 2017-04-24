@@ -31,6 +31,7 @@ import static nz.co.fortytwo.signalk.util.SignalKConstants.label;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.resources;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.source;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.sourceRef;
+import static nz.co.fortytwo.signalk.util.SignalKConstants.sources;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.timestamp;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.type;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.value;
@@ -82,7 +83,7 @@ public class FullMsg implements Transformer {
 		String sessionId = message.getStringProperty(Config.AMQ_SESSION_ID);
 		ServerSession sess = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
 		// deal with full format
-		if (node.has(vessels) || node.has(CONFIG) || node.has(resources)) {
+		if (node.has(vessels) || node.has(CONFIG) || node.has(resources) || node.has(sources)) {
 			if (logger.isDebugEnabled())
 				logger.debug("processing full  " + node);
 			// process it by recursion

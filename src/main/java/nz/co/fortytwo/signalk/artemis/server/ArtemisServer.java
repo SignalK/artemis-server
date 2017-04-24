@@ -127,7 +127,7 @@ public final class ArtemisServer {
 		sourceListener = new SaveListener(Config.getConfigProperty(Config.ADMIN_USER),
 				Config.getConfigProperty(Config.ADMIN_PWD),
 				sources, sources,
-				Util.SIGNALK_SOURCES_SAVE_FILE, 60000);
+				Util.SIGNALK_SOURCES_SAVE_FILE, 6000);
 		sourceListener.startSave();
 	}
 	
