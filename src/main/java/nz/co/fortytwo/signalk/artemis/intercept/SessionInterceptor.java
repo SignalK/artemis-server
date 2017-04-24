@@ -38,16 +38,17 @@ public class SessionInterceptor implements Interceptor {
 			// if(logger.isDebugEnabled())logger.debug("SessionSendMessage: " +
 			// realPacket.toString());
 			Message msg = realPacket.getMessage();
-			//msg.putStringProperty(Config.AMQ_CONTENT_TYPE, getContentType(msg));
-			for (ServerSession s : ArtemisServer.getActiveMQServer()
-					.getSessions(connection.getID().toString())) {
+			// msg.putStringProperty(Config.AMQ_CONTENT_TYPE,
+			// getContentType(msg));
+
+			for (ServerSession s : ArtemisServer.getActiveMQServer().getSessions(connection.getID().toString())) {
 				if (s.getConnectionID().equals(connection.getID())) {
-					// if(logger.isDebugEnabled())logger.debug("Session
-					// is:"+s.getConnectionID()+", name:"+s.getName());
+					if (logger.isDebugEnabled())
+						logger.debug("Session is:" + s.getConnectionID() + ", name:" + s.getName());
 					msg.putStringProperty(Config.AMQ_SESSION_ID, s.getName());
 				} else {
-					// if(logger.isDebugEnabled())logger.debug("Session not
-					// found for:"+s.getConnectionID()+", name:"+s.getName());
+					if (logger.isDebugEnabled())
+						logger.debug("Session not found for:" + s.getConnectionID() + ", name:" + s.getName());
 				}
 			}
 

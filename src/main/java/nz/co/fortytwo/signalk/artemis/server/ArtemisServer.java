@@ -152,22 +152,22 @@ public final class ArtemisServer {
 			// this loads the LVQ config queues.
 			ClientProducer producer = session.createProducer();
 
-			ClientMessage message = session.createMessage(true);
-			message.getBodyBuffer().writeString(Config.load(Util.SIGNALK_CFG_SAVE_FILE).toString());
-			producer.send("incoming.raw", message);
+			ClientMessage message1 = session.createMessage(true);
+			message1.getBodyBuffer().writeString(Config.load(Util.SIGNALK_CFG_SAVE_FILE).toString());
+			producer.send("incoming.raw", message1);
 			
 			// now bootstrap the resources, sources, and vessel
-			message = session.createMessage(true);
-			message.getBodyBuffer().writeString(Config.load(Util.SIGNALK_SOURCES_SAVE_FILE).toString());
-			producer.send("incoming.raw", message);
+			ClientMessage message2 = session.createMessage(true);
+			message2.getBodyBuffer().writeString(Config.load(Util.SIGNALK_SOURCES_SAVE_FILE).toString());
+			producer.send("incoming.raw", message2);
 			
-			message = session.createMessage(true);
-			message.getBodyBuffer().writeString(Config.load(Util.SIGNALK_RESOURCES_SAVE_FILE).toString());
-			producer.send("incoming.raw", message);
+			ClientMessage message3 = session.createMessage(true);
+			message3.getBodyBuffer().writeString(Config.load(Util.SIGNALK_RESOURCES_SAVE_FILE).toString());
+			producer.send("incoming.raw", message3);
 			
-			message = session.createMessage(true);
-			message.getBodyBuffer().writeString(Config.load(Util.SIGNALK_MODEL_SAVE_FILE).toString());
-			producer.send("incoming.raw", message);
+			ClientMessage message4 = session.createMessage(true);
+			message4.getBodyBuffer().writeString(Config.load(Util.SIGNALK_MODEL_SAVE_FILE).toString());
+			producer.send("incoming.raw", message4);
 			
 		} finally {
 			if (session != null)

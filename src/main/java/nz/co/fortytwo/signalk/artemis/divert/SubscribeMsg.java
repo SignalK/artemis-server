@@ -177,6 +177,7 @@ public class SubscribeMsg implements Transformer {
 		if(subscription.at(POLICY)!=null)policy=subscription.at(POLICY).asString();
 		long minPeriod = 0;
 		if(subscription.at(MIN_PERIOD)!=null)minPeriod=subscription.at(MIN_PERIOD).asInteger();
+	
 		Subscription sub = new Subscription(sessionId, destination, user, password,  path, period, minPeriod, format, policy);
 		
 		

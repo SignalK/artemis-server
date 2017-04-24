@@ -51,12 +51,13 @@ public class Config {
 	static {
 		try {
 			map = Config.loadConfig(map);
-			config=new Config();
-			
+			config = new Config();
+
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}
 	}
+
 	public static final String _AMQ_LVQ_NAME = "_AMQ_LVQ_NAME";
 	public static final String AMQ_CONTENT_TYPE = "AMQ_content_type";
 	public static final String AMQ_SESSION_ID = "AMQ_session_id";
@@ -71,69 +72,71 @@ public class Config {
 	public static final String SK_TYPE_COMPOSITE = "SK_COMPOSITE";
 	public static final String SK_TYPE_VALUE = "SK_VALUE";
 	public static final String SK_TYPE_ATTRIBUTE = "SK_ATTRIBUTE";
-	
-    public static final String SK_SEND_TO_ALL = "SK_SEND_TO_ALL";
+
+	public static final String SK_SEND_TO_ALL = "SK_SEND_TO_ALL";
 	public static final String MSG_SRC_IP = "MSG_SRC_IP";
 	public static final String MSG_SRC_BUS = "MSG_SRC_BUS";
 	public static final String MSG_TYPE = "MSG_TYPE";
 	public static final Object INTERNAL_IP = "INTERNAL_IP";
 	public static final Object EXTERNAL_IP = "EXTERNAL_IP";
+	public static final String AMQ_SUB_DESTINATION = "AMQ_SUB_DESTINATION";
 
-	protected Config(){
+	protected Config() {
 		listener = new ConfigListener(map, (String) map.get(ADMIN_USER).asString(),
 				(String) map.get(ADMIN_PWD).asString());
 	}
+
 	public static Config getInstance() {
 		return config;
 	}
 
-	public static void startConfigListener(){
-		if(listener!=null){
+	public static void startConfigListener() {
+		if (listener != null) {
 			Thread t = new Thread(listener);
 			t.setDaemon(true);
 			t.start();
 			logger.info("Config listener started for user:" + map.get(ADMIN_USER));
 		}
 	}
-	
-	public static void stopConfigListener(){
-		if(listener!=null){
+
+	public static void stopConfigListener() {
+		if (listener != null) {
 			listener.stop();
 		}
 	}
+
 	private Map<String, Json> getMap() {
 		return map;
 	}
 
 	public static Json getDiscoveryMsg(String hostname) {
-		
+
 		Json version = Json.object();
 		String ver = getConfigProperty(ConfigConstants.VERSION);
 		version.set("version", ver);
 		version.set(SignalKConstants.websocketUrl, "ws://" + hostname + ":"
-				+ getConfigPropertyInt(ConfigConstants.WEBSOCKET_PORT)
-				+ SignalKConstants.SIGNALK_WS);
+				+ getConfigPropertyInt(ConfigConstants.WEBSOCKET_PORT) + SignalKConstants.SIGNALK_WS);
 		version.set(SignalKConstants.restUrl, "http://" + hostname + ":"
-				+ getConfigPropertyInt(ConfigConstants.REST_PORT)
-				+ SignalKConstants.SIGNALK_API + "/");
-		version.set(SignalKConstants.signalkTcpPort, "tcp://" + hostname + ":"
-				+ getConfigPropertyInt(ConfigConstants.TCP_PORT));
-		version.set(SignalKConstants.signalkUdpPort, "udp://" + hostname + ":"
-				+ getConfigPropertyInt(ConfigConstants.UDP_PORT));
-		version.set(SignalKConstants.nmeaTcpPort, "tcp://" + hostname + ":"
-				+ getConfigPropertyInt(ConfigConstants.TCP_NMEA_PORT));
-		version.set(SignalKConstants.nmeaUdpPort, "udp://" + hostname + ":"
-				+ getConfigPropertyInt(ConfigConstants.UDP_NMEA_PORT));
+				+ getConfigPropertyInt(ConfigConstants.REST_PORT) + SignalKConstants.SIGNALK_API + "/");
+		version.set(SignalKConstants.signalkTcpPort,
+				"tcp://" + hostname + ":" + getConfigPropertyInt(ConfigConstants.TCP_PORT));
+		version.set(SignalKConstants.signalkUdpPort,
+				"udp://" + hostname + ":" + getConfigPropertyInt(ConfigConstants.UDP_PORT));
+		version.set(SignalKConstants.nmeaTcpPort,
+				"tcp://" + hostname + ":" + getConfigPropertyInt(ConfigConstants.TCP_NMEA_PORT));
+		version.set(SignalKConstants.nmeaUdpPort,
+				"udp://" + hostname + ":" + getConfigPropertyInt(ConfigConstants.UDP_NMEA_PORT));
 		if (getConfigPropertyBoolean(ConfigConstants.START_STOMP))
-			version.set(SignalKConstants.stompPort, "stomp+nio://" + hostname + ":"
-					+ getConfigPropertyInt(ConfigConstants.STOMP_PORT));
+			version.set(SignalKConstants.stompPort,
+					"stomp+nio://" + hostname + ":" + getConfigPropertyInt(ConfigConstants.STOMP_PORT));
 		if (getConfigPropertyBoolean(ConfigConstants.START_MQTT))
-			version.set(SignalKConstants.mqttPort, "mqtt://" + hostname + ":"
-					+ getConfigPropertyInt(ConfigConstants.MQTT_PORT));
+			version.set(SignalKConstants.mqttPort,
+					"mqtt://" + hostname + ":" + getConfigPropertyInt(ConfigConstants.MQTT_PORT));
 		Json endpoints = Json.object();
-		endpoints.set("v"+ver.substring(0, 1), version );
+		endpoints.set("v" + ver.substring(0, 1), version);
 		return Json.object().set("endpoints", endpoints);
 	}
+
 	/**
 	 * Config defaults
 	 * 
@@ -150,8 +153,8 @@ public class Config {
 		model.put(ConfigConstants.DEMO, Json.make(false));
 		model.put(ConfigConstants.STREAM_URL, Json.make("motu.log"));
 		model.put(ConfigConstants.USBDRIVE, Json.make("/media/usb0"));
-		model.put(ConfigConstants.SERIAL_PORTS,
-				Json.make("[\"/dev/ttyUSB0\",\"/dev/ttyUSB1\",\"/dev/ttyUSB2\",\"/dev/ttyACM0\",\"/dev/ttyACM1\",\"/dev/ttyACM2\"]"));
+		model.put(ConfigConstants.SERIAL_PORTS, Json.make(
+				"[\"/dev/ttyUSB0\",\"/dev/ttyUSB1\",\"/dev/ttyUSB2\",\"/dev/ttyACM0\",\"/dev/ttyACM1\",\"/dev/ttyACM2\"]"));
 		if (SystemUtils.IS_OS_WINDOWS) {
 			model.put(ConfigConstants.SERIAL_PORTS, Json.make("[\"COM1\",\"COM2\",\"COM3\",\"COM4\"]"));
 		}
@@ -164,18 +167,18 @@ public class Config {
 		model.put(ConfigConstants.STOMP_PORT, Json.make(61613));
 		model.put(ConfigConstants.MQTT_PORT, Json.make(1883));
 		model.put(ConfigConstants.CLOCK_source, Json.make("system"));
-	
+
 		model.put(ConfigConstants.HAWTIO_PORT, Json.make(8000));
 		model.put(ConfigConstants.HAWTIO_AUTHENTICATE, Json.make(false));
 		model.put(ConfigConstants.HAWTIO_CONTEXT, Json.make("/hawtio"));
 		model.put(ConfigConstants.HAWTIO_WAR, Json.make("./hawtio/hawtio-default-offline-1.4.48.war"));
 		model.put(ConfigConstants.HAWTIO_START, Json.make(false));
-	
+
 		model.put(ConfigConstants.JOLOKIA_PORT, Json.make(8001));
 		model.put(ConfigConstants.JOLOKIA_AUTHENTICATE, Json.make(false));
 		model.put(ConfigConstants.JOLOKIA_CONTEXT, Json.make("/jolokia"));
 		model.put(ConfigConstants.JOLOKIA_WAR, Json.make("./hawtio/jolokia-war-1.3.3.war"));
-	
+
 		model.put(ConfigConstants.VERSION, Json.make("1.0.0"));
 		model.put(ConfigConstants.ALLOW_INSTALL, Json.make(true));
 		model.put(ConfigConstants.ALLOW_UPGRADE, Json.make(true));
@@ -188,7 +191,7 @@ public class Config {
 		Enumeration<NetworkInterface> interfaces;
 		try {
 			interfaces = NetworkInterface.getNetworkInterfaces();
-	
+
 			while (interfaces.hasMoreElements()) {
 				NetworkInterface i = interfaces.nextElement();
 				for (InterfaceAddress iAddress : i.getInterfaceAddresses()) {
@@ -199,20 +202,25 @@ public class Config {
 				}
 			}
 			model.put(ConfigConstants.SECURITY_CONFIG, Json.make(ips.toString()));
-	
+
 			// default users
 			model.put(ADMIN_USER, Json.make("admin"));
 			model.put(ADMIN_PWD, Json.make("admin"));
-	
+
 		} catch (SocketException e) {
 			Util.logger.error(e.getMessage(), e);
 		}
-	
+
 	}
+
+	public static String getVersion() {
+		return Config.getConfigProperty(ConfigConstants.VERSION);
+	}
+
 	public static SortedMap<String, Json> loadConfig(SortedMap<String, Json> model) throws IOException {
 		File jsonFile = new File(Util.SIGNALK_CFG_SAVE_FILE);
 		Util.logger.info("Checking for previous config: " + jsonFile.getAbsolutePath());
-	
+
 		if (!jsonFile.exists()) {
 			Util.logger.info("   Saved config not found, creating default");
 			Config.setDefaults(model);
@@ -221,7 +229,7 @@ public class Config {
 			String self = SignalKConstants.URN_UUID + UUID.randomUUID().toString();
 			model.put(ConfigConstants.UUID, Json.make(self));
 			saveConfig(model);
-	
+
 		} else {
 			Json json = Json.read(jsonFile.toURI().toURL());
 			JsonSerializer ser = new JsonSerializer();
@@ -246,7 +254,7 @@ public class Config {
 		}
 		return Json.nil();
 	}
-	
+
 	/**
 	 * Save the current state of the signalk config
 	 * 
@@ -255,10 +263,10 @@ public class Config {
 	public static void saveConfig(Map<String, Json> config) throws IOException {
 		saveMap(config, new File(Util.SIGNALK_CFG_SAVE_FILE));
 	}
-	
+
 	public static void saveMap(Map<String, Json> config, File jsonFile) throws IOException {
 		if (config != null) {
-			//de-json it
+			// de-json it
 			SortedMap<String, Object> model = new ConcurrentSkipListMap<>();
 			for (Entry<String, Json> e : config.entrySet()) {
 				model.put(e.getKey(), e.getValue().getValue());
@@ -274,8 +282,9 @@ public class Config {
 			FileUtils.writeStringToFile(jsonFile, buffer.toString(), StandardCharsets.UTF_8);
 			Util.logger.debug("   Saved model state to " + jsonFile);
 		}
-	
+
 	}
+
 	public static String getConfigProperty(String prop) {
 		try {
 			return (String) config.getMap().get(prop).getValue();
@@ -286,8 +295,8 @@ public class Config {
 	}
 
 	public static Json getConfigJsonArray(String prop) {
-			return config.getMap().get(prop);
-				
+		return config.getMap().get(prop);
+
 	}
 
 	public static Integer getConfigPropertyInt(String prop) {
@@ -297,11 +306,11 @@ public class Config {
 			logger.warn(e.getMessage(), e);
 		}
 		return null;
-		
+
 	}
 
 	public static Double getConfigPropertyDouble(String prop) {
-		
+
 		try {
 			return config.getMap().get(prop).asDouble();
 		} catch (Exception e) {
@@ -330,9 +339,9 @@ public class Config {
 			this.user = user;
 			this.password = password;
 		}
-		
-		public void stop(){
-			running=false;
+
+		public void stop() {
+			running = false;
 		}
 
 		@Override
@@ -346,23 +355,26 @@ public class Config {
 
 				while (running) {
 					ClientMessage msgReceived = consumer.receive(1000);
-					if (msgReceived == null){
-						//when no changes every 1 seconds we will get a null message, so save first time if we need to.
-						if(!saved){
+					if (msgReceived == null) {
+						// when no changes every 1 seconds we will get a null
+						// message, so save first time if we need to.
+						if (!saved) {
 							if (logger.isDebugEnabled())
 								logger.debug("ConfigListener: saving config");
 							Config.saveConfig(map);
-							saved=true;
+							saved = true;
 						}
 						continue;
 					}
-					//if we have changes, we read until there are more and trigger a save later.
+					// if we have changes, we read until there are more and
+					// trigger a save later.
 					Json json = Util.readBodyBuffer(msgReceived);
 					if (logger.isDebugEnabled())
-						logger.debug("ConfigListener: message = " + msgReceived.getMessageID() + ":" + msgReceived.getAddress() + ", " + json);
+						logger.debug("ConfigListener: message = " + msgReceived.getMessageID() + ":"
+								+ msgReceived.getAddress() + ", " + json);
 					map.put(msgReceived.getAddress().toString(), json);
-					saved=false;
-					
+					saved = false;
+
 				}
 
 			} catch (Exception e) {

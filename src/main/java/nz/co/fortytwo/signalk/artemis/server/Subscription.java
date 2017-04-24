@@ -131,11 +131,11 @@ public class Subscription {
 							tsMap=new HashMap<>();
 							ctxMap.put(msgReceived.getStringProperty(timestamp), tsMap);
 						}
-						if(logger.isDebugEnabled())logger.debug("Source: "+msgReceived.getStringProperty(source));
-						List<ClientMessage> srcMap = tsMap.get(msgReceived.getStringProperty(source));
+						if(logger.isDebugEnabled())logger.debug("$source: "+msgReceived.getStringProperty(sourceRef));
+						List<ClientMessage> srcMap = tsMap.get(msgReceived.getStringProperty(sourceRef));
 						if(srcMap==null){
 							srcMap=new ArrayList<>();
-							tsMap.put(msgReceived.getStringProperty(source), srcMap);
+							tsMap.put(msgReceived.getStringProperty(sourceRef), srcMap);
 						}
 						srcMap.add( msgReceived);
 					}
@@ -144,8 +144,10 @@ public class Subscription {
 						ClientMessage txMsg = txSession.createMessage(true);
 						txMsg.getBodyBuffer().writeString(delta.toString());
 						txMsg.putStringProperty(Config.JAVA_TYPE, delta.getClass().getSimpleName());
+						txMsg.putStringProperty(Config.AMQ_SUB_DESTINATION, destination);
+						txMsg.putBooleanProperty(Config.SK_SEND_TO_ALL, false);
 						producer.send(new SimpleString("outgoing.reply."+destination),txMsg);
-						if(logger.isDebugEnabled())logger.debug("json = "+delta);
+						if(logger.isDebugEnabled())logger.debug("delta json = "+delta);
 					}
 					consumer.close();
 					

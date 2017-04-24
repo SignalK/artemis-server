@@ -13,6 +13,7 @@ import static nz.co.fortytwo.signalk.util.SignalKConstants.sources;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.timestamp;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.value;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.values;
+import static nz.co.fortytwo.signalk.util.SignalKConstants.version;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels_dot_self;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels_dot_self_dot;
@@ -52,10 +53,21 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 	public static final String SIGNALK_CFG_SAVE_FILE = "./conf/signalk-config.json";
 	public static final String SIGNALK_RESOURCES_SAVE_FILE = "./conf/resources.json";
 	public static final String SIGNALK_SOURCES_SAVE_FILE = "./conf/sources.json";
-
+	private static ClientSessionFactory nettyFactory;
+	private static ClientSessionFactory inVmFactory;
 	protected static Pattern selfMatch = null;
 
     protected static Pattern selfEndMatch = null;
+    
+    public static Json getWelcomeMsg() {
+        Json msg = Json.object();
+        msg.set(version, Config.getVersion());
+        msg.set(timestamp, getIsoTimeString());
+        msg.set(self_str, Config.getConfigProperty(ConfigConstants.UUID));
+        return msg;
+    }
+
+   
 	/**
 	 * If we receive messages for our UUID, convert to 'self'
 	 * @param key
@@ -73,21 +85,27 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
     }
 	
 	public static ClientSession getVmSession(String user, String password) throws Exception {
-		ClientSessionFactory nettyFactory = ActiveMQClient
+		if(inVmFactory==null){
+			inVmFactory = ActiveMQClient
 				.createServerLocatorWithoutHA(new TransportConfiguration(InVMConnectorFactory.class.getName()))
+				.setMinLargeMessageSize(200*1024)
 				.createSessionFactory();
-		return nettyFactory.createSession(user, password, false, true, true, false, 10);
+		}
+		
+		return inVmFactory.createSession(user, password, false, true, true, false, 10);
 	}
 
 	public static ClientSession getLocalhostClientSession(String user, String password) throws Exception {
 		Map<String, Object> connectionParams = new HashMap<String, Object>();
 		connectionParams.put(TransportConstants.HOST_PROP_NAME, "localhost");
 		connectionParams.put(TransportConstants.PORT_PROP_NAME, 61617);
-
-		ClientSessionFactory nettyFactory = ActiveMQClient
+		if(nettyFactory==null){
+			nettyFactory = ActiveMQClient
 				.createServerLocatorWithoutHA(
 						new TransportConfiguration(NettyConnectorFactory.class.getName(), connectionParams))
+				.setMinLargeMessageSize(200*1024)
 				.createSessionFactory();
+		}
 		return nettyFactory.createSession(user, password, false, true, true, false, 10);
 	}
 

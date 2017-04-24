@@ -10,13 +10,14 @@ Done:
 	source to srcRef
 	Save self.json
 	serial input
+	TCP
+	UDP
 TODO:
 	
 	REST login/auth
 	MQTT
 	STOMP
-	TCP
-	UDP
+	
 	Alarms
 	Resources
 		charts (upload)
