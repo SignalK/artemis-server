@@ -52,12 +52,33 @@
 			"logger": [
 			{
 				"name": "nz.co.fortytwo.signalk.artemis.intercept",
-				"level": "debug"
+				"level": "error"
 			},
 			{
 				"name": "nz.co.fortytwo.signalk",
 				"level": "debug"
 			},
+			{
+				"name": "nz.co.fortytwo.signalk.artemis.divert.FullMsg",
+				"level": "error"
+			},
+			{
+				"name": "nz.co.fortytwo.signalk.artemis.util.Config",
+				"level": "error"
+			},
+			{
+				"name": "nz.co.fortytwo.signalk.artemis.server.SerialPortReader",
+				"level": "error"
+			},
+			{
+				"name": "nz.co.fortytwo.signalk.artemis.server.SerialPortManager",
+				"level": "error"
+			},
+			{
+				"name": "nz.co.fortytwo.signalk.artemis.server.SaveListener",
+				"level": "error"
+			},
+			
 			{
 				"name": "org.atmosphere.nettosphere.BridgeRuntime",
 				"level": "warn"

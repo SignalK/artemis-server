@@ -61,7 +61,7 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 	private Logger logger = LogManager.getLogger(ArtemisUdpNettyHandler.class);
 	private BiMap<String, InetSocketAddress> socketList = HashBiMap.create();
 	private BiMap<String, ClientSession> sessionList = HashBiMap.create();
-	private BiMap<String, NioDatagramChannel> channelList = HashBiMap.create();
+	private Map<String, ChannelHandlerContext> channelList = new HashMap<>();
 	private BiMap<String, ClientProducer> producerList = HashBiMap.create();
 
 	private String outputType;
@@ -90,13 +90,14 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 		String request = packet.content().toString(CharsetUtil.UTF_8);
 		if (logger.isDebugEnabled())
 			logger.debug("Sender " + packet.sender() + " sent request:" + request);
-		String session = ctx.channel().id().asLongText();
+		String session = packet.sender().getAddress().getHostAddress()+":"+packet.sender().getPort();//ctx.channel().id().asLongText();
 		
 		if (!socketList.inverse().containsKey(packet.sender())) {
 			
 			SimpleString tempQ = new SimpleString(session);
-			String localAddress = ctx.channel().localAddress().toString();
-			String remoteAddress = ctx.channel().remoteAddress().toString();
+			NioDatagramChannel udpChannel = (NioDatagramChannel) ctx.channel();
+			String localAddress = udpChannel.localAddress().toString();
+			String remoteAddress = packet.sender().getAddress().getHostAddress(); 
 			SubscriptionManagerFactory.getInstance().add(session, session, outputType, localAddress, remoteAddress);
 			socketList.put(session, packet.sender());
 			if (logger.isDebugEnabled())
@@ -106,13 +107,14 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 							Unpooled.copiedBuffer(Util.getWelcomeMsg().toString() + "\r\n", CharsetUtil.UTF_8),
 							packet.sender()));
 			// setup consumer
-			if(!sessionList.inverse().containsKey(session)){
+			if(!sessionList.containsKey(session)){
 				ClientSession txSession = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
 						Config.getConfigProperty(Config.ADMIN_PWD));
-				
+				txSession.createTemporaryQueue(new SimpleString("outgoing.reply." + session), RoutingType.MULTICAST, tempQ);
 				txSession.start();
 				sessionList.put(session, txSession);
 				producerList.put(session, txSession.createProducer());
+				
 				ClientConsumer consumer = txSession.createConsumer(tempQ, false);
 				consumer.setMessageHandler(new MessageHandler() {
 	
@@ -126,13 +128,17 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 	
 					}
 				});
-				channelList.put(session,(NioDatagramChannel) ctx.channel());
+				
+			}
+			if(!channelList.containsKey(session)){
+				channelList.put(session,ctx);
 			}
 		}
 
 		Map<String, Object> headers = getHeaders(socketList.inverse().get(packet.sender()));
 		ClientMessage ex = sessionList.get(session).createMessage(true);
 		ex.getBodyBuffer().writeString(request);
+		ex.putStringProperty(Config.AMQ_REPLY_Q, session);
 		for (String hdr : headers.keySet()) {
 			ex.putStringProperty(hdr, headers.get(hdr).toString());
 		}
@@ -180,12 +186,12 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 
 		String msg = Util.readBodyBufferToString(message);
 		if (logger.isDebugEnabled())
-			logger.debug("TCP sending msg : " + msg);
+			logger.debug("UDP sending msg : " + msg);
 		if (msg != null) {
 			// get the session
 			String session = message.getStringProperty(Config.AMQ_SUB_DESTINATION);
 			if (logger.isDebugEnabled())
-				logger.debug("TCP session:" + session);
+				logger.debug("UDP session id:" + session);
 			if (Config.SK_SEND_TO_ALL.equals(session)) {
 				// udp
 				
@@ -193,7 +199,7 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 						if (logger.isDebugEnabled())
 							logger.debug("Sending udp: " + msg);
 						// udpCtx.pipeline().writeAndFlush(msg+"\r\n");
-						((NioDatagramChannel) channelList.get(session)).writeAndFlush(
+						((NioDatagramChannel) channelList.get(session).channel()).writeAndFlush(
 								new DatagramPacket(Unpooled.copiedBuffer(msg + "\r\n", CharsetUtil.UTF_8), client));
 						if (logger.isDebugEnabled())
 							logger.debug("Sent udp to " + client);
@@ -208,7 +214,7 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 					if (logger.isDebugEnabled())
 						logger.debug("Sending udp: " + msg);
 					// udpCtx.pipeline().writeAndFlush(msg+"\r\n");
-					((NioDatagramChannel) channelList.get(session)).writeAndFlush(
+					((NioDatagramChannel) channelList.get(session).channel()).writeAndFlush(
 							new DatagramPacket(Unpooled.copiedBuffer(msg + "\r\n", CharsetUtil.UTF_8), client));
 					if (logger.isDebugEnabled())
 						logger.debug("Sent udp for session: " + session);

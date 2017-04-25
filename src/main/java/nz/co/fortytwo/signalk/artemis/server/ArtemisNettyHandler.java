@@ -124,6 +124,7 @@ public class ArtemisNettyHandler extends SimpleChannelInboundHandler<String> {
 		String session = contextList.inverse().get(ctx);
 		// txSession.deleteQueue("outgoing.reply." + session);
 		SubscriptionManagerFactory.getInstance().removeSessionId(session);
+		producerList.get(session).close();
 		sessionList.get(session).close();
 
 		super.channelInactive(ctx);
