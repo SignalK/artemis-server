@@ -40,7 +40,8 @@ public class SessionInterceptor implements Interceptor {
 			Message msg = realPacket.getMessage();
 			// msg.putStringProperty(Config.AMQ_CONTENT_TYPE,
 			// getContentType(msg));
-
+			msg.putStringProperty(Config.MSG_SRC_BUS, connection.getRemoteAddress());
+			
 			for (ServerSession s : ArtemisServer.getActiveMQServer().getSessions(connection.getID().toString())) {
 				if (s.getConnectionID().equals(connection.getID())) {
 					if (logger.isDebugEnabled())

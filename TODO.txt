@@ -15,10 +15,7 @@ Done:
 	big messages > 200K
 TODO:
 	
-	UDP fix
 	REST login/auth
-	MQTT
-	STOMP
 	
 	Alarms
 	Resources
@@ -26,13 +23,16 @@ TODO:
 		tracks
 		routes
 		waypoints
-	AIS
+	
 	Declination
 	Depth
 	Wind
 	Git
 	REST PUT/POST/LIST
 	N2K conversion
+	MQTT
+	STOMP
+	AIS
 	UI
 	Input filter
 	log conf

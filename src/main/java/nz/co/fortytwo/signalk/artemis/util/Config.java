@@ -82,6 +82,8 @@ public class Config {
 	public static final String AMQ_SUB_DESTINATION = "AMQ_SUB_DESTINATION";
 	
 	public static final String INCOMING_RAW = "incoming.raw";
+	public static final String STOMP = "STOMP";
+	public static final String AIS = "AIS";
 
 	protected Config() {
 		listener = new ConfigListener(map, (String) map.get(ADMIN_USER).asString(),

@@ -119,15 +119,15 @@ public class GarbageFilter implements Transformer {
 				msg = msg.trim();
 				// stomp messages are prefixed with 'ascii:'
 				if (msg.startsWith("ascii:")) {
-					return "STOMP";
+					return Config.STOMP;
 				}
 				msg = StringUtils.chomp(msg);
 				if (msg.startsWith("!AIVDM")) {
 					// AIS
 					// !AIVDM,1,1,,B,15MwkRUOidG?GElEa<iQk1JV06Jd,0*6D
-					return "AIS";
+					return Config.AIS;
 				} else if (msg.startsWith("$")) {
-					return "0183";
+					return Config._0183;
 				} else if (msg.startsWith("{") && msg.endsWith("}")) {
 					Json node = Json.read(msg);
 					// avoid full signalk syntax
