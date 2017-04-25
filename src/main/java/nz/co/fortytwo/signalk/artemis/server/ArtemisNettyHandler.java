@@ -27,6 +27,7 @@ package nz.co.fortytwo.signalk.artemis.server;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import org.apache.activemq.artemis.api.core.SimpleString;
@@ -56,20 +57,19 @@ public class ArtemisNettyHandler extends SimpleChannelInboundHandler<String> {
 
 	private static Logger logger = LogManager.getLogger(ArtemisNettyHandler.class);
 	private BiMap<String, ChannelHandlerContext> contextList = HashBiMap.create();
+	private BiMap<String, ClientSession> sessionList = HashBiMap.create();
+	private BiMap<String, ClientProducer> producerList = HashBiMap.create();
 	private String outputType;
 
-	private ClientSession txSession = null;
+	// private ClientSession txSession = null;
 
 	private final AttributeKey<Map<String, Object>> msgHeaders = AttributeKey.valueOf("msgHeaders");
-	private ClientProducer producer;
+	// private ClientProducer producer;
 
 	public ArtemisNettyHandler(String outputType) throws Exception {
 
 		this.outputType = outputType;
-		txSession = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
-				Config.getConfigProperty(Config.ADMIN_PWD));
-		producer = txSession.createProducer();
-		txSession.start();
+
 	}
 
 	@Override
@@ -79,22 +79,29 @@ public class ArtemisNettyHandler extends SimpleChannelInboundHandler<String> {
 			logger.debug("channelActive:" + ctx);
 		ctx.write(Util.getWelcomeMsg().toString() + "\r\n");
 		ctx.flush();
-		
+
 		String session = ctx.channel().id().asLongText();
 		SimpleString tempQ = new SimpleString(session);
 		String localAddress = ctx.channel().localAddress().toString();
 		String remoteAddress = ctx.channel().remoteAddress().toString();
 		SubscriptionManagerFactory.getInstance().add(session, session, outputType, localAddress, remoteAddress);
 		contextList.put(session, ctx);
-		txSession.createTemporaryQueue(new SimpleString("outgoing.reply." + session), RoutingType.MULTICAST, tempQ);
+		ClientSession rxSession = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
+				Config.getConfigProperty(Config.ADMIN_PWD));
+		rxSession.start();
+		sessionList.put(session, rxSession);
+		rxSession.createTemporaryQueue(new SimpleString("outgoing.reply." + session), RoutingType.MULTICAST, tempQ);
 		if (logger.isDebugEnabled())
 			logger.debug("channelActive, setup headers:" + ctx);
 		// make up headers
 		ctx.attr(msgHeaders).set(getHeaders(ctx));
 		// TODO: get user login
 
+		ClientProducer producer = rxSession.createProducer();
+		producerList.put(session, producer);
+
 		// setup consumer
-		ClientConsumer consumer = txSession.createConsumer(tempQ, false);
+		ClientConsumer consumer = rxSession.createConsumer(tempQ, false);
 		consumer.setMessageHandler(new MessageHandler() {
 
 			@Override
@@ -115,10 +122,10 @@ public class ArtemisNettyHandler extends SimpleChannelInboundHandler<String> {
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
 		// unsubscribe all
 		String session = contextList.inverse().get(ctx);
-		//txSession.deleteQueue("outgoing.reply." + session);
+		// txSession.deleteQueue("outgoing.reply." + session);
 		SubscriptionManagerFactory.getInstance().removeSessionId(session);
-		producer.close();
-		txSession.close();
+		sessionList.get(session).close();
+
 		super.channelInactive(ctx);
 	}
 
@@ -126,7 +133,9 @@ public class ArtemisNettyHandler extends SimpleChannelInboundHandler<String> {
 	protected void channelRead0(ChannelHandlerContext ctx, String request) throws Exception {
 		if (logger.isDebugEnabled())
 			logger.debug("Request:" + request);
-		ClientMessage ex = txSession.createMessage(false);
+		String session = contextList.inverse().get(ctx);
+		ClientProducer producer = producerList.get(session);
+		ClientMessage ex = sessionList.get(session).createMessage(false);
 		ex.getBodyBuffer().writeString(request);
 		for (String hdr : ctx.attr(msgHeaders).get().keySet()) {
 			ex.putStringProperty(hdr, ctx.attr(msgHeaders).get().get(hdr).toString());
@@ -185,10 +194,14 @@ public class ArtemisNettyHandler extends SimpleChannelInboundHandler<String> {
 
 	@Override
 	protected void finalize() throws Throwable {
-		if (producer != null)
-			producer.close();
-		if (txSession != null)
-			txSession.close();
+		for (Entry<String, ClientProducer> sess : producerList.entrySet()) {
+			sess.getValue().close();
+		}
+		for (Entry<String, ClientSession> sess : sessionList.entrySet()) {
+			sess.getValue().close();
+		}
+		
+		
 	}
 
 	public void process(ClientMessage message) throws Exception {

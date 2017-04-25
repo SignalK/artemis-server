@@ -27,6 +27,7 @@ package nz.co.fortytwo.signalk.artemis.server;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import org.apache.activemq.artemis.api.core.SimpleString;
@@ -58,24 +59,16 @@ import nz.co.fortytwo.signalk.util.ConfigConstants;
 public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
 	private Logger logger = LogManager.getLogger(ArtemisUdpNettyHandler.class);
-	private BiMap<String, InetSocketAddress> sessionList = HashBiMap.create();
+	private BiMap<String, InetSocketAddress> socketList = HashBiMap.create();
+	private BiMap<String, ClientSession> sessionList = HashBiMap.create();
 	private BiMap<String, NioDatagramChannel> channelList = HashBiMap.create();
-
-	private ClientSession txSession = null;
-
-	private ClientProducer producer;
+	private BiMap<String, ClientProducer> producerList = HashBiMap.create();
 
 	private String outputType;
 	//private ClientConsumer consumer;
 
 	public ArtemisUdpNettyHandler(String outputType) throws Exception {
 		this.outputType = outputType;
-
-		txSession = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
-				Config.getConfigProperty(Config.ADMIN_PWD));
-		producer = txSession.createProducer();
-		txSession.start();
-		
 	}
 
 	@Override
@@ -97,14 +90,15 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 		String request = packet.content().toString(CharsetUtil.UTF_8);
 		if (logger.isDebugEnabled())
 			logger.debug("Sender " + packet.sender() + " sent request:" + request);
-
-		if (!sessionList.inverse().containsKey(packet.sender())) {
-			String session = ctx.channel().id().asLongText();
+		String session = ctx.channel().id().asLongText();
+		
+		if (!socketList.inverse().containsKey(packet.sender())) {
+			
 			SimpleString tempQ = new SimpleString(session);
 			String localAddress = ctx.channel().localAddress().toString();
 			String remoteAddress = ctx.channel().remoteAddress().toString();
 			SubscriptionManagerFactory.getInstance().add(session, session, outputType, localAddress, remoteAddress);
-			sessionList.put(session, packet.sender());
+			socketList.put(session, packet.sender());
 			if (logger.isDebugEnabled())
 				logger.debug("Added Sender " + packet.sender() + ", session:" + session);
 			ctx.channel()
@@ -112,7 +106,13 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 							Unpooled.copiedBuffer(Util.getWelcomeMsg().toString() + "\r\n", CharsetUtil.UTF_8),
 							packet.sender()));
 			// setup consumer
-			if(!channelList.inverse().containsKey(session)){
+			if(!sessionList.inverse().containsKey(session)){
+				ClientSession txSession = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
+						Config.getConfigProperty(Config.ADMIN_PWD));
+				
+				txSession.start();
+				sessionList.put(session, txSession);
+				producerList.put(session, txSession.createProducer());
 				ClientConsumer consumer = txSession.createConsumer(tempQ, false);
 				consumer.setMessageHandler(new MessageHandler() {
 	
@@ -130,13 +130,13 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 			}
 		}
 
-		Map<String, Object> headers = getHeaders(sessionList.inverse().get(packet.sender()));
-		ClientMessage ex = txSession.createMessage(true);
+		Map<String, Object> headers = getHeaders(socketList.inverse().get(packet.sender()));
+		ClientMessage ex = sessionList.get(session).createMessage(true);
 		ex.getBodyBuffer().writeString(request);
 		for (String hdr : headers.keySet()) {
 			ex.putStringProperty(hdr, headers.get(hdr).toString());
 		}
-		producer.send(Config.INCOMING_RAW, ex);
+		producerList.get(session).send(Config.INCOMING_RAW, ex);
 	}
 
 	@Override
@@ -160,24 +160,20 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 	private Map<String, Object> getHeaders(String wsSession) {
 		Map<String, Object> headers = new HashMap<>();
 		headers.put(Config.AMQ_SESSION_ID, wsSession);
-		headers.put(Config.MSG_SRC_IP, sessionList.get(wsSession).getHostString());
-		headers.put(Config.MSG_SRC_BUS, "udp." + sessionList.get(wsSession).getHostString().replace('.', '_'));
+		headers.put(Config.MSG_SRC_IP, socketList.get(wsSession).getHostString());
+		headers.put(Config.MSG_SRC_BUS, "udp." + socketList.get(wsSession).getHostString().replace('.', '_'));
 		headers.put(ConfigConstants.OUTPUT_TYPE, outputType);
 		return headers;
-	}
-
-	protected BiMap<String, InetSocketAddress> getSessionList() {
-		return sessionList;
 	}
 
 	@Override
 	protected void finalize() throws Throwable {
 		channelList.clear();
-		sessionList.clear();
-		if (producer != null)
-			producer.close();
-		if (txSession != null)
-			txSession.close();
+		socketList.clear();
+		for(Entry<String, ClientProducer> entry:producerList.entrySet())
+			entry.getValue().close();
+		for(Entry<String, ClientSession> entry:sessionList.entrySet())
+			entry.getValue().close();
 	}
 
 	public void process(ClientMessage message) throws Exception {
@@ -193,7 +189,7 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 			if (Config.SK_SEND_TO_ALL.equals(session)) {
 				// udp
 				
-					for (InetSocketAddress client : getSessionList().values()) {
+					for (InetSocketAddress client : socketList.values()) {
 						if (logger.isDebugEnabled())
 							logger.debug("Sending udp: " + msg);
 						// udpCtx.pipeline().writeAndFlush(msg+"\r\n");
@@ -208,7 +204,7 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 
 				// udp
 		
-					final InetSocketAddress client = getSessionList().get(session);
+					final InetSocketAddress client = socketList.get(session);
 					if (logger.isDebugEnabled())
 						logger.debug("Sending udp: " + msg);
 					// udpCtx.pipeline().writeAndFlush(msg+"\r\n");

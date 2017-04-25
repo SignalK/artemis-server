@@ -3,6 +3,7 @@ package nz.co.fortytwo.signalk.artemis.server;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.FORMAT_DELTA;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.POLICY_FIXED;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.BufferedReader;
@@ -84,6 +85,56 @@ public class TcpSubscribeTest {
 		
 		} finally {
 			clientSocket.close();
+		}
+	}
+	
+	@Test
+	public void checkMultiClientSubscribe() throws Exception {
+
+		Socket clientSocket1 = new Socket("127.0.0.1", 55555);
+		DataOutputStream outToServer1 = new DataOutputStream(clientSocket1.getOutputStream());
+		BufferedReader inFromServer1 = new BufferedReader(new InputStreamReader(clientSocket1.getInputStream()));
+		
+		Socket clientSocket2 = new Socket("127.0.0.1", 55555);
+		DataOutputStream outToServer2 = new DataOutputStream(clientSocket2.getOutputStream());
+		BufferedReader inFromServer2 = new BufferedReader(new InputStreamReader(clientSocket2.getInputStream()));
+
+		String recv1 = inFromServer1.readLine();
+		logger.debug("rcvd1 message = " + recv1);
+		
+		String recv2 = inFromServer2.readLine();
+		logger.debug("rcvd2 message = " + recv2);
+		
+		try {
+			//assumes these exist!
+			Json msg1 = getJson("vessels." + SignalKConstants.self, "navigation.position", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
+			outToServer1.writeBytes(msg1.toString() + '\n');
+			
+			Json msg2 = getJson("vessels." + SignalKConstants.self, "navigation.headingMagnetic", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
+			outToServer2.writeBytes(msg2.toString() + '\n');
+			
+			String line = "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78";
+			outToServer1.writeBytes(line + '\n');
+			outToServer1.flush();
+			
+			CountDownLatch latch = new CountDownLatch(1);
+			latch.await(3, TimeUnit.SECONDS);
+			int c=0;
+			while(c<5){
+				recv1 = inFromServer1.readLine();
+				recv2 = inFromServer2.readLine();
+				logger.debug("rcvd1 sub message = " + recv1);
+				logger.debug("rcvd2 sub message = " + recv2);
+				c++;
+			}
+			// assertEquals("Hello", recv);
+			assertNotNull(recv1);
+			assertNotNull(recv2);
+			assertNotEquals(recv1, recv2);
+		
+		} finally {
+			clientSocket1.close();
+			clientSocket2.close();
 		}
 	}
 
