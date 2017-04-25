@@ -81,7 +81,7 @@ public class SignalkStreamBroadcaster {
 		ClientMessage msg = session.createMessage(true);
 		msg.getBodyBuffer().writeString(message);
 		msg.putStringProperty(Config.AMQ_REPLY_Q, tempQ.toString());
-		producer.send("incoming.delta", msg);
+		producer.send("incoming.raw", msg);
 		if (logger.isDebugEnabled())
 			logger.debug("Sent:" + msg.getMessageID() + ":" + message);
 	}

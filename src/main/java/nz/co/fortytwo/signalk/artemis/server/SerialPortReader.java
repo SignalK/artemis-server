@@ -264,7 +264,8 @@ public class SerialPortReader implements Processor {
 			} catch (Exception e) {
 				running = false;
 				stopReader();
-				logger.error(portName, e);
+				logger.error(portName +":"+ e.getMessage());
+				if (logger.isDebugEnabled())logger.debug(e);
 			}
 
 		}
@@ -273,12 +274,14 @@ public class SerialPortReader implements Processor {
 			try {
 			serialPort.removeEventListener();
 			} catch (Exception e1) {
-				logger.error(portName, e1);
+				logger.error(portName +":"+ e1.getMessage());
+				if (logger.isDebugEnabled())logger.debug(e1);
 			}
 			try {
 				in.close();
 			} catch (IOException e1) {
-				logger.error(portName, e1);
+				logger.error(portName +":"+ e1.getMessage());
+				if (logger.isDebugEnabled())logger.debug(e1);
 			}
 
 		}

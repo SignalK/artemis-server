@@ -62,7 +62,6 @@ public class ArtemisNettyHandler extends SimpleChannelInboundHandler<String> {
 
 	private final AttributeKey<Map<String, Object>> msgHeaders = AttributeKey.valueOf("msgHeaders");
 	private ClientProducer producer;
-	private ClientConsumer consumer;
 
 	public ArtemisNettyHandler(String outputType) throws Exception {
 
@@ -95,7 +94,7 @@ public class ArtemisNettyHandler extends SimpleChannelInboundHandler<String> {
 		// TODO: get user login
 
 		// setup consumer
-		consumer = txSession.createConsumer(tempQ, false);
+		ClientConsumer consumer = txSession.createConsumer(tempQ, false);
 		consumer.setMessageHandler(new MessageHandler() {
 
 			@Override

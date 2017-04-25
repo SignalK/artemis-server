@@ -84,8 +84,8 @@
 				<address>incoming.raw</address>
 				<durable>false</durable>
 			</queue>
-			<queue name="incoming.delta">
-				<address>incoming.delta</address>
+			<queue name="incoming.data">
+				<address>incoming.data</address>
 				<durable>false</durable>
 			</queue>
 			<queue name="outgoing.reply">
@@ -104,14 +104,14 @@
 		<diverts>
 			<divert name="incoming-raw-divert">
 				<address>incoming.raw</address>
-				<forwarding-address>incoming.delta</forwarding-address>
+				<forwarding-address>incoming.data</forwarding-address>
 				<transformer-class-name>
 					nz.co.fortytwo.signalk.artemis.divert.GarbageFilter
 				</transformer-class-name>
 				<exclusive>true</exclusive>
 			</divert>
 			<divert name="incoming-nmea-0183-divert">
-				<address>incoming.delta</address>
+				<address>incoming.data</address>
 				<forwarding-address>incoming.processed</forwarding-address>
 <!-- 				<filter string="AMQ_content_type='0183'"/> -->
 				<transformer-class-name>
@@ -120,7 +120,7 @@
 				<exclusive>true</exclusive>
 			</divert>
 			<divert name="incoming-delta-divert">
-				<address>incoming.delta</address>
+				<address>incoming.data</address>
 				<forwarding-address>incoming.processed</forwarding-address>
 <!-- 				<filter string="AMQ_content_type='JSON_DELTA'"/> -->
 				<transformer-class-name>
@@ -129,7 +129,7 @@
 				<exclusive>true</exclusive>
 			</divert>
 			<divert name="incoming-full-divert">
-				<address>incoming.delta</address>
+				<address>incoming.data</address>
 				<forwarding-address>incoming.processed</forwarding-address>
 <!-- 				<filter string="AMQ_content_type='JSON_FULL'"/> -->
 				<transformer-class-name>
@@ -139,7 +139,7 @@
 			</divert>
 
 			<divert name="incoming-subscribe-divert">
-				<address>incoming.delta</address>
+				<address>incoming.data</address>
 				<forwarding-address>incoming.processed</forwarding-address>
 <!-- 				<filter string="AMQ_content_type='JSON_SUBSCRIBE'"/> -->
 				<transformer-class-name>

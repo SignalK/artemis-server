@@ -12,8 +12,9 @@ Done:
 	serial input
 	TCP
 	UDP
-TODO:
 	big messages > 200K
+TODO:
+	
 	UDP fix
 	REST login/auth
 	MQTT
