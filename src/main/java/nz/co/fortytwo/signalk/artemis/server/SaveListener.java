@@ -1,6 +1,5 @@
 package nz.co.fortytwo.signalk.artemis.server;
 
-import static nz.co.fortytwo.signalk.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.source;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.sourceRef;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.timestamp;
@@ -11,6 +10,7 @@ import java.util.SortedMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
+import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.api.core.client.ClientConsumer;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
@@ -92,7 +92,7 @@ public class SaveListener implements Runnable {
 								logger.debug(queue + " listener: message = " + msgReceived.getMessageID() + ":"
 										+ msgReceived.getAddress() + ", " + json);
 							Json obj = null;
-							if (json.isPrimitive()) {
+							if (json.isPrimitive()||json.isNull()) {
 								obj = Json.object().set(value, json);
 							} else {
 								obj = json;
