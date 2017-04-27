@@ -1,7 +1,10 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
+import java.io.IOException;
+
 import javax.inject.Inject;
 
+import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.atmosphere.config.service.Get;
@@ -22,9 +25,17 @@ public class SignalkManagedApiService extends SignalkApiService {
 	@Get
 	public void get(AtmosphereResource resource) {
 		if(logger.isDebugEnabled())logger.debug("onMessage-get:"+resource);
-		
+		try{
 			// Here we need to find the suspended AtmosphereResource
 			super.get(resource, resource.getRequest().getRequestURI().toString());
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			try {
+				resource.getResponse().sendError(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+			} catch (IOException e1) {
+				logger.error(e1.getMessage(), e1);
+			}
+		}
 		
 	}
 	

@@ -3,7 +3,9 @@ package nz.co.fortytwo.signalk.artemis.service;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.CONFIG;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.SIGNALK_API;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.dot;
+import static nz.co.fortytwo.signalk.util.SignalKConstants.resources;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.source;
+import static nz.co.fortytwo.signalk.util.SignalKConstants.sources;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.timestamp;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.value;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels;
@@ -26,6 +28,7 @@ import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
+import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.protocol.HTTP;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -44,66 +47,135 @@ public abstract class SignalkApiService {
 	public SignalkApiService() {
 	}
 
-	public void get(AtmosphereResource resource, String path) {
-		if(logger.isDebugEnabled())logger.debug("get:"+path+" for "+resource.getRequest().getRemoteUser());
-		//handle /self
-		path=path.substring(SIGNALK_API.length()+1);
-		if(path.equals("self"))path="vessels/self/uuid";
-		path=path.replace('/', '.');
+	public void get(AtmosphereResource resource, String path) throws Exception {
+		if (logger.isDebugEnabled())
+			logger.debug("get raw:" + path + " for " + resource.getRequest().getRemoteUser());
+		// handle /self
 		
-		//handle /vessels.* etc
-		path=Util.fixSelfKey(path);
-		if(logger.isDebugEnabled())logger.debug("get:"+path);
-		String queue = path;
-		if(queue.contains("."))
-			queue=queue.substring(0,queue.indexOf("."));
-		//TODO: no security yet!
-		String user = "admin";
-		try {
-				
-				SortedMap< String, Object> msgs = Util.readAllMessages(user, user, queue, "_AMQ_LVQ_NAME = '"+path+"' or _AMQ_LVQ_NAME like '"+path+".%'");
-					//new ConcurrentSkipListMap<>();
-				
-				resource.getResponse().setContentType("application/json");
-				if(msgs.size()>0){
-					Json json = Util.mapToJson(msgs);
-					if(!path.startsWith(CONFIG))
-						json = Util.findNode(json, path);
-					if(logger.isDebugEnabled())logger.debug("json = "+json.toString());
-					resource.getResponse().write(json.toString());
-				}else{
-					resource.getResponse().write("{}");
-				}
-			
+		path = StringUtils.substring(path,SIGNALK_API.length() + 1);
 		
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if (path.equals("self"))
+			path = "vessels/self/uuid";
+		path = path.replace('/', '.');
+
+		// handle /vessels.* etc
+		path = Util.fixSelfKey(path);
+		if (logger.isDebugEnabled())
+			logger.debug("get path:" + path);
+		String queue = getQueue(path);
+		if (logger.isDebugEnabled())
+			logger.debug("queue:" + queue);
+		path = sanitizePath(path);
+		if (logger.isDebugEnabled())
+			logger.debug("sanitized path:" + path);
+		String filter = getFilter(path);
+		if (logger.isDebugEnabled())
+			logger.debug("filter:" + filter);
+
+		String user = resource.getRequest().getHeader("X-User");
+		String pass = resource.getRequest().getHeader("X-Pass");
+		if (logger.isDebugEnabled()) {
+			logger.debug("User:" + user + ":" + pass);
 		}
-		
+
+		SortedMap<String, Object> msgs = Util.readAllMessages(user, pass, queue, filter);
+		// new ConcurrentSkipListMap<>();
+
+		resource.getResponse().setContentType("application/json");
+		if (msgs.size() > 0) {
+			Json json = Util.mapToJson(msgs);
+			if (StringUtils.isNotBlank(path) && !path.startsWith(CONFIG))
+				json = Util.findNode(json, path);
+			if(json==null){
+				path = StringUtils.substring(path, 0, path.lastIndexOf("."));
+				json = Util.findNode(Util.mapToJson(msgs), path);
+			}
+			if (logger.isDebugEnabled())
+				logger.debug("json = " + json.toString());
+			resource.getResponse().write(json.toString());
+		} else {
+			resource.getResponse().write("{}");
+		}
+
 	}
 
-	
+	private String sanitizePath(String path) {
+		String queue = StringUtils.substring(path, 0, path.indexOf("."));
+		queue = queue.replace("*", "");
+		if (StringUtils.isBlank(queue) || (!vessels.equals(queue) && vessels.startsWith(queue))) {
+			path = "";
+		}
+		if (!sources.equals(queue) && sources.startsWith(queue)) {
+			path = "";
+		}
+		if (!resources.equals(queue) && resources.startsWith(queue)) {
+			path = "";
+		}
+		path = StringUtils.substring(path, 0, path.lastIndexOf("*"));
+		//path = StringUtils.substring(path, 0, path.lastIndexOf("."));
+		return path;
+	}
+
+	private String getQueue(String path) {
+		String queue = StringUtils.substring(path, 0, path.indexOf("."));
+		queue = queue.replace("*", "");
+		if (StringUtils.isBlank(queue) || vessels.startsWith(queue)) {
+			queue = vessels;
+			path = "";
+		}
+		if (sources.startsWith(queue)) {
+			queue = sources;
+			path = "";
+		}
+		if (resources.startsWith(queue)) {
+			queue = resources;
+			path = "";
+		}
+		return queue;
+	}
+
+	private String getFilter(String path) {
+		String filter = null;
+		if (StringUtils.isBlank(path)) {
+			filter = "_AMQ_LVQ_NAME like '%'";
+		} else {
+			filter = "_AMQ_LVQ_NAME like '" + path + "%'";
+		}
+		return filter;
+	}
+
 	public void post(AtmosphereResource resource, String path) {
 		String body = resource.getRequest().body().asString();
-		if(logger.isDebugEnabled())logger.debug("Post:"+body);
+		if (logger.isDebugEnabled())
+			logger.debug("Post:" + body);
 		String user = "admin";
 		try {
 			Util.sendRawMessage(user, user, body);
 		} catch (Exception e) {
-			logger.error(e.getMessage(),e);
+			logger.error(e.getMessage(), e);
 			try {
 				resource.getResponse().sendError(HttpStatus.SC_INTERNAL_SERVER_ERROR);
 			} catch (IOException e1) {
-				logger.error(e1.getMessage(),e1);
+				logger.error(e1.getMessage(), e1);
 			}
 		}
 	}
-	
+
 	public void put(AtmosphereResource resource, String path) {
-		//resource.getAtmosphereHandler().onRequest();
-		//resource.getResponse().sendError();
+		String body = resource.getRequest().body().asString();
+		if (logger.isDebugEnabled())
+			logger.debug("Post:" + body);
+		String user = "admin";
+		try {
+			Util.sendRawMessage(user, user, body);
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			try {
+				resource.getResponse().sendError(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+			} catch (IOException e1) {
+				logger.error(e1.getMessage(), e1);
+			}
+		}
 	}
 
-	
 }

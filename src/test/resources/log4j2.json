@@ -78,10 +78,24 @@
 				"name": "nz.co.fortytwo.signalk.artemis.server.SaveListener",
 				"level": "error"
 			},
+			{
+				"name": "nz.co.fortytwo.signalk.util.JsonSerializer",
+				"level": "error"
+			},
 			
 			{
 				"name": "org.atmosphere.nettosphere.BridgeRuntime",
-				"level": "warn"
+				"level": "debug"
+			},
+			
+			{
+				"name": "org.atmosphere.nettosphere",
+				"level": "debug"
+			},
+			
+			{
+				"name": "io.netty",
+				"level": "debug"
 			},
 			
 			{

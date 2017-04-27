@@ -40,16 +40,16 @@
 				<enabled>true</enabled>
 			</snapshots>
 		</repository>
-<!-- 		<repository> -->
-<!-- 			<id>java.net jni</id> -->
-<!-- 			<name>java.nt JNI Snapshot Repository</name> -->
-<!-- 			<url>https://maven.java.net/content/repositories/snapshots/</url> -->
-<!-- 		</repository> -->
-<!-- 		<repository> -->
-<!-- 			<id>PJC</id> -->
-<!-- 			<name>Sparetime Repository</name> -->
-<!-- 			<url>http://www.sparetimelabs.com/maven2</url> -->
-<!-- 		</repository> -->
+		<!-- <repository> -->
+		<!-- <id>java.net jni</id> -->
+		<!-- <name>java.nt JNI Snapshot Repository</name> -->
+		<!-- <url>https://maven.java.net/content/repositories/snapshots/</url> -->
+		<!-- </repository> -->
+		<!-- <repository> -->
+		<!-- <id>PJC</id> -->
+		<!-- <name>Sparetime Repository</name> -->
+		<!-- <url>http://www.sparetimelabs.com/maven2</url> -->
+		<!-- </repository> -->
 		<repository>
 			<id>dma AIS</id>
 			<name>DMA AisLib Repository</name>
@@ -79,6 +79,21 @@
 		<!-- <version>1.5.1</version> -->
 		<!-- </dependency> -->
 		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<version>2.8.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.25</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.7.25</version>
+		</dependency>
+		<dependency>
 			<groupId>javax.inject</groupId>
 			<artifactId>javax.inject</artifactId>
 			<version>1</version>
@@ -87,7 +102,6 @@
 			<groupId>nz.co.fortytwo.signalk.core</groupId>
 			<artifactId>signalk-core-java</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
-
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.logmanager</groupId>
@@ -127,7 +141,8 @@
 		<dependency>
 			<groupId>org.atmosphere</groupId>
 			<artifactId>nettosphere</artifactId>
-			<version>2.4.0</version>
+			<version>3.0.0</version>
+
 		</dependency>
 		<!-- serial comms -->
 
@@ -149,6 +164,7 @@
 			<groupId>org.apache.camel</groupId>
 			<artifactId>camel-core</artifactId>
 			<version>${camel.core.version}</version>
+
 		</dependency>
 		<!-- <dependency> -->
 		<!-- <groupId>org.apache.camel</groupId> -->
@@ -215,6 +231,7 @@
 			<groupId>org.apache.camel</groupId>
 			<artifactId>camel-quartz2</artifactId>
 			<version>${camel.version}</version>
+
 		</dependency>
 		<dependency>
 			<groupId>org.apache.camel</groupId>
@@ -235,24 +252,27 @@
 			<groupId>org.apache.camel</groupId>
 			<artifactId>camel-ahc-ws</artifactId>
 			<version>${camel.version}</version>
+
 		</dependency>
 		<!-- <dependency> -->
 		<!-- <groupId>org.apache.camel</groupId> -->
 		<!-- <artifactId>camel-xmpp</artifactId> -->
 		<!-- <version>${camel.version}</version> -->
 		<!-- </dependency> -->
-		
-		<!-- ais apache licence  -->
+
+		<!-- ais apache licence -->
 		<dependency>
 			<groupId>dk.dma.ais.lib</groupId>
 			<artifactId>ais-lib-communication</artifactId>
 			<version>2.2</version>
-		</dependency> 
+
+		</dependency>
 		<!-- zeroconf apache licence -->
 		<dependency>
 			<groupId>org.jmdns</groupId>
 			<artifactId>jmdns</artifactId>
 			<version>3.5.1</version>
+
 		</dependency>
 		<!-- commons and misc = apache licence -->
 		<dependency>
@@ -275,6 +295,7 @@
 			<artifactId>async-http-client</artifactId>
 			<version>1.9.40</version>
 			<scope>test</scope>
+
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/io.netty/netty-codec -->
