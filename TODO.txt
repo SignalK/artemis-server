@@ -1,5 +1,5 @@
 Done:
-	REST GET API
+	REST GET/PUT/POST API
 	websockets
 	subscriptions
 	delta
@@ -13,10 +13,13 @@ Done:
 	TCP
 	UDP
 	big messages > 200K
+	REST login/auth
+	Input filter
 TODO:
 	
-	REST login/auth
-	
+	convert self back to urn on reply
+	in values the src chain is repeated.
+	in serial, add TYPE=SERIAL header, add as type in sendMessage.
 	Alarms
 	Resources
 		charts (upload)
@@ -28,13 +31,28 @@ TODO:
 	Depth
 	Wind
 	Git
-	REST PUT/POST/LIST
+	REST LIST
 	N2K conversion
 	MQTT
 	STOMP
 	AIS
 	UI
-	Input filter
 	log conf
 	srcRef to source
 	
+REST API test
+index.tml
+indexxx.htm
+api
+api/
+api/self
+api/vessels
+api/ves
+api/vessl
+api/vessels/
+api/vessels/self
+api/vessels/urn
+api/vessels/self/nav*
+api/sources
+api/config
+

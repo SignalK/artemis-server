@@ -38,6 +38,7 @@ import ch.qos.logback.core.status.Status;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
+import nz.co.fortytwo.signalk.util.ConfigConstants;
 import nz.co.fortytwo.signalk.util.JsonSerializer;
 
 public abstract class SignalkApiService {
@@ -52,10 +53,12 @@ public abstract class SignalkApiService {
 			logger.debug("get raw:" + path + " for " + resource.getRequest().getRemoteUser());
 		// handle /self
 		
-		path = StringUtils.substring(path,SIGNALK_API.length() + 1);
-		
-		if (path.equals("self"))
-			path = "vessels/self/uuid";
+		path = StringUtils.removeStart(path,SIGNALK_API);
+		path = StringUtils.removeStart(path,"/");
+		if (path.equals("self")){
+			resource.getResponse().write(Config.getConfigProperty(ConfigConstants.UUID));
+			return;
+		}
 		path = path.replace('/', '.');
 
 		// handle /vessels.* etc
@@ -84,6 +87,7 @@ public abstract class SignalkApiService {
 		resource.getResponse().setContentType("application/json");
 		if (msgs.size() > 0) {
 			Json json = Util.mapToJson(msgs);
+			//for REST we only send back the sub-node, so find it
 			if (StringUtils.isNotBlank(path) && !path.startsWith(CONFIG))
 				json = Util.findNode(json, path);
 			if(json==null){
@@ -100,7 +104,7 @@ public abstract class SignalkApiService {
 	}
 
 	private String sanitizePath(String path) {
-		String queue = StringUtils.substring(path, 0, path.indexOf("."));
+		String queue = StringUtils.substringBefore(path, ".");
 		queue = queue.replace("*", "");
 		if (StringUtils.isBlank(queue) || (!vessels.equals(queue) && vessels.startsWith(queue))) {
 			path = "";
@@ -111,25 +115,30 @@ public abstract class SignalkApiService {
 		if (!resources.equals(queue) && resources.startsWith(queue)) {
 			path = "";
 		}
-		path = StringUtils.substring(path, 0, path.lastIndexOf("*"));
+		if (!CONFIG.equals(queue) && CONFIG.startsWith(queue)) {
+			path = "";
+		}
+	
+		path = StringUtils.removeEnd(path, "*");
 		//path = StringUtils.substring(path, 0, path.lastIndexOf("."));
 		return path;
 	}
 
 	private String getQueue(String path) {
-		String queue = StringUtils.substring(path, 0, path.indexOf("."));
+		String queue = StringUtils.substringBefore(path, ".");
 		queue = queue.replace("*", "");
-		if (StringUtils.isBlank(queue) || vessels.startsWith(queue)) {
+		if (StringUtils.isBlank(queue) || (!vessels.equals(queue) && vessels.startsWith(queue))) {
 			queue = vessels;
-			path = "";
+
 		}
-		if (sources.startsWith(queue)) {
+		if (!sources.equals(queue) && sources.startsWith(queue)) {
 			queue = sources;
-			path = "";
 		}
-		if (resources.startsWith(queue)) {
+		if (!resources.equals(queue) && resources.startsWith(queue)) {
 			queue = resources;
-			path = "";
+		}
+		if (!CONFIG.equals(queue) && CONFIG.startsWith(queue)) {
+			queue = CONFIG;
 		}
 		return queue;
 	}
@@ -148,9 +157,13 @@ public abstract class SignalkApiService {
 		String body = resource.getRequest().body().asString();
 		if (logger.isDebugEnabled())
 			logger.debug("Post:" + body);
-		String user = "admin";
+		String user = resource.getRequest().getHeader("X-User");
+		String pass = resource.getRequest().getHeader("X-Pass");
+		if (logger.isDebugEnabled()) {
+			logger.debug("User:" + user + ":" + pass);
+		}
 		try {
-			Util.sendRawMessage(user, user, body);
+			Util.sendRawMessage(user, pass, body);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			try {
@@ -165,9 +178,13 @@ public abstract class SignalkApiService {
 		String body = resource.getRequest().body().asString();
 		if (logger.isDebugEnabled())
 			logger.debug("Post:" + body);
-		String user = "admin";
+		String user = resource.getRequest().getHeader("X-User");
+		String pass = resource.getRequest().getHeader("X-Pass");
+		if (logger.isDebugEnabled()) {
+			logger.debug("User:" + user + ":" + pass);
+		}
 		try {
-			Util.sendRawMessage(user, user, body);
+			Util.sendRawMessage(user, pass, body);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			try {

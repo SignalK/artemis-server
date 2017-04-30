@@ -21,7 +21,7 @@
  * limitations under the License.
  *
  */
-package nz.co.fortytwo.signalk.artemis.divert;
+package nz.co.fortytwo.signalk.artemis.intercept;
 
 import static nz.co.fortytwo.signalk.util.SignalKConstants.CONFIG;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.CONTEXT;
@@ -35,15 +35,22 @@ import static nz.co.fortytwo.signalk.util.SignalKConstants.sources;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.timestamp;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.type;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.value;
+import static nz.co.fortytwo.signalk.util.SignalKConstants.values;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels;
 
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentSkipListMap;
 
+import org.apache.activemq.artemis.api.core.ActiveMQException;
+import org.apache.activemq.artemis.api.core.Interceptor;
+import org.apache.activemq.artemis.api.core.Message;
+import org.apache.activemq.artemis.core.protocol.core.Packet;
+import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendMessage;
 import org.apache.activemq.artemis.core.server.ServerMessage;
 import org.apache.activemq.artemis.core.server.ServerSession;
 import org.apache.activemq.artemis.core.server.cluster.Transformer;
+import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -61,44 +68,52 @@ import nz.co.fortytwo.signalk.util.JsonSerializer;
  * @author robert
  * 
  */
-public class FullMsg implements Transformer {
+public class FullMsgInterceptor implements Interceptor {
 
-	private static Logger logger = LogManager.getLogger(FullMsg.class);
+	private static Logger logger = LogManager.getLogger(FullMsgInterceptor.class);
 
 	private JsonSerializer ser = new JsonSerializer();
 
-	public FullMsg() {
+	public FullMsgInterceptor() {
 		super();
 	}
 
 	@Override
-	public ServerMessage transform(ServerMessage message) {
-		
-		if(!Config.JSON_FULL.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))return message;
-		//if(logger.isDebugEnabled())logger.debug("Processing: " + message);
-		Json node = Json.read(message.getBodyBuffer().readString());
-		// avoid diff signalk syntax
-		if (node.has(CONTEXT))
-			return message;
-		String sessionId = message.getStringProperty(Config.AMQ_SESSION_ID);
-		ServerSession sess = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
-		// deal with full format
-		if (node.has(vessels) || node.has(CONFIG) || node.has(resources) || node.has(sources)) {
-			if (logger.isDebugEnabled())
-				logger.debug("processing full  " + node);
-			// process it by recursion
-			try {
-				recurseJson(node, null, sess);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+	public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException {
+		if (packet instanceof SessionSendMessage) {
+			SessionSendMessage realPacket = (SessionSendMessage) packet;
+
+			Message message = realPacket.getMessage();
+			if(!Config.JSON_FULL.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))return true;
+			//if(logger.isDebugEnabled())logger.debug("Processing: " + message);
+			Json node = Util.readBodyBuffer(message);
+			// avoid delta signalk syntax
+			if (node.has(CONTEXT))
+				return true;
 			
+			String sessionId = message.getStringProperty(Config.AMQ_SESSION_ID);
+			ServerSession sess = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
+			// deal with full format
+			if (node.has(vessels) || node.has(CONFIG) || node.has(resources) || node.has(sources)) {
+				if (logger.isDebugEnabled())
+					logger.debug("processing full  " + node);
+				// process it by recursion
+				//if its a config, trigger a save
+				if(node.has(CONFIG))Config.startConfigListener();
+				try {
+					recurseJson(node, null, sess, message.getStringProperty(Config.MSG_SRC_BUS));
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				return true;
+			}
+		
 		}
-		return message;
+		return true;
 	}
 
-	private void recurseJson(Json node, String key, ServerSession sess ) throws Exception {
+	private void recurseJson(Json node, String key, ServerSession sess, String srcBus ) throws Exception {
 		//check if it has a .value
 		// value type, or attribute type
 		if (logger.isDebugEnabled())
@@ -117,11 +132,22 @@ public class FullMsg implements Transformer {
 			Util.sendMsg(key, node,null, (String)null, sess);
 			return;
 		}
-		Json src = node.at(source);
+		if(node.has(values)){
+			//just send it
+			Util.sendMsg(key+dot+values, node.at(values), null, (String)null, sess);
+			return;
+		}
 		String srcRef = null;
-		if(src!=null){
-			srcRef = src.at(type).toString()+dot+sess.getRemotingConnection().getRemoteAddress()+dot+src.at(label).toString();
-			Util.sendSourceMsg(srcRef, (Json)src,node.at(timestamp).asString(), sess);
+		if(node.has(sourceRef)){
+			srcRef= node.at(sourceRef).asString();
+		}else{
+			Json src = node.at(source);
+			if(src!=null){
+				if(!src.has(type))
+					src.set(type, srcBus);
+				srcRef = src.at(type).toString()+dot+src.at(label).toString();
+				Util.sendSourceMsg(srcRef, (Json)src,node.at(timestamp).asString(), sess);
+			}
 		}
 		if(node.has(value)){
 			Util.sendMsg(key, node.at(value), node.at(timestamp).asString(), srcRef, sess);
@@ -135,9 +161,9 @@ public class FullMsg implements Transformer {
 			//recurse
 			for(String k: node.asJsonMap().keySet()){
 				if(key==null){
-					recurseJson(node.at(k), k, sess);
+					recurseJson(node.at(k), k, sess, srcBus);
 				}else{
-					recurseJson(node.at(k), key+dot+k, sess);
+					recurseJson(node.at(k), key+dot+k, sess, srcBus);
 				}
 				
 			}
@@ -145,5 +171,7 @@ public class FullMsg implements Transformer {
 			
 		
 	}
+
+	
 
 }

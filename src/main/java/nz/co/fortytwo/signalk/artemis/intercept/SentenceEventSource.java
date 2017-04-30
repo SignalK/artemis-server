@@ -1,4 +1,4 @@
-package nz.co.fortytwo.signalk.artemis.divert;
+package nz.co.fortytwo.signalk.artemis.intercept;
 
 import org.apache.activemq.artemis.core.server.ServerSession;
 

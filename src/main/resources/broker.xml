@@ -24,11 +24,11 @@
 		</connectors>
 
 		<acceptors>
-			<acceptor name="in-vm">vm://0</acceptor>
-			<acceptor name="netty">tcp://localhost:61617</acceptor>
+			<acceptor name="in-vm">vm://0?multicastPrefix=multicast://</acceptor>
+			<acceptor name="netty">tcp://localhost:61617?multicastPrefix=multicast://</acceptor>
 
 		</acceptors>
-
+		
 		<address-settings>
 			<address-setting match="incoming.#">
 				<last-value-queue>false</last-value-queue>
@@ -84,70 +84,28 @@
 				<address>incoming.raw</address>
 				<durable>false</durable>
 			</queue>
-			<queue name="incoming.data">
-				<address>incoming.data</address>
-				<durable>false</durable>
-			</queue>
+
 			<queue name="outgoing.reply">
 				<address>outgoing.reply</address>
-				<durable>false</durable>
-			</queue>
-			<queue name="incoming.processed">
-				<address>incoming.processed</address>
 				<durable>false</durable>
 			</queue>
 		</queues>
 		<remoting-incoming-interceptors>
 			<class-name>nz.co.fortytwo.signalk.artemis.intercept.SessionInterceptor
 			</class-name>
-		</remoting-incoming-interceptors>
-		<diverts>
-			<divert name="incoming-raw-divert">
-				<address>incoming.raw</address>
-				<forwarding-address>incoming.data</forwarding-address>
-				<transformer-class-name>
-					nz.co.fortytwo.signalk.artemis.divert.GarbageFilter
-				</transformer-class-name>
-				<exclusive>true</exclusive>
-			</divert>
-			<divert name="incoming-nmea-0183-divert">
-				<address>incoming.data</address>
-				<forwarding-address>incoming.processed</forwarding-address>
-<!-- 				<filter string="AMQ_content_type='0183'"/> -->
-				<transformer-class-name>
-					nz.co.fortytwo.signalk.artemis.divert.NMEAMsg
-				</transformer-class-name>
-				<exclusive>true</exclusive>
-			</divert>
-			<divert name="incoming-delta-divert">
-				<address>incoming.data</address>
-				<forwarding-address>incoming.processed</forwarding-address>
-<!-- 				<filter string="AMQ_content_type='JSON_DELTA'"/> -->
-				<transformer-class-name>
-					nz.co.fortytwo.signalk.artemis.divert.UnpackUpdateMsg
-				</transformer-class-name>
-				<exclusive>true</exclusive>
-			</divert>
-			<divert name="incoming-full-divert">
-				<address>incoming.data</address>
-				<forwarding-address>incoming.processed</forwarding-address>
-<!-- 				<filter string="AMQ_content_type='JSON_FULL'"/> -->
-				<transformer-class-name>
-					nz.co.fortytwo.signalk.artemis.divert.FullMsg
-				</transformer-class-name>
-				<exclusive>true</exclusive>
-			</divert>
+			<class-name>nz.co.fortytwo.signalk.artemis.intercept.GarbageInterceptor
+			</class-name>
+			<class-name>nz.co.fortytwo.signalk.artemis.intercept.NMEAMsgInterceptor
+			</class-name>
+			<class-name>nz.co.fortytwo.signalk.artemis.intercept.FullMsgInterceptor
+			</class-name>
+			<class-name>nz.co.fortytwo.signalk.artemis.intercept.SubscribeMsgInterceptor
+			</class-name>
+			<class-name>nz.co.fortytwo.signalk.artemis.intercept.UpdateMsgInterceptor
+			</class-name>
 
-			<divert name="incoming-subscribe-divert">
-				<address>incoming.data</address>
-				<forwarding-address>incoming.processed</forwarding-address>
-<!-- 				<filter string="AMQ_content_type='JSON_SUBSCRIBE'"/> -->
-				<transformer-class-name>
-					nz.co.fortytwo.signalk.artemis.divert.SubscribeMsg
-				</transformer-class-name>
-				<exclusive>true</exclusive>
-			</divert>
-		</diverts>
+		</remoting-incoming-interceptors>
+
 		<!-- Other config -->
 		<security-enabled>true</security-enabled>
 		<security-settings>

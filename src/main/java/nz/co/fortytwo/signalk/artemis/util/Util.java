@@ -225,7 +225,8 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 			throws Exception {
 
 		ServerMessage m2 = new ServerMessageImpl(new Double(Math.random()).longValue(), 64);
-		m2.putStringProperty(timestamp, timeStamp);
+		if(StringUtils.isNotBlank(timeStamp))
+			m2.putStringProperty(timestamp, timeStamp);
 		if (src != null) {
 			if (src instanceof String) {
 				m2.putStringProperty(sourceRef, src.toString());
@@ -380,7 +381,7 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 		if (msg.getBodyBuffer().readableBytes() == 0) {
 			return null;
 		} else {
-			return msg.getBodyBuffer().readString();
+			return msg.getBodyBufferDuplicate().readString();
 		}
 
 	}
@@ -409,6 +410,12 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 		return msgs;
 	}
 
+	/**
+	 * Convert map to a json object
+	 * @param msgs
+	 * @return
+	 * @throws IOException
+	 */
 	public static Json mapToJson(SortedMap<String, Object> msgs) throws IOException {
 		Json json = null;
 		if (msgs.size() > 0) {

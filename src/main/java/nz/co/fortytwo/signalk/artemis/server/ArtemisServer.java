@@ -22,11 +22,8 @@ import static nz.co.fortytwo.signalk.util.SignalKConstants.sources;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 
 import javax.jmdns.JmmDNS;
@@ -36,40 +33,19 @@ import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.activemq.artemis.core.config.impl.SecurityConfiguration;
-import org.apache.activemq.artemis.core.security.User;
 import org.apache.activemq.artemis.core.server.ActiveMQServer;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.activemq.artemis.spi.core.security.ActiveMQSecurityManager;
 import org.apache.activemq.artemis.spi.core.security.ActiveMQSecurityManagerImpl;
 import org.apache.camel.main.Main;
-import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.atmosphere.cpr.Action;
 import org.atmosphere.cpr.ApplicationConfig;
-import org.atmosphere.cpr.AtmosphereConfig;
-import org.atmosphere.cpr.AtmosphereInterceptor;
-import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.nettosphere.Nettosphere;
-import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
 
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.FullHttpMessage;
-import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpObjectEncoder;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpUtil;
-import io.netty.handler.codec.http.HttpVersion;
-import io.netty.util.Attribute;
-import io.netty.util.AttributeKey;
-import io.netty.util.ReferenceCountUtil;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Log4J2LoggerFactory;
-import nz.co.fortytwo.signalk.artemis.service.SignalkManagedStreamService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.util.ConfigConstants;
@@ -129,83 +105,12 @@ public final class ArtemisServer {
 		new Thread(serialPortManager).start();
 
 		addShutdownHook(this);
-		server = new Nettosphere.Builder().config(new org.atmosphere.nettosphere.Config.Builder().host("0.0.0.0")
-				.port(8080).initParam(ApplicationConfig.PROPERTY_SESSION_SUPPORT, "true")
-				//.channelUpstreamHandler(new AuthenticationHandler(conf))
-				.interceptor(new AtmosphereInterceptor() {
-					
-					@Override
-					public void configure(AtmosphereConfig config) {
-						// TODO Auto-generated method stub
-						
-					}
-					
-					@Override
-					public void postInspect(AtmosphereResource r) {
-						// TODO Auto-generated method stub
-						
-					}
-					
-					@Override
-					public Action inspect(AtmosphereResource r) {
-						if (logger.isDebugEnabled()) {
-							for (Entry<String, String> entry : r.getRequest().headersMap().entrySet()) {
-								logger.debug("[internal client] receive: " + entry.getKey() + ":" + entry.getValue());
-							}
-						}
-						
-						
-						boolean authenticated = false; //ctx.channel().hasAttr(auth);
-
-						if (authenticated) {
-							//Attribute<UsernamePasswordCredentials> attr = ctx.channel().attr(auth);
-							//if (logger.isDebugEnabled())
-							//	logger.debug("User:" + attr.get().getUserName());
-							//authenticated = true;
-							//msg.headers().add("X-User", attr.get().getUserName());
-							//msg.headers().add("X-Pass", attr.get().getPassword());
-						}
-						String authorization = r.getRequest().getHeader("Authorization");
-						if (logger.isDebugEnabled())
-							logger.debug("Authorization:" + authorization);
-
-						if (!authenticated && authorization != null && authorization.startsWith("Basic")) {
-							// Authorization: Basic base64 credentials
-							String base64Credentials = authorization.substring("Basic".length()).trim();
-							String credentials = new String(Base64.getDecoder().decode(base64Credentials), Charset.forName("UTF-8"));
-							// credentials = username:password
-							final String[] values = credentials.split(":", 2);
-							if (logger.isDebugEnabled())
-								logger.debug("Authorizing:" + values[0]);
-							User user = conf.getUser(values[0]);
-							if (user.isValid(values[0], values[1])) {
-								UsernamePasswordCredentials upc = new UsernamePasswordCredentials(values[0], values[1]);
-								//ctx.channel().attr(auth).set(upc);
-								if (logger.isDebugEnabled())
-									logger.debug("Added credentials:" + upc);
-								authenticated = true;
-								r.getRequest().header("X-User", upc.getUserName());
-								r.getRequest().header("X-Pass", upc.getPassword());
-							}
-
-						}
-						if (logger.isDebugEnabled())
-							logger.debug("Auth:" + authenticated);
-						if (!authenticated) {
-							r.getResponse().setStatus(401);
-							r.getResponse().addHeader("WWW-Authenticate", "Basic realm=\"Signalk Realm\"");
-							return Action.CANCELLED;
-						}
-						return Action.CONTINUE; 
-					}
-					
-					@Override
-					public void destroy() {
-						// TODO Auto-generated method stub
-						
-					}
-				})
-				.resource(SignalkManagedStreamService.class)
+		server = new Nettosphere.Builder().config(new org.atmosphere.nettosphere.Config.Builder()
+				.host("0.0.0.0")
+				.port(8080)
+				.initParam(ApplicationConfig.PROPERTY_SESSION_SUPPORT, "true")
+				.interceptor(new AuthenticationInterceptor(conf) )
+				//.resource(SignalkManagedStreamService.class)
 				.resource("./signalk-static").build()).build();
 		server.start();
 

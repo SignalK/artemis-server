@@ -19,6 +19,7 @@ import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.client.ClientConsumer;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
+import org.apache.activemq.artemis.core.client.impl.ClientSessionImpl;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -80,7 +81,7 @@ public class Config {
 	public static final Object INTERNAL_IP = "INTERNAL_IP";
 	public static final Object EXTERNAL_IP = "EXTERNAL_IP";
 	public static final String AMQ_SUB_DESTINATION = "AMQ_SUB_DESTINATION";
-	
+
 	public static final String INCOMING_RAW = "incoming.raw";
 	public static final String STOMP = "STOMP";
 	public static final String AIS = "AIS";
@@ -95,7 +96,8 @@ public class Config {
 	}
 
 	public static void startConfigListener() {
-		if (listener != null) {
+		if (listener != null && !listener.isRunning()) {
+			listener.running=true;
 			Thread t = new Thread(listener);
 			t.setDaemon(true);
 			t.start();
@@ -212,7 +214,7 @@ public class Config {
 			model.put(ADMIN_PWD, Json.make("admin"));
 
 		} catch (SocketException e) {
-			Util.logger.error(e.getMessage(), e);
+			logger.error(e.getMessage(), e);
 		}
 
 	}
@@ -223,10 +225,10 @@ public class Config {
 
 	public static SortedMap<String, Json> loadConfig(SortedMap<String, Json> model) throws IOException {
 		File jsonFile = new File(Util.SIGNALK_CFG_SAVE_FILE);
-		Util.logger.info("Checking for previous config: " + jsonFile.getAbsolutePath());
+		logger.info("Checking for previous config: " + jsonFile.getAbsolutePath());
 
 		if (!jsonFile.exists()) {
-			Util.logger.info("   Saved config not found, creating default");
+			logger.info("   Saved config not found, creating default");
 			Config.setDefaults(model);
 			// write a new one for next time
 			// create a uuid
@@ -244,17 +246,17 @@ public class Config {
 
 	public static Json load(String fileName) {
 		File jsonFile = new File(fileName);
-		Util.logger.info("Checking for previous state: " + jsonFile.getAbsolutePath());
+		logger.info("Checking for previous state: " + jsonFile.getAbsolutePath());
 		if (jsonFile.exists()) {
 			try {
 				Json temp = Json.read(jsonFile.toURI().toURL());
-				Util.logger.info("   Saved state loaded from " + fileName);
+				logger.info("   Saved state loaded from " + fileName);
 				return temp;
 			} catch (Exception ex) {
-				Util.logger.error(ex.getMessage());
+				logger.error(ex.getMessage());
 			}
 		} else {
-			Util.logger.info("   Saved state not found");
+			logger.info("   Saved state not found");
 		}
 		return Json.nil();
 	}
@@ -284,7 +286,8 @@ public class Config {
 				buffer.append("{}");
 			}
 			FileUtils.writeStringToFile(jsonFile, buffer.toString(), StandardCharsets.UTF_8);
-			Util.logger.debug("   Saved model state to " + jsonFile);
+			if (logger.isDebugEnabled())
+				logger.debug("   Saved model state to " + jsonFile);
 		}
 
 	}
@@ -336,8 +339,7 @@ public class Config {
 
 		private String user;
 		private String password;
-		private boolean saved = true;
-		private boolean running = true;
+		private boolean running = false;
 
 		public ConfigListener(SortedMap<String, Json> map, String user, String password) {
 			this.user = user;
@@ -350,40 +352,45 @@ public class Config {
 
 		@Override
 		public void run() {
+			
 			ClientSession rxSession = null;
 			ClientConsumer consumer = null;
 			try {
 				// start polling consumer.
 				rxSession = Util.getVmSession(user, password);
-				consumer = rxSession.createConsumer("config", "_AMQ_LVQ_NAME like 'config.%'", true);
+				rxSession.start();
 
+				consumer = rxSession.createConsumer("config", "_AMQ_LVQ_NAME like 'config.%'", true);
+				if (logger.isDebugEnabled())
+					logger.debug("Starting queue listener..");
 				while (running) {
-					ClientMessage msgReceived = consumer.receive(1000);
+					ClientMessage msgReceived = consumer.receive(5000);
 					if (msgReceived == null) {
-						// when no changes every 1 seconds we will get a null
+						// when no changes for 5 seconds we will get a null
 						// message, so save first time if we need to.
-						if (!saved) {
-							if (logger.isDebugEnabled())
-								logger.debug("ConfigListener: saving config");
-							Config.saveConfig(map);
-							saved = true;
-						}
+
+						if (logger.isDebugEnabled())
+							logger.debug(" saving config");
+						Config.saveConfig(map);
+						// stop till next time
+						running = false;
+
 						continue;
 					}
 					// if we have changes, we read until there are more and
 					// trigger a save later.
 					Json json = Util.readBodyBuffer(msgReceived);
 					if (logger.isDebugEnabled())
-						logger.debug("ConfigListener: message = " + msgReceived.getMessageID() + ":"
-								+ msgReceived.getAddress() + ", " + json);
+						logger.debug(" message = " + msgReceived.getMessageID() + ":" + msgReceived.getAddress() + ", "
+								+ json);
 					map.put(msgReceived.getAddress().toString(), json);
-					saved = false;
 
 				}
-
+				
 			} catch (Exception e) {
 				logger.error(e.getMessage(), e);
 			} finally {
+				
 				if (consumer != null) {
 					try {
 						consumer.close();
@@ -400,6 +407,10 @@ public class Config {
 				}
 			}
 
+		}
+
+		public boolean isRunning() {
+			return running;
 		}
 	}
 

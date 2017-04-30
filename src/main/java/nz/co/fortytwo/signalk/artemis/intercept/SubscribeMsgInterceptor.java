@@ -1,4 +1,4 @@
-package nz.co.fortytwo.signalk.artemis.divert;
+package nz.co.fortytwo.signalk.artemis.intercept;
 
 import static nz.co.fortytwo.signalk.util.SignalKConstants.CONTEXT;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.FORMAT;
@@ -12,25 +12,25 @@ import static nz.co.fortytwo.signalk.util.SignalKConstants.SUBSCRIBE;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.UNSUBSCRIBE;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels;
 
-import org.apache.activemq.artemis.api.core.TransportConfiguration;
-import org.apache.activemq.artemis.api.core.client.ActiveMQClient;
-import org.apache.activemq.artemis.api.core.client.ClientSession;
-import org.apache.activemq.artemis.api.core.client.ClientSessionFactory;
-import org.apache.activemq.artemis.core.remoting.impl.invm.InVMConnectorFactory;
-import org.apache.activemq.artemis.core.server.ServerMessage;
+import org.apache.activemq.artemis.api.core.ActiveMQException;
+import org.apache.activemq.artemis.api.core.Interceptor;
+import org.apache.activemq.artemis.api.core.Message;
+import org.apache.activemq.artemis.core.protocol.core.Packet;
+import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendMessage;
 import org.apache.activemq.artemis.core.server.ServerSession;
-import org.apache.activemq.artemis.core.server.cluster.Transformer;
+import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.server.ArtemisServer;
 import nz.co.fortytwo.signalk.artemis.server.Subscription;
-import nz.co.fortytwo.signalk.artemis.server.SubscriptionManager;
 import nz.co.fortytwo.signalk.artemis.server.SubscriptionManagerFactory;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.util.ConfigConstants;
-import nz.co.fortytwo.signalk.util.Util;
+
+
 
 /*
 *
@@ -63,11 +63,11 @@ import nz.co.fortytwo.signalk.util.Util;
  * 
  */
 
-public class SubscribeMsg implements Transformer {
+public class SubscribeMsgInterceptor implements Interceptor {
 	// private ClientSession session;
 	// private ClientProducer producer;
 
-	private static Logger logger = LogManager.getLogger(SubscribeMsg.class);
+	private static Logger logger = LogManager.getLogger(SubscribeMsgInterceptor.class);
 	/**
 	 * Reads Subscribe format JSON and creates a subscription. Does nothing if
 	 * json is not a subscribe, and returns the original message
@@ -75,58 +75,64 @@ public class SubscribeMsg implements Transformer {
 	 * @param node
 	 * @return
 	 */
+	
 	@Override
-	public ServerMessage transform(ServerMessage message) {
-		if(!Config.JSON_SUBSCRIBE.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))return message;
-		if(logger.isTraceEnabled())logger.trace("Processing: " + message);
-		Json node = Json.read(message.getBodyBuffer().readString());
-		// avoid full signalk syntax
-		if (node.has(vessels))
-			return message;
-		// deal with diff format
-		if (node.has(CONTEXT) && (node.has(SUBSCRIBE))) {
-			if(logger.isDebugEnabled())logger.debug("Processing SUBSCRIBE: " + message);
-			String ctx = node.at(CONTEXT).asString();
-			ctx = Util.fixSelfKey(ctx);
-			Json subscribe = node.at(SUBSCRIBE);
-			if (subscribe == null)
-				return message;
+	public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException {
+		if (packet instanceof SessionSendMessage) {
+			SessionSendMessage realPacket = (SessionSendMessage) packet;
 
-			try {
-				parseSubscribe(node, subscribe, ctx, message);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-
+			Message message = realPacket.getMessage();
+			if(!Config.JSON_SUBSCRIBE.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))return true;
+			if(logger.isTraceEnabled())logger.trace("Processing: " + message);
+			Json node = Util.readBodyBuffer(message);
+			// avoid full signalk syntax
+			if (node.has(vessels))
+				return true;
+			// deal with diff format
+			if (node.has(CONTEXT) && node.has(SUBSCRIBE)) {
+				if(logger.isDebugEnabled())logger.debug("Processing SUBSCRIBE: " + message);
+				String ctx = node.at(CONTEXT).asString();
+				ctx = Util.fixSelfKey(ctx);
+				Json subscribe = node.at(SUBSCRIBE);
+				if (subscribe.isNull())
+					return true;
+	
+				try {
+					parseSubscribe(node, subscribe, ctx, message);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+	
+				}
+	
+				 if(logger.isDebugEnabled())logger.debug("SubscribeMsg processed subscribe "+node );
+				return true;
 			}
-
-			 if(logger.isDebugEnabled())logger.debug("SubscribeMsg processed subscribe "+node );
-			return message;
+			
+			if (node.has(CONTEXT) && (node.has(UNSUBSCRIBE))) {
+				if(logger.isDebugEnabled())logger.debug("Processing UNSUBSCRIBE: " + message);
+				String ctx = node.at(CONTEXT).asString();
+				ctx = Util.fixSelfKey(ctx);
+				Json subscribe = node.at(UNSUBSCRIBE);
+				if (subscribe == null)
+					return true;
+	
+				//try {
+				//	parseUnSubscribe(node, subscribe, ctx, message);
+				//} catch (Exception e) {
+					// TODO Auto-generated catch block
+				//	e.printStackTrace();
+				//}
+	
+				 if(logger.isDebugEnabled())logger.debug("SubscribeMsg processed unsubscribe "+node );
+				
+			}
 		}
-		
-		if (node.has(CONTEXT) && (node.has(UNSUBSCRIBE))) {
-			if(logger.isDebugEnabled())logger.debug("Processing UNSUBSCRIBE: " + message);
-			String ctx = node.at(CONTEXT).asString();
-			ctx = Util.fixSelfKey(ctx);
-			Json subscribe = node.at(UNSUBSCRIBE);
-			if (subscribe == null)
-				return message;
-
-			//try {
-			//	parseUnSubscribe(node, subscribe, ctx, message);
-			//} catch (Exception e) {
-				// TODO Auto-generated catch block
-			//	e.printStackTrace();
-			//}
-
-			 if(logger.isDebugEnabled())logger.debug("SubscribeMsg processed unsubscribe "+node );
-			return message;
-		}
-		return message;
+		return true;
 
 	}
 
-	protected void parseSubscribe(Json node, Json subscriptions, String ctx, ServerMessage m1) throws Exception {
+	protected void parseSubscribe(Json node, Json subscriptions, String ctx, Message m1) throws Exception {
 
 		if(subscriptions!=null){
 			//MQTT and STOMP wont have created proper session links
@@ -190,6 +196,8 @@ public class SubscribeMsg implements Transformer {
 		SubscriptionManagerFactory.getInstance().addSubscription(sub);
 		
 	}
+
+	
 	
 
 }

@@ -176,16 +176,16 @@ public class SerialPortReader implements Processor {
 		protected InputStream in;
 		byte[] buff = new byte[256];
 		int x = 0;
-		Map<String, Object> headers = new HashMap<String, Object>();
+		//Map<String, Object> headers = new HashMap<String, Object>();
 
 		public SerialReader() throws Exception {
 
 			// this.in = new BufferedReader(new
 			// InputStreamReader(serialPort.getInputStream()));
 			this.in = new BufferedInputStream(serialPort.getInputStream());
-			headers.put(SignalKConstants.MSG_TYPE, SignalKConstants.SERIAL);
-			headers.put(SignalKConstants.MSG_SERIAL_PORT, portName);
-			headers.put(SignalKConstants.MSG_SRC_BUS, portName);
+			//headers.put(SignalKConstants.MSG_TYPE, SignalKConstants.SERIAL);
+			//headers.put(SignalKConstants.MSG_SERIAL_PORT, portName);
+			//headers.put(SignalKConstants.MSG_SRC_BUS, portName);
 			uid = Pattern.compile(ConfigConstants.UID + ":");
 			if (logger.isDebugEnabled())
 				logger.info("Setup serialReader on :" + portName);
@@ -245,7 +245,7 @@ public class SerialPortReader implements Processor {
 								if (enableSerial) {
 									ClientMessage txMsg = session.createMessage(true);
 									txMsg.getBodyBuffer().writeString(line);
-							
+									txMsg.putStringProperty(SignalKConstants.MSG_SRC_BUS, portName);
 									producer.send(new SimpleString(Config.INCOMING_RAW), txMsg);
 									if (logger.isDebugEnabled())
 										logger.debug("json = " + line);

@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 
 import nz.co.fortytwo.signalk.artemis.server.ArtemisServer;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.Util;
 
 /**
  * A way to acquire the session in a message
@@ -35,12 +36,10 @@ public class SessionInterceptor implements Interceptor {
 
 		if (packet instanceof SessionSendMessage) {
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
-			// if(logger.isDebugEnabled())logger.debug("SessionSendMessage: " +
-			// realPacket.toString());
+	
 			Message msg = realPacket.getMessage();
-			// msg.putStringProperty(Config.AMQ_CONTENT_TYPE,
-			// getContentType(msg));
-			msg.putStringProperty(Config.MSG_SRC_BUS, connection.getRemoteAddress());
+			if(msg.getStringProperty(Config.MSG_SRC_BUS)==null)
+				msg.putStringProperty(Config.MSG_SRC_BUS, connection.getRemoteAddress());
 			
 			for (ServerSession s : ArtemisServer.getActiveMQServer().getSessions(connection.getID().toString())) {
 				if (s.getConnectionID().equals(connection.getID())) {
@@ -60,32 +59,8 @@ public class SessionInterceptor implements Interceptor {
 		// We return true which means "call next interceptor" (if there is one)
 		// or target.
 		// If we returned false, it means "abort call" - no more interceptors
-		// would be called and neither would
-		// the target
+		// would be called and neither would the target
 		return true;
 	}
 
-	private String getContentType(Message message) {
-		if (logger.isDebugEnabled())
-			logger.debug("Msg body is:" + message.getBodyBuffer().readString());
-		String msg = message.getBodyBuffer().readString();
-		if (msg != null) {
-			msg = msg.trim();
-			// stomp messages are prefixed with 'ascii:'
-			if (msg.startsWith("ascii:")) {
-				return "STOMP";
-			}
-			msg = StringUtils.chomp(msg);
-			if (msg.startsWith("!AIVDM")) {
-				// AIS
-				// !AIVDM,1,1,,B,15MwkRUOidG?GElEa<iQk1JV06Jd,0*6D
-				return "AIS";
-			} else if (msg.startsWith("$")) {
-				return "0183";
-			} else if (msg.startsWith("{") && msg.endsWith("}")) {
-				return Config.JSON;
-			}
-		}
-		return null;
-	}
 }

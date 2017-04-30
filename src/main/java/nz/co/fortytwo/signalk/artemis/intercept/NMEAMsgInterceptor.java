@@ -21,7 +21,7 @@
  * limitations under the License.
  *
  */
-package nz.co.fortytwo.signalk.artemis.divert;
+package nz.co.fortytwo.signalk.artemis.intercept;
 
 import static nz.co.fortytwo.signalk.util.SignalKConstants.UNKNOWN;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.dot;
@@ -42,12 +42,18 @@ import static nz.co.fortytwo.signalk.util.SignalKConstants.type;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.value;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels_dot_self_dot;
 
+import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ActiveMQSecurityException;
+import org.apache.activemq.artemis.api.core.Interceptor;
+import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.api.core.SimpleString;
+import org.apache.activemq.artemis.core.protocol.core.Packet;
+import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendMessage;
 import org.apache.activemq.artemis.core.server.ServerMessage;
 import org.apache.activemq.artemis.core.server.ServerSession;
 import org.apache.activemq.artemis.core.server.cluster.Transformer;
 import org.apache.activemq.artemis.core.server.impl.ServerMessageImpl;
+import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -65,6 +71,7 @@ import net.sf.marineapi.nmea.sentence.PositionSentence;
 import net.sf.marineapi.nmea.sentence.RMCSentence;
 import net.sf.marineapi.nmea.sentence.Sentence;
 import net.sf.marineapi.nmea.sentence.VHWSentence;
+import nz.co.fortytwo.signalk.artemis.intercept.SentenceEventSource;
 import nz.co.fortytwo.signalk.artemis.server.ArtemisServer;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
@@ -78,47 +85,52 @@ import nz.co.fortytwo.signalk.util.ConfigConstants;
  * @author robert
  * 
  */
-public class NMEAMsg implements Transformer {
+public class NMEAMsgInterceptor implements Interceptor {
 
-	private static Logger logger = LogManager.getLogger(NMEAMsg.class);
+	private static Logger logger = LogManager.getLogger(NMEAMsgInterceptor.class);
 	
 	
 	SentenceListener listener;
 	private boolean rmcClock = false;
 
-	public NMEAMsg() {
+	public NMEAMsgInterceptor() {
 		super();
 		
 		setNmeaListeners();
 	}
 
 	@Override
-	public ServerMessage transform(ServerMessage message) {
-		if(!Config._0183.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))return message;
-		String sessionId = message.getStringProperty(Config.AMQ_SESSION_ID);
-		ServerSession sess = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
-		String bodyStr = message.getBodyBuffer().readString();
-		if(logger.isDebugEnabled())logger.debug("Message: " +bodyStr);
-		
-		if (StringUtils.isNotBlank(bodyStr) && bodyStr.startsWith("$")) {
-			try {
-				if (logger.isDebugEnabled())
-					logger.debug("Processing NMEA:[" + bodyStr + "]");
-				Sentence sentence = SentenceFactory.getInstance().createParser(bodyStr);
-				String src = sess.getRemotingConnection().getRemoteAddress();
-				src=src.replace("/", "");
-				src=src.replace(".", "-");
-				fireSentenceEvent(sess, sentence, src);
-				
-			} catch (IllegalArgumentException e) {
-				logger.debug(e.getMessage(), e);
-				logger.info(e.getMessage() + ":" + bodyStr);
-				logger.info("   in hexidecimal : " + Hex.encodeHexString(bodyStr.getBytes()));
-			} catch (Exception e) {
-				logger.error(e.getMessage(), e);
+	public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException {
+		if (packet instanceof SessionSendMessage) {
+			SessionSendMessage realPacket = (SessionSendMessage) packet;
+
+			Message message = realPacket.getMessage();
+			if(!Config._0183.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))return true;
+			String sessionId = message.getStringProperty(Config.AMQ_SESSION_ID);
+			ServerSession sess = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
+			String bodyStr = Util.readBodyBufferToString(message);
+			if(logger.isDebugEnabled())logger.debug("Message: " +bodyStr);
+			
+			if (StringUtils.isNotBlank(bodyStr) && bodyStr.startsWith("$")) {
+				try {
+					if (logger.isDebugEnabled())
+						logger.debug("Processing NMEA:[" + bodyStr + "]");
+					Sentence sentence = SentenceFactory.getInstance().createParser(bodyStr);
+					String src = sess.getRemotingConnection().getRemoteAddress();
+					src=src.replace("/", "");
+					src=src.replace(".", "-");
+					fireSentenceEvent(sess, sentence, src);
+					
+				} catch (IllegalArgumentException e) {
+					logger.debug(e.getMessage(), e);
+					logger.info(e.getMessage() + ":" + bodyStr);
+					logger.info("   in hexidecimal : " + Hex.encodeHexString(bodyStr.getBytes()));
+				} catch (Exception e) {
+					logger.error(e.getMessage(), e);
+				}
 			}
 		}
-		return message;
+		return true;
 	}
 
 	/**
@@ -274,5 +286,7 @@ public class NMEAMsg implements Transformer {
 			}
 		};
 	}
+
+	
 
 }
