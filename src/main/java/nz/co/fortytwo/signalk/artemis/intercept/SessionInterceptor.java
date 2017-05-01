@@ -25,7 +25,7 @@ public class SessionInterceptor implements Interceptor {
 	@Override
 	public boolean intercept(final Packet packet, final RemotingConnection connection) throws ActiveMQException {
 		// System.out.println("SessionInterceptor gets called!");
-		// System.out.println("Packet: " + packet.getClass().getName());
+		 System.out.println("Packet: " + packet.getClass().getName());
 		// System.out.println("Packet: " + packet.toString());
 		// System.out.println("RemotingConnection: " +
 		// connection.getRemoteAddress());
@@ -33,7 +33,7 @@ public class SessionInterceptor implements Interceptor {
 		// connection.getTransportConnection().toString());
 		// System.out.println("Sessions
 		// count:"+ArtemisServer.embedded.getActiveMQServer().getSessions().size());
-
+		if(packet.isResponse())return true;
 		if (packet instanceof SessionSendMessage) {
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
 	

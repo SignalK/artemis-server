@@ -21,6 +21,7 @@ import static nz.co.fortytwo.signalk.util.SignalKConstants.resources;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.sources;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,6 +42,7 @@ import org.apache.camel.main.Main;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
 import org.atmosphere.cpr.ApplicationConfig;
 import org.atmosphere.nettosphere.Nettosphere;
 
@@ -301,13 +303,19 @@ public final class ArtemisServer {
 	}
 
 	public static void main(String[] args) throws Exception {
+		Properties props = System.getProperties();
+		props.setProperty("java.net.preferIPv4Stack", "true");
+		props.setProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager");
+		props.setProperty("log4j.configurationFile", "./conf/log4j2.json");
+		System.setProperties(props);
+		
 		PropertyConfigurator.configure("./conf/log4j2.json");
 		InternalLoggerFactory.setDefaultFactory(Log4J2LoggerFactory.INSTANCE);
-		//LoggerContext context = (org.apache.logging.log4j.core.LoggerContext) LogManager.getContext(false);
-		//File file = new File("./conf/log4j2.json");
+		LoggerContext context = (org.apache.logging.log4j.core.LoggerContext) LogManager.getContext(false);
+		File file = new File("./conf/log4j2.json");
 
 		// this will force a reconfiguration
-		//context.setConfigLocation(file.toURI());
+		context.setConfigLocation(file.toURI());
 		new ArtemisServer();
 
 	}

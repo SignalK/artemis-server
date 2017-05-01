@@ -20,6 +20,7 @@ import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels_dot_self;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels_dot_self_dot;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -135,7 +136,7 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 		}
 	}
 
-	public static SortedMap<String, Object> readAllMessages(String user, String password, String queue, String filter) throws Exception {
+	public static SortedMap<String, Object> readAllMessages(String user, String password, String queue, String filter) throws Exception  {
 		SortedMap<String, Object> msgs = null;
 		ClientSession rxSession = null;
 		ClientConsumer consumer = null;
@@ -148,7 +149,9 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 			msgs = readAllMessages(consumer);// new
 																		// ConcurrentSkipListMap<>();
 			consumer.close();
-
+		
+		} catch (ActiveMQException e) {
+			logger.error(e);
 		} finally {
 			if (consumer != null) {
 				try {
@@ -203,7 +206,7 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 
 	public static void sendMsg(String key, Json body, String timeStamp, String srcRef, ServerSession sess)
 			throws Exception {
-		if (StringUtils.isNotBlank(srcRef)) {
+		if (StringUtils.isNotBlank(srcRef) && !key.contains(values)) {
 			sendObjMsg(key + dot + values + dot + srcRef, body, timeStamp, srcRef, sess);
 		} else {
 			sendObjMsg(key, body, timeStamp, srcRef, sess);
@@ -315,7 +318,7 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 	 * @param msgs
 	 * @return
 	 */
-	public static Json generateDelta(HashMap<String, HashMap<String, HashMap<String, List<ClientMessage>>>> msgs) {
+	public static Json generateDelta(Map<String, Map<String, Map<String, List<ClientMessage>>>> msgs) {
 		Json deltaArray = Json.array();
 		// add values
 		if (msgs.size() == 0)
@@ -386,6 +389,33 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 
 	}
 
+	public static Map< String, Map<String, Map<String,List<ClientMessage>>>> readAllMessagesForDelta(ClientConsumer consumer) 
+			throws ActiveMQPropertyConversionException, ActiveMQException{
+		ClientMessage msgReceived = null;
+		Map< String, Map<String, Map<String,List<ClientMessage>>>> msgs = new HashMap<>();
+		while ((msgReceived = consumer.receive(10)) != null) {
+			if(logger.isDebugEnabled())logger.debug("message = "  + msgReceived.getMessageID()+":" + msgReceived.getAddress() );
+			String ctx = Util.getContext(msgReceived.getAddress().toString());
+			Map< String,Map<String,List<ClientMessage>>> ctxMap = msgs.get(ctx);
+			if(ctxMap==null){
+				ctxMap=new HashMap<>();
+				msgs.put(ctx, ctxMap);
+			}
+			Map<String,List<ClientMessage>> tsMap = ctxMap.get(msgReceived.getStringProperty(timestamp));
+			if(tsMap==null){
+				tsMap=new HashMap<>();
+				ctxMap.put(msgReceived.getStringProperty(timestamp), tsMap);
+			}
+			if(logger.isDebugEnabled())logger.debug("$source: "+msgReceived.getStringProperty(sourceRef));
+			List<ClientMessage> srcMap = tsMap.get(msgReceived.getStringProperty(sourceRef));
+			if(srcMap==null){
+				srcMap=new ArrayList<>();
+				tsMap.put(msgReceived.getStringProperty(sourceRef), srcMap);
+			}
+			srcMap.add( msgReceived);
+		}
+		return msgs;
+	}
 	public static SortedMap<String, Object> readAllMessages(ClientConsumer consumer)
 			throws ActiveMQPropertyConversionException, ActiveMQException {
 		ClientMessage msgReceived = null;

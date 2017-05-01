@@ -33,6 +33,7 @@ import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -116,29 +117,7 @@ public class Subscription {
 					consumer = rxSession.createConsumer("vessels",
 							"_AMQ_LVQ_NAME like '"+getPath()+".%'", true);
 					
-					ClientMessage msgReceived = null;
-					HashMap< String, HashMap<String, HashMap<String,List<ClientMessage>>>> msgs = new HashMap<>();
-					while ((msgReceived = consumer.receive(10)) != null) {
-						if(logger.isDebugEnabled())logger.debug("message = "  + msgReceived.getMessageID()+":" + msgReceived.getAddress() );
-						String ctx = Util.getContext(msgReceived.getAddress().toString());
-						HashMap< String,HashMap<String,List<ClientMessage>>> ctxMap = msgs.get(ctx);
-						if(ctxMap==null){
-							ctxMap=new HashMap<>();
-							msgs.put(ctx, ctxMap);
-						}
-						HashMap<String,List<ClientMessage>> tsMap = ctxMap.get(msgReceived.getStringProperty(timestamp));
-						if(tsMap==null){
-							tsMap=new HashMap<>();
-							ctxMap.put(msgReceived.getStringProperty(timestamp), tsMap);
-						}
-						if(logger.isDebugEnabled())logger.debug("$source: "+msgReceived.getStringProperty(sourceRef));
-						List<ClientMessage> srcMap = tsMap.get(msgReceived.getStringProperty(sourceRef));
-						if(srcMap==null){
-							srcMap=new ArrayList<>();
-							tsMap.put(msgReceived.getStringProperty(sourceRef), srcMap);
-						}
-						srcMap.add( msgReceived);
-					}
+					Map< String, Map<String, Map<String,List<ClientMessage>>>> msgs = Util.readAllMessagesForDelta(consumer);
 					Json deltas = Util.generateDelta(msgs);
 					for( Json delta : deltas.asJsonList() ){
 						ClientMessage txMsg = txSession.createMessage(true);

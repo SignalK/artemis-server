@@ -16,9 +16,10 @@ Done:
 	REST login/auth
 	Input filter
 TODO:
-	
+	srcRef back to source
 	convert self back to urn on reply
 	in values the src chain is repeated.
+	
 	in serial, add TYPE=SERIAL header, add as type in sendMessage.
 	Alarms
 	Resources
@@ -38,7 +39,7 @@ TODO:
 	AIS
 	UI
 	log conf
-	srcRef to source
+	
 	
 REST API test
 index.tml

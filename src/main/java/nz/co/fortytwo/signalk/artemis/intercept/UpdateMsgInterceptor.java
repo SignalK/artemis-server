@@ -80,6 +80,7 @@ public class UpdateMsgInterceptor implements Interceptor {
 	
 	@Override
 	public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException {
+		if(packet.isResponse())return true;
 		if (packet instanceof SessionSendMessage) {
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
 

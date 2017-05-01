@@ -80,6 +80,7 @@ public class FullMsgInterceptor implements Interceptor {
 
 	@Override
 	public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException {
+		if(packet.isResponse())return true;
 		if (packet instanceof SessionSendMessage) {
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
 
@@ -132,11 +133,11 @@ public class FullMsgInterceptor implements Interceptor {
 			Util.sendMsg(key, node,null, (String)null, sess);
 			return;
 		}
-		if(node.has(values)){
+		//if(node.has(values)){
 			//just send it
-			Util.sendMsg(key+dot+values, node.at(values), null, (String)null, sess);
-			return;
-		}
+		//	Util.sendMsg(key+dot+values, node.at(values), null, (String)null, sess);
+		//	return;
+		//}
 		String srcRef = null;
 		if(node.has(sourceRef)){
 			srcRef= node.at(sourceRef).asString();

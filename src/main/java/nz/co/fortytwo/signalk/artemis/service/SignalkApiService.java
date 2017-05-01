@@ -56,7 +56,7 @@ public abstract class SignalkApiService {
 		path = StringUtils.removeStart(path,SIGNALK_API);
 		path = StringUtils.removeStart(path,"/");
 		if (path.equals("self")){
-			resource.getResponse().write(Config.getConfigProperty(ConfigConstants.UUID));
+			resource.getResponse().write("\""+Config.getConfigProperty(ConfigConstants.UUID)+"\"");
 			return;
 		}
 		path = path.replace('/', '.');
@@ -83,7 +83,8 @@ public abstract class SignalkApiService {
 
 		SortedMap<String, Object> msgs = Util.readAllMessages(user, pass, queue, filter);
 		// new ConcurrentSkipListMap<>();
-
+		if (logger.isDebugEnabled())
+			logger.debug("map = " + msgs.toString());
 		resource.getResponse().setContentType("application/json");
 		if (msgs.size() > 0) {
 			Json json = Util.mapToJson(msgs);

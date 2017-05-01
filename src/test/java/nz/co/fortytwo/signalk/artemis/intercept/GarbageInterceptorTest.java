@@ -1,4 +1,4 @@
-package nz.co.fortytwo.signalk.artemis.divert;
+package nz.co.fortytwo.signalk.artemis.intercept;
 
 import static org.junit.Assert.*;
 
@@ -13,7 +13,7 @@ import org.junit.Test;
 import nz.co.fortytwo.signalk.artemis.intercept.GarbageInterceptor;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 
-public class GarbageMsgTest {
+public class GarbageInterceptorTest {
 
 	@Test
 	public void shouldAvoidGarbage() {

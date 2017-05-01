@@ -91,6 +91,7 @@
 			</queue>
 		</queues>
 		<remoting-incoming-interceptors>
+			<!-- incoming -->
 			<class-name>nz.co.fortytwo.signalk.artemis.intercept.SessionInterceptor
 			</class-name>
 			<class-name>nz.co.fortytwo.signalk.artemis.intercept.GarbageInterceptor
@@ -103,7 +104,9 @@
 			</class-name>
 			<class-name>nz.co.fortytwo.signalk.artemis.intercept.UpdateMsgInterceptor
 			</class-name>
-
+			<!-- outgoing -->
+			<class-name>nz.co.fortytwo.signalk.artemis.intercept.MapToDeltaInterceptor
+			</class-name>
 		</remoting-incoming-interceptors>
 
 		<!-- Other config -->

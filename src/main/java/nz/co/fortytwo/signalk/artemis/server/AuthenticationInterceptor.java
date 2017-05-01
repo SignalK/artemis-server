@@ -1,11 +1,15 @@
 package nz.co.fortytwo.signalk.artemis.server;
 
+import static nz.co.fortytwo.signalk.util.SignalKConstants.CONFIG;
+import static nz.co.fortytwo.signalk.util.SignalKConstants.SIGNALK_API;
+
 import java.nio.charset.Charset;
 import java.util.Base64;
 import java.util.Map.Entry;
 
 import org.apache.activemq.artemis.core.config.impl.SecurityConfiguration;
 import org.apache.activemq.artemis.core.security.User;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -81,13 +85,18 @@ public class AuthenticationInterceptor implements AtmosphereInterceptor {
 			}
 
 		}
-		if (logger.isDebugEnabled())
-			logger.debug("Auth:" + authenticated);
-		if (!authenticated) {
-			r.getResponse().setStatus(401);
-			r.getResponse().addHeader("WWW-Authenticate", "Basic realm=\"Signalk Realm\"");
-			return Action.CANCELLED;
+		String path = r.getRequest().getPathInfo();
+		if (logger.isDebugEnabled())logger.debug("Auth:" + authenticated+", path:" + path);
+		
+		if (!authenticated){ 
+			r.getRequest().header("X-User", "guest");
+			r.getRequest().header("X-Pass", "guest");
 		}
+//		if (!authenticated) {
+//			r.getResponse().setStatus(401);
+//			r.getResponse().addHeader("WWW-Authenticate", "Basic realm=\"Signalk Realm\"");
+//			return Action.CANCELLED;
+//		}
 		return Action.CONTINUE; 
 	}
 	
