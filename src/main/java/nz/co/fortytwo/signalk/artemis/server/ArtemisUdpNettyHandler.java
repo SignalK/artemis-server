@@ -139,6 +139,7 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 		ClientMessage ex = sessionList.get(session).createMessage(true);
 		ex.getBodyBuffer().writeString(request);
 		ex.putStringProperty(Config.AMQ_REPLY_Q, session);
+		
 		for (String hdr : headers.keySet()) {
 			ex.putStringProperty(hdr, headers.get(hdr).toString());
 		}
@@ -167,7 +168,7 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 		Map<String, Object> headers = new HashMap<>();
 		headers.put(Config.AMQ_SESSION_ID, wsSession);
 		headers.put(Config.MSG_SRC_IP, socketList.get(wsSession).getHostString());
-		headers.put(Config.MSG_SRC_BUS, "udp." + socketList.get(wsSession).getHostString().replace('.', '_'));
+		headers.put(Config.MSG_SRC_BUS, "udp." + wsSession.replace('.', '_'));
 		headers.put(ConfigConstants.OUTPUT_TYPE, outputType);
 		return headers;
 	}

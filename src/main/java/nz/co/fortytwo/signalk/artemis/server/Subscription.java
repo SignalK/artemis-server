@@ -82,12 +82,12 @@ public class Subscription {
 	Set<String> subscribedPaths = new ConcurrentSet<String>();
 	private String routeId;
 	private String destination;
-	private String user;
-	private String password;
+//	private String user;
+//	private String password;
 	private TimerTask task;
 	private Timer timer;
-	ClientSession txSession;
-	ClientProducer producer;
+	//ClientSession txSession;
+	
 	//private String outputType;
 
 	public Subscription(String sessionId, String destination, String user, String password, String path, long period, long minPeriod, String format, String policy) throws Exception {
@@ -100,8 +100,8 @@ public class Subscription {
 		this.format = format;
 		this.policy = policy;
 		this.destination=destination;
-		this.user=user;
-		this.password=password;
+//		this.user=user;
+//		this.password=password;
 		
 		
 		task = new TimerTask() {
@@ -111,16 +111,17 @@ public class Subscription {
 				if(logger.isDebugEnabled())logger.debug("Running for:"+destination+", "+getPath());
 				ClientSession rxSession = null;
 				ClientConsumer consumer = null;
+				ClientProducer producer= null;
 				try {
 					//start polling consumer.
 					rxSession = Util.getVmSession(user, password);
 					consumer = rxSession.createConsumer("vessels",
 							"_AMQ_LVQ_NAME like '"+getPath()+".%'", true);
-					
+					producer=rxSession.createProducer();
 					Map< String, Map<String, Map<String,List<ClientMessage>>>> msgs = Util.readAllMessagesForDelta(consumer);
 					Json deltas = Util.generateDelta(msgs);
 					for( Json delta : deltas.asJsonList() ){
-						ClientMessage txMsg = txSession.createMessage(true);
+						ClientMessage txMsg = rxSession.createMessage(true);
 						txMsg.getBodyBuffer().writeString(delta.toString());
 						txMsg.putStringProperty(Config.JAVA_TYPE, delta.getClass().getSimpleName());
 						txMsg.putStringProperty(Config.AMQ_SUB_DESTINATION, destination);
@@ -128,8 +129,7 @@ public class Subscription {
 						producer.send(new SimpleString("outgoing.reply."+destination),txMsg);
 						if(logger.isDebugEnabled())logger.debug("delta json = "+delta);
 					}
-					consumer.close();
-					
+									
 				} catch (Exception e) {
 					logger.error(e.getMessage(),e);
 				
@@ -137,6 +137,13 @@ public class Subscription {
 					if(consumer!=null){
 						try {
 							consumer.close();
+						} catch (ActiveMQException e) {
+							logger.error(e);
+						}
+					}
+					if(producer!=null){
+						try {
+							producer.close();
 						} catch (ActiveMQException e) {
 							logger.error(e);
 						}
@@ -231,20 +238,12 @@ public class Subscription {
 	public void setActive(boolean active) throws Exception {
 		this.active = active;
 		if(logger.isDebugEnabled())logger.debug("Set active:"+active);
-		if(active && (txSession==null || txSession.isClosed())){
-			txSession = Util.getVmSession(user, password);
-		}
-		if(active && (producer==null || producer.isClosed())){
-			producer = txSession.createProducer();
-		}
+
 		if(!active && timer!=null){
 			timer.cancel();
 			timer=null;
 		}
-		if(!active){
-			if(producer!=null)producer.close();
-			if(txSession!=null)txSession.close();
-		}
+
 		if(active && timer==null){
 			timer = new Timer(sessionId, true);
 			timer.schedule(task, 0, getPeriod());

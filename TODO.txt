@@ -18,7 +18,7 @@ Done:
 TODO:
 	srcRef back to source
 	convert self back to urn on reply
-	in values the src chain is repeated.
+	
 	
 	in serial, add TYPE=SERIAL header, add as type in sendMessage.
 	Alarms
@@ -44,16 +44,5 @@ TODO:
 REST API test
 index.tml
 indexxx.htm
-api
-api/
-api/self
-api/vessels
-api/ves
-api/vessl
-api/vessels/
-api/vessels/self
-api/vessels/urn
-api/vessels/self/nav*
-api/sources
-api/config
+
 

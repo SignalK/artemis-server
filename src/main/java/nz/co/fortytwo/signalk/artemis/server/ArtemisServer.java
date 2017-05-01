@@ -17,8 +17,11 @@ package nz.co.fortytwo.signalk.artemis.server;
  */
 
 import static nz.co.fortytwo.signalk.util.SignalKConstants.SIGNALK_DISCOVERY;
+import static nz.co.fortytwo.signalk.util.SignalKConstants.mmsi;
+import static nz.co.fortytwo.signalk.util.SignalKConstants.name;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.resources;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.sources;
+import static nz.co.fortytwo.signalk.util.SignalKConstants.uuid;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels;
 
 import java.io.File;
@@ -48,6 +51,7 @@ import org.atmosphere.nettosphere.Nettosphere;
 
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Log4J2LoggerFactory;
+import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.util.ConfigConstants;
@@ -151,23 +155,30 @@ public final class ArtemisServer {
 		try {
 			// this loads the LVQ config queues.
 			ClientProducer producer = session.createProducer();
-
-			ClientMessage message1 = session.createMessage(true);
-			message1.getBodyBuffer().writeString(Config.load(Util.SIGNALK_CFG_SAVE_FILE).toString());
-			producer.send(Config.INCOMING_RAW, message1);
-
 			// now bootstrap the resources, sources, and vessel
-			ClientMessage message2 = session.createMessage(true);
-			message2.getBodyBuffer().writeString(Config.load(Util.SIGNALK_SOURCES_SAVE_FILE).toString());
-			producer.send(Config.INCOMING_RAW, message2);
-
-			ClientMessage message3 = session.createMessage(true);
-			message3.getBodyBuffer().writeString(Config.load(Util.SIGNALK_RESOURCES_SAVE_FILE).toString());
-			producer.send(Config.INCOMING_RAW, message3);
-
-			ClientMessage message4 = session.createMessage(true);
-			message4.getBodyBuffer().writeString(Config.load(Util.SIGNALK_MODEL_SAVE_FILE).toString());
-			producer.send(Config.INCOMING_RAW, message4);
+			Util.sendMessage(session, producer, Config.INCOMING_RAW, Config.load(Util.SIGNALK_CFG_SAVE_FILE).toString());
+			Util.sendMessage(session, producer, Config.INCOMING_RAW, Config.load(Util.SIGNALK_SOURCES_SAVE_FILE).toString());
+			Util.sendMessage(session, producer, Config.INCOMING_RAW, Config.load(Util.SIGNALK_RESOURCES_SAVE_FILE).toString());
+			Json selfJson =Json.read(Config.load(Util.SIGNALK_MODEL_SAVE_FILE).toString());
+			if(!selfJson.has(vessels)){
+				selfJson.set(vessels,Json.object());
+			}
+			Json selfVessel = null;
+			if(selfJson.at(vessels).has("self")){
+				selfVessel=selfJson.at(vessels).at("self");
+			}else{
+				selfVessel=Json.object();
+				selfJson=selfJson.at(vessels).set("self",selfJson);
+			}
+			
+			//set std data in self in case its gone.
+			selfVessel.set(uuid, Config.getConfigProperty(ConfigConstants.UUID));
+			selfVessel.set(mmsi, Config.getConfigProperty(ConfigConstants.MMSI));
+			selfVessel.set(name, Config.getConfigProperty(ConfigConstants.NAME));
+			
+			Util.sendMessage(session, producer, Config.INCOMING_RAW, selfJson.toString());
+			
+			
 
 		} finally {
 			if (session != null)

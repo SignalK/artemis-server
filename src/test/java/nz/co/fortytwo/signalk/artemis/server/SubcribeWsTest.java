@@ -232,9 +232,9 @@ public class SubcribeWsTest {
 				.prepareGet("http://localhost:" + restPort + SIGNALK_API + "/vessels/"
 						+ Config.getConfigProperty(ConfigConstants.UUID) + "/uuid")
 				.setHeader("Authorization", "Basic YWRtaW46YWRtaW4=").execute().get();
-		String json = r2.getResponseBody();
-		logger.debug("Endpoint json:" + json);
-		assertEquals("\"urn:mrn:signalk:uuid:5da2f032-fc33-43f0-bc24-935bf55a17d1\"", json);
+		String resp = r2.getResponseBody();
+		logger.debug("Endpoint json:" + resp);
+		assertEquals("\"urn:mrn:signalk:uuid:5da2f032-fc33-43f0-bc24-935bf55a17d1\"", resp);
 		c.close();
 	}
 

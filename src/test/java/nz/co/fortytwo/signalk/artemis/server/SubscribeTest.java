@@ -20,6 +20,7 @@ import org.apache.logging.log4j.Logger;
 import org.jgroups.util.UUID;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import mjson.Json;
@@ -81,6 +82,7 @@ public class SubscribeTest {
 	}
 
 	@Test
+	@Ignore
 	public void shouldStartNetty() throws Exception {
 		ClientSession session = Util.getLocalhostClientSession("admin", "admin");
 		

@@ -67,6 +67,7 @@ public class Config {
 	public static final String JSON_DELTA = "JSON_DELTA";
 	public static final String JSON_SUBSCRIBE = "JSON_SUBSCRIBE";
 	public static final String _0183 = "0183";
+	
 	public static final String AMQ_REPLY_Q = "AMQ_REPLY_Q";
 	public static final String JAVA_TYPE = "JAVA_TYPE";
 	public static final String SK_TYPE = "SK_TYPE";
@@ -258,7 +259,7 @@ public class Config {
 		} else {
 			logger.info("   Saved state not found");
 		}
-		return Json.nil();
+		return Json.object();
 	}
 
 	/**

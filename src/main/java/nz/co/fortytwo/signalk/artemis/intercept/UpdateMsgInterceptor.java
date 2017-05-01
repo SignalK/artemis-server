@@ -9,6 +9,7 @@ import static nz.co.fortytwo.signalk.util.SignalKConstants.UPDATES;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.label;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.source;
+import static nz.co.fortytwo.signalk.util.SignalKConstants.sourceRef;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.sources;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.timestamp;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.type;
@@ -140,13 +141,7 @@ public class UpdateMsgInterceptor implements Interceptor {
 		String device = sess.getRemotingConnection().getRemoteAddress();
 		if(logger.isDebugEnabled())logger.debug("SessionId:"+sessionId+", found "+sess + " from "+device);
 		// grab values and add
-		Json array = update.at(values);
-		Json src = null;
-		if (update.has(source)) {
-			src = update.at(source);
-		}
-		if(!src.has(type)&& m1.getStringProperty(Config.MSG_SRC_BUS)!=null)
-			src.set(type, m1.getStringProperty(Config.MSG_SRC_BUS));
+		
 		
 		String timeStamp = null;
 		if (update.has(timestamp)) {
@@ -154,6 +149,22 @@ public class UpdateMsgInterceptor implements Interceptor {
 		}else{
 			timeStamp = nz.co.fortytwo.signalk.util.Util.getIsoTimeString();
 		}
+		
+		//Json src = null;
+		String srcRef=null;
+		if(update.has(sourceRef)){
+			srcRef= update.at(sourceRef).asString();
+		}else{
+			Json src = update.at(source);
+			if(src!=null){
+				if(!src.has(type)&& m1.getStringProperty(Config.MSG_SRC_BUS)!=null)
+					src.set(type, m1.getStringProperty(Config.MSG_SRC_BUS));
+				srcRef = src.at(type).toString()+dot+src.at(label).toString();
+				Util.sendSourceMsg(srcRef, (Json)src,timeStamp, sess);
+			}
+		}
+		
+		Json array = update.at(values);
 		for (Json e : array.asJsonList()) {
 
 			if (e == null || e.isNull() || !e.has(PATH))
@@ -162,7 +173,7 @@ public class UpdateMsgInterceptor implements Interceptor {
 			// temp.put(ctx+"."+key, e.at(value).getValue());
 			if (e.has(value)) {
 				if(logger.isDebugEnabled())logger.debug("Adding "+e);
-				addEntry(ctx + dot + key, e.at(value),  timeStamp, src, sess);
+				Util.sendMsg(ctx + dot + key, e.at(value), timeStamp, srcRef, sess);
 			}
 
 		}
@@ -170,25 +181,5 @@ public class UpdateMsgInterceptor implements Interceptor {
 	}
 	
 
-	protected void addEntry(String key, Json j, String timeStamp, Json src, ServerSession sess) throws Exception {
-		if (j == null)
-			return;
-		String typeStr = null;
-		if(src.has(type))
-			typeStr= src.at(type).asString();
-		else
-			typeStr = UNKNOWN;
-		String srcLabel = src.at(label).asString();
-		srcLabel = StringUtils.removeStart(srcLabel,sources+dot);
-		String srcRef = typeStr+dot + srcLabel;
-		
-		Util.sendSourceMsg(srcRef, (Json)src,timeStamp, sess);
-		Util.sendMsg(key, j, timeStamp, srcRef, sess);
-		
-	}
-
-	
-
-	
 
 }
