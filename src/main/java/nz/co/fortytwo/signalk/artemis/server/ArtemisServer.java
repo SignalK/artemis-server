@@ -33,7 +33,6 @@ import java.util.Properties;
 import javax.jmdns.JmmDNS;
 import javax.jmdns.ServiceInfo;
 
-import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.activemq.artemis.core.config.impl.SecurityConfiguration;

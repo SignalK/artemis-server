@@ -13,6 +13,7 @@ import static nz.co.fortytwo.signalk.util.SignalKConstants.UNSUBSCRIBE;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
+import org.apache.activemq.artemis.api.core.ICoreMessage;
 import org.apache.activemq.artemis.api.core.Interceptor;
 import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.core.protocol.core.Packet;
@@ -82,7 +83,7 @@ public class SubscribeMsgInterceptor implements Interceptor {
 		if (packet instanceof SessionSendMessage) {
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
 
-			Message message = realPacket.getMessage();
+			ICoreMessage message = realPacket.getMessage();
 			if(!Config.JSON_SUBSCRIBE.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))return true;
 			if(logger.isTraceEnabled())logger.trace("Processing: " + message);
 			Json node = Util.readBodyBuffer(message);

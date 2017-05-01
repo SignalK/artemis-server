@@ -1,12 +1,10 @@
 package nz.co.fortytwo.signalk.artemis.util;
 
-import static nz.co.fortytwo.signalk.util.SignalKConstants.CONFIG;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.CONTEXT;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.PATH;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.UPDATES;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.label;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.self;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.self_str;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.source;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.sourceRef;
@@ -15,9 +13,6 @@ import static nz.co.fortytwo.signalk.util.SignalKConstants.timestamp;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.value;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.values;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.version;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels_dot_self;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels_dot_self_dot;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,6 +26,7 @@ import java.util.regex.Pattern;
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ActiveMQPropertyConversionException;
 import org.apache.activemq.artemis.api.core.ActiveMQSecurityException;
+import org.apache.activemq.artemis.api.core.ICoreMessage;
 import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.api.core.TransportConfiguration;
@@ -39,17 +35,12 @@ import org.apache.activemq.artemis.api.core.client.ClientConsumer;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
-import org.apache.activemq.artemis.api.core.client.ClientSessionFactory;
 import org.apache.activemq.artemis.api.core.client.ServerLocator;
+import org.apache.activemq.artemis.core.client.impl.ClientMessageImpl;
 import org.apache.activemq.artemis.core.remoting.impl.invm.InVMConnectorFactory;
 import org.apache.activemq.artemis.core.remoting.impl.netty.NettyConnectorFactory;
 import org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants;
-import org.apache.activemq.artemis.core.server.LargeServerMessage;
-import org.apache.activemq.artemis.core.server.ServerMessage;
 import org.apache.activemq.artemis.core.server.ServerSession;
-import org.apache.activemq.artemis.core.server.impl.ServerMessageImpl;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -227,7 +218,7 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 	private static void sendObjMsg(String key, Json body, String timeStamp, Object src, ServerSession sess)
 			throws Exception {
 
-		ServerMessage m2 = new ServerMessageImpl(new Double(Math.random()).longValue(), 64);
+		ClientMessage m2 = new ClientMessageImpl((byte)0, false, 0, System.currentTimeMillis(), (byte) 4, 1024); 
 		if(StringUtils.isNotBlank(timeStamp))
 			m2.putStringProperty(timestamp, timeStamp);
 		if (src != null) {
@@ -370,7 +361,7 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 		return deltaArray;
 	}
 
-	public static Json readBodyBuffer(Message msg) {
+	public static Json readBodyBuffer(ICoreMessage msg) {
 		if (msg.getBodyBuffer().readableBytes() == 0) {
 			if (logger.isDebugEnabled())
 				logger.debug("Empty msg: " + msg.getAddress() + ": " + msg.getBodyBuffer().readableBytes());
@@ -380,11 +371,11 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 
 	}
 
-	public static String readBodyBufferToString(Message msg) {
+	public static String readBodyBufferToString(ICoreMessage msg) {
 		if (msg.getBodyBuffer().readableBytes() == 0) {
 			return null;
 		} else {
-			return msg.getBodyBufferDuplicate().readString();
+			return msg.getBodyBuffer().duplicate().readString();
 		}
 
 	}

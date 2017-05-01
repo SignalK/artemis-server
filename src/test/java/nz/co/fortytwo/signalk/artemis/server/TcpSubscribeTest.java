@@ -2,34 +2,23 @@ package nz.co.fortytwo.signalk.artemis.server;
 
 import static nz.co.fortytwo.signalk.util.SignalKConstants.FORMAT_DELTA;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.POLICY_FIXED;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
-import java.io.File;
 import java.io.InputStreamReader;
 import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.activemq.artemis.api.core.client.ClientConsumer;
-import org.apache.activemq.artemis.api.core.client.ClientMessage;
-import org.apache.activemq.artemis.api.core.client.ClientProducer;
-import org.apache.activemq.artemis.api.core.client.ClientSession;
-import org.apache.activemq.artemis.core.server.RoutingType;
-import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jgroups.util.UUID;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import mjson.Json;
-import nz.co.fortytwo.signalk.artemis.util.Config;
-import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.util.SignalKConstants;
 
 public class TcpSubscribeTest {

@@ -7,13 +7,11 @@ import org.apache.activemq.artemis.core.protocol.core.Packet;
 import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendMessage;
 import org.apache.activemq.artemis.core.server.ServerSession;
 import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import nz.co.fortytwo.signalk.artemis.server.ArtemisServer;
 import nz.co.fortytwo.signalk.artemis.util.Config;
-import nz.co.fortytwo.signalk.artemis.util.Util;
 
 /**
  * A way to acquire the session in a message

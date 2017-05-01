@@ -52,18 +52,23 @@
 			"logger": [
 			{
 				"name": "nz.co.fortytwo.signalk.artemis.intercept",
-				"level": "debug"
+				"level": "error"
 			},
 			{
 				"name": "nz.co.fortytwo.signalk",
 				"level": "debug"
 			},
+			
 			{
-				"name": "nz.co.fortytwo.signalk.artemis.divert.FullMsg",
-				"level": "error"
+				"name": "nz.co.fortytwo.signalk.artemis.intercept.MapToDeltaInterceptor",
+				"level": "debug"
 			},
 			{
 				"name": "nz.co.fortytwo.signalk.artemis.util.Config",
+				"level": "error"
+			},
+			{
+				"name": "nz.co.fortytwo.signalk.artemis.util.Util",
 				"level": "error"
 			},
 			{

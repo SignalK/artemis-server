@@ -25,7 +25,6 @@ package nz.co.fortytwo.signalk.artemis.intercept;
 
 import static nz.co.fortytwo.signalk.util.SignalKConstants.CONFIG;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.CONTEXT;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.UNKNOWN;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.label;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.resources;
@@ -35,23 +34,16 @@ import static nz.co.fortytwo.signalk.util.SignalKConstants.sources;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.timestamp;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.type;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.value;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.values;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels;
 
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentSkipListMap;
-
 import org.apache.activemq.artemis.api.core.ActiveMQException;
+import org.apache.activemq.artemis.api.core.ICoreMessage;
 import org.apache.activemq.artemis.api.core.Interceptor;
 import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.core.protocol.core.Packet;
 import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendMessage;
-import org.apache.activemq.artemis.core.server.ServerMessage;
 import org.apache.activemq.artemis.core.server.ServerSession;
-import org.apache.activemq.artemis.core.server.cluster.Transformer;
 import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -84,7 +76,7 @@ public class FullMsgInterceptor implements Interceptor {
 		if (packet instanceof SessionSendMessage) {
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
 
-			Message message = realPacket.getMessage();
+			ICoreMessage message = realPacket.getMessage();
 			if(!Config.JSON_FULL.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))return true;
 			//if(logger.isDebugEnabled())logger.debug("Processing: " + message);
 			Json node = Util.readBodyBuffer(message);

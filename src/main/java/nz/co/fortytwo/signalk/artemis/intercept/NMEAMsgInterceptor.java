@@ -32,27 +32,17 @@ import static nz.co.fortytwo.signalk.util.SignalKConstants.label;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.nav_courseOverGroundMagnetic;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.nav_courseOverGroundTrue;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.nav_position;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.nav_position_altitude;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.nav_position_latitude;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.nav_position_longitude;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.nav_speedOverGround;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.sourceRef;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.timestamp;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.type;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.value;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels_dot_self_dot;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
-import org.apache.activemq.artemis.api.core.ActiveMQSecurityException;
+import org.apache.activemq.artemis.api.core.ICoreMessage;
 import org.apache.activemq.artemis.api.core.Interceptor;
 import org.apache.activemq.artemis.api.core.Message;
-import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.core.protocol.core.Packet;
 import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendMessage;
-import org.apache.activemq.artemis.core.server.ServerMessage;
 import org.apache.activemq.artemis.core.server.ServerSession;
-import org.apache.activemq.artemis.core.server.cluster.Transformer;
-import org.apache.activemq.artemis.core.server.impl.ServerMessageImpl;
 import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
@@ -71,11 +61,9 @@ import net.sf.marineapi.nmea.sentence.PositionSentence;
 import net.sf.marineapi.nmea.sentence.RMCSentence;
 import net.sf.marineapi.nmea.sentence.Sentence;
 import net.sf.marineapi.nmea.sentence.VHWSentence;
-import nz.co.fortytwo.signalk.artemis.intercept.SentenceEventSource;
 import nz.co.fortytwo.signalk.artemis.server.ArtemisServer;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
-import nz.co.fortytwo.signalk.util.ConfigConstants;
 
 
 /**
@@ -105,7 +93,7 @@ public class NMEAMsgInterceptor implements Interceptor {
 		if (packet instanceof SessionSendMessage) {
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
 
-			Message message = realPacket.getMessage();
+			ICoreMessage message = realPacket.getMessage();
 			if(!Config._0183.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))return true;
 			String sessionId = message.getStringProperty(Config.AMQ_SESSION_ID);
 			ServerSession sess = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);

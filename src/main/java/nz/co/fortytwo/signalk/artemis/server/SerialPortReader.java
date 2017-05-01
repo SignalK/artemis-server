@@ -28,8 +28,6 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -50,7 +48,6 @@ import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.util.ConfigConstants;
 import nz.co.fortytwo.signalk.util.SignalKConstants;
-
 import purejavacomm.CommPortIdentifier;
 import purejavacomm.SerialPort;
 import purejavacomm.SerialPortEvent;

@@ -104,10 +104,11 @@
 			</class-name>
 			<class-name>nz.co.fortytwo.signalk.artemis.intercept.UpdateMsgInterceptor
 			</class-name>
-			<!-- outgoing -->
-			<class-name>nz.co.fortytwo.signalk.artemis.intercept.MapToDeltaInterceptor
-			</class-name>
 		</remoting-incoming-interceptors>
+			<!-- outgoing -->
+		<remoting-outgoing-interceptors>
+			<class-name>nz.co.fortytwo.signalk.artemis.intercept.MapToDeltaInterceptor</class-name>
+		</remoting-outgoing-interceptors>
 
 		<!-- Other config -->
 		<security-enabled>true</security-enabled>

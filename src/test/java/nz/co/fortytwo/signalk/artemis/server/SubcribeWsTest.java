@@ -53,7 +53,6 @@ import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

@@ -29,8 +29,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.apache.activemq.artemis.api.core.ActiveMQException;
-import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.commons.lang3.StringUtils;
@@ -40,7 +38,6 @@ import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
-import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.util.ConfigConstants;
 
 /**
