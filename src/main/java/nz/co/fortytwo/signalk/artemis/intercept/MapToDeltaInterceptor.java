@@ -27,6 +27,7 @@ public class MapToDeltaInterceptor implements Interceptor {
 		//we only want outgoing packets
 		if (logger.isDebugEnabled())
 			logger.debug("Outgoing Msg is:" + packet.getClass());
+		//NullResponseMessage!
 		if (packet instanceof SessionReceiveMessage) {
 			SessionReceiveMessage realPacket = (SessionReceiveMessage) packet;
 

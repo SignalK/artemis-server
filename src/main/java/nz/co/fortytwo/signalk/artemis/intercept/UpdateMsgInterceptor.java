@@ -87,6 +87,7 @@ public class UpdateMsgInterceptor implements Interceptor {
 			if(!Config.JSON_DELTA.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))return true;
 			//if(logger.isDebugEnabled())logger.debug("Processing: " + message);
 			Json node = Util.readBodyBuffer(message);
+			if(logger.isDebugEnabled())logger.debug("Update msg: "+node.toString());
 			// avoid full signalk syntax
 			if (node.has(vessels))
 				return true;
@@ -157,8 +158,10 @@ public class UpdateMsgInterceptor implements Interceptor {
 			if(src!=null){
 				if(!src.has(type)&& m1.getStringProperty(Config.MSG_SRC_BUS)!=null)
 					src.set(type, m1.getStringProperty(Config.MSG_SRC_BUS));
-				srcRef = src.at(type).toString()+dot+src.at(label).toString();
+				srcRef = src.at(type).asString()+dot+src.at(label).asString();
 				Util.sendSourceMsg(srcRef, (Json)src,timeStamp, sess);
+				
+				
 			}
 		}
 		

@@ -158,7 +158,7 @@ public final class ArtemisServer {
 			Util.sendMessage(session, producer, Config.INCOMING_RAW, Config.load(Util.SIGNALK_CFG_SAVE_FILE).toString());
 			Util.sendMessage(session, producer, Config.INCOMING_RAW, Config.load(Util.SIGNALK_SOURCES_SAVE_FILE).toString());
 			Util.sendMessage(session, producer, Config.INCOMING_RAW, Config.load(Util.SIGNALK_RESOURCES_SAVE_FILE).toString());
-			Json selfJson =Json.read(Config.load(Util.SIGNALK_MODEL_SAVE_FILE).toString());
+			Json selfJson =Config.load(Util.SIGNALK_MODEL_SAVE_FILE);
 			if(!selfJson.has(vessels)){
 				selfJson.set(vessels,Json.object());
 			}
@@ -167,13 +167,14 @@ public final class ArtemisServer {
 				selfVessel=selfJson.at(vessels).at("self");
 			}else{
 				selfVessel=Json.object();
-				selfJson=selfJson.at(vessels).set("self",selfJson);
+				selfJson.at(vessels).set("self",selfVessel);
 			}
 			
 			//set std data in self in case its gone.
 			selfVessel.set(uuid, Config.getConfigProperty(ConfigConstants.UUID));
 			selfVessel.set(mmsi, Config.getConfigProperty(ConfigConstants.MMSI));
 			selfVessel.set(name, Config.getConfigProperty(ConfigConstants.NAME));
+			logger.debug("self.json: "+selfJson);
 			
 			Util.sendMessage(session, producer, Config.INCOMING_RAW, selfJson.toString());
 			

@@ -333,13 +333,9 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 
 					Json valuesArray = Json.array();
 					valObj.at(values, valuesArray);
-					// add timestamp
 					valObj.set(timestamp, ts);
-					// if(src.contains("{"))
-					// logger.debug("GenerateDelta:src: "+src);
 					valObj.set(sourceRef, src);
-					// else
-					// valObj.set(sourceRef, src);
+					
 					// now the values
 					for (ClientMessage msg : msgs.get(ctx).get(ts).get(src)) {
 						String key = msg.getAddress().toString().substring(ctx.length() + 1);
@@ -350,6 +346,8 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 							logger.debug("Key: " + key + ", value: " + v);
 						Json val = Json.object(PATH, key);
 						val.set(value, v);
+						if(v.isObject())v.delAt(timestamp);
+						if(v.isObject())v.delAt(sourceRef);
 						valuesArray.add(val);
 					}
 				}

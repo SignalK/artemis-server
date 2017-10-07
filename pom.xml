@@ -9,7 +9,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<artemis.version>2.0.0</artemis.version>
+		<artemis.version>2.3.0</artemis.version>
 		<camel.version>2.18.3</camel.version>
 		<camel.core.version>2.18.3</camel.core.version>
 	</properties>

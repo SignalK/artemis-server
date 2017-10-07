@@ -28,19 +28,9 @@ import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.util.SignalKConstants;
 
-public class SubscribeTest {
-	ArtemisServer server;
+public class SubscribeTest extends BaseServerTest{
+	
 	private static Logger logger = LogManager.getLogger(SubscribeTest.class);
-
-	@Before
-	public void startServer() throws Exception {
-		server = new ArtemisServer();
-	}
-
-	@After
-	public void stopServer() throws Exception {
-		server.stop();
-	}
 
 	@Test
 	public void checkSelfSubscribe() throws Exception {
@@ -52,7 +42,7 @@ public class SubscribeTest {
 			ClientProducer producer = session.createProducer(Config.INCOMING_RAW);
 
 			ClientMessage message = session.createMessage(true);
-			Json msg = getJson("vessels." + SignalKConstants.self, "navigation", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
+			Json msg = getSubscriptionJson("vessels." + SignalKConstants.self, "navigation", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
 			message.getBodyBuffer().writeString(msg.toString());
 			String tempQ = UUID.randomUUID().toString();
 			session.createTemporaryQueue("outgoing.reply."+tempQ, RoutingType.MULTICAST, tempQ);
@@ -135,7 +125,7 @@ public class SubscribeTest {
 			}
 			//subscribe, and wait for some responses, should be 1 per second
 			ClientMessage subMsg = session.createMessage(true);
-			Json msg = getJson("vessels.urn:mrn:imo:mmsi:123456789", "navigation", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
+			Json msg = getSubscriptionJson("vessels.urn:mrn:imo:mmsi:123456789", "navigation", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
 			subMsg.getBodyBuffer().writeString(msg.toString());
 			String tempQ = UUID.randomUUID().toString();
 			session.createTemporaryQueue("outgoing.reply."+tempQ, RoutingType.MULTICAST, tempQ);
@@ -174,17 +164,6 @@ public class SubscribeTest {
 		}
 	}
 
-	private Json getJson(String context, String path, int period, int minPeriod, String format, String policy) {
-		Json json = Json.read("{\"context\":\"" + context + "\", \"subscribe\": []}");
-		Json sub = Json.object();
-		sub.set("path", path);
-		sub.set("period", period);
-		sub.set("minPeriod", minPeriod);
-		sub.set("format", format);
-		sub.set("policy", policy);
-		json.at("subscribe").add(sub);
-		logger.debug("Created json sub: " + json);
-		return json;
-	}
+	
 
 }

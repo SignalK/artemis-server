@@ -26,65 +26,11 @@ import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
-public class ArtemisServerTest {
-	ArtemisServer server;
+public class ArtemisServerTest extends BaseServerTest{
+	
 	private static Logger logger = LogManager.getLogger(ArtemisServerTest.class);
 
-	@Before
-	public void startServer() throws Exception {
-		server = new ArtemisServer();
-	}
-
-	@After
-	public void stopServer() throws Exception {
-		if(server!=null)server.stop();
-	}
-
-	@Test
-	public void checkSimpleVMConnection() throws Exception {
-
-		ClientSession session = Util.getVmSession("guest", "guest");
-		session.start();
-
-		ClientProducer producer = session.createProducer("vessels.example");
-
-		ClientMessage message = session.createMessage(true);
-		message.getBodyBuffer().writeString("Hello1");
-		message.putStringProperty(Config._AMQ_LVQ_NAME, "KEY_1");
-		producer.send("vessels.example", message);
-
-		message = session.createMessage(true);
-		message.getBodyBuffer().writeString("Hello2");
-		message.putStringProperty(Config._AMQ_LVQ_NAME, "KEY_1");
-		producer.send("vessels.example", message);
-
-		message = session.createMessage(true);
-		message.getBodyBuffer().writeString("Hello3");
-		message.putStringProperty(Config._AMQ_LVQ_NAME, "KEY_2");
-		producer.send("vessels.example.navigation", message);
-
-		ClientConsumer consumer = session.createConsumer("vessels", true);
-
-		ClientMessage msgReceived = consumer.receive(10);
-		String recv = msgReceived.getBodyBuffer().readString();
-		consumer.close();
-		if (logger.isDebugEnabled())
-			logger.debug("message = " + recv);
-		assertEquals("Hello2", recv);
-		consumer = session.createConsumer("vessels", true);
-		msgReceived = consumer.receive(10);
-		assertNotNull(msgReceived);
-		assertEquals("Hello2", msgReceived.getBodyBuffer().readString());
-		// reread last message
-		msgReceived = consumer.receive(10);
-		assertNotNull(msgReceived);
-		assertEquals("Hello3", msgReceived.getBodyBuffer().readString());
-		if (logger.isDebugEnabled())
-			logger.debug("message3 = " + msgReceived.getAddress());
-		if (logger.isDebugEnabled())
-			logger.debug("message3 = " + msgReceived.toString());
-		session.close();
-	}
+	
 
 	@Test
 	public void shouldReadPartialKeysForGuest() throws Exception {
@@ -125,7 +71,7 @@ public class ArtemisServerTest {
 		if (logger.isDebugEnabled())
 			logger.debug("Sent = " + c + ", recd=" + d);
 		assertEquals(1000, c);
-		assertEquals(27, d);
+		assertEquals(32, d);
 	}
 
 	@Test
@@ -180,7 +126,17 @@ public class ArtemisServerTest {
 
 	@Test
 	public void shouldEditConfigForAdmin() throws Exception {
-		Map<String, Json> model = shouldReadConfigForUser("admin", 38);
+		
+		ClientSession session = Util.getVmSession("admin", "admin");
+
+		ClientProducer producer = session.createProducer();
+		session.start();
+		
+		ClientMessage message = session.createMessage(true);
+		message.getBodyBuffer().writeString("{ \"config\": { \"server\": { \"clock\": { \"src\": \"system\" } } }}");
+		producer.send(Config.INCOMING_RAW, message);
+		
+		Map<String, Json> model = shouldReadConfigForUser("admin", 53);
 		//check String
 		assertEquals("system", model.get("config.server.clock.src").asString());
 		//check boolean
@@ -190,23 +146,20 @@ public class ArtemisServerTest {
 		
 		
 		
-		ClientSession session = Util.getVmSession("admin", "admin");
-
-		ClientProducer producer = session.createProducer();
-		session.start();
 		
-		ClientMessage message = session.createMessage(true);
+		
+		message = session.createMessage(true);
 		message.getBodyBuffer().writeString("{ \"config\": { \"server\": { \"clock\": { \"src\": \"gps\" } } }}");
 		producer.send(Config.INCOMING_RAW, message);
 		
-		model = shouldReadConfigForUser("admin", 38);
+		model = shouldReadConfigForUser("admin", 53);
 		assertEquals("gps", model.get("config.server.clock.src").asString());
 		
 		message = session.createMessage(true);
 		message.getBodyBuffer().writeString("{ \"config\": { \"server\": { \"clock\": { \"src\": \"system\" } } }}");
 		producer.send(Config.INCOMING_RAW, message);
 		
-		model = shouldReadConfigForUser("admin", 38);
+		model = shouldReadConfigForUser("admin", 53);
 		assertEquals("system", model.get("config.server.clock.src").asString());
 		
 		session.close();
@@ -215,7 +168,7 @@ public class ArtemisServerTest {
 	
 	@Test
 	public void shouldReadConfigForAdmin() throws Exception {
-		shouldReadConfigForUser("admin", 38);
+		shouldReadConfigForUser("admin", 53);
 	}
 	
 	@Test
@@ -229,7 +182,7 @@ public class ArtemisServerTest {
 	}
 	
 	
-	public Map<String,Json> shouldReadConfigForUser(String user, int items) throws Exception {
+	private Map<String,Json> shouldReadConfigForUser(String user, int items) throws Exception {
 		Map<String,Json> model = new HashMap<>();
 		ClientSession session = Util.getVmSession(user, user);
 		session.start();

@@ -1,9 +1,13 @@
 package nz.co.fortytwo.signalk.artemis.server;
 
 import static nz.co.fortytwo.signalk.util.SignalKConstants.FORMAT_DELTA;
+import static nz.co.fortytwo.signalk.util.SignalKConstants.PATH;
 import static nz.co.fortytwo.signalk.util.SignalKConstants.POLICY_FIXED;
+import static nz.co.fortytwo.signalk.util.SignalKConstants.UPDATES;
 import static org.junit.Assert.assertEquals;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -21,31 +25,20 @@ import org.junit.Test;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
+import nz.co.fortytwo.signalk.util.SignalKConstants;
 
-public class NMEATest {
-	ArtemisServer server;
-	private static Logger logger = LogManager.getLogger(NMEATest.class);
-
-	@Before
-	public void startServer() throws Exception {
-		server = new ArtemisServer();
-	}
-
-	@After
-	public void stopServer() throws Exception {
-		server.stop();
-	}
-
+public class NMEATest extends BaseServerTest {
 	
+	private static Logger logger = LogManager.getLogger(NMEATest.class);
 
 	@Test
 	public void shouldReadPartialKeysForGuest() throws Exception {
-		readPartialKeys("guest", 4);
+		readPartialKeys("guest", 2);
 	}
 
 	@Test
 	public void shouldReadPartialKeysForAdmin() throws Exception {
-		readPartialKeys("admin", 4);
+		readPartialKeys("admin", 2);
 	}
 
 	private void readPartialKeys(String user, int expected) throws Exception {
@@ -64,9 +57,9 @@ public class NMEATest {
 
 			// subscribe, and wait for some responses, should be 1 per second
 			ClientMessage subMsg = session.createMessage(true);
-			Json msg = getJson("vessels.self", "navigation", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
+			Json msg = getSubscriptionJson("vessels.self", "navigation", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
 			subMsg.getBodyBuffer().writeString(msg.toString());
-			session.createTemporaryQueue("outgoing.reply.temp-001",RoutingType.MULTICAST, "temp-001");
+			session.createTemporaryQueue("outgoing.reply.temp-001", RoutingType.MULTICAST, "temp-001");
 			subMsg.putStringProperty("AMQ_REPLY_Q", "temp-001");
 			producer.send(Config.INCOMING_RAW, subMsg);
 			producer.close();
@@ -74,36 +67,33 @@ public class NMEATest {
 			CountDownLatch latch = new CountDownLatch(1);
 			latch.await(3, TimeUnit.SECONDS);
 
-			int d = 0; // now read partial
 			ClientConsumer consumer = session.createConsumer("temp-001", false);
 			ClientMessage msgReceived = null;
+			Set<String> set = new HashSet<>();
 			while ((msgReceived = consumer.receive(10)) != null) {
 				Object recv = Util.readBodyBuffer(msgReceived);
 				if (logger.isDebugEnabled())
-					logger.debug("Client message = " + msgReceived.getStringProperty(Config._AMQ_LVQ_NAME) + ", " + recv); //
+					logger.debug(
+							"Client message = " + msgReceived.getStringProperty(Config._AMQ_LVQ_NAME) + ", " + recv); //
 				if (logger.isDebugEnabled())
 					logger.debug("Client message = " + msgReceived.toString());
-				d++;
+				Json json = Json.read(recv.toString());
+				for (Json values : json.at(UPDATES).asJsonList()) {
+					for (Json v : values.at(SignalKConstants.values).asJsonList()) {
+						set.add(v.at(PATH).asString());
+					}
+				}
+
+				logger.debug("Client updates size = " + set.size());
+
 			}
 
 			consumer.close();
-			assertEquals(expected, d);
+			assertEquals(expected, set.size());
 		} finally {
 			session.close();
 		}
 	}
 
-	private Json getJson(String context, String path, int period, int minPeriod, String format, String policy) {
-		Json json = Json.read("{\"context\":\"" + context + "\", \"subscribe\": []}");
-		Json sub = Json.object();
-		sub.set("path", path);
-		sub.set("period", period);
-		sub.set("minPeriod", minPeriod);
-		sub.set("format", format);
-		sub.set("policy", policy);
-		json.at("subscribe").add(sub);
-		logger.debug("Created json sub: " + json);
-		return json;
-	}
-
+	
 }

@@ -7,33 +7,53 @@ import static org.junit.Assert.assertNotNull;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.activemq.artemis.api.core.client.ClientMessage;
+import org.apache.activemq.artemis.api.core.client.ClientProducer;
+import org.apache.activemq.artemis.api.core.client.ClientSession;
+import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.util.SignalKConstants;
 
-public class TcpSubscribeTest {
-	ArtemisServer server;
+public class TcpSubscribeTest extends BaseServerTest{
+	
 	private static Logger logger = LogManager.getLogger(TcpSubscribeTest.class);
 
 	@Before
 	public void startServer() throws Exception {
+		//remove self file so we have clean model
+		FileUtils.writeStringToFile(new File(Util.SIGNALK_MODEL_SAVE_FILE), "{}", StandardCharsets.UTF_8);
 		server = new ArtemisServer();
+	
+		ClientSession session = Util.getVmSession("admin", "admin");
+		session.start();
+	
+		ClientProducer producer = session.createProducer();
+	
+		for (String line : FileUtils.readLines(new File("./src/test/resources/samples/signalkKeesLog.txt"))) {
+			line=line.replaceAll("urn:mrn:imo:mmsi:123456789","self");
+			ClientMessage message = session.createMessage(true);
+			message.getBodyBuffer().writeString(line);
+			producer.send(Config.INCOMING_RAW, message);
+			if (logger.isDebugEnabled())
+				logger.debug("Sent:" + message.getMessageID() + ":" + line);
+		}
 	}
 
-	@After
-	public void stopServer() throws Exception {
-		server.stop();
-	}
 
 	@Test
 	public void checkSelfSubscribe() throws Exception {
@@ -56,7 +76,7 @@ public class TcpSubscribeTest {
 		//System.out.println("FROM SERVER: " + modifiedSentence);
 		try {
 
-			Json msg = getJson("vessels." + SignalKConstants.self, "navigation", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
+			Json msg = getSubscriptionJson("vessels." + SignalKConstants.self, "navigation", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
 			outToServer.writeBytes(msg.toString() + '\n');
 			String line = "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78";
 			outToServer.writeBytes(line + '\n');
@@ -96,10 +116,10 @@ public class TcpSubscribeTest {
 		
 		try {
 			//assumes these exist!
-			Json msg1 = getJson("vessels." + SignalKConstants.self, "navigation.position", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
+			Json msg1 = getSubscriptionJson("vessels." + SignalKConstants.self, "navigation.position", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
 			outToServer1.writeBytes(msg1.toString() + '\n');
 			
-			Json msg2 = getJson("vessels." + SignalKConstants.self, "navigation.headingMagnetic", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
+			Json msg2 = getSubscriptionJson("vessels." + SignalKConstants.self, "navigation.headingMagnetic", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
 			outToServer2.writeBytes(msg2.toString() + '\n');
 			
 			String line = "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78";
@@ -129,17 +149,6 @@ public class TcpSubscribeTest {
 
 
 
-	private Json getJson(String context, String path, int period, int minPeriod, String format, String policy) {
-		Json json = Json.read("{\"context\":\"" + context + "\", \"subscribe\": []}");
-		Json sub = Json.object();
-		sub.set("path", path);
-		sub.set("period", period);
-		sub.set("minPeriod", minPeriod);
-		sub.set("format", format);
-		sub.set("policy", policy);
-		json.at("subscribe").add(sub);
-		logger.debug("Created json sub: " + json);
-		return json;
-	}
+	
 
 }

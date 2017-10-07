@@ -64,6 +64,10 @@
 				"level": "debug"
 			},
 			{
+				"name": "nz.co.fortytwo.signalk.artemis.intercept.UpdateMsgInterceptor",
+				"level": "debug"
+			},
+			{
 				"name": "nz.co.fortytwo.signalk.artemis.util.Config",
 				"level": "error"
 			},
