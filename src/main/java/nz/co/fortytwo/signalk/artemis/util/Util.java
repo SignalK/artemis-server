@@ -217,7 +217,17 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 
 	private static void sendObjMsg(String key, Json body, String timeStamp, Object src, ServerSession sess)
 			throws Exception {
+		try {
+			Message m2 = getMessage(key, body, timeStamp, src);
+			sess.send(m2, true);
+		} catch (ActiveMQSecurityException se) {
+			logger.warn(se.getMessage());
+		} catch (Exception e1) {
+			logger.error(e1.getMessage(), e1);
+		}
+	}
 
+	protected static Message getMessage(String key, Json body, String timeStamp, Object src) {
 		ClientMessage m2 = new ClientMessageImpl((byte)0, false, 0, System.currentTimeMillis(), (byte) 4, 1024); 
 		if(StringUtils.isNotBlank(timeStamp))
 			m2.putStringProperty(timestamp, timeStamp);
@@ -269,14 +279,7 @@ public class Util extends nz.co.fortytwo.signalk.util.Util {
 
 		m2.setAddress(new SimpleString(key));
 		m2.putStringProperty(Config._AMQ_LVQ_NAME, key);
-
-		try {
-			sess.send(m2, true);
-		} catch (ActiveMQSecurityException se) {
-			logger.warn(se.getMessage());
-		} catch (Exception e1) {
-			logger.error(e1.getMessage(), e1);
-		}
+		return m2;
 	}
 
 	public static void sendSourceMsg(String key, String src, String now, ServerSession sess) throws Exception {

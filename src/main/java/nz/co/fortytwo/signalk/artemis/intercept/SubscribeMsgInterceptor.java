@@ -64,7 +64,7 @@ import nz.co.fortytwo.signalk.util.ConfigConstants;
  * 
  */
 
-public class SubscribeMsgInterceptor implements Interceptor {
+public class SubscribeMsgInterceptor extends BaseInterceptor implements Interceptor {
 	// private ClientSession session;
 	// private ClientProducer producer;
 

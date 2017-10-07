@@ -63,7 +63,7 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
  * 
  */
 
-public class UpdateMsgInterceptor implements Interceptor {
+public class UpdateMsgInterceptor extends BaseInterceptor implements Interceptor {
 	//private ClientSession session;
 	//private ClientProducer producer;
 
@@ -156,15 +156,16 @@ public class UpdateMsgInterceptor implements Interceptor {
 		}else{
 			Json src = update.at(source);
 			if(src!=null){
-				if(!src.has(type)&& m1.getStringProperty(Config.MSG_SRC_BUS)!=null)
+				//src.type is missing, but msg has one.
+				if(!src.has(type)&& m1.getStringProperty(Config.MSG_SRC_BUS)!=null){
 					src.set(type, m1.getStringProperty(Config.MSG_SRC_BUS));
+				}
+				//make srcRef 'type.label'
 				srcRef = src.at(type).asString()+dot+src.at(label).asString();
-				Util.sendSourceMsg(srcRef, (Json)src,timeStamp, sess);
-				
-				
+				sendSourceMsg(srcRef, (Json)src,timeStamp, sess);
 			}
 		}
-		
+		//process the values
 		Json array = update.at(values);
 		for (Json e : array.asJsonList()) {
 
@@ -174,13 +175,12 @@ public class UpdateMsgInterceptor implements Interceptor {
 			// temp.put(ctx+"."+key, e.at(value).getValue());
 			if (e.has(value)) {
 				if(logger.isDebugEnabled())logger.debug("Adding "+e);
-				Util.sendMsg(ctx + dot + key, e.at(value), timeStamp, srcRef, sess);
+				sendMsg(ctx + dot + key, e.at(value), timeStamp, srcRef, sess);
 			}
 
 		}
 
 	}
+
 	
-
-
 }

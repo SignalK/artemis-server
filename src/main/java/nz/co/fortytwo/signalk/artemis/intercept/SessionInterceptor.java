@@ -16,7 +16,7 @@ import nz.co.fortytwo.signalk.artemis.util.Config;
 /**
  * A way to acquire the session in a message
  */
-public class SessionInterceptor implements Interceptor {
+public class SessionInterceptor extends BaseInterceptor implements Interceptor {
 
 	private static Logger logger = LogManager.getLogger(SessionInterceptor.class);
 

@@ -60,7 +60,7 @@ import nz.co.fortytwo.signalk.util.JsonSerializer;
  * @author robert
  * 
  */
-public class FullMsgInterceptor implements Interceptor {
+public class FullMsgInterceptor extends BaseInterceptor implements Interceptor {
 
 	private static Logger logger = LogManager.getLogger(FullMsgInterceptor.class);
 
@@ -112,22 +112,22 @@ public class FullMsgInterceptor implements Interceptor {
 		if (logger.isDebugEnabled())
 			logger.debug("processing sub: "+ key+": " + node);
 		if (node==null || node.isNull()) {
-			Util.sendMsg(key, Json.nil(), null, (String)null, sess);
+			sendMsg(key, Json.nil(), null, (String)null, sess);
 			return;
 		}
 		if(node.isPrimitive()){
 			//attribute type
-			Util.sendMsg(key, node,null, (String)null, sess);
+			sendMsg(key, node,null, (String)null, sess);
 			return;
 		}
 		if(node.isArray()){
 			//attribute type
-			Util.sendMsg(key, node,null, (String)null, sess);
+			sendMsg(key, node,null, (String)null, sess);
 			return;
 		}
 		//if(node.has(values)){
 			//just send it
-		//	Util.sendMsg(key+dot+values, node.at(values), null, (String)null, sess);
+		//	sendMsg(key+dot+values, node.at(values), null, (String)null, sess);
 		//	return;
 		//}
 		String srcRef = null;
@@ -139,17 +139,17 @@ public class FullMsgInterceptor implements Interceptor {
 				if(!src.has(type))
 					src.set(type, srcBus);
 				srcRef = src.at(type).toString()+dot+src.at(label).toString();
-				Util.sendSourceMsg(srcRef, (Json)src,node.at(timestamp).asString(), sess);
+				sendSourceMsg(srcRef, (Json)src,node.at(timestamp).asString(), sess);
 			}
 		}
 		if(node.has(value)){
-			Util.sendMsg(key, node.at(value), node.at(timestamp).asString(), srcRef, sess);
+			sendMsg(key, node.at(value), node.at(timestamp).asString(), srcRef, sess);
 			return;
 		}
 		//either composite or path to recurse
 		if(node.has(timestamp)||node.has(source)){
 			//composite
-			Util.sendMsg(key, node, node.at(timestamp).asString(), srcRef, sess);
+			sendMsg(key, node, node.at(timestamp).asString(), srcRef, sess);
 		}else{
 			//recurse
 			for(String k: node.asJsonMap().keySet()){
