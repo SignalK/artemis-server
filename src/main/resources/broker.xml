@@ -41,24 +41,24 @@
 				<auto-delete-queues>true</auto-delete-queues>
 			</address-setting>
 			<address-setting match="vessels.#">
-				<last-value-queue>true</last-value-queue>
+				<last-value-queue>false</last-value-queue>
 				<auto-create-queues>true</auto-create-queues>
 				<auto-delete-queues>true</auto-delete-queues>
 			</address-setting>
 			<address-setting match="sources.#">
-				<last-value-queue>true</last-value-queue>
+				<last-value-queue>false</last-value-queue>
 				<auto-create-queues>true</auto-create-queues>
 				<auto-delete-queues>true</auto-delete-queues>
 			</address-setting>
 
 			<address-setting match="resources.#">
-				<last-value-queue>true</last-value-queue>
+				<last-value-queue>false</last-value-queue>
 				<auto-create-queues>true</auto-create-queues>
 				<auto-delete-queues>true</auto-delete-queues>
 			</address-setting>
 
 			<address-setting match="config.#">
-				<last-value-queue>true</last-value-queue>
+				<last-value-queue>false</last-value-queue>
 				<auto-create-queues>true</auto-create-queues>
 				<auto-delete-queues>true</auto-delete-queues>
 			</address-setting>
@@ -111,7 +111,7 @@
 		</remoting-outgoing-interceptors>
 
 		<!-- Other config -->
-		<security-enabled>true</security-enabled>
+		<security-enabled>false</security-enabled>
 		<security-settings>
 			<!--security for example queue -->
 			<security-setting match="incoming.#">

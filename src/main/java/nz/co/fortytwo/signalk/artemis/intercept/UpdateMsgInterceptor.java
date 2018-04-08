@@ -64,8 +64,6 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
  */
 
 public class UpdateMsgInterceptor extends BaseInterceptor implements Interceptor {
-	//private ClientSession session;
-	//private ClientProducer producer;
 
 	private static Logger logger = LogManager.getLogger(UpdateMsgInterceptor.class);
 
@@ -117,7 +115,7 @@ public class UpdateMsgInterceptor extends BaseInterceptor implements Interceptor
 	 * @param ctx
 	 * @param message
 	 */
-	private void parseUpdates(Json updates, String ctx, Message message) {
+	protected void parseUpdates(Json updates, String ctx, Message message) {
 		if (updates == null) return;
 		for (Json update : updates.asJsonList()) {
 
@@ -137,8 +135,11 @@ public class UpdateMsgInterceptor extends BaseInterceptor implements Interceptor
 		if(logger.isDebugEnabled())logger.debug("message m1 = "  + m1.getMessageID()+":" + m1.getAddress() + ", " + m1.getPropertyNames());
 		String sessionId = m1.getStringProperty(Config.AMQ_SESSION_ID);
 		ServerSession sess = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
-		String device = sess.getRemotingConnection().getRemoteAddress();
-		if(logger.isDebugEnabled())logger.debug("SessionId:"+sessionId+", found "+sess + " from "+device);
+		//will be null in tests
+		if(sess!=null){
+			String device = sess.getRemotingConnection().getRemoteAddress();
+			if(logger.isDebugEnabled())logger.debug("SessionId:"+sessionId+", found "+sess + " from "+device);
+		}
 		// grab values and add
 		
 		

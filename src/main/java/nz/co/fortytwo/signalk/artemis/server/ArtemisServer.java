@@ -65,9 +65,10 @@ public final class ArtemisServer {
 	private static EmbeddedActiveMQ embedded;
 	private static Nettosphere server;
 	private JmmDNS jmdns;
-	private SaveListener vesselListener;
-	private SaveListener resourceListener;
-	private SaveListener sourceListener;
+	//private SaveListener vesselListener;
+	//private SaveListener resourceListener;
+	//private SaveListener sourceListener;
+	private InfluxDbConsumer influxConsumer;
 	private nz.co.fortytwo.signalk.artemis.server.SerialPortManager serialPortManager;
 	private nz.co.fortytwo.signalk.artemis.server.NettyServer skServer;
 	private nz.co.fortytwo.signalk.artemis.server.NettyServer nmeaServer;
@@ -94,13 +95,13 @@ public final class ArtemisServer {
 		embedded.setSecurityManager(securityManager);
 		embedded.start();
 
-		load();
+		//load();
 
 		// now listen for changes and save them
 		Config.startConfigListener();
 		// vessels, sources and resources
-		startSaveListeners();
-
+		//startSaveListeners();
+		startConsumers();
 		// start serial manager
 
 		// start a serial port manager
@@ -134,58 +135,65 @@ public final class ArtemisServer {
 		main.enableHangupSupport();
 	}
 
-	private void startSaveListeners() throws Exception {
-		vesselListener = new SaveListener(Config.getConfigProperty(Config.ADMIN_USER),
-				Config.getConfigProperty(Config.ADMIN_PWD), vessels, vessels, Util.SIGNALK_MODEL_SAVE_FILE, 1000 * 5);
-		vesselListener.startSave();
-		resourceListener = new SaveListener(Config.getConfigProperty(Config.ADMIN_USER),
-				Config.getConfigProperty(Config.ADMIN_PWD), resources, resources, Util.SIGNALK_RESOURCES_SAVE_FILE,
-				60000);
-		resourceListener.startSave();
-		sourceListener = new SaveListener(Config.getConfigProperty(Config.ADMIN_USER),
-				Config.getConfigProperty(Config.ADMIN_PWD), sources, sources, Util.SIGNALK_SOURCES_SAVE_FILE, 6000);
-		sourceListener.startSave();
-	}
-
-	private void load() throws Exception {
-		// now send in
-		ClientSession session = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
-				Config.getConfigProperty(Config.ADMIN_PWD));
-		try {
-			// this loads the LVQ config queues.
-			ClientProducer producer = session.createProducer();
-			// now bootstrap the resources, sources, and vessel
-			Util.sendMessage(session, producer, Config.INCOMING_RAW, Config.load(Util.SIGNALK_CFG_SAVE_FILE).toString());
-			Util.sendMessage(session, producer, Config.INCOMING_RAW, Config.load(Util.SIGNALK_SOURCES_SAVE_FILE).toString());
-			Util.sendMessage(session, producer, Config.INCOMING_RAW, Config.load(Util.SIGNALK_RESOURCES_SAVE_FILE).toString());
-			Json selfJson =Config.load(Util.SIGNALK_MODEL_SAVE_FILE);
-			if(!selfJson.has(vessels)){
-				selfJson.set(vessels,Json.object());
-			}
-			Json selfVessel = null;
-			if(selfJson.at(vessels).has("self")){
-				selfVessel=selfJson.at(vessels).at("self");
-			}else{
-				selfVessel=Json.object();
-				selfJson.at(vessels).set("self",selfVessel);
-			}
-			
-			//set std data in self in case its gone.
-			selfVessel.set(uuid, Config.getConfigProperty(ConfigConstants.UUID));
-			selfVessel.set(mmsi, Config.getConfigProperty(ConfigConstants.MMSI));
-			selfVessel.set(name, Config.getConfigProperty(ConfigConstants.NAME));
-			logger.debug("self.json: "+selfJson);
-			
-			Util.sendMessage(session, producer, Config.INCOMING_RAW, selfJson.toString());
-			
-			
-
-		} finally {
-			if (session != null)
-				session.close();
-		}
+//	private void startSaveListeners() throws Exception {
+//		vesselListener = new SaveListener(Config.getConfigProperty(Config.ADMIN_USER),
+//				Config.getConfigProperty(Config.ADMIN_PWD), vessels, vessels, Util.SIGNALK_MODEL_SAVE_FILE, 1000 * 5);
+//		vesselListener.startSave();
+//		resourceListener = new SaveListener(Config.getConfigProperty(Config.ADMIN_USER),
+//				Config.getConfigProperty(Config.ADMIN_PWD), resources, resources, Util.SIGNALK_RESOURCES_SAVE_FILE,
+//				60000);
+//		resourceListener.startSave();
+//		sourceListener = new SaveListener(Config.getConfigProperty(Config.ADMIN_USER),
+//				Config.getConfigProperty(Config.ADMIN_PWD), sources, sources, Util.SIGNALK_SOURCES_SAVE_FILE, 6000);
+//		sourceListener.startSave();
+//	}
+	
+	private void startConsumers() throws Exception {
+		influxConsumer = new InfluxDbConsumer(Config.getConfigProperty(Config.ADMIN_USER),
+				Config.getConfigProperty(Config.ADMIN_PWD), vessels, 1000 * 5);
+		influxConsumer.startSave();
 
 	}
+
+//	private void load() throws Exception {
+//		// now send in
+//		ClientSession session = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
+//				Config.getConfigProperty(Config.ADMIN_PWD));
+//		try {
+//			// this loads the LVQ config queues.
+//			ClientProducer producer = session.createProducer();
+//			// now bootstrap the resources, sources, and vessel
+//			Util.sendMessage(session, producer, Config.INCOMING_RAW, Config.load(Util.SIGNALK_CFG_SAVE_FILE).toString());
+//			Util.sendMessage(session, producer, Config.INCOMING_RAW, Config.load(Util.SIGNALK_SOURCES_SAVE_FILE).toString());
+//			Util.sendMessage(session, producer, Config.INCOMING_RAW, Config.load(Util.SIGNALK_RESOURCES_SAVE_FILE).toString());
+//			Json selfJson =Config.load(Util.SIGNALK_MODEL_SAVE_FILE);
+//			if(!selfJson.has(vessels)){
+//				selfJson.set(vessels,Json.object());
+//			}
+//			Json selfVessel = null;
+//			if(selfJson.at(vessels).has("self")){
+//				selfVessel=selfJson.at(vessels).at("self");
+//			}else{
+//				selfVessel=Json.object();
+//				selfJson.at(vessels).set("self",selfVessel);
+//			}
+//			
+//			//set std data in self in case its gone.
+//			selfVessel.set(uuid, Config.getConfigProperty(ConfigConstants.UUID));
+//			selfVessel.set(mmsi, Config.getConfigProperty(ConfigConstants.MMSI));
+//			selfVessel.set(name, Config.getConfigProperty(ConfigConstants.NAME));
+//			logger.debug("self.json: "+selfJson);
+//			
+//			Util.sendMessage(session, producer, Config.INCOMING_RAW, selfJson.toString());
+//			
+//			
+//
+//		} finally {
+//			if (session != null)
+//				session.close();
+//		}
+//
+//	}
 
 	private static void addShutdownHook(final ArtemisServer server) {
 		Runtime.getRuntime().addShutdownHook(new Thread("shutdown-hook") {
@@ -213,25 +221,25 @@ public final class ArtemisServer {
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}
-		try {
-			if (vesselListener != null)
-				vesselListener.stop();
-		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
-		}
-		try {
-			if (resourceListener != null)
-				resourceListener.stop();
-		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
-		}
-
-		try {
-			if (sourceListener != null)
-				sourceListener.stop();
-		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
-		}
+//		try {
+//			if (vesselListener != null)
+//				vesselListener.stop();
+//		} catch (Exception e) {
+//			logger.error(e.getMessage(), e);
+//		}
+//		try {
+//			if (resourceListener != null)
+//				resourceListener.stop();
+//		} catch (Exception e) {
+//			logger.error(e.getMessage(), e);
+//		}
+//
+//		try {
+//			if (sourceListener != null)
+//				sourceListener.stop();
+//		} catch (Exception e) {
+//			logger.error(e.getMessage(), e);
+//		}
 		try {
 			Config.stopConfigListener();
 		} catch (Exception e) {

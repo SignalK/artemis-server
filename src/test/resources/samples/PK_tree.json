@@ -1,0 +1,148 @@
+{
+	"vessels": {
+		"urn:mrn:imo:mmsi:209023000": {
+			"name": "POLAR KING",
+			"mmsi": "209023000",
+			"navigation": {
+				"speedOverGround": {
+					"meta": {
+						"units": "m/s",
+						"description": "Vessel speed over ground. If converting from AIS 'HIGH' value, set to 102.2 (Ais max value) and add warning in notifications"
+					},
+					"value": 6.224779354721881,
+					"$source": "SDR AIS.AI",
+					"timestamp": "2018-03-12T07:10:39.012Z",
+					"sentence": "VDM"
+				},
+				"courseOverGroundTrue": {
+					"meta": {
+						"units": "rad",
+						"description": "Course over ground (true)"
+					},
+					"value": 6.2779493208570445,
+					"$source": "SDR AIS.AI",
+					"timestamp": "2018-03-12T07:10:39.012Z",
+					"sentence": "VDM"
+				},
+				"headingTrue": {
+					"meta": {
+						"units": "rad",
+						"description": "The current true heading of the vessel"
+					},
+					"value": 6.265732016090295,
+					"$source": "SDR AIS.AI",
+					"timestamp": "2018-03-12T07:10:39.012Z",
+					"sentence": "VDM"
+				},
+				"position": {
+					"meta": {
+						"description": "The position of the vessel in 2 or 3 dimensions (WGS84 datum)"
+					},
+					"value": {
+						"longitude": -79.32135833333334,
+						"latitude": 27.585531666666668
+					},
+					"$source": "SDR AIS.AI",
+					"timestamp": "2018-03-12T07:10:39.012Z",
+					"sentence": "VDM"
+				},
+				"destination": {
+					"commonName": {
+						"meta": {
+							"description": "Common name of the Destination, eg 'Fiji', also used in ais messages"
+						},
+						"value": "FREEPORT BAHAMAS",
+						"$source": "SDR AIS.AI",
+						"timestamp": "2018-03-12T07:04:08.896Z",
+						"sentence": "VDM"
+					}
+				}
+			},
+			"design": {
+				"length": {
+					"meta": {
+						"description": "The various lengths of the vessel"
+					},
+					"value": {
+						"overall": 110
+					},
+					"$source": "SDR AIS.AI",
+					"timestamp": "2018-03-12T07:04:08.896Z",
+					"sentence": "VDM"
+				},
+				"beam": {
+					"meta": {
+						"units": "m",
+						"description": "Beam length"
+					},
+					"value": 20,
+					"$source": "SDR AIS.AI",
+					"timestamp": "2018-03-12T07:04:08.896Z",
+					"sentence": "VDM"
+				},
+				"draft": {
+					"meta": {
+						"description": "The draft of the vessel"
+					},
+					"value": {
+						"current": 7.2
+					},
+					"$source": "SDR AIS.AI",
+					"timestamp": "2018-03-12T07:04:08.896Z",
+					"sentence": "VDM"
+				},
+				"aisShipType": {
+					"meta": {
+						"description": "The ais ship type see http://www.bosunsmate.org/ais/message5.php"
+					},
+					"value": {
+						"id": 90,
+						"name": "Other"
+					},
+					"$source": "SDR AIS.AI",
+					"timestamp": "2018-03-12T07:04:08.896Z",
+					"sentence": "VDM"
+				}
+			},
+			"sensors": {
+				"ais": {
+					"fromBow": {
+						"meta": {
+							"description": "The distance from the bow to the sensor location"
+						},
+						"value": 45,
+						"$source": "SDR AIS.AI",
+						"timestamp": "2018-03-12T07:04:08.896Z",
+						"sentence": "VDM"
+					},
+					"fromCenter": {
+						"meta": {
+							"description": "The distance from the centerline to the sensor location, -ve to starboard, +ve to port"
+						},
+						"value": 0,
+						"$source": "SDR AIS.AI",
+						"timestamp": "2018-03-12T07:04:08.896Z",
+						"sentence": "VDM"
+					}
+				}
+			},
+			"communication": {
+				"callsignVhf": "5BDF3"
+			}
+		}
+	},
+	"self": "vessels.urn:mrn:imo:mmsi:209023000",
+	"version": "0.1.0",
+	"sources": {
+		"SDR AIS": {
+			"label": "SDR AIS",
+			"type": "NMEA0183",
+			"AI": {
+				"talker": "AI",
+				"sentences": {
+					"VDM": "2018-03-12T07:10:39.012Z"
+				}
+			}
+		}
+	}
+}
