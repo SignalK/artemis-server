@@ -203,6 +203,7 @@ public class InfluxDbService {
 		return map;
 	}
 
+	
 	public NavigableMap<String, Json> loadData(NavigableMap<String, Json> map, String queryStr, String db){
 		Query query = new Query(queryStr, db);
 		QueryResult result = influxDB.query(query);
@@ -255,9 +256,9 @@ public class InfluxDbService {
 					if(key.contains(".values.")){
 						//add meta to parent of value
 						String parentKey = StringUtils.substringBeforeLast(key,".values.");
-						String metaKey = StringUtils.substringAfterLast(key,".values.");
-						String attr = StringUtils.substringAfterLast(metaKey,".value.");
-						metaKey=StringUtils.substringBeforeLast(metaKey,".");
+						String valKey = StringUtils.substringAfterLast(key,".values.");
+						String attr = StringUtils.substringAfterLast(valKey,".value.");
+						valKey=StringUtils.substringBeforeLast(valKey,".");
 						//make parent Json
 						Json parent = map.get(parentKey);
 						if(parent==null){
@@ -269,10 +270,10 @@ public class InfluxDbService {
 							valuesJson = Json.object();
 							parent.set(values,valuesJson);
 						}
-						Json attrJson = valuesJson.at(metaKey);
+						Json attrJson = valuesJson.at(valKey);
 						if(attrJson==null){
 							attrJson = Json.object();
-							valuesJson.set(metaKey,attrJson);
+							valuesJson.set(valKey,attrJson);
 						}
 						
 						//add attributes
@@ -386,6 +387,7 @@ public class InfluxDbService {
 	}
 
 	public void save(String k, Json v) {
+		logger.debug("Save json: " + k + "=" + v.toString());
 		String srcRef = (v.isObject() && v.has(sourceRef) ? v.at(sourceRef).asString() : "self");
 		long tStamp = (v.isObject() && v.has(timestamp) ? Util.getMillisFromIsoTime(v.at(timestamp).asString())
 				: System.currentTimeMillis());
@@ -525,8 +527,12 @@ public class InfluxDbService {
 			}
 			return;
 		}
-		if (v.isArray()) {
+		if (v.isArray()|| v.isBoolean()) {
 			saveData(k, srcRef, tStamp, v.toString());
+			return;
+		}
+		if (v.isNull()) {
+			saveData(k, srcRef, tStamp, (String)null);
 			return;
 		}
 		saveData(k, srcRef, tStamp, v.asString());
@@ -625,5 +631,9 @@ public class InfluxDbService {
 
 	public void close() {
 		influxDB.close();
+	}
+
+	public InfluxDB getInfluxDB() {
+		return influxDB;
 	}
 }

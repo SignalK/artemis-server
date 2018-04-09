@@ -8,11 +8,6 @@
 		                "value": 3.4,
 		                "timestamp": "2015-03-06T16:57:53.643Z",
 		                "$source": "nmea1.II",
-		                "_attr": {
-		                    "_mode": 644,
-		                    "_owner": "self",
-		                    "_group": "self"
-		                },
 		                "meta": {
 		                    "displayName": "Depth Below Keel",
 		                    "longName": "Depth Below Keel in Meters",
