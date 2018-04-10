@@ -50,7 +50,7 @@ import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import io.netty.util.concurrent.Future;
 import nz.co.fortytwo.signalk.artemis.util.Config;
-import nz.co.fortytwo.signalk.util.ConfigConstants; 
+import nz.co.fortytwo.signalk.artemis.util.ConfigConstants; 
 
 public class NettyServer {
 

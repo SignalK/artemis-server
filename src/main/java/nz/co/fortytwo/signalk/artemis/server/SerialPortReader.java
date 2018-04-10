@@ -46,8 +46,8 @@ import org.apache.logging.log4j.Logger;
 
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
-import nz.co.fortytwo.signalk.util.ConfigConstants;
-import nz.co.fortytwo.signalk.util.SignalKConstants;
+import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
+import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import purejavacomm.CommPortIdentifier;
 import purejavacomm.SerialPort;
 import purejavacomm.SerialPortEvent;

@@ -38,7 +38,7 @@ import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
-import nz.co.fortytwo.signalk.util.ConfigConstants;
+import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 
 /**
  * A manager to monitor the USB tty ports. It dynamically adds/removes

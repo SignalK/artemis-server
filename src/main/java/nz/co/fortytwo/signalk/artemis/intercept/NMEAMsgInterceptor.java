@@ -23,18 +23,18 @@
  */
 package nz.co.fortytwo.signalk.artemis.intercept;
 
-import static nz.co.fortytwo.signalk.util.SignalKConstants.UNKNOWN;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.dot;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.env_depth_belowTransducer;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.env_wind_angleApparent;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.env_wind_speedApparent;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.label;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.nav_courseOverGroundMagnetic;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.nav_courseOverGroundTrue;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.nav_position;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.nav_speedOverGround;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.type;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels_dot_self_dot;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UNKNOWN;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_depth_belowTransducer;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_wind_angleApparent;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_wind_speedApparent;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.label;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_courseOverGroundMagnetic;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_courseOverGroundTrue;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_position;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_speedOverGround;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.type;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels_dot_self_dot;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ICoreMessage;
@@ -138,7 +138,7 @@ public class NMEAMsgInterceptor extends BaseInterceptor implements Interceptor {
 			logger.warn("NMEA Sentence is invalid:" + sentence.toSentence());
 			return;
 		}
-		String now = nz.co.fortytwo.signalk.util.Util.getIsoTimeString();
+		String now = nz.co.fortytwo.signalk.artemis.util.Util.getIsoTimeString();
 		if (StringUtils.isBlank(device))
 			device = UNKNOWN;
 		// A general rule of sources.protocol.bus.device.data

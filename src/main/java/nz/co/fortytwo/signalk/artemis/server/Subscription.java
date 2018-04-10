@@ -24,11 +24,11 @@
  */
 package nz.co.fortytwo.signalk.artemis.server;
 
-import static nz.co.fortytwo.signalk.util.SignalKConstants.dot;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.source;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.sourceRef;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.timestamp;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.source;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sourceRef;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.timestamp;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,9 +53,10 @@ import com.google.common.eventbus.Subscribe;
 
 import io.netty.util.internal.ConcurrentSet;
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.event.PathEvent;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
-import nz.co.fortytwo.signalk.model.event.PathEvent;
+
 //import nz.co.fortytwo.signalk.model.impl.SignalKModelFactory;
 
 /**

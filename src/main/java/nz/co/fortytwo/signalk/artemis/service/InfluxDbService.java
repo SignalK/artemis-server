@@ -1,23 +1,26 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
-import static nz.co.fortytwo.signalk.util.SignalKConstants.CONFIG;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.CONTEXT;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.PATH;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.PUT;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.UPDATES;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.dot;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.meta;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.resources;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.sentence;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.source;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.sourceRef;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.sources;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.timestamp;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.value;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.values;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONFIG;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PATH;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PUT;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.label;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.meta;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.resources;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sentence;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.source;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sourceRef;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sources;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.timestamp;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.type;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.values;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -31,15 +34,22 @@ import org.influxdb.BatchOptions;
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
 import org.influxdb.dto.Point;
+import org.influxdb.dto.Point.Builder;
 import org.influxdb.dto.Query;
 import org.influxdb.dto.QueryResult;
 import org.influxdb.dto.QueryResult.Series;
+import org.joda.time.DateTime;
+import org.joda.time.format.ISODateTimeFormat;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class InfluxDbService {
 
+	private static final String STR_VALUE = "strValue";
+	private static final String LONG_VALUE = "longValue";
+	private static final String DOUBLE_VALUE = "doubleValue";
+	private static final String NULL_VALUE = "nullValue";
 	private static Logger logger = LogManager.getLogger(InfluxDbService.class);
 	private InfluxDB influxDB;
 	private String dbName = "signalk";
@@ -61,7 +71,7 @@ public class InfluxDbService {
 		// influxDB.createRetentionPolicy(rpName, dbName, "30d", "30m", 2,
 		// true);
 		// influxDB.setRetentionPolicy(rpName);
-		// influxDB.enableBatch(BatchOptions.DEFAULTS);
+	
 		influxDB.enableBatch(BatchOptions.DEFAULTS.exceptionHandler((failedPoints, throwable) -> {
 			logger.error(throwable);
 		}));
@@ -75,20 +85,12 @@ public class InfluxDbService {
 		for (Entry<String, Json> entry : json.asJsonMap().entrySet()) {
 			if (DEBUG)
 				logger.debug(entry.getKey() + "=" + entry.getValue());
-			if (entry.getValue().isPrimitive() || entry.getValue().isNull() || entry.getValue().isArray()) {
+			if (entry.getValue().isPrimitive() || entry.getValue().isNull() || entry.getValue().isArray() ||entry.getValue().has(value)) {
 				map.put(prefix + entry.getKey(), entry.getValue());
 				continue;
-			} else if (entry.getValue().has(value)) {
-//				if (entry.getValue().has(values)) {
-//					recurseJsonFull(entry.getValue().at(values), map, prefix + entry.getKey() + ".values.");
-//					entry.getValue().at(values).delAt(values);
-//				}
-				map.put(prefix + entry.getKey(), entry.getValue());
-				
-			} else {
-				recurseJsonFull(entry.getValue(), map, prefix + entry.getKey() + ".");
-			}
-
+			}  
+			recurseJsonFull(entry.getValue(), map, prefix + entry.getKey() + ".");
+		
 		}
 
 	}
@@ -114,6 +116,7 @@ public class InfluxDbService {
 			// go to context
 			String ctx = node.at(CONTEXT).asString();
 			ctx = Util.fixSelfKey(ctx);
+			if (DEBUG)logger.debug("ctx: " + node);
 			// Json pathNode = temp.addNode(path);
 			Json updates = node.at(UPDATES);
 			if (updates == null)
@@ -123,7 +126,6 @@ public class InfluxDbService {
 
 			for (Json update : updates.asJsonList()) {
 				parseUpdate(temp, update, ctx);
-
 			}
 
 			if (DEBUG)
@@ -141,21 +143,32 @@ public class InfluxDbService {
 		for (Json e : array.asJsonList()) {
 			if (e == null || e.isNull() || !e.has(PATH))
 				continue;
-			String key = e.at(PATH).asString();
+			String key = dot + e.at(PATH).asString();
+			if(key.equals(dot))key="";
+			e.delAt(PATH);
 			// temp.put(ctx+"."+key, e.at(value).getValue());
-			if (e.has(value)) {
-				temp.put(ctx + dot + key, e);
-			}
 
 			if (update.has(source)) {
-				// TODO:generate a proper src ref.
-				e.set(source, update.at(source).dup());
+				Json src = update.at(source);
+				String srcRef=src.at(type).asString()+dot+src.at(label).asString();
+				e.set(sourceRef, srcRef);
+				//add sources
+				recurseJsonFull(src,temp,sources+dot+srcRef+dot);
+				
+			}else{
+				e.set(sourceRef, "self");
 			}
 
 			if (update.has(timestamp)) {
-				String ts = update.at(timestamp).asString();
-				// TODO: should validate the timestamp
-				e.set(timestamp, ts);
+				if (DEBUG)logger.debug("put timestamp: " + ctx + key+":"+ e);
+				e.set(timestamp, update.at(timestamp).asString());
+			}else{
+				e.set(timestamp,Util.getIsoTimeString());
+			}
+			
+			if (e.has(value)) {
+				if (DEBUG)logger.debug("put: " + ctx +  key+":"+ e);
+				temp.put(ctx +  key, e);
 			}
 		}
 
@@ -168,7 +181,7 @@ public class InfluxDbService {
 		if (result == null || result.getResults() == null)
 			return map;
 		result.getResults().forEach((r) -> {
-			if (r.getSeries() == null)
+			if (r.getSeries() == null ||r.getSeries()==null)
 				return;
 			r.getSeries().forEach((s) -> {
 				if (DEBUG)
@@ -177,15 +190,15 @@ public class InfluxDbService {
 					return;
 				String key = s.getName() + dot + s.getTags().get("skey");
 
-				Object obj = getValue("longValue", s, 0);
+				Object obj = getValue(LONG_VALUE, s, 0);
 				if (obj != null)
 					map.put(key, Json.make(Math.round((Double) obj)));
 
-				obj = getValue("doubleValue", s, 0);
+				obj = getValue(DOUBLE_VALUE, s, 0);
 				if (obj != null)
 					map.put(key, Json.make(obj));
 
-				obj = getValue("strValue", s, 0);
+				obj = getValue(STR_VALUE, s, 0);
 				if (obj != null) {
 					if (obj.equals("true")) {
 						map.put(key, Json.make(true));
@@ -212,7 +225,7 @@ public class InfluxDbService {
 		if(result==null || result.getResults()==null)return map;
 		result.getResults().forEach((r)-> {
 			if(DEBUG)logger.debug(r);
-			if(r==null)return;
+			if(r==null||r.getSeries()==null)return;
 			r.getSeries().forEach(
 				(s)->{
 					if(DEBUG)logger.debug(s);
@@ -321,15 +334,15 @@ public class InfluxDbService {
 					return;
 				String key = s.getName() + dot + s.getTags().get("skey");
 
-				Object obj = getValue("longValue", s, 0);
+				Object obj = getValue(LONG_VALUE, s, 0);
 				if (obj != null)
 					map.put(key, Json.make(Math.round((Double) obj)));
 
-				obj = getValue("doubleValue", s, 0);
+				obj = getValue(DOUBLE_VALUE, s, 0);
 				if (obj != null)
 					map.put(key, Json.make(obj));
 
-				obj = getValue("strValue", s, 0);
+				obj = getValue(STR_VALUE, s, 0);
 				if (obj != null) {
 					if (obj.equals("true")) {
 						map.put(key, Json.make(true));
@@ -355,15 +368,17 @@ public class InfluxDbService {
 	}
 
 	private Json getJsonValue(Series s, int row) {
-		Object obj = getValue("longValue", s, 0);
+		Object obj = getValue(LONG_VALUE, s, 0);
 		if (obj != null)
 			return Json.make(Math.round((Double) obj));
-
-		obj = getValue("doubleValue", s, 0);
+		obj = getValue(NULL_VALUE, s, 0);
+		if (obj != null && (Boolean)obj) return Json.nil();
+		
+		obj = getValue(DOUBLE_VALUE, s, 0);
 		if (obj != null)
 			return Json.make(obj);
 
-		obj = getValue("strValue", s, 0);
+		obj = getValue(STR_VALUE, s, 0);
 		if (obj != null) {
 			if (obj.equals("true")) {
 				return Json.make(true);
@@ -392,18 +407,16 @@ public class InfluxDbService {
 		long tStamp = (v.isObject() && v.has(timestamp) ? Util.getMillisFromIsoTime(v.at(timestamp).asString())
 				: System.currentTimeMillis());
 
-		if (v.isPrimitive()) {
+		if (v.isPrimitive()|| v.isBoolean()) {
 			if (DEBUG)
 				logger.debug("Save primitive: " + k + "=" + v.toString());
-			saveValue(k, v, srcRef, tStamp);
+			saveData(k, srcRef, tStamp, v.getValue());	
 			return;
 		}
 		if (v.isNull()) {
 			if (DEBUG)
 				logger.debug("Save null: " + k + "=" + v.toString());
-			saveData(k, srcRef, tStamp, (String) null);
-			saveData(k, srcRef, tStamp, (Double) null);
-			saveData(k, srcRef, tStamp, (Long) null);
+			saveData(k, srcRef, tStamp, null);
 			return;
 		}
 		if (v.isArray()) {
@@ -413,13 +426,13 @@ public class InfluxDbService {
 			return;
 		}
 		if (v.has(sentence)) {
-			saveData(k + dot + sentence, srcRef, tStamp, v.at(sentence).asString());
+			saveData(k + dot + sentence, srcRef, tStamp, v.at(sentence));
 		}
 		if (v.has(meta)) {
 			for (Entry<String, Json> i : v.at(meta).asJsonMap().entrySet()) {
 				if (DEBUG)
 					logger.debug("Save meta: " + i.getKey() + "=" + i.getValue());
-				saveValue(k + dot + meta + dot + i.getKey(), i.getValue(), srcRef, tStamp);
+				saveData(k + dot + meta + dot + i.getKey(), srcRef, tStamp, i.getValue());
 			}
 		}
 		
@@ -431,18 +444,18 @@ public class InfluxDbService {
 			}
 		}
 
-		if (v.at(value).isObject()) {
+		if (v.has(value)&& v.at(value).isObject()) {
 			for (Entry<String, Json> i : v.at(value).asJsonMap().entrySet()) {
 				if (DEBUG)
 					logger.debug("Save value object: " + i.getKey() + "=" + i.getValue());
-				saveValue(k + dot + value + dot + i.getKey(), i.getValue(), srcRef, tStamp);
+				saveData(k + dot + value + dot + i.getKey(), srcRef, tStamp, i.getValue());
 			}
 			return;
 		}
 
 		if (DEBUG)
 			logger.debug("Save value: " + k + "=" + v.toString());
-		saveValue(k + dot + value, v.at(value), srcRef, tStamp);
+		saveData(k + dot + value, srcRef, tStamp, v.at(value));
 
 		return;
 	}
@@ -479,11 +492,11 @@ public class InfluxDbService {
 	private void extractValue(Json parent, Series s, String attr, Json val, Object srcref) {
 		Object ts = getValue("time", s, 0);
 		if (ts != null) {
-			// map.put(StringUtils.substringBeforeLast(key,".value")+dot+timestamp,Json.make(ts.toString()));
+			// make predictable 3 digit nano ISO format
+			ts = Util.getIsoTimeString(DateTime.parse((String)ts, ISODateTimeFormat.dateTimeParser()).getMillis());
 			parent.set(timestamp, Json.make(ts));
 		}
 		if (srcref != null) {
-			// map.put(StringUtils.substringBeforeLast(key,".value")+dot+sourceRef,Json.make(sr.toString()));
 			parent.set(sourceRef, Json.make(srcref));
 		}
 		
@@ -501,132 +514,82 @@ public class InfluxDbService {
 
 	}
 
-	private void saveValue(String k, Json v, String srcRef, long tStamp) {
-		if (v.isNumber()) {
-			if (DEBUG)
-				logger.debug("Save Number: " + k + "=" + v.getValue().getClass());
-			if (v.getValue() instanceof Double) {
-				saveData(k, srcRef, tStamp, (Double) v.getValue());
-				return;
-			}
-			if (v.getValue() instanceof Float) {
-				saveData(k, srcRef, tStamp, (Double) v.getValue());
-				return;
-			}
-			if (v.getValue() instanceof BigDecimal) {
-				saveData(k, srcRef, tStamp, ((BigDecimal) v.getValue()).doubleValue());
-				return;
-			}
-			if (v.getValue() instanceof Long) {
-				saveData(k, srcRef, tStamp, (Long) v.getValue());
-				return;
-			}
-			if (v.getValue() instanceof Integer) {
-				saveData(k, srcRef, tStamp, (Long) v.getValue());
-				return;
-			}
-			return;
-		}
-		if (v.isArray()|| v.isBoolean()) {
-			saveData(k, srcRef, tStamp, v.toString());
-			return;
-		}
-		if (v.isNull()) {
-			saveData(k, srcRef, tStamp, (String)null);
-			return;
-		}
-		saveData(k, srcRef, tStamp, v.asString());
-	}
 
-	protected void saveData(String key, String sourceRef, long millis, Double value) {
+	protected void saveData(String key, String sourceRef, long millis, Object value) {
 		if (DEBUG)
-			logger.debug("save Double:" + key);
+			logger.debug("save "+value.getClass().getSimpleName()+":" + key);
 		String[] path = StringUtils.split(key, '.');
+		String field = getFieldType(value);
+		Builder point = null;
 		switch (path[0]) {
 		case vessels:
-			influxDB.write(Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS).tag("sourceRef", sourceRef)
-					.tag("uuid", path[1]).tag("skey", String.join(".", ArrayUtils.subarray(path, 2, path.length)))
-					.addField("doubleValue", value).build());
+			point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS).tag("sourceRef", sourceRef)
+					.tag("uuid", path[1]).tag("skey", String.join(".", ArrayUtils.subarray(path, 2, path.length)));
+			influxDB.write(addPoint(point, field, value));
 			break;
 		case resources:
-			influxDB.write(Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS).tag("sourceRef", sourceRef)
-					.tag("uuid", path[1]).tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)))
-					.addField("doubleValue", value).build());
+			point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS).tag("sourceRef", sourceRef)
+					.tag("uuid", path[1]).tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)));
+			influxDB.write(addPoint(point, field, value));
 			break;
 		case sources:
-			influxDB.write(Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS).tag("sourceRef", path[1])
-					.tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)))
-					.addField("doubleValue", value).build());
+			point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS).tag("sourceRef", path[1])
+					.tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)));
+			influxDB.write(addPoint(point, field, value));
 			break;
 		case CONFIG:
-			influxDB.write(Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS).tag("sourceRef", sourceRef)
-					.tag("uuid", path[1]).tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)))
-					.addField("doubleValue", value).build());
+			point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS).tag("sourceRef", sourceRef)
+					.tag("uuid", path[1]).tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)));
+			influxDB.write(addPoint(point, field, value));
 			break;
 		default:
 			break;
 		}
 	}
 
-	protected void saveData(String key, String sourceRef, long millis, Long value) {
-		if (DEBUG)
-			logger.debug("save long:" + key);
-		String[] path = StringUtils.split(key, '.');
-		switch (path[0]) {
-		case vessels:
-			influxDB.write(Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS).tag("sourceRef", sourceRef)
-					.tag("uuid", path[1]).tag("skey", String.join(".", ArrayUtils.subarray(path, 2, path.length)))
-					.addField("longValue", value).build());
-			break;
-		case resources:
-			influxDB.write(Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS).tag("sourceRef", sourceRef)
-					.tag("uuid", path[1]).tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)))
-					.addField("longValue", value).build());
-			break;
-		case sources:
-			influxDB.write(Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS).tag("sourceRef", path[1])
-					.tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)))
-					.addField("longValue", value).build());
-			break;
-		case CONFIG:
-			influxDB.write(Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS).tag("sourceRef", sourceRef)
-					.tag("uuid", path[1]).tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)))
-					.addField("longValue", value).build());
-			break;
-
-		default:
-			break;
+	private Point addPoint(Builder point, String field, Object value) {
+		if(DEBUG)logger.debug("addPoint:"+field+":"+value);
+		if(value==null)return point.addField(field,true).build();
+		if(value instanceof Json){
+			if(((Json)value).isString()){
+				value=((Json)value).asString();
+			}else if(((Json)value).isNull()){
+				value=true;
+			}else if(((Json)value).isArray()){
+				value=((Json)value).toString();
+			}else{
+				value=((Json)value).getValue();
+			}
 		}
+		if(value instanceof Boolean)return point.addField(field,(Boolean)value).build();
+		if(value instanceof Double)return point.addField(field,(Double)value).build();
+		if(value instanceof Float)return point.addField(field,(Double)value).build();
+		if(value instanceof BigDecimal)return point.addField(field,((BigDecimal)value).doubleValue()).build();
+		if(value instanceof Long)return point.addField(field,(Long)value).build();
+		if(value instanceof Integer)return point.addField(field,((Integer)value).longValue()).build();
+		if(value instanceof BigInteger)return point.addField(field,((BigInteger)value).longValue()).build();
+		if(value instanceof String)return point.addField(field,(String)value).build();
+		if(DEBUG)logger.debug("addPoint: unknown type:"+field+":"+value);
+		return null;
 	}
 
-	protected void saveData(String key, String sourceRef, long millis, String value) {
-		if (DEBUG)
-			logger.debug("save String:" + key);
-		String[] path = StringUtils.split(key, '.');
-		switch (path[0]) {
-		case vessels:
-			influxDB.write(Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS).tag("sourceRef", sourceRef)
-					.tag("uuid", path[1]).tag("skey", String.join(".", ArrayUtils.subarray(path, 2, path.length)))
-					.addField("strValue", value).build());
-			break;
-		case resources:
-			influxDB.write(Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS).tag("sourceRef", sourceRef)
-					.tag("uuid", path[1]).tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)))
-					.addField("strValue", value).build());
-			break;
-		case sources:
-			influxDB.write(Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS).tag("sourceRef", path[1])
-					.tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)))
-					.addField("strValue", value).build());
-			break;
-		case CONFIG:
-			influxDB.write(Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS).tag("sourceRef", sourceRef)
-					.tag("uuid", path[1]).tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)))
-					.addField("strValue", value).build());
-			break;
-		default:
-			break;
+	private String getFieldType(Object value) {
+		if(DEBUG)logger.debug("getFieldType:"+value.getClass().getName()+":"+value);
+		if(value==null)return NULL_VALUE;
+		if(value instanceof Json){
+			if(((Json)value).isNull())return NULL_VALUE;
+			if(((Json)value).isArray())return STR_VALUE;
+			value=((Json)value).getValue();
 		}
+		if(value instanceof Double)return DOUBLE_VALUE;
+		if(value instanceof BigDecimal)return DOUBLE_VALUE;
+		if(value instanceof Long)return LONG_VALUE;
+		if(value instanceof BigInteger)return LONG_VALUE;
+		if(value instanceof Integer)return LONG_VALUE;
+		if(value instanceof String)return STR_VALUE;
+		
+		if(DEBUG)logger.debug("getFieldType:unknown type:"+value.getClass().getName()+":"+value);
+		return null;
 	}
 
 	public void close() {

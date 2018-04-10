@@ -1,19 +1,19 @@
 package nz.co.fortytwo.signalk.artemis.intercept;
 
-import static nz.co.fortytwo.signalk.util.SignalKConstants.CONFIG;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.CONTEXT;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.PATH;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.PUT;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.UPDATES;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.dot;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.label;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.source;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.sourceRef;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.timestamp;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.type;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.value;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.values;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONFIG;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PATH;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PUT;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.label;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.source;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sourceRef;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.timestamp;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.type;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.values;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ICoreMessage;
@@ -147,7 +147,7 @@ public class UpdateMsgInterceptor extends BaseInterceptor implements Interceptor
 		if (update.has(timestamp)) {
 			timeStamp = update.at(timestamp).asString();
 		}else{
-			timeStamp = nz.co.fortytwo.signalk.util.Util.getIsoTimeString();
+			timeStamp = nz.co.fortytwo.signalk.artemis.util.Util.getIsoTimeString();
 		}
 		
 		//Json src = null;

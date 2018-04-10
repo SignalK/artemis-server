@@ -1,16 +1,16 @@
 package nz.co.fortytwo.signalk.artemis.intercept;
 
-import static nz.co.fortytwo.signalk.util.SignalKConstants.CONTEXT;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.FORMAT;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.FORMAT_DELTA;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.MIN_PERIOD;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.PATH;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.PERIOD;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.POLICY;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.POLICY_FIXED;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.SUBSCRIBE;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.UNSUBSCRIBE;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT_DELTA;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.MIN_PERIOD;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PATH;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PERIOD;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.POLICY;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.POLICY_FIXED;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SUBSCRIBE;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UNSUBSCRIBE;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ICoreMessage;
@@ -29,7 +29,7 @@ import nz.co.fortytwo.signalk.artemis.server.Subscription;
 import nz.co.fortytwo.signalk.artemis.server.SubscriptionManagerFactory;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
-import nz.co.fortytwo.signalk.util.ConfigConstants;
+import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 
 
 

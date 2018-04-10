@@ -1,11 +1,11 @@
 package nz.co.fortytwo.signalk.artemis.intercept;
 
-import static nz.co.fortytwo.signalk.util.SignalKConstants.CONFIG;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.CONTEXT;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.SUBSCRIBE;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.resources;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.sources;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONFIG;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SUBSCRIBE;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.resources;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sources;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ICoreMessage;

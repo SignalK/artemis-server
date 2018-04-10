@@ -23,17 +23,17 @@
  */
 package nz.co.fortytwo.signalk.artemis.server;
 
-import static nz.co.fortytwo.signalk.util.SignalKConstants.CONFIG;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.SIGNALK_API;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.SIGNALK_DISCOVERY;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.SIGNALK_WS;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.electrical;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.env;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.nav;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.sources;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.tanks;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.websocketUrl;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONFIG;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SIGNALK_API;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SIGNALK_DISCOVERY;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SIGNALK_WS;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.electrical;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sources;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.tanks;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.websocketUrl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -68,7 +68,7 @@ import com.ning.http.util.Base64;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
-import nz.co.fortytwo.signalk.util.ConfigConstants;
+import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 
 public class SubcribeWsTest extends BaseServerTest{
 

@@ -11,7 +11,7 @@ import nz.co.fortytwo.signalk.artemis.server.SubscriptionManager;
 
 import javax.servlet.http.HttpSession;
 
-import static nz.co.fortytwo.signalk.util.SignalKConstants.SIGNALK_WS;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SIGNALK_WS;
 
 import java.awt.*;
 import java.io.IOException;

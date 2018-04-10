@@ -1,7 +1,7 @@
 package nz.co.fortytwo.signalk.artemis.server;
 
-import static nz.co.fortytwo.signalk.util.SignalKConstants.FORMAT_DELTA;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.POLICY_FIXED;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT_DELTA;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.POLICY_FIXED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -26,7 +26,7 @@ import org.junit.Test;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
-import nz.co.fortytwo.signalk.util.SignalKConstants;
+import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 
 public class SubscribeTest extends BaseServerTest{
 	

@@ -16,13 +16,13 @@ package nz.co.fortytwo.signalk.artemis.server;
  * limitations under the License.
  */
 
-import static nz.co.fortytwo.signalk.util.SignalKConstants.SIGNALK_DISCOVERY;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.mmsi;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.name;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.resources;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.sources;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.uuid;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.vessels;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SIGNALK_DISCOVERY;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.mmsi;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.name;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.resources;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sources;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.uuid;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,8 +53,8 @@ import io.netty.util.internal.logging.Log4J2LoggerFactory;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
-import nz.co.fortytwo.signalk.util.ConfigConstants;
-import nz.co.fortytwo.signalk.util.SignalKConstants;
+import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
+import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 
 /**
  * ActiveMQ Artemis embedded with JMS

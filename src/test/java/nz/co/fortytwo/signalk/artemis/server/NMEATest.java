@@ -1,9 +1,9 @@
 package nz.co.fortytwo.signalk.artemis.server;
 
-import static nz.co.fortytwo.signalk.util.SignalKConstants.FORMAT_DELTA;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.PATH;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.POLICY_FIXED;
-import static nz.co.fortytwo.signalk.util.SignalKConstants.UPDATES;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT_DELTA;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PATH;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.POLICY_FIXED;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
 import static org.junit.Assert.assertEquals;
 
 import java.util.HashSet;
@@ -25,7 +25,7 @@ import org.junit.Test;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
-import nz.co.fortytwo.signalk.util.SignalKConstants;
+import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 
 public class NMEATest extends BaseServerTest {
 	

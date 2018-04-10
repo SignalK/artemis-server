@@ -1,11 +1,9 @@
 package nz.co.fortytwo.signalk.artemis.server;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.NavigableMap;
 import java.util.SortedMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -20,7 +18,7 @@ import org.junit.Test;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
-import nz.co.fortytwo.signalk.util.JsonSerializer;
+import nz.co.fortytwo.signalk.artemis.util.JsonSerializer;
 
 public class InfluxDbTest {
 
@@ -102,101 +100,20 @@ public class InfluxDbTest {
 	}
 	
 	@Test
-	public void shouldSaveFullModelWithMultipleValues() throws IOException {
-		// get a sample of signalk
-		NavigableMap<String, Json> map = getJsonMap("./src/test/resources/samples/full/docs-data_model_multiple_values.json");
-		//save and flush
-		influx.save(map);
-		//reload from db
-		NavigableMap<String, Json> rslt = loadFromDb(map.get("self").asString());
-		compareMaps(map,rslt);
-	}
-	
-	@Test
-	public void shouldSaveFullModelWithMeta() throws IOException {
-		// get a sample of signalk
-		NavigableMap<String, Json> map = getJsonMap("./src/test/resources/samples/full/docs-data_model_metadata.json");
-		//save and flush
-		influx.save(map);
-		//reload from db
-		NavigableMap<String, Json> rslt = loadFromDb(map.get("self").asString());
-		compareMaps(map,rslt);
-	}
-
-	@Test
-	public void shouldSaveNotifications() throws IOException {
-		// get a sample of signalk
-		NavigableMap<String, Json> map = getJsonMap("./src/test/resources/samples/full/docs-notifications.json");
-		//save and flush
-		influx.save(map);
-		//reload from db
-		NavigableMap<String, Json> rslt = loadFromDb(map.get("self").asString());
-		compareMaps(map,rslt);
-	}
-	
-	@Test
-	public void shouldSaveAcElectrical() throws IOException {
-		// get a sample of signalk
-		NavigableMap<String, Json> map = getJsonMap("./src/test/resources/samples/full/electrical-ac-full.json");
-		//save and flush
-		influx.save(map);
-		//reload from db
-		NavigableMap<String, Json> rslt = loadFromDb(map.get("self").asString());
-		compareMaps(map,rslt);
-	}
-	
-	@Test
-	public void shouldSaveMobAlarm() throws IOException {
-		// get a sample of signalk
-		NavigableMap<String, Json> map = getJsonMap("./src/test/resources/samples/full/electrical-ac-full.json");
-		//save and flush
-		influx.save(map);
-		//reload from db
-		NavigableMap<String, Json> rslt = loadFromDb(map.get("self").asString());
-		compareMaps(map,rslt);
-	}
-	
-	@Test
-	public void shouldSaveDepthAlarm() throws IOException {
-		// get a sample of signalk
-		NavigableMap<String, Json> map = getJsonMap("./src/test/resources/samples/full/signalk-depth-alarm.json");
-		//save and flush
-		influx.save(map);
-		//reload from db
-		NavigableMap<String, Json> rslt = loadFromDb(map.get("self").asString());
-		compareMaps(map,rslt);
-	}
-	
-	@Test
-	public void shouldSaveDepthAlarmMeta() throws IOException {
-		// get a sample of signalk
-		NavigableMap<String, Json> map = getJsonMap("./src/test/resources/samples/full/signalk-depth-meta-attr.json");
-		//save and flush
-		influx.save(map);
-		//reload from db
-		NavigableMap<String, Json> rslt = loadFromDb(map.get("self").asString());
-		compareMaps(map,rslt);
-	}
-	@Test
-	public void shouldSaveVesselTime() throws IOException {
-		// get a sample of signalk
-		NavigableMap<String, Json> map = getJsonMap("./src/test/resources/samples/full/vessel-time.json");
-		//save and flush
-		influx.save(map);
-		//reload from db
-		NavigableMap<String, Json> rslt = loadFromDb(map.get("self").asString());
-		compareMaps(map,rslt);
-	}
-	
-	@Test
-	public void shouldSaveRmcMin() throws IOException {
-		// get a sample of signalk
-		NavigableMap<String, Json> map = getJsonMap("./src/test/resources/samples/full/0183-RMC-export-min.json");
-		//save and flush
-		influx.save(map);
-		//reload from db
-		NavigableMap<String, Json> rslt = loadFromDb(map.get("self").asString());
-		compareMaps(map,rslt);
+	public void shouldSaveDeltaSamples() throws Exception {
+		File dir = new File("./src/test/resources/samples/delta");
+		for(File f:dir.listFiles()){
+			if(f.isDirectory())continue;
+			clearDb();
+			logger.debug("Testing sample:"+f.getName());
+			// get a sample of signalk
+			NavigableMap<String, Json> map = getJsonDeltaMap(f.getAbsolutePath());
+			//save and flush
+			influx.save(map);
+			//reload from db
+			NavigableMap<String, Json> rslt = loadFromDb();
+			compareMaps(map,rslt);
+		}
 	}
 	
 	@Test
@@ -228,18 +145,6 @@ public class InfluxDbTest {
 		logger.debug(ser.write((SortedMap)map));
 	}
 	
-
-//	@Test
-//	public void testDeltaJson() throws Exception {
-//		// get a hash of signalk
-//		List<String> body = FileUtils.readLines(new File("./src/test/resources/samples/signalkKeesLog.txt"));
-//		for (String l : body) {
-//			NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();
-//			influx.parseDelta(Json.read(l), map);
-//			map.forEach((t, u) -> logger.debug(t + "=" + u));
-//			map.forEach((k, v) -> influx.save(k, v));
-//		}
-//	}
 
 	@Test
 	public void testPKTreeJson() throws Exception {
@@ -274,15 +179,32 @@ public class InfluxDbTest {
 		return map;
 	}
 	
+	private NavigableMap<String, Json> getJsonDeltaMap(String file) throws Exception {
+		String body = FileUtils.readFileToString(new File(file));
+		//convert to map
+		NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();
+		influx.parseDelta(Json.read(body), map);
+		map.forEach((t, u) -> logger.debug(t + "=" + u));
+		return map;
+	}
+	
 	private NavigableMap<String, Json> loadFromDb(String self) {
 		return loadFromDb(self,"1.0.0");
 	}
 	private NavigableMap<String, Json> loadFromDb(String self, String version) {
-		NavigableMap<String, Json> rslt = new ConcurrentSkipListMap<String, Json>();
+		NavigableMap<String, Json> rslt = loadFromDb();
 		
 		//add std entries
 		rslt.put("self",Json.make(self));
 		rslt.put("version",Json.make(version));
+		
+		logger.debug("self",Json.make(self));
+		logger.debug("version",Json.make(version));
+		return rslt;
+	}
+	
+	private NavigableMap<String, Json> loadFromDb() {
+		NavigableMap<String, Json> rslt = new ConcurrentSkipListMap<String, Json>();
 		
 		rslt = influx.loadData(rslt,"select * from vessels group by skey,uuid order by time desc limit 1","signalk");
 		rslt = influx.loadSources(rslt,"select * from sources group by skey order by time desc limit 1","signalk");
