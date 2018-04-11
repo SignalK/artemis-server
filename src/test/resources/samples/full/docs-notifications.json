@@ -14,7 +14,7 @@
             "state": "emergency",
             "message": "Man Overboard!"
           },
-          "timestamp": "2017-04-10T08:33:53Z",
+          "timestamp": "2017-04-10T08:33:53.000Z",
           "$source": "nmea1.II"
         },
         "navigation": {
@@ -27,7 +27,7 @@
               "message": "GPS signal lost!"
             },
             "$source": "nmea1.II",
-            "timestamp": "2017-04-10T08:33:53Z"
+            "timestamp": "2017-04-10T08:33:53.000Z"
           },
           "anchor": {
             "currentRadius": {
@@ -38,7 +38,7 @@
                 "state": "alarm",
                 "message": "Dragging anchor!"
               },
-              "timestamp": "2017-04-10T08:33:53Z",
+              "timestamp": "2017-04-10T08:33:53.000Z",
               "$source": "nmea1.II"
             }
           }

@@ -55,6 +55,7 @@ public class InfluxDbTest {
 
 	@Test
 	public void shouldSaveFullModelAndReturnLatest() throws IOException {
+		clearDb();
 		// get a sample of signalk
 		NavigableMap<String, Json> map = getJsonMap("./src/test/resources/samples/full/docs-data_model.json");
 		//save and flush
@@ -66,6 +67,7 @@ public class InfluxDbTest {
 	
 	@Test
 	public void shouldSaveFullModelAndReturnLatestWithEdit() throws IOException {
+		clearDb();
 		// get a sample of signalk
 		NavigableMap<String, Json> map = getJsonMap("./src/test/resources/samples/full/docs-data_model.json");
 		//save and flush
@@ -118,6 +120,7 @@ public class InfluxDbTest {
 	
 	@Test
 	public void testFullResources() throws IOException {
+		clearDb();
 		// get a hash of signalk
 		String body = FileUtils.readFileToString(new File("./src/test/resources/samples/full_resources.json"));
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();
@@ -130,6 +133,7 @@ public class InfluxDbTest {
 
 	@Test
 	public void testConfigJson() throws IOException {
+		clearDb();
 		// get a hash of signalk
 		String body = FileUtils.readFileToString(new File("./src/test/resources/samples/signalk-config.json"));
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();
@@ -140,6 +144,7 @@ public class InfluxDbTest {
 	
 	@Test
 	public void testConfigQuery() throws IOException {
+		clearDb();
 		NavigableMap<String, Json> map = influx.loadConfig();
 		map.forEach((t, u) -> logger.debug(t + "=" + u));
 		logger.debug(ser.write((SortedMap)map));
@@ -148,6 +153,7 @@ public class InfluxDbTest {
 
 	@Test
 	public void testPKTreeJson() throws Exception {
+		clearDb();
 		// get a hash of signalk
 		String body = FileUtils.readFileToString(new File("./src/test/resources/samples/PK_tree.json"));
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();
@@ -158,15 +164,20 @@ public class InfluxDbTest {
 	
 	private void compareMaps(NavigableMap<String, Json> map, NavigableMap<String, Json> rslt) {
 		//are they the same
+		logger.debug("Map size=" + map.size());
+		logger.debug("Rslt size=" + rslt.size());
 		
 		map.forEach((t, u) -> {
-			logger.debug(t+":"+u+"|"+rslt.get(t));
-			assertEquals("Entries differ: "+t ,u, rslt.get(t));
+			//logger.debug("map key:"+t+":"+u+"|"+rslt.get(t));
+			if(!u.equals(rslt.get(t)))logger.debug("map > rslt entries differ: {}:{}|{}",t ,u, rslt.get(t));
+		});
+		rslt.forEach((t, u) -> {
+			//logger.debug("rslt key:"+t+":"+u+"|"+map.get(t));
+			if(!u.equals(map.get(t)))logger.debug("rslt > map entries differ: {}:{}|{}",t ,u, map.get(t));
 		});
 		assertEquals("Maps differ",map,rslt);
 		logger.debug("Entries are the same");
-		logger.debug("Map size=" + map.size());
-		logger.debug("Rslt size=" + rslt.size());
+		
 		assertEquals("Maps differ in size",map.size(),rslt.size());
 	}
 

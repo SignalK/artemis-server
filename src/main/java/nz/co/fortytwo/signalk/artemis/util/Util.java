@@ -38,6 +38,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.ISODateTimeFormat;
 
 import mjson.Json;
@@ -312,7 +313,7 @@ public class Util {
 			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_COMPOSITE);
 			break;
 		default:
-			logger.error("Unknown Json Class type: " + type);
+			logger.error("Unknown Json Class type: {}",type);
 			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_VALUE);
 			m2.getBodyBuffer().writeString(body.toString());
 			break;
@@ -351,10 +352,8 @@ public class Util {
             timeSet = true;
             Date date = new Date();
             if ((date.getYear() + 1900) == dayNow.getYear()) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Current date is " + date);
-                }
-                return;
+               logger.debug("Current date is {}", date);
+               return;
             }
             // so we need to set the date and time
             net.sf.marineapi.nmea.util.Time timeNow = sen.getTime();
@@ -364,15 +363,14 @@ public class Util {
             String hh = pad(2, String.valueOf(timeNow.getHour()));
             String mm = pad(2, String.valueOf(timeNow.getMinutes()));
             String ss = pad(2, String.valueOf(timeNow.getSeconds()));
-            if (logger.isDebugEnabled()) {
-                logger.debug("Setting current date to " + dayNow + " "
-                    + timeNow);
-            }
+           
+            logger.debug("Setting current date to {} {}" ,dayNow , timeNow);
+            
             String cmd = "sudo date --utc " + MM + dd + hh + mm + yy + "." + ss;
             Runtime.getRuntime().exec(cmd.split(" "));// MMddhhmm[[yy]yy]
-            if (logger.isDebugEnabled()) {
-                logger.debug("Executed date setting command:" + cmd);
-            }
+            
+            logger.debug("Executed date setting command: {}",cmd);
+            
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
@@ -446,8 +444,8 @@ public class Util {
 						if (key.contains(dot + values + dot))
 							key = key.substring(0, key.indexOf(dot + values + dot));
 						Json v = Util.readBodyBuffer(msg);
-						if (logger.isDebugEnabled())
-							logger.debug("Key: " + key + ", value: " + v);
+						
+						logger.debug("Key: {}, value: {}", key,v);
 						Json val = Json.object(PATH, key);
 						val.set(value, v);
 						if (v.isObject())
@@ -467,8 +465,7 @@ public class Util {
 
 	public static Json readBodyBuffer(ICoreMessage msg) {
 		if (msg.getBodyBuffer().readableBytes() == 0) {
-			if (logger.isDebugEnabled())
-				logger.debug("Empty msg: " + msg.getAddress() + ": " + msg.getBodyBuffer().readableBytes());
+			logger.debug("Empty msg: {} : {}",()->msg.getAddress(),()->msg.getBodyBuffer().readableBytes());
 			return Json.nil();
 		}
 		return Json.read(readBodyBufferToString(msg));
@@ -489,8 +486,7 @@ public class Util {
 		ClientMessage msgReceived = null;
 		Map<String, Map<String, Map<String, List<ClientMessage>>>> msgs = new HashMap<>();
 		while ((msgReceived = consumer.receive(10)) != null) {
-			if (logger.isDebugEnabled())
-				logger.debug("message = " + msgReceived.getMessageID() + ":" + msgReceived.getAddress());
+			logger.debug("message = {} : {}",msgReceived.getMessageID(),msgReceived.getAddress());
 			String ctx = Util.getContext(msgReceived.getAddress().toString());
 			Map<String, Map<String, List<ClientMessage>>> ctxMap = msgs.get(ctx);
 			if (ctxMap == null) {
@@ -502,8 +498,7 @@ public class Util {
 				tsMap = new HashMap<>();
 				ctxMap.put(msgReceived.getStringProperty(timestamp), tsMap);
 			}
-			if (logger.isDebugEnabled())
-				logger.debug("$source: " + msgReceived.getStringProperty(sourceRef));
+			logger.debug("$source: {}",msgReceived.getStringProperty(sourceRef));
 			List<ClientMessage> srcMap = tsMap.get(msgReceived.getStringProperty(sourceRef));
 			if (srcMap == null) {
 				srcMap = new ArrayList<>();
@@ -520,8 +515,7 @@ public class Util {
 		SortedMap<String, Object> msgs = new ConcurrentSkipListMap<>();
 		while ((msgReceived = consumer.receive(10)) != null) {
 			String key = msgReceived.getAddress().toString();
-			if (logger.isDebugEnabled())
-				logger.debug("message = " + msgReceived.getMessageID() + ":" + key);
+			logger.debug("message = {} : {}",msgReceived.getMessageID(),key);
 			String ts = msgReceived.getStringProperty(timestamp);
 			String src = msgReceived.getStringProperty(source);
 			if (ts != null)
@@ -546,14 +540,14 @@ public class Util {
 	 * @throws IOException
 	 */
 	public static Json mapToJson(SortedMap<String, Object> msgs) throws IOException {
-		Json json = null;
+		
 		if (msgs.size() > 0) {
 			JsonSerializer ser = new JsonSerializer();
-			json = Json.read(ser.write(msgs));
-			if (logger.isDebugEnabled())
-				logger.debug("json = " + json.toString());
+			Json json = Json.read(ser.write(msgs));
+			logger.debug("json = {}",()-> json.toString());
+			return json;
 		}
-		return json;
+		return null;
 	}
 
 	public static void sendMessage(ClientSession session, ClientProducer producer, String address, String body)
@@ -628,10 +622,8 @@ public class Util {
 		byte[] a1 = InetAddress.getByName(localAddress).getAddress();
 		byte[] a2 = InetAddress.getByName(remoteAddress).getAddress();
 		byte[] m = InetAddress.getByName(normalizeFromCIDR(netmask)).getAddress();
-		if (logger.isDebugEnabled()) {
-			logger.debug("sameNetwork?:" + localAddress + "/" + normalizeFromCIDR(netmask) + "," + remoteAddress + ","
-					+ netmask);
-		}
+		logger.debug("sameNetwork?: {}/{},{},{}" ,() -> localAddress , () ->  normalizeFromCIDR(netmask), () -> remoteAddress ,() -> netmask);
+	
 		for (int i = 0; i < a1.length; i++) {
 			if ((a1[i] & m[i]) != (a2[i] & m[i])) {
 				return false;
@@ -650,9 +642,8 @@ public class Util {
 				netmask = (short) (32 - Short.valueOf(p[1]));
 			}
 			if (Util.sameNetwork(p[0], netmask, ip)) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("IP found " + ip + " in list: " + denyIp);
-				}
+				logger.debug("IP found {} in list: {}",ip,denyIp);
+				
 				return true;
 			}
 
@@ -683,7 +674,7 @@ public class Util {
 		String[] paths = fullPath.split("\\.");
 		// Json endNode = null;
 		for (String path : paths) {
-			logger.debug("findNode:" + path);
+			logger.debug("findNode: {}",path);
 			node = node.at(path);
 			if (node == null) {
 				return null;
@@ -693,18 +684,14 @@ public class Util {
 	}
 
 	public static long getMillisFromIsoTime(String iso) {
-		return ISODateTimeFormat.dateTimeParser().withZoneUTC().parseDateTime(iso).getMillis();
-
+		return ISODateTimeFormat.dateTimeParser().withZoneUTC().parseMillis(iso);
 	}
 
 	public static String getIsoTimeString() {
-
 		return getIsoTimeString(System.currentTimeMillis());
-		// return ISO8601DateFormat.getDateInstance().format(new Date());
 	}
 
 	public static String getIsoTimeString(DateTime now) {
-
 		return now.toDateTimeISO().toString(ISODateTimeFormat.dateTimeParser());
 	}
 

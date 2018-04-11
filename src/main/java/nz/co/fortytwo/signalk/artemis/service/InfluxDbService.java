@@ -53,12 +53,8 @@ public class InfluxDbService {
 	private static Logger logger = LogManager.getLogger(InfluxDbService.class);
 	private InfluxDB influxDB;
 	private String dbName = "signalk";
-	private boolean DEBUG = false;
 
 	public InfluxDbService() {
-		if (logger.isDebugEnabled()) {
-			DEBUG = true;
-		}
 		setUpInfluxDb();
 	}
 
@@ -83,8 +79,8 @@ public class InfluxDbService {
 
 	public void recurseJsonFull(Json json, NavigableMap<String, Json> map, String prefix) {
 		for (Entry<String, Json> entry : json.asJsonMap().entrySet()) {
-			if (DEBUG)
-				logger.debug(entry.getKey() + "=" + entry.getValue());
+			
+				logger.debug("Recurse {} = {}",()->entry.getKey(),()->entry.getValue());
 			if (entry.getValue().isPrimitive() || entry.getValue().isNull() || entry.getValue().isArray() ||entry.getValue().has(value)) {
 				map.put(prefix + entry.getKey(), entry.getValue());
 				continue;
@@ -109,14 +105,14 @@ public class InfluxDbService {
 			return null;
 
 		if (node.has(CONTEXT) && (node.has(UPDATES) || node.has(PUT))) {
-			if (DEBUG)
-				logger.debug("processing delta  " + node);
+			
+			logger.debug("processing delta  {}",node);
 			// process it
 
 			// go to context
 			String ctx = node.at(CONTEXT).asString();
 			ctx = Util.fixSelfKey(ctx);
-			if (DEBUG)logger.debug("ctx: " + node);
+			logger.debug("ctx: {}", node);
 			// Json pathNode = temp.addNode(path);
 			Json updates = node.at(UPDATES);
 			if (updates == null)
@@ -128,8 +124,8 @@ public class InfluxDbService {
 				parseUpdate(temp, update, ctx);
 			}
 
-			if (DEBUG)
-				logger.debug("processed delta  " + temp);
+			
+				logger.debug("processed delta  {}" ,temp);
 			return temp;
 		}
 		return null;
@@ -160,14 +156,14 @@ public class InfluxDbService {
 			}
 
 			if (update.has(timestamp)) {
-				if (DEBUG)logger.debug("put timestamp: " + ctx + key+":"+ e);
+				logger.debug("put timestamp: {}:{}", ctx + key, e);
 				e.set(timestamp, update.at(timestamp).asString());
 			}else{
 				e.set(timestamp,Util.getIsoTimeString());
 			}
 			
 			if (e.has(value)) {
-				if (DEBUG)logger.debug("put: " + ctx +  key+":"+ e);
+				logger.debug("put: {}:{}", ctx +  key, e);
 				temp.put(ctx +  key, e);
 			}
 		}
@@ -184,7 +180,7 @@ public class InfluxDbService {
 			if (r.getSeries() == null ||r.getSeries()==null)
 				return;
 			r.getSeries().forEach((s) -> {
-				if (DEBUG)
+				
 					logger.debug(s);
 				if (s == null)
 					return;
@@ -221,14 +217,14 @@ public class InfluxDbService {
 		Query query = new Query(queryStr, db);
 		QueryResult result = influxDB.query(query);
 		//NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
-		if(DEBUG)logger.debug(result);
+		logger.debug(result);
 		if(result==null || result.getResults()==null)return map;
 		result.getResults().forEach((r)-> {
-			if(DEBUG)logger.debug(r);
+			logger.debug(r);
 			if(r==null||r.getSeries()==null)return;
 			r.getSeries().forEach(
 				(s)->{
-					if(DEBUG)logger.debug(s);
+					logger.debug(s);
 					if(s==null)return;
 					String key = s.getName()+dot+s.getTags().get("uuid")+dot+s.getTags().get("skey");
 					Json val = getJsonValue(s,0);
@@ -318,42 +314,24 @@ public class InfluxDbService {
 		Query query = new Query(queryStr, db);
 		QueryResult result = influxDB.query(query);
 		// NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
-		if (DEBUG)
+		
 			logger.debug(result);
 		if (result == null || result.getResults() == null)
 			return map;
 		result.getResults().forEach((r) -> {
-			if (DEBUG)
+			
 				logger.debug(r);
 			if (r.getSeries() == null)
 				return;
 			r.getSeries().forEach((s) -> {
-				if (DEBUG)
-					logger.debug(s);
+				
+					logger.debug("Load source: {}",s);
 				if (s == null)
 					return;
-				String key = s.getName() + dot + s.getTags().get("skey");
-
-				Object obj = getValue(LONG_VALUE, s, 0);
-				if (obj != null)
-					map.put(key, Json.make(Math.round((Double) obj)));
-
-				obj = getValue(DOUBLE_VALUE, s, 0);
-				if (obj != null)
-					map.put(key, Json.make(obj));
-
-				obj = getValue(STR_VALUE, s, 0);
-				if (obj != null) {
-					if (obj.equals("true")) {
-						map.put(key, Json.make(true));
-					} else if (obj.equals("false")) {
-						map.put(key, Json.make(false));
-					} else if (obj.toString().startsWith("[") && obj.toString().endsWith("]")) {
-						map.put(key, Json.read(obj.toString()));
-					} else {
-						map.put(key, Json.make(obj));
-					}
-				}
+				
+				String key = s.getName() + dot + s.getTags().get("skey");	
+				logger.debug("Load source map: {} = {}",()->key,()->getJsonValue(s,0));
+				map.put(key, getJsonValue(s,0));
 
 			});
 		});
@@ -402,26 +380,26 @@ public class InfluxDbService {
 	}
 
 	public void save(String k, Json v) {
-		logger.debug("Save json: " + k + "=" + v.toString());
+		logger.debug("Save json:  {}={}" , k , v);
 		String srcRef = (v.isObject() && v.has(sourceRef) ? v.at(sourceRef).asString() : "self");
 		long tStamp = (v.isObject() && v.has(timestamp) ? Util.getMillisFromIsoTime(v.at(timestamp).asString())
 				: System.currentTimeMillis());
 
 		if (v.isPrimitive()|| v.isBoolean()) {
-			if (DEBUG)
-				logger.debug("Save primitive: " + k + "=" + v.toString());
+			
+			logger.debug("Save primitive:  {}={}", k, v);
 			saveData(k, srcRef, tStamp, v.getValue());	
 			return;
 		}
 		if (v.isNull()) {
-			if (DEBUG)
-				logger.debug("Save null: " + k + "=" + v.toString());
+			
+			logger.debug("Save null: {}={}",k , v);
 			saveData(k, srcRef, tStamp, null);
 			return;
 		}
 		if (v.isArray()) {
-			if (DEBUG)
-				logger.debug("Save array: " + k + "=" + v.toString());
+			
+			logger.debug("Save array: {}={}", k , v);
 			saveData(k, srcRef, tStamp, v.toString());
 			return;
 		}
@@ -430,31 +408,31 @@ public class InfluxDbService {
 		}
 		if (v.has(meta)) {
 			for (Entry<String, Json> i : v.at(meta).asJsonMap().entrySet()) {
-				if (DEBUG)
-					logger.debug("Save meta: " + i.getKey() + "=" + i.getValue());
+				
+				logger.debug("Save meta: {}={}",()->i.getKey(), ()->i.getValue());
 				saveData(k + dot + meta + dot + i.getKey(), srcRef, tStamp, i.getValue());
 			}
 		}
 		
 		if (v.has(values)) {
 			for (Entry<String, Json> i : v.at(values).asJsonMap().entrySet()) {
-				if (DEBUG)
-					logger.debug("Save values: " + i.getKey() + "=" + i.getValue());
+				
+				logger.debug("Save values: {}={}",()->i.getKey() ,()-> i.getValue());
 				save(k + dot + values + dot + i.getKey(),i.getValue());
 			}
 		}
 
 		if (v.has(value)&& v.at(value).isObject()) {
 			for (Entry<String, Json> i : v.at(value).asJsonMap().entrySet()) {
-				if (DEBUG)
-					logger.debug("Save value object: " + i.getKey() + "=" + i.getValue());
+				
+				logger.debug("Save value object: {}={}" , ()->i.getKey(),()->i.getValue());
 				saveData(k + dot + value + dot + i.getKey(), srcRef, tStamp, i.getValue());
 			}
 			return;
 		}
 
-		if (DEBUG)
-			logger.debug("Save value: " + k + "=" + v.toString());
+		
+		logger.debug("Save value: {} : {}", k, v);
 		saveData(k + dot + value, srcRef, tStamp, v.at(value));
 
 		return;
@@ -466,8 +444,8 @@ public class InfluxDbService {
 		for (int x = 0; x < pathArray.length; x++) {
 			// add last
 			if (x == (pathArray.length - 1)) {
-				if (DEBUG)
-					logger.debug("finish:" + pathArray[x]);
+				
+				logger.debug("finish: {}",pathArray[x]);
 				node.set(pathArray[x], val);
 				break;
 			}
@@ -476,8 +454,8 @@ public class InfluxDbService {
 			if (next == null) {
 				next = Json.object();
 				node.set(pathArray[x], next);
-				if (DEBUG)
-					logger.debug("add:" + pathArray[x]);
+				
+				logger.debug("add: {}", pathArray[x]);
 			}
 			node = next;
 		}
@@ -516,8 +494,8 @@ public class InfluxDbService {
 
 
 	protected void saveData(String key, String sourceRef, long millis, Object value) {
-		if (DEBUG)
-			logger.debug("save "+value.getClass().getSimpleName()+":" + key);
+		
+		logger.debug("save {} : {}",()->value.getClass().getSimpleName(),()->key);
 		String[] path = StringUtils.split(key, '.');
 		String field = getFieldType(value);
 		Builder point = null;
@@ -548,7 +526,7 @@ public class InfluxDbService {
 	}
 
 	private Point addPoint(Builder point, String field, Object value) {
-		if(DEBUG)logger.debug("addPoint:"+field+":"+value);
+		logger.debug("addPoint: {} : {}",field,value);
 		if(value==null)return point.addField(field,true).build();
 		if(value instanceof Json){
 			if(((Json)value).isString()){
@@ -569,13 +547,17 @@ public class InfluxDbService {
 		if(value instanceof Integer)return point.addField(field,((Integer)value).longValue()).build();
 		if(value instanceof BigInteger)return point.addField(field,((BigInteger)value).longValue()).build();
 		if(value instanceof String)return point.addField(field,(String)value).build();
-		if(DEBUG)logger.debug("addPoint: unknown type:"+field+":"+value);
+		logger.debug("addPoint: unknown type: {} : {}",field,value);
 		return null;
 	}
 
 	private String getFieldType(Object value) {
-		if(DEBUG)logger.debug("getFieldType:"+value.getClass().getName()+":"+value);
-		if(value==null)return NULL_VALUE;
+		
+		if(value==null){
+			logger.debug("getFieldType: {} : {}",value,value);
+			return NULL_VALUE;
+		}
+		logger.debug("getFieldType: {} : {}",value.getClass().getName(),value);
 		if(value instanceof Json){
 			if(((Json)value).isNull())return NULL_VALUE;
 			if(((Json)value).isArray())return STR_VALUE;
@@ -587,8 +569,9 @@ public class InfluxDbService {
 		if(value instanceof BigInteger)return LONG_VALUE;
 		if(value instanceof Integer)return LONG_VALUE;
 		if(value instanceof String)return STR_VALUE;
+		if(value instanceof Boolean)return STR_VALUE;
 		
-		if(DEBUG)logger.debug("getFieldType:unknown type:"+value.getClass().getName()+":"+value);
+		logger.debug("getFieldType:unknown type: {} : {}",value.getClass().getName(),value);
 		return null;
 	}
 

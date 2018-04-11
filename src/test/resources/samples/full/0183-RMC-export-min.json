@@ -9,12 +9,12 @@
             "latitude": -41.156426,
             "altitude": 0
           },
-          "timestamp": "2015-01-25T12:01:01Z",
+          "timestamp": "2015-01-25T12:01:01.000Z",
           "$source": "a.suitable.path"
         },
         "courseOverGroundTrue": {
           "value": 245.69,
-          "timestamp": "2015-01-25T12:01:01Z",
+          "timestamp": "2015-01-25T12:01:01.000Z",
           "$source": "a.suitable.path"
         }
       }

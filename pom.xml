@@ -78,9 +78,21 @@
 		<!-- <artifactId>apache-artemis</artifactId> -->
 		<!-- <version>1.5.1</version> -->
 		<!-- </dependency> -->
+
+		<!-- apache licence -->
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-api</artifactId>
+			<version>2.8.2</version>
+		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
+			<version>2.8.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-1.2-api</artifactId>
 			<version>2.8.2</version>
 		</dependency>
 		<dependency>
@@ -92,18 +104,37 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
 			<version>1.7.25</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>log4j</artifactId>
+					<groupId>log4j</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>javax.inject</groupId>
 			<artifactId>javax.inject</artifactId>
 			<version>1</version>
 		</dependency>
-<!-- 		<dependency> -->
-<!-- 			<groupId>nz.co.fortytwo.signalk.core</groupId> -->
-<!-- 			<artifactId>signalk-core-java</artifactId> -->
-<!-- 			<version>0.0.1-SNAPSHOT</version> -->
-<!-- 		</dependency> -->
-<!-- nmea LGPL 3 -->
+		<dependency>
+		     <groupId>com.fasterxml.jackson.core</groupId>
+		     <artifactId>jackson-core</artifactId>
+		     <version>2.6.3</version>
+		   </dependency>
+		    
+		   <dependency>
+		     <groupId>com.fasterxml.jackson.core</groupId>
+		     <artifactId>jackson-databind</artifactId>
+		     <version>2.6.3</version>
+		   </dependency>
+		    
+		   <dependency>
+		     <groupId>com.fasterxml.jackson.core</groupId>
+		     <artifactId>jackson-annotations</artifactId>
+		     <version>2.6.3</version>
+		   </dependency>
+
+		<!-- LGPL 3 -->
 		<dependency>
 			<groupId>net.sf.marineapi</groupId>
 			<artifactId>marineapi</artifactId>
@@ -120,6 +151,7 @@
 			<artifactId>jboss-logmanager</artifactId>
 			<version>1.5.3.Final</version>
 		</dependency>
+		<!-- apache licence -->
 		<dependency>
 			<groupId>org.apache.activemq</groupId>
 			<artifactId>artemis-server</artifactId>
