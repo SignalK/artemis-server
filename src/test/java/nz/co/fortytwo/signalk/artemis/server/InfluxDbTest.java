@@ -18,6 +18,7 @@ import org.junit.Test;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
+import nz.co.fortytwo.signalk.artemis.service.SecurityService;
 import nz.co.fortytwo.signalk.artemis.util.JsonSerializer;
 
 public class InfluxDbTest {
@@ -42,6 +43,7 @@ public class InfluxDbTest {
 		influx.getInfluxDB().query(new Query("drop measurement vessels", "signalk"));
 		influx.getInfluxDB().query(new Query("drop measurement sources", "signalk"));
 		influx.getInfluxDB().query(new Query("drop measurement config", "signalk"));
+		influx.getInfluxDB().query(new Query("drop measurement resources", "signalk"));
 	}
 	
 	@Test
@@ -58,6 +60,8 @@ public class InfluxDbTest {
 		clearDb();
 		// get a sample of signalk
 		NavigableMap<String, Json> map = getJsonMap("./src/test/resources/samples/full/docs-data_model.json");
+		SecurityService secure = new SecurityService();
+		secure.addAttributes(map);
 		//save and flush
 		influx.save(map);
 		//reload from db
@@ -70,6 +74,8 @@ public class InfluxDbTest {
 		clearDb();
 		// get a sample of signalk
 		NavigableMap<String, Json> map = getJsonMap("./src/test/resources/samples/full/docs-data_model.json");
+		SecurityService secure = new SecurityService();
+		secure.addAttributes(map);
 		//save and flush
 		influx.save(map);
 		//reload from db
@@ -77,6 +83,7 @@ public class InfluxDbTest {
 		compareMaps(map,rslt);
 		//now run again with variation
 		map.put("vessels.urn:mrn:signalk:uuid:705f5f1a-efaf-44aa-9cb8-a0fd6305567c.navigation.headingMagnetic.value",Json.make(6.55));
+		secure.addAttributes(map);
 		//save and flush
 		influx.save(map);
 		//reload
@@ -93,6 +100,8 @@ public class InfluxDbTest {
 			logger.debug("Testing sample:"+f.getName());
 			// get a sample of signalk
 			NavigableMap<String, Json> map = getJsonMap(f.getAbsolutePath());
+			SecurityService secure = new SecurityService();
+			secure.addAttributes(map);
 			//save and flush
 			influx.save(map);
 			//reload from db
@@ -110,6 +119,8 @@ public class InfluxDbTest {
 			logger.debug("Testing sample:"+f.getName());
 			// get a sample of signalk
 			NavigableMap<String, Json> map = getJsonDeltaMap(f.getAbsolutePath());
+			SecurityService secure = new SecurityService();
+			secure.addAttributes(map);
 			//save and flush
 			influx.save(map);
 			//reload from db
@@ -125,8 +136,14 @@ public class InfluxDbTest {
 		String body = FileUtils.readFileToString(new File("./src/test/resources/samples/full_resources.json"));
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();
 		influx.recurseJsonFull(Json.read(body), map, "");
-		map.forEach((t, u) -> logger.debug(t + "=" + u));
-		map.forEach((k, v) -> influx.save(k, v));
+		
+		SecurityService secure = new SecurityService();
+		secure.addAttributes(map);
+		
+		influx.save(map);
+		//reload from db
+		NavigableMap<String, Json> rslt = loadFromDb();
+		compareMaps(map,rslt);
 	}
 	
 	
@@ -138,17 +155,18 @@ public class InfluxDbTest {
 		String body = FileUtils.readFileToString(new File("./src/test/resources/samples/signalk-config.json"));
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();
 		influx.recurseJsonFull(Json.read(body), map, "");
-		map.forEach((t, u) -> logger.debug(t + "=" + u));
-		map.forEach((k, v) -> influx.save(k, v));
+		
+		SecurityService secure = new SecurityService();
+		secure.addAttributes(map);
+		
+		influx.save(map);
+		
+		//reload from db
+		NavigableMap<String, Json> rslt = loadConfigFromDb();
+		compareMaps(map,rslt);
 	}
 	
-	@Test
-	public void testConfigQuery() throws IOException {
-		clearDb();
-		NavigableMap<String, Json> map = influx.loadConfig();
-		map.forEach((t, u) -> logger.debug(t + "=" + u));
-		logger.debug(ser.write((SortedMap)map));
-	}
+	
 	
 
 	@Test
@@ -158,11 +176,28 @@ public class InfluxDbTest {
 		String body = FileUtils.readFileToString(new File("./src/test/resources/samples/PK_tree.json"));
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();
 		influx.recurseJsonFull(Json.read(body), map, "");
+		SecurityService secure = new SecurityService();
+		secure.addAttributes(map);
 		map.forEach((t, u) -> logger.debug(t + "=" + u));
-		map.forEach((k, v) -> influx.save(k, v));
+		map.forEach((k, v) -> influx.save(map));
+		//reload from db
+		NavigableMap<String, Json> rslt = loadFromDb();
+		compareMaps(map,rslt);
 	}
 	
 	private void compareMaps(NavigableMap<String, Json> map, NavigableMap<String, Json> rslt) {
+		
+		
+		//check we have self and version
+		map.remove("self");
+		map.remove("self._attr");
+		map.remove("version");
+		map.remove("version._attr");
+		rslt.remove("self");
+		rslt.remove("self._attr");
+		rslt.remove("version");
+		rslt.remove("version._attr");
+		
 		//are they the same
 		logger.debug("Map size=" + map.size());
 		logger.debug("Rslt size=" + rslt.size());
@@ -217,8 +252,18 @@ public class InfluxDbTest {
 	private NavigableMap<String, Json> loadFromDb() {
 		NavigableMap<String, Json> rslt = new ConcurrentSkipListMap<String, Json>();
 		
-		rslt = influx.loadData(rslt,"select * from vessels group by skey,uuid order by time desc limit 1","signalk");
-		rslt = influx.loadSources(rslt,"select * from sources group by skey order by time desc limit 1","signalk");
+		rslt = influx.loadData(rslt,"select * from vessels group by skey,uuid,owner,role,o_r,o_w,r_r,r_w order by time desc limit 1","signalk");
+		rslt = influx.loadSources(rslt,"select * from sources group by skey,uuid,owner,role,o_r,o_w,r_r,r_w order by time desc limit 1","signalk");
+		rslt = influx.loadResources(rslt,"select * from resources group by skey,uuid,owner,role,o_r,o_w,r_r,r_w order by time desc limit 1","signalk");
+		rslt.forEach((t, u) -> logger.debug(t + "=" + u));
+		return rslt;
+	}
+	
+	private NavigableMap<String, Json> loadConfigFromDb() {
+		NavigableMap<String, Json> rslt = new ConcurrentSkipListMap<String, Json>();
+		
+		rslt = influx.loadConfig(rslt,"select * from config group by skey,uuid,owner,role,role,o_r,o_w,r_r,r_w order by time desc limit 1","signalk");
+		
 		rslt.forEach((t, u) -> logger.debug(t + "=" + u));
 		return rslt;
 	}

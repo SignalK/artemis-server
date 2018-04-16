@@ -21,6 +21,7 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -63,12 +64,9 @@ public class InfluxDbService {
 		if (!influxDB.databaseExists(dbName))
 			influxDB.createDatabase(dbName);
 		influxDB.setDatabase(dbName);
-		// String rpName = "aRetentionPolicy";
-		// influxDB.createRetentionPolicy(rpName, dbName, "30d", "30m", 2,
-		// true);
-		// influxDB.setRetentionPolicy(rpName);
-	
+		
 		influxDB.enableBatch(BatchOptions.DEFAULTS.exceptionHandler((failedPoints, throwable) -> {
+			logger.error("FAILED:"+failedPoints);
 			logger.error(throwable);
 		}));
 	}
@@ -170,42 +168,63 @@ public class InfluxDbService {
 
 	}
 
-	public NavigableMap<String, Json> loadConfig() {
-		Query query = new Query("select * from config group by skey order by time desc limit 1", dbName);
+	
+	public NavigableMap<String, Json> loadResources(NavigableMap<String, Json> map, String queryStr, String db) {
+		Query query = new Query(queryStr, db);
 		QueryResult result = influxDB.query(query);
-		NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
+		
 		if (result == null || result.getResults() == null)
 			return map;
 		result.getResults().forEach((r) -> {
 			if (r.getSeries() == null ||r.getSeries()==null)
 				return;
 			r.getSeries().forEach((s) -> {
+				logger.debug(s);
+				if(s==null)return;
 				
-					logger.debug(s);
-				if (s == null)
-					return;
+				Map<String, String> tagMap = s.getTags();
 				String key = s.getName() + dot + s.getTags().get("skey");
-
-				Object obj = getValue(LONG_VALUE, s, 0);
-				if (obj != null)
-					map.put(key, Json.make(Math.round((Double) obj)));
-
-				obj = getValue(DOUBLE_VALUE, s, 0);
-				if (obj != null)
-					map.put(key, Json.make(obj));
-
-				obj = getValue(STR_VALUE, s, 0);
-				if (obj != null) {
-					if (obj.equals("true")) {
-						map.put(key, Json.make(true));
-					} else if (obj.equals("false")) {
-						map.put(key, Json.make(false));
-					} else if (obj.toString().startsWith("[") && obj.toString().endsWith("]")) {
-						map.put(key, Json.read(obj.toString()));
-					} else {
-						map.put(key, Json.make(obj));
-					}
+				Json attr = getAttrJson(tagMap);
+				Json val = getJsonValue(s,0);
+				if((key.endsWith(".value")||key.contains(".value."))){
+					String subkey = StringUtils.substringAfterLast(key,".value.");
+				
+					key = StringUtils.substringBeforeLast(key,".value");
+					
+					//make parent Json
+					Json parent = getParent(map,key,attr);
+					
+					extractValue(parent,s, subkey, val);
+					
+					map.put(key,parent);
+				}else{
+					map.put(key,val);
+					map.put(key+"._attr",attr);
 				}
+
+			});
+		});
+		return map;
+	}
+	public NavigableMap<String, Json> loadConfig(NavigableMap<String, Json> map, String queryStr, String db) {
+		Query query = new Query(queryStr, db);
+		QueryResult result = influxDB.query(query);
+		
+		if (result == null || result.getResults() == null)
+			return map;
+		result.getResults().forEach((r) -> {
+			if (r.getSeries() == null ||r.getSeries()==null)
+				return;
+			r.getSeries().forEach((s) -> {
+				logger.debug(s);
+				if(s==null)return;
+				
+				Map<String, String> tagMap = s.getTags();
+				String key = s.getName() + dot + s.getTags().get("skey");
+				Json attr = getAttrJson(tagMap);
+				Json val = getJsonValue(s,0);
+				map.put(key,val);
+				map.put(key+"._attr",attr);
 
 			});
 		});
@@ -213,6 +232,12 @@ public class InfluxDbService {
 	}
 
 	
+	/**
+	 * @param map
+	 * @param queryStr
+	 * @param db
+	 * @return
+	 */
 	public NavigableMap<String, Json> loadData(NavigableMap<String, Json> map, String queryStr, String db){
 		Query query = new Query(queryStr, db);
 		QueryResult result = influxDB.query(query);
@@ -226,22 +251,22 @@ public class InfluxDbService {
 				(s)->{
 					logger.debug(s);
 					if(s==null)return;
-					String key = s.getName()+dot+s.getTags().get("uuid")+dot+s.getTags().get("skey");
+					
+					Map<String, String> tagMap = s.getTags();
+					String key = s.getName()+dot+tagMap.get("uuid")+dot+tagMap.get("skey");
+					Json attr = getAttrJson(tagMap);
 					Json val = getJsonValue(s,0);
+					
+					
 					boolean processed = false;
 					//add timestamp and sourceRef
-					
-					
 					if(key.endsWith(".sentence")){
-							
-						String senKey = StringUtils.substringBeforeLast(key,".");
 						
 						//make parent Json
-						Json parent = map.get(senKey);
-						if(parent==null){
-							parent = Json.object();
-							map.put(senKey,parent);
-						}
+						String parentKey = StringUtils.substringBeforeLast(key,".");
+						
+						Json parent = getParent(map,parentKey,attr);
+				
 						parent.set(sentence,val);
 						processed=true;
 						
@@ -252,11 +277,7 @@ public class InfluxDbService {
 						String metaKey = StringUtils.substringAfterLast(key,".meta.");
 						
 						//make parent Json
-						Json parent = map.get(parentKey);
-						if(parent==null){
-							parent = Json.object();
-							map.put(parentKey,parent);
-						}
+						Json parent = getParent(map,parentKey,attr);
 						
 						//add attributes
 						addAtPath(parent,"meta."+metaKey, val);
@@ -266,14 +287,12 @@ public class InfluxDbService {
 						//add meta to parent of value
 						String parentKey = StringUtils.substringBeforeLast(key,".values.");
 						String valKey = StringUtils.substringAfterLast(key,".values.");
-						String attr = StringUtils.substringAfterLast(valKey,".value.");
+						String subkey = StringUtils.substringAfterLast(valKey,".value.");
 						valKey=StringUtils.substringBeforeLast(valKey,".");
+						
 						//make parent Json
-						Json parent = map.get(parentKey);
-						if(parent==null){
-							parent = Json.object();
-							map.put(parentKey,parent);
-						}
+						Json parent = getParent(map,parentKey,attr);
+						
 						Json valuesJson = parent.at(values);
 						if(valuesJson==null){
 							valuesJson = Json.object();
@@ -286,28 +305,44 @@ public class InfluxDbService {
 						}
 						
 						//add attributes
-						extractValue(attrJson,s,attr,val,null);
+						extractValue(attrJson,s,subkey,val,null);
 						processed=true;
 					}
 					if(!processed && (key.endsWith(".value")||key.contains(".value."))){
-						String attr = StringUtils.substringAfterLast(key,".value.");
+						String subkey = StringUtils.substringAfterLast(key,".value.");
 					
 						key = StringUtils.substringBeforeLast(key,".value");
 						
 						//make parent Json
-						Json parent = map.get(key);
-						if(parent==null)parent = Json.object();
+						Json parent = getParent(map,key,attr);
 						
-						extractValue(parent,s, attr, val);
+						extractValue(parent,s, subkey, val);
 						
 						map.put(key,parent);
 						processed=true;
 					}
-					if(!processed) map.put(key,val);
+					if(!processed){
+						map.put(key,val);
+						map.put(key+"._attr",attr);
+					}
 					
 				});
 			});
 		return map;
+	}
+
+	
+
+	private Json getParent(NavigableMap<String, Json> map, String parentKey, Json attr) {
+		
+		//make parent Json
+		Json parent = map.get(parentKey);
+		if(parent==null){
+			parent = Json.object();
+			map.put(parentKey,parent);
+			map.put(parentKey+"._attr",attr);
+		}
+		return parent;
 	}
 
 	public NavigableMap<String, Json> loadSources(NavigableMap<String, Json> map, String queryStr, String db) {
@@ -315,23 +350,22 @@ public class InfluxDbService {
 		QueryResult result = influxDB.query(query);
 		// NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
 		
-			logger.debug(result);
+		logger.debug(result);
 		if (result == null || result.getResults() == null)
 			return map;
 		result.getResults().forEach((r) -> {
-			
-				logger.debug(r);
-			if (r.getSeries() == null)
-				return;
+			logger.debug(r);
+			if (r.getSeries() == null)return;
 			r.getSeries().forEach((s) -> {
 				
-					logger.debug("Load source: {}",s);
-				if (s == null)
-					return;
+				logger.debug("Load source: {}",s);
+				if (s == null)return;
 				
-				String key = s.getName() + dot + s.getTags().get("skey");	
+				String key = s.getName() + dot + s.getTags().get("skey");
+				Json attr = getAttrJson(s.getTags());
 				logger.debug("Load source map: {} = {}",()->key,()->getJsonValue(s,0));
 				map.put(key, getJsonValue(s,0));
+				map.put(key+"._attr",attr);
 
 			});
 		});
@@ -350,7 +384,7 @@ public class InfluxDbService {
 		if (obj != null)
 			return Json.make(Math.round((Double) obj));
 		obj = getValue(NULL_VALUE, s, 0);
-		if (obj != null && (Boolean)obj) return Json.nil();
+		if (obj != null && Boolean.valueOf((String)obj)) return Json.nil();
 		
 		obj = getValue(DOUBLE_VALUE, s, 0);
 		if (obj != null)
@@ -373,44 +407,61 @@ public class InfluxDbService {
 		return Json.nil();
 
 	}
+	
+	private Json getAttrJson(Map<String,String> tagMap) {
+		Json attr = Json.object()
+				.set(SecurityService.OWNER, tagMap.get(SecurityService.OWNER))
+				.set(SecurityService.ROLE, tagMap.get(SecurityService.ROLE))
+				.set(SecurityService.ROLE_READ, Boolean.valueOf(tagMap.get(SecurityService.ROLE_READ)))
+				.set(SecurityService.ROLE_WRITE, Boolean.valueOf(tagMap.get(SecurityService.ROLE_WRITE)))
+				.set(SecurityService.OTHER_READ, Boolean.valueOf(tagMap.get(SecurityService.OTHER_READ)))
+				.set(SecurityService.OTHER_WRITE, Boolean.valueOf(tagMap.get(SecurityService.OTHER_WRITE)));
+		return attr;
+	}
 
 	public void save(NavigableMap<String, Json> map) {
-		map.forEach((k, v) -> save(k, v));
+		logger.debug("Save map:  {}" ,map);
+		map.forEach((k, v) -> save(k, v, map.get(k+"._attr")));
 		influxDB.flush();
 	}
 
-	public void save(String k, Json v) {
+	public void save(String k, Json v, Json attr) {
 		logger.debug("Save json:  {}={}" , k , v);
+		//avoid _attr
+		if(k.contains("._attr")){
+			return;
+		}
+		
 		String srcRef = (v.isObject() && v.has(sourceRef) ? v.at(sourceRef).asString() : "self");
 		long tStamp = (v.isObject() && v.has(timestamp) ? Util.getMillisFromIsoTime(v.at(timestamp).asString())
 				: System.currentTimeMillis());
-
+		
 		if (v.isPrimitive()|| v.isBoolean()) {
 			
 			logger.debug("Save primitive:  {}={}", k, v);
-			saveData(k, srcRef, tStamp, v.getValue());	
+			saveData(k, srcRef, tStamp, v.getValue(),attr);	
 			return;
 		}
 		if (v.isNull()) {
 			
 			logger.debug("Save null: {}={}",k , v);
-			saveData(k, srcRef, tStamp, null);
+			saveData(k, srcRef, tStamp, null,attr);
 			return;
 		}
 		if (v.isArray()) {
 			
 			logger.debug("Save array: {}={}", k , v);
-			saveData(k, srcRef, tStamp, v.toString());
+			saveData(k, srcRef, tStamp, v.toString(),attr);
 			return;
 		}
 		if (v.has(sentence)) {
-			saveData(k + dot + sentence, srcRef, tStamp, v.at(sentence));
+			saveData(k + dot + sentence, srcRef, tStamp, v.at(sentence),attr);
 		}
 		if (v.has(meta)) {
 			for (Entry<String, Json> i : v.at(meta).asJsonMap().entrySet()) {
 				
 				logger.debug("Save meta: {}={}",()->i.getKey(), ()->i.getValue());
-				saveData(k + dot + meta + dot + i.getKey(), srcRef, tStamp, i.getValue());
+				saveData(k + dot + meta + dot + i.getKey(), srcRef, tStamp, i.getValue(),attr);
 			}
 		}
 		
@@ -418,7 +469,7 @@ public class InfluxDbService {
 			for (Entry<String, Json> i : v.at(values).asJsonMap().entrySet()) {
 				
 				logger.debug("Save values: {}={}",()->i.getKey() ,()-> i.getValue());
-				save(k + dot + values + dot + i.getKey(),i.getValue());
+				save(k + dot + values + dot + i.getKey(),i.getValue(),attr);
 			}
 		}
 
@@ -426,14 +477,14 @@ public class InfluxDbService {
 			for (Entry<String, Json> i : v.at(value).asJsonMap().entrySet()) {
 				
 				logger.debug("Save value object: {}={}" , ()->i.getKey(),()->i.getValue());
-				saveData(k + dot + value + dot + i.getKey(), srcRef, tStamp, i.getValue());
+				saveData(k + dot + value + dot + i.getKey(), srcRef, tStamp, i.getValue(),attr);
 			}
 			return;
 		}
 
 		
 		logger.debug("Save value: {} : {}", k, v);
-		saveData(k + dot + value, srcRef, tStamp, v.at(value));
+		saveData(k + dot + value, srcRef, tStamp, v.at(value),attr);
 
 		return;
 	}
@@ -493,36 +544,74 @@ public class InfluxDbService {
 	}
 
 
-	protected void saveData(String key, String sourceRef, long millis, Object value) {
+	protected void saveData(String key, String sourceRef, long millis, Object value, Json attr) {
 		
-		logger.debug("save {} : {}",()->value.getClass().getSimpleName(),()->key);
-		String[] path = StringUtils.split(key, '.');
-		String field = getFieldType(value);
-		Builder point = null;
-		switch (path[0]) {
-		case vessels:
-			point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS).tag("sourceRef", sourceRef)
-					.tag("uuid", path[1]).tag("skey", String.join(".", ArrayUtils.subarray(path, 2, path.length)));
-			influxDB.write(addPoint(point, field, value));
-			break;
-		case resources:
-			point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS).tag("sourceRef", sourceRef)
-					.tag("uuid", path[1]).tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)));
-			influxDB.write(addPoint(point, field, value));
-			break;
-		case sources:
-			point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS).tag("sourceRef", path[1])
-					.tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)));
-			influxDB.write(addPoint(point, field, value));
-			break;
-		case CONFIG:
-			point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS).tag("sourceRef", sourceRef)
-					.tag("uuid", path[1]).tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)));
-			influxDB.write(addPoint(point, field, value));
-			break;
-		default:
-			break;
-		}
+			if(value!=null)
+				logger.debug("save {} : {}",()->value.getClass().getSimpleName(),()->key);
+			else{
+				logger.debug("save {} : {}",()->null,()->key);
+			}
+			String[] path = StringUtils.split(key, '.');
+			String field = getFieldType(value);
+			Builder point = null;
+			switch (path[0]) {
+			case vessels:
+				point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS)
+						.tag("sourceRef", sourceRef)
+						.tag("uuid", path[1])
+						.tag(SecurityService.OWNER, attr.at(SecurityService.OWNER).asString())
+						.tag(SecurityService.ROLE, attr.at(SecurityService.ROLE).asString())
+						.tag(SecurityService.ROLE_READ, attr.at(SecurityService.ROLE_READ).toString())
+						.tag(SecurityService.ROLE_WRITE, attr.at(SecurityService.ROLE_WRITE).toString())
+						.tag(SecurityService.OTHER_READ, attr.at(SecurityService.OTHER_READ).toString())
+						.tag(SecurityService.OTHER_WRITE, attr.at(SecurityService.OTHER_WRITE).toString())
+						.tag("skey", String.join(".", ArrayUtils.subarray(path, 2, path.length)));
+				influxDB.write(addPoint(point, field, value));
+				break;
+			case resources:
+				point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS)
+						.tag("sourceRef", sourceRef)
+						.tag("uuid", path[1])
+						.tag(SecurityService.OWNER, attr.at(SecurityService.OWNER).asString())
+						.tag(SecurityService.ROLE, attr.at(SecurityService.ROLE).asString())
+						.tag(SecurityService.ROLE_READ, attr.at(SecurityService.ROLE_READ).toString())
+						.tag(SecurityService.ROLE_WRITE, attr.at(SecurityService.ROLE_WRITE).toString())
+						.tag(SecurityService.OTHER_READ, attr.at(SecurityService.OTHER_READ).toString())
+						.tag(SecurityService.OTHER_WRITE, attr.at(SecurityService.OTHER_WRITE).toString())
+						.tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)));
+				influxDB.write(addPoint(point, field, value));
+				break;
+			case sources:
+				point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS)
+						.tag("sourceRef", path[1])
+						.tag(SecurityService.OWNER, attr.at(SecurityService.OWNER).asString())
+						.tag(SecurityService.ROLE, attr.at(SecurityService.ROLE).asString())
+						.tag(SecurityService.ROLE_READ, attr.at(SecurityService.ROLE_READ).toString())
+						.tag(SecurityService.ROLE_WRITE, attr.at(SecurityService.ROLE_WRITE).toString())
+						.tag(SecurityService.OTHER_READ, attr.at(SecurityService.OTHER_READ).toString())
+						.tag(SecurityService.OTHER_WRITE, attr.at(SecurityService.OTHER_WRITE).toString())
+						.tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)));
+				influxDB.write(addPoint(point, field, value));
+				break;
+			case CONFIG:
+				point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS)
+						//.tag("sourceRef", sourceRef)
+						.tag(SecurityService.OWNER, attr.at(SecurityService.OWNER).asString())
+						.tag(SecurityService.ROLE, attr.at(SecurityService.ROLE).asString())
+						.tag(SecurityService.ROLE_READ, attr.at(SecurityService.ROLE_READ).toString())
+						.tag(SecurityService.ROLE_WRITE, attr.at(SecurityService.ROLE_WRITE).toString())
+						.tag(SecurityService.OTHER_READ, attr.at(SecurityService.OTHER_READ).toString())
+						.tag(SecurityService.OTHER_WRITE, attr.at(SecurityService.OTHER_WRITE).toString())
+						.tag("uuid", path[1])
+						.tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)));
+				influxDB.write(addPoint(point, field, value));
+				
+				break;
+			default:
+				break;
+			}
+		
+		
 	}
 
 	private Point addPoint(Builder point, String field, Object value) {
@@ -539,7 +628,7 @@ public class InfluxDbService {
 				value=((Json)value).getValue();
 			}
 		}
-		if(value instanceof Boolean)return point.addField(field,(Boolean)value).build();
+		if(value instanceof Boolean)return point.addField(field,((Boolean)value).toString()).build();
 		if(value instanceof Double)return point.addField(field,(Double)value).build();
 		if(value instanceof Float)return point.addField(field,(Double)value).build();
 		if(value instanceof BigDecimal)return point.addField(field,((BigDecimal)value).doubleValue()).build();
