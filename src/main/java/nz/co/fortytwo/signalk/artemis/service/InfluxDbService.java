@@ -411,11 +411,11 @@ public class InfluxDbService {
 	private Json getAttrJson(Map<String,String> tagMap) {
 		Json attr = Json.object()
 				.set(SecurityService.OWNER, tagMap.get(SecurityService.OWNER))
-				.set(SecurityService.ROLE, tagMap.get(SecurityService.ROLE))
-				.set(SecurityService.ROLE_READ, Boolean.valueOf(tagMap.get(SecurityService.ROLE_READ)))
-				.set(SecurityService.ROLE_WRITE, Boolean.valueOf(tagMap.get(SecurityService.ROLE_WRITE)))
-				.set(SecurityService.OTHER_READ, Boolean.valueOf(tagMap.get(SecurityService.OTHER_READ)))
-				.set(SecurityService.OTHER_WRITE, Boolean.valueOf(tagMap.get(SecurityService.OTHER_WRITE)));
+				.set(SecurityService.GROUP, tagMap.get(SecurityService.GROUP));
+//				.set(SecurityService.ROLE_READ, Boolean.valueOf(tagMap.get(SecurityService.ROLE_READ)))
+//				.set(SecurityService.ROLE_WRITE, Boolean.valueOf(tagMap.get(SecurityService.ROLE_WRITE)))
+//				.set(SecurityService.OTHER_READ, Boolean.valueOf(tagMap.get(SecurityService.OTHER_READ)))
+//				.set(SecurityService.OTHER_WRITE, Boolean.valueOf(tagMap.get(SecurityService.OTHER_WRITE)));
 		return attr;
 	}
 
@@ -560,11 +560,11 @@ public class InfluxDbService {
 						.tag("sourceRef", sourceRef)
 						.tag("uuid", path[1])
 						.tag(SecurityService.OWNER, attr.at(SecurityService.OWNER).asString())
-						.tag(SecurityService.ROLE, attr.at(SecurityService.ROLE).asString())
-						.tag(SecurityService.ROLE_READ, attr.at(SecurityService.ROLE_READ).toString())
-						.tag(SecurityService.ROLE_WRITE, attr.at(SecurityService.ROLE_WRITE).toString())
-						.tag(SecurityService.OTHER_READ, attr.at(SecurityService.OTHER_READ).toString())
-						.tag(SecurityService.OTHER_WRITE, attr.at(SecurityService.OTHER_WRITE).toString())
+						.tag(SecurityService.GROUP, attr.at(SecurityService.GROUP).asString())
+						//.tag(SecurityService.ROLE_READ, attr.at(SecurityService.ROLE_READ).toString())
+						//.tag(SecurityService.ROLE_WRITE, attr.at(SecurityService.ROLE_WRITE).toString())
+						//.tag(SecurityService.OTHER_READ, attr.at(SecurityService.OTHER_READ).toString())
+						//.tag(SecurityService.OTHER_WRITE, attr.at(SecurityService.OTHER_WRITE).toString())
 						.tag("skey", String.join(".", ArrayUtils.subarray(path, 2, path.length)));
 				influxDB.write(addPoint(point, field, value));
 				break;
@@ -573,11 +573,11 @@ public class InfluxDbService {
 						.tag("sourceRef", sourceRef)
 						.tag("uuid", path[1])
 						.tag(SecurityService.OWNER, attr.at(SecurityService.OWNER).asString())
-						.tag(SecurityService.ROLE, attr.at(SecurityService.ROLE).asString())
-						.tag(SecurityService.ROLE_READ, attr.at(SecurityService.ROLE_READ).toString())
-						.tag(SecurityService.ROLE_WRITE, attr.at(SecurityService.ROLE_WRITE).toString())
-						.tag(SecurityService.OTHER_READ, attr.at(SecurityService.OTHER_READ).toString())
-						.tag(SecurityService.OTHER_WRITE, attr.at(SecurityService.OTHER_WRITE).toString())
+						.tag(SecurityService.GROUP, attr.at(SecurityService.GROUP).asString())
+						//.tag(SecurityService.ROLE_READ, attr.at(SecurityService.ROLE_READ).toString())
+						//.tag(SecurityService.ROLE_WRITE, attr.at(SecurityService.ROLE_WRITE).toString())
+						//.tag(SecurityService.OTHER_READ, attr.at(SecurityService.OTHER_READ).toString())
+						//.tag(SecurityService.OTHER_WRITE, attr.at(SecurityService.OTHER_WRITE).toString())
 						.tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)));
 				influxDB.write(addPoint(point, field, value));
 				break;
@@ -585,11 +585,11 @@ public class InfluxDbService {
 				point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS)
 						.tag("sourceRef", path[1])
 						.tag(SecurityService.OWNER, attr.at(SecurityService.OWNER).asString())
-						.tag(SecurityService.ROLE, attr.at(SecurityService.ROLE).asString())
-						.tag(SecurityService.ROLE_READ, attr.at(SecurityService.ROLE_READ).toString())
-						.tag(SecurityService.ROLE_WRITE, attr.at(SecurityService.ROLE_WRITE).toString())
-						.tag(SecurityService.OTHER_READ, attr.at(SecurityService.OTHER_READ).toString())
-						.tag(SecurityService.OTHER_WRITE, attr.at(SecurityService.OTHER_WRITE).toString())
+						.tag(SecurityService.GROUP, attr.at(SecurityService.GROUP).asString())
+						//.tag(SecurityService.ROLE_READ, attr.at(SecurityService.ROLE_READ).toString())
+						//.tag(SecurityService.ROLE_WRITE, attr.at(SecurityService.ROLE_WRITE).toString())
+						//.tag(SecurityService.OTHER_READ, attr.at(SecurityService.OTHER_READ).toString())
+						//.tag(SecurityService.OTHER_WRITE, attr.at(SecurityService.OTHER_WRITE).toString())
 						.tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)));
 				influxDB.write(addPoint(point, field, value));
 				break;
@@ -597,11 +597,11 @@ public class InfluxDbService {
 				point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS)
 						//.tag("sourceRef", sourceRef)
 						.tag(SecurityService.OWNER, attr.at(SecurityService.OWNER).asString())
-						.tag(SecurityService.ROLE, attr.at(SecurityService.ROLE).asString())
-						.tag(SecurityService.ROLE_READ, attr.at(SecurityService.ROLE_READ).toString())
-						.tag(SecurityService.ROLE_WRITE, attr.at(SecurityService.ROLE_WRITE).toString())
-						.tag(SecurityService.OTHER_READ, attr.at(SecurityService.OTHER_READ).toString())
-						.tag(SecurityService.OTHER_WRITE, attr.at(SecurityService.OTHER_WRITE).toString())
+						.tag(SecurityService.GROUP, attr.at(SecurityService.GROUP).asString())
+						//.tag(SecurityService.ROLE_READ, attr.at(SecurityService.ROLE_READ).toString())
+						//.tag(SecurityService.ROLE_WRITE, attr.at(SecurityService.ROLE_WRITE).toString())
+						//.tag(SecurityService.OTHER_READ, attr.at(SecurityService.OTHER_READ).toString())
+						//.tag(SecurityService.OTHER_WRITE, attr.at(SecurityService.OTHER_WRITE).toString())
 						.tag("uuid", path[1])
 						.tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)));
 				influxDB.write(addPoint(point, field, value));
