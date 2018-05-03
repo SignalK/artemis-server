@@ -21,18 +21,25 @@ public class SecurityService {
 //	public static final String ROLE_READ = "r_r";
 	public static final String GROUP = "grp";
 	public static final String OWNER = "owner";
-	public static final String DEFAULT_OWNER = "admin";
-	public static final String DEFAULT_GROUP = "admin";
+	public static final String OWNER_DEFAULT = "admin";
+	public static final String GROUP_DEFAULT = "admin";
+	public static final String GROUP_CREW = "crew";
+	public static final String GROUP_GUESTS = "guests";
+	public static final String GROUP_FRIENDS = "friends";
+	public static final String GROUP_OFFICIAL = "official";
+	public static final String GROUP_PUBLIC = "public";
+	
+	
 //	public static final boolean DEFAULT_ROLE_READ = true;
 //	public static final boolean DEFAULT_ROLE_WRITE = false;
 //	public static final boolean DEFAULT_OTHER_READ = false;
 //	public static final boolean DEFAULT_OTHER_WRITE = false;
 	
 	public SecurityService(){
-		secure.put("vessels.urn:mrn:signalk:uuid:705f5f1a-efaf-44aa-9cb8-a0fd6305567c.navigation",Json.object(OWNER, DEFAULT_OWNER, GROUP,"crew"));
-		secure.put("vessels.urn:mrn:signalk:uuid:705f5f1a-efaf-44aa-9cb8-a0fd6305567c.navigation.position",Json.object(OWNER, DEFAULT_OWNER, GROUP,"crew"));
+		secure.put("vessels.urn:mrn:signalk:uuid:705f5f1a-efaf-44aa-9cb8-a0fd6305567c.navigation",Json.object(OWNER, OWNER_DEFAULT, GROUP,GROUP_CREW));
+		secure.put("vessels.urn:mrn:signalk:uuid:705f5f1a-efaf-44aa-9cb8-a0fd6305567c.navigation.position",Json.object(OWNER, OWNER_DEFAULT, GROUP,GROUP_GUESTS));
 		//secure.put("vessels.urn:mrn:signalk:uuid:705f5f1a-efaf-44aa-9cb8-a0fd6305567c.navigation.speedOverGround",Json.object("owner", "admin", "role","crew", "attr","rwx------"));
-		secure.put("config",Json.object(OWNER, DEFAULT_OWNER, GROUP,DEFAULT_GROUP));
+		secure.put("config",Json.object(OWNER, OWNER_DEFAULT, GROUP,GROUP_DEFAULT));
 		
 	}
 	public  NavigableMap<String, Json> addAttributes( NavigableMap<String, Json> map){
@@ -49,7 +56,7 @@ public class SecurityService {
 			}
 			 
 			if(attrs==null){
-				attrs= Json.object(OWNER, DEFAULT_OWNER, GROUP,DEFAULT_GROUP );
+				attrs= Json.object(OWNER, OWNER_DEFAULT, GROUP,GROUP_DEFAULT );
 			}
 			logger.debug("Secured :{}",  attrs);
 			map.put(k+"._attr",attrs);

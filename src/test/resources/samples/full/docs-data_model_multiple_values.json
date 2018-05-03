@@ -7,14 +7,14 @@
       "navigation": {
         "courseOverGroundTrue": {
           "value": 3.615624078431440,
-          "$source": "ttyUSB0.GP",
+          "$source": "ttyUSB0.GP.sentences.RMC",
           "timestamp": "2017-04-03T06:14:04.451Z",
           "values":{
-            "ttyUSB0.GP.RMC":{
+            "ttyUSB0.GP.sentences.RMC":{
               "value": 3.615624078431440,
               "timestamp": "2017-04-03T06:14:04.451Z"
             },
-            "n2k.ikommunicate.128267":{
+            "n2k.ikommunicate.2.n2k.pgns.128267":{
               "value": 3.615624078431453,
               "timestamp": "2017-04-03T06:12:04.451Z"
             }
@@ -36,7 +36,7 @@
         "n2k": {
           "src": "2",
           "pgns": {
-            "128267": "2017-04-03T06:14:05.221Z"
+            "128267": "2017-04-03T06:12:04.451Z"
           }
         }
       }

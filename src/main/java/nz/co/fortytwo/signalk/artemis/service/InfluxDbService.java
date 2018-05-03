@@ -54,7 +54,9 @@ public class InfluxDbService {
 	private static Logger logger = LogManager.getLogger(InfluxDbService.class);
 	private InfluxDB influxDB;
 	private String dbName = "signalk";
-
+	public static final String PRIMARY_VALUE = "primary";
+	public static final ConcurrentSkipListMap<String, String> primaryMap = new ConcurrentSkipListMap<>();
+	
 	public InfluxDbService() {
 		setUpInfluxDb();
 	}
@@ -69,6 +71,7 @@ public class InfluxDbService {
 			logger.error("FAILED:"+failedPoints);
 			logger.error(throwable);
 		}));
+		loadPrimary();
 	}
 
 	public void closeInfluxDb() {
@@ -284,7 +287,7 @@ public class InfluxDbService {
 						processed=true;
 					}
 					if(key.contains(".values.")){
-						//add meta to parent of value
+						//handle values
 						String parentKey = StringUtils.substringBeforeLast(key,".values.");
 						String valKey = StringUtils.substringAfterLast(key,".values.");
 						String subkey = StringUtils.substringAfterLast(valKey,".value.");
@@ -305,7 +308,7 @@ public class InfluxDbService {
 						}
 						
 						//add attributes
-						extractValue(attrJson,s,subkey,val,null);
+						extractValue(attrJson,s,subkey,val);
 						processed=true;
 					}
 					if(!processed && (key.endsWith(".value")||key.contains(".value."))){
@@ -435,7 +438,10 @@ public class InfluxDbService {
 		String srcRef = (v.isObject() && v.has(sourceRef) ? v.at(sourceRef).asString() : "self");
 		long tStamp = (v.isObject() && v.has(timestamp) ? Util.getMillisFromIsoTime(v.at(timestamp).asString())
 				: System.currentTimeMillis());
-		
+		save(k,v,srcRef, tStamp, attr);
+	}
+	
+	public void save(String k, Json v, String srcRef ,long tStamp, Json attr) {
 		if (v.isPrimitive()|| v.isBoolean()) {
 			
 			logger.debug("Save primitive:  {}={}", k, v);
@@ -466,13 +472,19 @@ public class InfluxDbService {
 		}
 		
 		if (v.has(values)) {
+		
 			for (Entry<String, Json> i : v.at(values).asJsonMap().entrySet()) {
 				
 				logger.debug("Save values: {}={}",()->i.getKey() ,()-> i.getValue());
-				save(k + dot + values + dot + i.getKey(),i.getValue(),attr);
+				String sRef = StringUtils.substringBefore(i.getKey(),dot+value);
+				Json vs = i.getValue();
+				long ts = (vs.isObject() && vs.has(timestamp) ? Util.getMillisFromIsoTime(vs.at(timestamp).asString())
+						: tStamp);
+				save(k,i.getValue(),sRef, ts, attr);
+				
 			}
 		}
-
+		
 		if (v.has(value)&& v.at(value).isObject()) {
 			for (Entry<String, Json> i : v.at(value).asJsonMap().entrySet()) {
 				
@@ -514,33 +526,81 @@ public class InfluxDbService {
 	}
 
 	private void extractValue(Json parent, Series s, String attr, Json val) {
-		Object sr = getValue("sourceRef", s, 0);
-		extractValue(parent,s,attr,val,sr);
+		String sr = s.getTags().get("sourceRef");
+		boolean primary = Boolean.valueOf((String)getValue("primary", s, 0));
+		if(primary){
+			extractPrimaryValue(parent,s,attr,val,sr);
+		}else{
+			extractValue(parent,s,attr, val,sr);
+		}
 	}
 	
-	private void extractValue(Json parent, Series s, String attr, Json val, Object srcref) {
+	private void extractPrimaryValue(Json parent, Series s, String attr, Json val, String srcref) {
+		logger.debug("extractPrimaryValue: {}:{}",s, srcref);
+		Json node = parent;
 		Object ts = getValue("time", s, 0);
 		if (ts != null) {
 			// make predictable 3 digit nano ISO format
 			ts = Util.getIsoTimeString(DateTime.parse((String)ts, ISODateTimeFormat.dateTimeParser()).getMillis());
-			parent.set(timestamp, Json.make(ts));
-		}
-		if (srcref != null) {
-			parent.set(sourceRef, Json.make(srcref));
+			node.set(timestamp, Json.make(ts));
 		}
 		
+		if (srcref != null) {
+			node.set(sourceRef, Json.make(srcref));
+		}
+
+		
+		// check if its an object value
+		if (StringUtils.isNotBlank(attr)) {
+			Json valJson = Util.getJson(parent,value );
+			valJson.set(attr, val);
+		} else {
+			node.set(value, val);
+		}
+		//if we have a 'values' copy value into values.srcRef too
+		if(parent.has(values)){
+			Json pValues = Json.object(value,parent.at(value),timestamp,parent.at(timestamp));
+			parent.at(values).set(parent.at(sourceRef).asString(),pValues);
+		}
+		logger.debug("extractValue: {}",parent);
+	}
+	
+	private void extractValue(Json parent, Series s, String attr, Json val, String srcref) {
+		logger.debug("extractValue: {}:{}",s, srcref);
+		Json node = parent;
+		
+		if (StringUtils.isNotBlank(srcref)) {
+			node = Util.getJson(parent,values );
+			node.set(srcref,Json.object());
+			node=node.at(srcref);
+		}
+		Object ts = getValue("time", s, 0);
+		if (ts != null) {
+			// make predictable 3 digit nano ISO format
+			ts = Util.getIsoTimeString(DateTime.parse((String)ts, ISODateTimeFormat.dateTimeParser()).getMillis());
+			node.set(timestamp, Json.make(ts));
+		}
+			
 		// check if its an object value
 		if (StringUtils.isNotBlank(attr)) {
 			Json valJson = parent.at(value);
 			if (valJson == null) {
 				valJson = Json.object();
-				parent.set(value, valJson);
+				node.set(value, valJson);
 			}
 			valJson.set(attr, val);
 		} else {
-			parent.set(value, val);
+			node.set(value, val);
 		}
-
+		if (StringUtils.isNotBlank(srcref)) {
+			//if we have a 'value' copy it into values.srcRef too
+			if(parent.has(value)){
+				Json pValues = Json.object(value,parent.at(value),timestamp,parent.at(timestamp));
+				parent.at(values).set(parent.at(sourceRef).asString(),pValues);
+			}
+		}
+		
+		logger.debug("extractValue: {}",parent);
 	}
 
 
@@ -556,11 +616,15 @@ public class InfluxDbService {
 			Builder point = null;
 			switch (path[0]) {
 			case vessels:
+				//is it a primary value
+				Boolean primary = isPrimary(key,sourceRef);
+				
 				point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS)
 						.tag("sourceRef", sourceRef)
 						.tag("uuid", path[1])
 						.tag(SecurityService.OWNER, attr.at(SecurityService.OWNER).asString())
 						.tag(SecurityService.GROUP, attr.at(SecurityService.GROUP).asString())
+						.tag(InfluxDbService.PRIMARY_VALUE, primary.toString())
 						//.tag(SecurityService.ROLE_READ, attr.at(SecurityService.ROLE_READ).toString())
 						//.tag(SecurityService.ROLE_WRITE, attr.at(SecurityService.ROLE_WRITE).toString())
 						//.tag(SecurityService.OTHER_READ, attr.at(SecurityService.OTHER_READ).toString())
@@ -574,6 +638,7 @@ public class InfluxDbService {
 						.tag("uuid", path[1])
 						.tag(SecurityService.OWNER, attr.at(SecurityService.OWNER).asString())
 						.tag(SecurityService.GROUP, attr.at(SecurityService.GROUP).asString())
+						//.tag(InfluxDbService.PRIMARY_VALUE, attr.at(InfluxDbService.PRIMARY_VALUE).asString())
 						//.tag(SecurityService.ROLE_READ, attr.at(SecurityService.ROLE_READ).toString())
 						//.tag(SecurityService.ROLE_WRITE, attr.at(SecurityService.ROLE_WRITE).toString())
 						//.tag(SecurityService.OTHER_READ, attr.at(SecurityService.OTHER_READ).toString())
@@ -586,6 +651,7 @@ public class InfluxDbService {
 						.tag("sourceRef", path[1])
 						.tag(SecurityService.OWNER, attr.at(SecurityService.OWNER).asString())
 						.tag(SecurityService.GROUP, attr.at(SecurityService.GROUP).asString())
+						//.tag(InfluxDbService.PRIMARY_VALUE, attr.at(InfluxDbService.PRIMARY_VALUE).asString())
 						//.tag(SecurityService.ROLE_READ, attr.at(SecurityService.ROLE_READ).toString())
 						//.tag(SecurityService.ROLE_WRITE, attr.at(SecurityService.ROLE_WRITE).toString())
 						//.tag(SecurityService.OTHER_READ, attr.at(SecurityService.OTHER_READ).toString())
@@ -598,6 +664,7 @@ public class InfluxDbService {
 						//.tag("sourceRef", sourceRef)
 						.tag(SecurityService.OWNER, attr.at(SecurityService.OWNER).asString())
 						.tag(SecurityService.GROUP, attr.at(SecurityService.GROUP).asString())
+						//.tag(InfluxDbService.PRIMARY_VALUE, attr.at(InfluxDbService.PRIMARY_VALUE).asString())
 						//.tag(SecurityService.ROLE_READ, attr.at(SecurityService.ROLE_READ).toString())
 						//.tag(SecurityService.ROLE_WRITE, attr.at(SecurityService.ROLE_WRITE).toString())
 						//.tag(SecurityService.OTHER_READ, attr.at(SecurityService.OTHER_READ).toString())
@@ -612,6 +679,56 @@ public class InfluxDbService {
 			}
 		
 		
+	}
+
+	public void loadPrimary(){
+		primaryMap.clear();
+		logger.info("Adding primaryMap");
+		QueryResult result = influxDB.query(new Query("select * from vessels where primary='true' group by skey,uuid,owner,grp,sourceRef,primary order by time desc limit 1",dbName));
+		if(result==null || result.getResults()==null)return ;
+		result.getResults().forEach((r)-> {
+			logger.debug(r);
+			if(r==null||r.getSeries()==null)return;
+			r.getSeries().forEach(
+				(s)->{
+					logger.debug(s);
+					if(s==null)return;
+					
+					Map<String, String> tagMap = s.getTags();
+					String key = s.getName()+dot+tagMap.get("uuid")+dot+StringUtils.substringBeforeLast(tagMap.get("skey"),dot+value);
+					primaryMap.put(key, tagMap.get("sourceRef"));
+					logger.debug("Primary map: {}={}",key,tagMap.get("sourceRef"));
+				});
+		});
+	}
+	public Boolean isPrimary(String key, String sourceRef) {
+		String mapRef = primaryMap.get(key);
+		
+		if(mapRef==null){
+			//no result = primary
+			setPrimary(key, sourceRef);
+			logger.debug("isPrimary: {}={} : {}",key,sourceRef, null);
+			return true;
+		}
+		if(StringUtils.equals(sourceRef, mapRef)){
+			logger.debug("isPrimary: {}={} : {}",key,sourceRef, mapRef);
+			return true;
+		}
+		logger.debug("isPrimary: {}={} : {}",key,sourceRef, mapRef);
+		return false;
+	}
+	
+	/**
+	 * Sets the primary key
+	 * Returns true if the keys sourceRef was null or changed, false if the keys sourceRef was unchanged.
+	 * 
+	 * @param key
+	 * @param sourceRef
+	 * @return
+	 */
+	public Boolean setPrimary(String key, String sourceRef) {
+		logger.debug("setPrimary: {}={}",key,sourceRef);
+		return !StringUtils.equals(sourceRef, primaryMap.put(key,sourceRef));
 	}
 
 	private Point addPoint(Builder point, String field, Object value) {

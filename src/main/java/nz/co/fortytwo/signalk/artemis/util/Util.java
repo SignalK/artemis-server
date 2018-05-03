@@ -1,6 +1,24 @@
 package nz.co.fortytwo.signalk.artemis.util;
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONFIG;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.KNOTS_TO_MS;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.LIST;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.MS_TO_KNOTS;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PATH;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.label;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.resources;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self_str;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.source;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sourceRef;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sources;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.timestamp;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.values;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.version;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -11,6 +29,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.SortedMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.regex.Pattern;
@@ -38,13 +57,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.ISODateTimeFormat;
 
 import mjson.Json;
 import net.sf.marineapi.nmea.sentence.RMCSentence;
-import nz.co.fortytwo.signalk.artemis.util.ConfigConstants.*;
-import nz.co.fortytwo.signalk.artemis.util.JsonSerializer;
 
 public class Util {
 
@@ -557,6 +573,8 @@ public class Util {
 		producer.send(address, msg);
 
 	}
+	
+
 
 	public static Pattern regexPath(String newPath) {
 		// regex it
@@ -604,6 +622,19 @@ public class Util {
 			return path.substring(0, pos);
 		}
 		return "";
+	}
+	
+	public static Json getJson(Json parent, String key){
+		String[] path = StringUtils.split(key,".");
+		Json node = parent;
+		for(int i = 0; i<path.length;i++){
+			if(!node.has(path[i])){
+				node.set(path[i],Json.object());
+			}
+			node = node.at(path[i]);
+		}
+		return node;
+		
 	}
 
 	public static boolean sameNetwork(String localAddress, String remoteAddress) throws Exception {

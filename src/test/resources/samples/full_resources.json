@@ -16,7 +16,7 @@
 				"source": {
 					"internal": {
 						"value": "TrackProcessor",
-						"$source": "unknown",
+						
 						"timestamp": "2017-04-16T00:30:15.548Z"
 					}
 				},
@@ -37,7 +37,7 @@
 				"source": {
 					"internal": {
 						"value": "TrackProcessor",
-						"$source": "unknown",
+						
 						"timestamp": "2017-04-16T00:28:29.433Z"
 					}
 				},
@@ -58,7 +58,7 @@
 				"source": {
 					"internal": {
 						"value": "TrackProcessor",
-						"$source": "unknown",
+						
 						"timestamp": "2017-04-16T00:31:11.680Z"
 					}
 				},
@@ -79,7 +79,7 @@
 				"source": {
 					"internal": {
 						"value": "TrackProcessor",
-						"$source": "unknown",
+						
 						"timestamp": "2017-04-16T00:30:42.593Z"
 					}
 				},
@@ -100,7 +100,7 @@
 				"source": {
 					"internal": {
 						"value": "TrackProcessor",
-						"$source": "unknown",
+						
 						"timestamp": "2017-04-16T00:28:53.540Z"
 					}
 				},
@@ -121,7 +121,7 @@
 				"source": {
 					"internal": {
 						"value": "TrackProcessor",
-						"$source": "unknown",
+						
 						"timestamp": "2017-04-16T00:31:37.387Z"
 					}
 				},
@@ -142,7 +142,7 @@
 				"source": {
 					"internal": {
 						"value": "TrackProcessor",
-						"$source": "unknown",
+						
 						"timestamp": "2017-04-16T00:29:48.582Z"
 					}
 				},

@@ -56,6 +56,22 @@ public class InfluxDbTest {
 	
 
 	@Test
+	public void shouldSaveMultipleValuesAndReturnLatest() throws IOException {
+		clearDb();
+		influx.setPrimary("vessels.urn:mrn:signalk:uuid:c0d79334-4e25-4245-8892-54e8ccc8021d.navigation.courseOverGroundTrue","ttyUSB0.GP.sentences.RMC");
+		// get a sample of signalk
+		NavigableMap<String, Json> map = getJsonMap("./src/test/resources/samples/full/docs-data_model_multiple_values.json");
+		SecurityService secure = new SecurityService();
+		secure.addAttributes(map);
+		//save and flush
+		
+		influx.save(map);
+		//reload from db
+		NavigableMap<String, Json> rslt = loadFromDb("urn:mrn:signalk:uuid:c0d79334-4e25-4245-8892-54e8ccc8021d");
+		compareMaps(map,rslt);
+	}
+	
+	@Test
 	public void shouldSaveFullModelAndReturnLatest() throws IOException {
 		clearDb();
 		// get a sample of signalk
@@ -98,6 +114,8 @@ public class InfluxDbTest {
 			if(f.isDirectory())continue;
 			clearDb();
 			logger.debug("Testing sample:"+f.getName());
+			//flush primaryMap
+			influx.loadPrimary();
 			// get a sample of signalk
 			NavigableMap<String, Json> map = getJsonMap(f.getAbsolutePath());
 			SecurityService secure = new SecurityService();
@@ -207,14 +225,16 @@ public class InfluxDbTest {
 			if(!u.equals(rslt.get(t)))logger.debug("map > rslt entries differ: {}:{}|{}",t ,u, rslt.get(t));
 		});
 		rslt.forEach((t, u) -> {
-			//logger.debug("rslt key:"+t+":"+u+"|"+map.get(t));
 			if(!u.equals(map.get(t)))logger.debug("rslt > map entries differ: {}:{}|{}",t ,u, map.get(t));
+		
 		});
+		
 		assertEquals("Maps differ",map,rslt);
 		logger.debug("Entries are the same");
 		
 		assertEquals("Maps differ in size",map.size(),rslt.size());
 	}
+	
 
 	private NavigableMap<String, Json> getJsonMap(String file) throws IOException {
 		String body = FileUtils.readFileToString(new File(file));
@@ -252,7 +272,7 @@ public class InfluxDbTest {
 	private NavigableMap<String, Json> loadFromDb() {
 		NavigableMap<String, Json> rslt = new ConcurrentSkipListMap<String, Json>();
 		
-		rslt = influx.loadData(rslt,"select * from vessels group by skey,uuid,owner,grp order by time desc limit 1","signalk");
+		rslt = influx.loadData(rslt,"select * from vessels group by skey,uuid,sourceRef,owner,grp order by time desc limit 1","signalk");
 		rslt = influx.loadSources(rslt,"select * from sources group by skey,uuid,owner,grp order by time desc limit 1","signalk");
 		rslt = influx.loadResources(rslt,"select * from resources group by skey,uuid,owner,grp order by time desc limit 1","signalk");
 		rslt.forEach((t, u) -> logger.debug(t + "=" + u));
