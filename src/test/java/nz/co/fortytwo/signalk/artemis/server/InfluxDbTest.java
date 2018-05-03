@@ -5,7 +5,6 @@ import static org.junit.Assert.assertEquals;
 import java.io.File;
 import java.io.IOException;
 import java.util.NavigableMap;
-import java.util.SortedMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.apache.commons.io.FileUtils;
@@ -19,19 +18,19 @@ import org.junit.Test;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.service.SecurityService;
-import nz.co.fortytwo.signalk.artemis.util.JsonSerializer;
+import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 
 public class InfluxDbTest {
 
 	private static Logger logger = LogManager.getLogger(InfluxDbTest.class);
 	private InfluxDbService influx;
-	private JsonSerializer ser = new JsonSerializer();
+	//private JsonSerializer ser = new JsonSerializer();
 	@Before
 	public void setUpInfluxDb() {
 		logger.debug("Start influxdb client");
 		influx = new InfluxDbService();
 		
-		ser.setPretty(2);
+		//ser.setPretty(2);
 	}
 
 	@After
@@ -153,7 +152,7 @@ public class InfluxDbTest {
 		// get a hash of signalk
 		String body = FileUtils.readFileToString(new File("./src/test/resources/samples/full_resources.json"));
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();
-		influx.recurseJsonFull(Json.read(body), map, "");
+		SignalkMapConvertor.recurseJsonFull(Json.read(body), map, "");
 		
 		SecurityService secure = new SecurityService();
 		secure.addAttributes(map);
@@ -172,7 +171,7 @@ public class InfluxDbTest {
 		// get a hash of signalk
 		String body = FileUtils.readFileToString(new File("./src/test/resources/samples/signalk-config.json"));
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();
-		influx.recurseJsonFull(Json.read(body), map, "");
+		SignalkMapConvertor.recurseJsonFull(Json.read(body), map, "");
 		
 		SecurityService secure = new SecurityService();
 		secure.addAttributes(map);
@@ -193,7 +192,7 @@ public class InfluxDbTest {
 		// get a hash of signalk
 		String body = FileUtils.readFileToString(new File("./src/test/resources/samples/PK_tree.json"));
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();
-		influx.recurseJsonFull(Json.read(body), map, "");
+		SignalkMapConvertor.recurseJsonFull(Json.read(body), map, "");
 		SecurityService secure = new SecurityService();
 		secure.addAttributes(map);
 		map.forEach((t, u) -> logger.debug(t + "=" + u));
@@ -240,7 +239,7 @@ public class InfluxDbTest {
 		String body = FileUtils.readFileToString(new File(file));
 		//convert to map
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();
-		influx.recurseJsonFull(Json.read(body), map, "");
+		SignalkMapConvertor.recurseJsonFull(Json.read(body), map, "");
 		map.forEach((t, u) -> logger.debug(t + "=" + u));
 		return map;
 	}
@@ -249,7 +248,7 @@ public class InfluxDbTest {
 		String body = FileUtils.readFileToString(new File(file));
 		//convert to map
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();
-		influx.parseDelta(Json.read(body), map);
+		SignalkMapConvertor.parseDelta(Json.read(body), map);
 		map.forEach((t, u) -> logger.debug(t + "=" + u));
 		return map;
 	}

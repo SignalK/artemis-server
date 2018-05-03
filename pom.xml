@@ -71,6 +71,7 @@
 			<id>jitpack.io</id>
 			<url>https://jitpack.io</url>
 		</repository>
+
 	</repositories>
 	<dependencies>
 		<!-- <dependency> -->
@@ -117,22 +118,22 @@
 			<version>1</version>
 		</dependency>
 		<dependency>
-		     <groupId>com.fasterxml.jackson.core</groupId>
-		     <artifactId>jackson-core</artifactId>
-		     <version>2.6.3</version>
-		   </dependency>
-		    
-		   <dependency>
-		     <groupId>com.fasterxml.jackson.core</groupId>
-		     <artifactId>jackson-databind</artifactId>
-		     <version>2.6.3</version>
-		   </dependency>
-		    
-		   <dependency>
-		     <groupId>com.fasterxml.jackson.core</groupId>
-		     <artifactId>jackson-annotations</artifactId>
-		     <version>2.6.3</version>
-		   </dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+			<version>2.6.3</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>2.6.3</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+			<version>2.6.3</version>
+		</dependency>
 
 		<!-- LGPL 3 -->
 		<dependency>
@@ -368,7 +369,12 @@
 			<version>3.5</version>
 			<scope>test</scope>
 		</dependency>
-
+		<dependency>
+			<groupId>com.github.java-json-tools</groupId>
+			<artifactId>json-schema-validator</artifactId>
+			<version>2.2.8</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
