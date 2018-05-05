@@ -97,7 +97,7 @@ public class FullMsgInterceptor extends BaseInterceptor implements Interceptor {
 					logger.debug("processing full  " + node);
 				try {
 					NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
-					SignalkMapConvertor.recurseJsonFull(node,map,"");
+					SignalkMapConvertor.parseFull(node,map,"");
 					message.putObjectProperty(Config.JSON_MAP, map);
 				} catch (Exception e) {
 					// TODO Auto-generated catch block

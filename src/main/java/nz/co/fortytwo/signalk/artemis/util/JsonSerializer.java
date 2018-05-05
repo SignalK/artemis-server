@@ -74,7 +74,7 @@ public class JsonSerializer {
      * @return
      * @throws IOException
      */
-    public String write(NavigableMap<String, Object>  map) throws IOException {
+    public String write(NavigableMap<String, Json>  map) throws IOException {
     	StringBuilder buffer = new StringBuilder();
     	if(map!=null ){
     		write(map.entrySet().iterator(),'.',buffer);
@@ -83,6 +83,7 @@ public class JsonSerializer {
     	}
 		return buffer.toString();
 	}
+
 
     /**
      * Export the SortedMap model as a json string
@@ -93,7 +94,7 @@ public class JsonSerializer {
     public String write(SortedMap<String,Object> map) throws IOException {
     	StringBuilder buffer = new StringBuilder();
     	if(map!=null ){
-    		write(map.entrySet().iterator(),'.',buffer);
+    		//write(map.entrySet().iterator(),'.',buffer);
     	}else{
     		buffer.append("{}");
     	}
@@ -110,7 +111,7 @@ public class JsonSerializer {
      * @param out the Appendable to write to
      * @return true if something was written to out
      */
-    public boolean write(Iterator<Map.Entry<String,Object>> iterator, char separator, Appendable out) throws IOException {
+    public boolean write(Iterator<Map.Entry<String,Json>> iterator, char separator, Appendable out) throws IOException {
         curindent.setLength(0);
         boolean begun = false;
 
@@ -119,7 +120,7 @@ public class JsonSerializer {
         String lastkey = null;
 
         while (iterator.hasNext()) {
-            Map.Entry<String,Object> e = iterator.next();
+            Map.Entry<String,Json> e = iterator.next();
             String key = e.getKey();
             Object value = e.getValue();
             if(logger.isDebugEnabled())logger.debug(key+"="+value);
@@ -415,7 +416,7 @@ public class JsonSerializer {
 
 
 
-	public Json writeJson(NavigableMap<String, Object> model) throws IOException {
+	public Json writeJson(NavigableMap<String, Json> model) throws IOException {
 		if(model==null || model.size()==0)return Json.object();
 		return Json.read(write(model));
 	}

@@ -279,7 +279,7 @@ public class Config {
 			ser.setPretty(3);
 			StringBuilder buffer = new StringBuilder();
 			if (model != null && model.size() > 0) {
-				ser.write(model.entrySet().iterator(), '.', buffer);
+				//ser.write(model.entrySet().iterator(), '.', buffer);
 			} else {
 				buffer.append("{}");
 			}

@@ -152,7 +152,7 @@ public class InfluxDbTest {
 		// get a hash of signalk
 		String body = FileUtils.readFileToString(new File("./src/test/resources/samples/full_resources.json"));
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();
-		SignalkMapConvertor.recurseJsonFull(Json.read(body), map, "");
+		SignalkMapConvertor.parseFull(Json.read(body), map, "");
 		
 		SecurityService secure = new SecurityService();
 		secure.addAttributes(map);
@@ -171,7 +171,7 @@ public class InfluxDbTest {
 		// get a hash of signalk
 		String body = FileUtils.readFileToString(new File("./src/test/resources/samples/signalk-config.json"));
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();
-		SignalkMapConvertor.recurseJsonFull(Json.read(body), map, "");
+		SignalkMapConvertor.parseFull(Json.read(body), map, "");
 		
 		SecurityService secure = new SecurityService();
 		secure.addAttributes(map);
@@ -192,7 +192,7 @@ public class InfluxDbTest {
 		// get a hash of signalk
 		String body = FileUtils.readFileToString(new File("./src/test/resources/samples/PK_tree.json"));
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();
-		SignalkMapConvertor.recurseJsonFull(Json.read(body), map, "");
+		SignalkMapConvertor.parseFull(Json.read(body), map, "");
 		SecurityService secure = new SecurityService();
 		secure.addAttributes(map);
 		map.forEach((t, u) -> logger.debug(t + "=" + u));
@@ -239,7 +239,7 @@ public class InfluxDbTest {
 		String body = FileUtils.readFileToString(new File(file));
 		//convert to map
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();
-		SignalkMapConvertor.recurseJsonFull(Json.read(body), map, "");
+		SignalkMapConvertor.parseFull(Json.read(body), map, "");
 		map.forEach((t, u) -> logger.debug(t + "=" + u));
 		return map;
 	}
