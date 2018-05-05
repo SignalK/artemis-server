@@ -40,44 +40,10 @@
 				<auto-create-queues>true</auto-create-queues>
 				<auto-delete-queues>true</auto-delete-queues>
 			</address-setting>
-			<address-setting match="vessels.#">
-				<last-value-queue>false</last-value-queue>
-				<auto-create-queues>true</auto-create-queues>
-				<auto-delete-queues>true</auto-delete-queues>
-			</address-setting>
-			<address-setting match="sources.#">
-				<last-value-queue>false</last-value-queue>
-				<auto-create-queues>true</auto-create-queues>
-				<auto-delete-queues>true</auto-delete-queues>
-			</address-setting>
-
-			<address-setting match="resources.#">
-				<last-value-queue>false</last-value-queue>
-				<auto-create-queues>true</auto-create-queues>
-				<auto-delete-queues>true</auto-delete-queues>
-			</address-setting>
-
-			<address-setting match="config.#">
-				<last-value-queue>false</last-value-queue>
-				<auto-create-queues>true</auto-create-queues>
-				<auto-delete-queues>true</auto-delete-queues>
-			</address-setting>
 		</address-settings>
 		<queues>
-			<queue name="config">
-				<address>config.#</address>
-				<durable>false</durable>
-			</queue>
-			<queue name="sources">
-				<address>sources.#</address>
-				<durable>false</durable>
-			</queue>
-			<queue name="resources">
-				<address>resources.#</address>
-				<durable>false</durable>
-			</queue>
-			<queue name="vessels">
-				<address>vessels.#</address>
+			<queue name="incoming.map">
+				<address>incoming.map</address>
 				<durable>false</durable>
 			</queue>
 			<queue name="incoming.raw">
@@ -114,64 +80,25 @@
 		<security-enabled>false</security-enabled>
 		<security-settings>
 			<!--security for example queue -->
-			<security-setting match="incoming.#">
+			<security-setting match="incoming.raw">
 				<permission type="createDurableQueue" roles="guest" />
 				<permission type="createNonDurableQueue" roles="guest" />
 				<permission type="send" roles="guest" />
-
+			</security-setting>
+			<security-setting match="incoming.map">
+				<permission type="createDurableQueue" roles="admin" />
+				<permission type="deleteDurableQueue" roles="admin" />
+				<permission type="createNonDurableQueue" roles="admin" />
+				<permission type="deleteNonDurableQueue" roles="admin" />
+				<permission type="consume" roles="admin" />
+				<permission type="send" roles="admin" />
+				<permission type="browse" roles="admin" />
 			</security-setting>
 			<security-setting match="outgoing.#">
 				<permission type="createDurableQueue" roles="guest" />
 				<permission type="createNonDurableQueue" roles="guest" />
 				<permission type="consume" roles="guest" />
 				<permission type="send" roles="guest" />
-			</security-setting>
-			<security-setting match="config.#">
-				<permission type="createDurableQueue" roles="admin" />
-				<permission type="deleteDurableQueue" roles="admin" />
-				<permission type="createNonDurableQueue" roles="admin" />
-				<permission type="deleteNonDurableQueue" roles="admin" />
-				<permission type="consume" roles="admin" />
-				<permission type="send" roles="admin" />
-				<permission type="browse" roles="admin" />
-			</security-setting>
-			<security-setting match="sources.#">
-				<permission type="createDurableQueue" roles="guest" />
-				<permission type="deleteDurableQueue" roles="admin" />
-				<permission type="createNonDurableQueue" roles="guest" />
-				<permission type="deleteNonDurableQueue" roles="guest" />
-				<permission type="consume" roles="guest" />
-				<permission type="send" roles="guest" />
-				<permission type="browse" roles="guest" />
-			</security-setting>
-			<security-setting match="resources.#">
-				<permission type="createDurableQueue" roles="guest" />
-				<permission type="deleteDurableQueue" roles="admin" />
-				<permission type="createNonDurableQueue" roles="guest" />
-				<permission type="deleteNonDurableQueue" roles="guest" />
-				<permission type="consume" roles="guest" />
-				<permission type="send" roles="guest" />
-				<permission type="browse" roles="guest" />
-			</security-setting>
-			<security-setting match="vessels.#">
-				<permission type="createDurableQueue" roles="guest" />
-				<permission type="deleteDurableQueue" roles="guest" />
-				<permission type="createNonDurableQueue" roles="guest" />
-				<permission type="deleteNonDurableQueue" roles="guest" />
-				<permission type="consume" roles="guest" />
-				<permission type="send" roles="guest" />
-				<permission type="browse" roles="guest" />
-			</security-setting>
-			<!-- for testing security -->
-			<security-setting
-				match="vessels.self.navigation.datum.#">
-				<permission type="createDurableQueue" roles="admin" />
-				<permission type="deleteDurableQueue" roles="admin" />
-				<permission type="createNonDurableQueue" roles="admin" />
-				<permission type="deleteNonDurableQueue" roles="admin" />
-				<permission type="consume" roles="admin" />
-				<permission type="send" roles="admin" />
-				<permission type="browse" roles="admin" />
 			</security-setting>
 			
 		</security-settings>

@@ -36,7 +36,22 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_speedOver
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.type;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels_dot_self_dot;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.util.NavigableMap;
+import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+
+import javax.script.Invocable;
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+
 import org.apache.activemq.artemis.api.core.ActiveMQException;
+import org.apache.activemq.artemis.api.core.ActiveMQExceptionType;
 import org.apache.activemq.artemis.api.core.ICoreMessage;
 import org.apache.activemq.artemis.api.core.Interceptor;
 import org.apache.activemq.artemis.api.core.Message;
@@ -49,6 +64,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.coveo.nashorn_modules.FilesystemFolder;
+import com.coveo.nashorn_modules.Folder;
+import com.coveo.nashorn_modules.Require;
+
+import jdk.nashorn.api.scripting.NashornScriptEngine;
+import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import mjson.Json;
 import net.sf.marineapi.nmea.event.SentenceEvent;
 import net.sf.marineapi.nmea.event.SentenceListener;
@@ -62,6 +83,7 @@ import net.sf.marineapi.nmea.sentence.RMCSentence;
 import net.sf.marineapi.nmea.sentence.Sentence;
 import net.sf.marineapi.nmea.sentence.VHWSentence;
 import nz.co.fortytwo.signalk.artemis.server.ArtemisServer;
+import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
@@ -76,15 +98,43 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 public class NMEAMsgInterceptor extends BaseInterceptor implements Interceptor {
 
 	private static Logger logger = LogManager.getLogger(NMEAMsgInterceptor.class);
-	
-	
-	SentenceListener listener;
+	private File jsRoot;
+	private NashornScriptEngine engine;
+	private Invocable inv;
 	private boolean rmcClock = false;
+	
+	private static ScheduledExecutorService globalScheduledThreadPool = Executors.newScheduledThreadPool(20);
 
-	public NMEAMsgInterceptor() {
+	public NMEAMsgInterceptor() throws ScriptException, FileNotFoundException, NoSuchMethodException {
 		super();
+		NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
+		//console.error
+	    engine = (NashornScriptEngine) factory.getScriptEngine(new String[] { "--language=es6" });
+	    
+	 // Injection of __NASHORN_POLYFILL_TIMER__ in ScriptContext
+	    engine.getContext().setAttribute("__NASHORN_POLYFILL_TIMER__", globalScheduledThreadPool, ScriptContext.ENGINE_SCOPE);
+	    
+	    jsRoot = new File(getClass().getClassLoader().getResource("signalk-parser-nmea0183/index-es5.js").getPath()).getParentFile();
+	    logger.debug("Javascript jsRoot: {}",jsRoot.getAbsolutePath());
+	    
+	    Folder rootFolder = FilesystemFolder.create(jsRoot, "UTF-8");
+	    
+		Require.enable(engine, rootFolder);
+		logger.debug("Starting nashorn");
 		
-		setNmeaListeners();
+		engine.eval(new java.io.FileReader(new File(jsRoot.getParent(),"parser.js")));
+        
+		// create an Invocable object by casting the script engine object
+        inv = (Invocable) engine;
+        File dir = new File(jsRoot,"hooks-es5");
+        for(File f:dir.listFiles()){
+        	if(!f.isFile())continue;
+        	if(!f.getName().endsWith(".js"))continue;
+        	//seatalk breaks
+        	if(f.getName().startsWith("ALK"))continue;
+        	logger.debug(f.getName());
+        	inv.invokeFunction("loadHook",StringUtils.substringBefore(f.getName(),".") );
+        }
 	}
 
 	@Override
@@ -95,8 +145,8 @@ public class NMEAMsgInterceptor extends BaseInterceptor implements Interceptor {
 
 			ICoreMessage message = realPacket.getMessage();
 			if(!Config._0183.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))return true;
-			String sessionId = message.getStringProperty(Config.AMQ_SESSION_ID);
-			ServerSession sess = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
+			//String sessionId = message.getStringProperty(Config.AMQ_SESSION_ID);
+			//ServerSession sess = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
 			String bodyStr = Util.readBodyBufferToString(message);
 			if(logger.isDebugEnabled())logger.debug("Message: " +bodyStr);
 			
@@ -104,178 +154,26 @@ public class NMEAMsgInterceptor extends BaseInterceptor implements Interceptor {
 				try {
 					if (logger.isDebugEnabled())
 						logger.debug("Processing NMEA:[" + bodyStr + "]");
-					Sentence sentence = SentenceFactory.getInstance().createParser(bodyStr);
-					String src = sess.getRemotingConnection().getRemoteAddress();
-					src=src.replace("/", "");
-					src=src.replace(".", "-");
-					fireSentenceEvent(sess, sentence, src);
 					
-				} catch (IllegalArgumentException e) {
-					logger.debug(e.getMessage(), e);
-					logger.info(e.getMessage() + ":" + bodyStr);
-					logger.info("   in hexidecimal : " + Hex.encodeHexString(bodyStr.getBytes()));
+			        // invoke the method named "hello" on the object defined in the script
+			        // with "Script Method!" as the argument
+					Object result = inv.invokeFunction("parse",bodyStr );
+					if(result==null || result.toString().startsWith("Error")){
+						logger.error(bodyStr+","+result.toString());
+						return false;
+					}
+					NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
+					SignalkMapConvertor.parseDelta(Json.read(result.toString()),map );
+					message.putObjectProperty(Config.JSON_MAP, map);
 				} catch (Exception e) {
-					logger.error(e.getMessage(), e);
+					logger.error(e,e);
+					throw new ActiveMQException(ActiveMQExceptionType.INTERNAL_ERROR,e.getMessage(),e);
 				}
+				
 			}
 		}
 		return true;
 	}
-
-	/**
-	 * Dispatch data to all listeners. Puts the nmea string into
-	 * sources.0183.device.[talkerid].[sentenceid] Processes the nmea
-	 * into signalk position, heading, etc.
-	 * 
-	 * @param map
-	 * 
-	 * @param sentence
-	 *            sentence string.
-	 * @throws Exception 
-	 */
-	private void fireSentenceEvent(ServerSession sess, Sentence sentence, String device) throws Exception {
-		if (!sentence.isValid()) {
-			logger.warn("NMEA Sentence is invalid:" + sentence.toSentence());
-			return;
-		}
-		String now = nz.co.fortytwo.signalk.artemis.util.Util.getIsoTimeString();
-		if (StringUtils.isBlank(device))
-			device = UNKNOWN;
-		// A general rule of sources.protocol.bus.device.data
-		String srcRef = "0183." + device + dot + sentence.getTalkerId() + dot + sentence.getSentenceId();
-		
-		sendSourceMsg(srcRef, getSrcJson(sentence,srcRef),now, sess);
-		
-		try {
-			SentenceEventSource src = new SentenceEventSource(srcRef, now, sess);
-			SentenceEvent se = new SentenceEvent(src, sentence);
-			listener.sentenceRead(se);
-		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
-		}
-
-	}
-
-	
-	private Json getSrcJson(Sentence sentence, String srcLabel) {
-		Json srcJson = Json.object();
-		srcJson.set(label,srcLabel);
-		srcJson.set(type,"NMEA0183");
-		srcJson.set("talker",sentence.getTalkerId().name());
-		srcJson.set("sentences",sentence.getSentenceId());
-		return srcJson;
-	}
-
-	/**
-	 * Adds NMEA sentence listeners to process NMEA to simple output
-	 * 
-	 * @param processor
-	 */
-	private void setNmeaListeners() {
-
-		listener = new SentenceListener() {
-
-			
-			public void sentenceRead(SentenceEvent evt) {
-				SentenceEventSource src = (SentenceEventSource) evt.getSource();
-			
-				try{
-				
-					if (evt.getSentence() instanceof PositionSentence) {
-						PositionSentence sen = (PositionSentence) evt.getSentence();
-	
-						if(logger.isDebugEnabled())logger.debug("lat position:" + sen.getPosition().getLatitude() + ", hemi=" + sen.getPosition().getLatitudeHemisphere());
-						Json position = Json.object();
-						position.set("latitude", sen.getPosition().getLatitude());
-						position.set("longitude", sen.getPosition().getLongitude());
-						position.set("altitude", 0.0);
-						sendMsg(vessels_dot_self_dot + nav_position, position, src.getNow(), src.getSourceRef(), src.getSession());
-					}
-	
-					if (evt.getSentence() instanceof HeadingSentence) {
-						
-						if (!(evt.getSentence() instanceof VHWSentence)) {
-							
-							HeadingSentence sen = (HeadingSentence) evt.getSentence();
-
-							if (sen.isTrue()) {
-								try {
-									sendDoubleAsMsg(vessels_dot_self_dot + nav_courseOverGroundTrue, Math.toRadians(sen.getHeading()), src.getNow(), src.getSourceRef(), src.getSession());
-								} catch (Exception e) {
-									logger.error(e.getMessage());
-								}
-							} else {
-								sendDoubleAsMsg(vessels_dot_self_dot + nav_courseOverGroundMagnetic, Math.toRadians(sen.getHeading()), src.getNow(), src.getSourceRef(), src.getSession());
-							}
-						}
-					}
-					
-					if (evt.getSentence() instanceof RMCSentence) {
-						RMCSentence sen = (RMCSentence) evt.getSentence();
-						if(rmcClock)Util.checkTime(sen);
-					
-						sendDoubleAsMsg(vessels_dot_self_dot + nav_speedOverGround, Util.kntToMs(sen.getSpeed()), src.getNow(), src.getSourceRef(), src.getSession());
-					}
-					if (evt.getSentence() instanceof VHWSentence) {
-						VHWSentence sen = (VHWSentence) evt.getSentence();
-						//VHW sentence types have both, but true can be empty
-						try {
-							
-							sendDoubleAsMsg(vessels_dot_self_dot + nav_courseOverGroundMagnetic, Math.toRadians(sen.getMagneticHeading()), src.getNow(), src.getSourceRef(), src.getSession());
-							
-							sendDoubleAsMsg(vessels_dot_self_dot + nav_courseOverGroundTrue, Math.toRadians(sen.getHeading()), src.getNow(), src.getSourceRef(), src.getSession());
-							
-						} catch (DataNotAvailableException e) {
-							logger.error(e.getMessage());
-						}
-						
-						sendDoubleAsMsg(vessels_dot_self_dot + nav_speedOverGround, Util.kntToMs(sen.getSpeedKnots()), src.getNow(), src.getSourceRef(), src.getSession());
-					}
-	
-					// MWV wind
-					// Mega sends $IIMVW with 0-360d clockwise from bow, (relative to bow)
-					// Mega value is int+'.0'
-					if (evt.getSentence() instanceof MWVSentence) {
-						MWVSentence sen = (MWVSentence) evt.getSentence();
-						//TODO: check relative to bow or compass + sen.getSpeedUnit()
-						// relative to bow
-						double angle = sen.getAngle();
-						if(angle>180d)angle=angle-360d;
-						// signalk is -180 to 180 (in radians), negative to port, 0 is bow. 
-						double aws = Math.toRadians(angle);
-						
-						sendDoubleAsMsg(vessels_dot_self_dot + env_wind_angleApparent, aws, src.getNow(), src.getSourceRef(), src.getSession());
-						
-						sendDoubleAsMsg(vessels_dot_self_dot + env_wind_speedApparent, Util.kntToMs(sen.getSpeed()), src.getNow(), src.getSourceRef(), src.getSession());
-					}
-					
-					if (evt.getSentence() instanceof DepthSentence) {
-						DepthSentence sen = (DepthSentence) evt.getSentence();
-						// in meters
-						sendDoubleAsMsg(vessels_dot_self_dot + env_depth_belowTransducer, sen.getDepth(), src.getNow(), src.getSourceRef(), src.getSession());
-					}
-				}catch (DataNotAvailableException e){
-					logger.error(e.getMessage()+":"+evt.getSentence().toSentence());
-					//logger.debug(e.getMessage(),e);
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				
-			}
-
-
-			public void readingStopped() {
-			}
-
-			public void readingStarted() {
-			}
-
-			public void readingPaused() {
-			}
-		};
-	}
-
 	
 
 }

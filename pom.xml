@@ -360,7 +360,12 @@
 			<artifactId>netty-handler</artifactId>
 			<version>4.1.5.Final</version>
 		</dependency>
-
+<!-- MIT -->
+		<dependency>
+			<groupId>com.coveo</groupId>
+			<artifactId>nashorn-commonjs-modules</artifactId>
+			<version>1.0.9</version>
+		</dependency>
 		<!-- test> -->
 
 		<dependency>

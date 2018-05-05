@@ -54,7 +54,7 @@ public class SignalkMapConvertor {
 	 * @return
 	 * @throws Exception
 	 */
-	public static NavigableMap<String, Json> parseDelta(Json node, NavigableMap<String, Json> temp) throws Exception {
+	public static NavigableMap<String, Json> parseDelta(Json node, NavigableMap<String, Json> temp){
 		// avoid full signalk syntax
 		if (node.has(vessels))
 			return null;
@@ -87,7 +87,7 @@ public class SignalkMapConvertor {
 
 	}
 
-	protected static void parseUpdate(NavigableMap<String, Json> temp, Json update, String ctx) throws Exception {
+	protected static void parseUpdate(NavigableMap<String, Json> temp, Json update, String ctx)  {
 
 		// grab values and add
 		Json array = update.at(values);

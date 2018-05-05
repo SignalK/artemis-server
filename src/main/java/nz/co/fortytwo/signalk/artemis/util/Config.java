@@ -61,6 +61,7 @@ public class Config {
 	public static final String JSON = "JSON";
 	public static final String JSON_FULL = "JSON_FULL";
 	public static final String JSON_DELTA = "JSON_DELTA";
+	public static final String JSON_MAP = "JSON_MAP";
 	public static final String JSON_SUBSCRIBE = "JSON_SUBSCRIBE";
 	public static final String _0183 = "0183";
 	
