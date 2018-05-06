@@ -68,12 +68,13 @@
 			</class-name>
 			<class-name>nz.co.fortytwo.signalk.artemis.intercept.SubscribeMsgInterceptor
 			</class-name>
-			<class-name>nz.co.fortytwo.signalk.artemis.intercept.UpdateMsgInterceptor
+			<class-name>nz.co.fortytwo.signalk.artemis.intercept.DeltaMsgInterceptor
 			</class-name>
 		</remoting-incoming-interceptors>
 			<!-- outgoing -->
 		<remoting-outgoing-interceptors>
 			<class-name>nz.co.fortytwo.signalk.artemis.intercept.MapToDeltaInterceptor</class-name>
+			<class-name>nz.co.fortytwo.signalk.artemis.intercept.MapToFullInterceptor</class-name>
 		</remoting-outgoing-interceptors>
 
 		<!-- Other config -->

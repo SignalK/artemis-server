@@ -33,9 +33,11 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.regex.Pattern;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
@@ -54,10 +56,11 @@ import com.google.common.eventbus.Subscribe;
 import io.netty.util.internal.ConcurrentSet;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.event.PathEvent;
+import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
-//import nz.co.fortytwo.signalk.model.impl.SignalKModelFactory;
 
 /**
  * Holds subscription data, wsSessionId, path, period
@@ -70,6 +73,7 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
  */
 public class Subscription {
 	private static Logger logger = LogManager.getLogger(Subscription.class);
+	private static InfluxDbService influx=new InfluxDbService();
 	String sessionId = null;
 	String path = null;
 	long period = -1;
@@ -82,27 +86,26 @@ public class Subscription {
 	Set<String> subscribedPaths = new ConcurrentSet<String>();
 	private String routeId;
 	private String destination;
-//	private String user;
-//	private String password;
+
 	private TimerTask task;
 	private Timer timer;
-	//ClientSession txSession;
-	
-	//private String outputType;
+	private String table;
+	private String uuid;
 
 	public Subscription(String sessionId, String destination, String user, String password, String path, long period, long minPeriod, String format, String policy) throws Exception {
 		this.sessionId = sessionId;
 
 		this.path = Util.sanitizePath(path);
-		pattern = Util.regexPath(this.path);
+		String context = Util.getContext(path);
+		this.table=StringUtils.substringBefore(context,".");
+		this.uuid=StringUtils.substringAfter(context,".");
+		pattern = Util.regexPath(StringUtils.substring(path,context.length()+1));
 		this.period = period;
 		this.minPeriod = minPeriod;
 		this.format = format;
 		this.policy = policy;
 		this.destination=destination;
-//		this.user=user;
-//		this.password=password;
-		
+
 		
 		task = new TimerTask() {
 			
@@ -110,37 +113,30 @@ public class Subscription {
 			public void run() {
 				if(logger.isDebugEnabled())logger.debug("Running for:"+destination+", "+getPath());
 				ClientSession rxSession = null;
-				ClientConsumer consumer = null;
 				ClientProducer producer= null;
 				try {
-					//start polling consumer.
+					//get a map of the current subs values
+					NavigableMap<String, Json> rslt = new ConcurrentSkipListMap<String, Json>();
+					//select * from vessels where uuid='urn:mrn:imo:mmsi:209023000' AND skey=~/nav.*cou/ group by skey,uuid,sourceRef,owner,grp order by time desc limit 1
+					influx.loadData(rslt,"select * from "+table+" where uuid='"+uuid+"' AND skey=~/"+pattern+"/ group by skey,uuid,sourceRef,owner,grp order by time desc limit 1","signalk");
+					
 					rxSession = Util.getVmSession(user, password);
-					consumer = rxSession.createConsumer("vessels",
-							"_AMQ_LVQ_NAME like '"+getPath()+".%'", true);
 					producer=rxSession.createProducer();
-					Map< String, Map<String, Map<String,List<ClientMessage>>>> msgs = Util.readAllMessagesForDelta(consumer);
-					Json deltas = Util.generateDelta(msgs);
-					for( Json delta : deltas.asJsonList() ){
-						ClientMessage txMsg = rxSession.createMessage(true);
-						txMsg.getBodyBuffer().writeString(delta.toString());
-						txMsg.putStringProperty(Config.JAVA_TYPE, delta.getClass().getSimpleName());
-						txMsg.putStringProperty(Config.AMQ_SUB_DESTINATION, destination);
-						txMsg.putBooleanProperty(Config.SK_SEND_TO_ALL, false);
-						producer.send(new SimpleString("outgoing.reply."+destination),txMsg);
-						if(logger.isDebugEnabled())logger.debug("delta json = "+delta);
-					}
+					
+					ClientMessage txMsg = rxSession.createMessage(true);
+					txMsg.putObjectProperty(Config.JSON_MAP, rslt);
+					txMsg.putStringProperty(Config.JAVA_TYPE, rslt.getClass().getSimpleName());
+					txMsg.putStringProperty(Config.AMQ_SUB_DESTINATION, destination);
+					txMsg.putBooleanProperty(Config.SK_SEND_TO_ALL, false);
+					txMsg.putStringProperty(SignalKConstants.FORMAT, format);
+					producer.send(new SimpleString("outgoing.reply."+destination),txMsg);
+					if(logger.isDebugEnabled())logger.debug("rslt map = "+rslt);
+					
 									
 				} catch (Exception e) {
 					logger.error(e.getMessage(),e);
 				
 				}finally {
-					if(consumer!=null){
-						try {
-							consumer.close();
-						} catch (ActiveMQException e) {
-							logger.error(e);
-						}
-					}
 					if(producer!=null){
 						try {
 							producer.close();

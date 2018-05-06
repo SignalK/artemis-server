@@ -1,6 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.intercept;
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONFIG;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SUBSCRIBE;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.resources;
@@ -47,7 +47,7 @@ public class GarbageInterceptor implements Interceptor {
 			if (msgType != null) {
 				msg.putStringProperty(Config.AMQ_CONTENT_TYPE, msgType);
 			} else {
-				// msg.getBodyBuffer().writeString("{}");
+				return false;
 			}
 
 			return true;
@@ -82,15 +82,24 @@ public class GarbageInterceptor implements Interceptor {
 			} else if (msg.startsWith("{") && msg.endsWith("}")) {
 				Json node = Json.read(msg);
 				// avoid full signalk syntax
-				if (node.has(vessels) || node.has(CONFIG) || node.has(sources) || node.has(resources))
+				if (node.has(vessels) 
+						|| node.has(CONFIG) 
+						|| node.has(sources) 
+						|| node.has(resources)
+						|| node.has(aircraft)
+						|| node.has(sar)
+						|| node.has(aton))
 					return Config.JSON_FULL;
-				if (node.has(CONTEXT) && (node.has(SUBSCRIBE)))
+				if (node.has(CONTEXT) && (node.has(SUBSCRIBE)||(node.has(UNSUBSCRIBE))))
 					return Config.JSON_SUBSCRIBE;
+				
 				if (node.has(CONTEXT))
 					return Config.JSON_DELTA;
 			}
 		}
-
+		if (logger.isWarnEnabled()) {
+			logger.warn("Msg is garbage: " + msg);
+		}
 		return null;
 	}
 

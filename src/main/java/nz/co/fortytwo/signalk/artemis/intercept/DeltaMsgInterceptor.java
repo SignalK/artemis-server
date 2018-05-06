@@ -68,9 +68,9 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
  * 
  */
 
-public class UpdateMsgInterceptor extends BaseInterceptor implements Interceptor {
+public class DeltaMsgInterceptor extends BaseInterceptor implements Interceptor {
 
-	private static Logger logger = LogManager.getLogger(UpdateMsgInterceptor.class);
+	private static Logger logger = LogManager.getLogger(DeltaMsgInterceptor.class);
 
 	/**
 	 * Reads Delta format JSON and sends an artemis message per value. Does

@@ -1,8 +1,10 @@
 package nz.co.fortytwo.signalk.artemis.intercept;
 
+import java.io.IOException;
 import java.util.NavigableMap;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
+import org.apache.activemq.artemis.api.core.ActiveMQExceptionType;
 import org.apache.activemq.artemis.api.core.ICoreMessage;
 import org.apache.activemq.artemis.api.core.Interceptor;
 import org.apache.activemq.artemis.core.protocol.core.Packet;
@@ -19,43 +21,48 @@ import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 /**
- * Convert a map of messages to delta format
+ * Convert a map of messages to full format
  * 
  * @author robert
  *
  */
-public class MapToDeltaInterceptor implements Interceptor {
+public class MapToFullInterceptor implements Interceptor {
 
-	private static Logger logger = LogManager.getLogger(MapToDeltaInterceptor.class);
+	private static Logger logger = LogManager.getLogger(MapToFullInterceptor.class);
 
 	@Override
 	public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException {
-		if(!packet.isResponse())return true;
-		//we only want outgoing packets
+		if (!packet.isResponse())
+			return true;
+		// we only want outgoing packets
 		if (logger.isDebugEnabled())
 			logger.debug("Outgoing Msg is:" + packet.getClass());
-		//NullResponseMessage!
+		// NullResponseMessage!
 		if (packet instanceof SessionReceiveMessage) {
 			SessionReceiveMessage realPacket = (SessionReceiveMessage) packet;
-			
+
 			ICoreMessage msg = realPacket.getMessage();
 			String format = msg.getStringProperty(SignalKConstants.FORMAT);
-			if(SignalKConstants.FORMAT_FULL.equals(format)) return true;
-			
-			if(StringUtils.isBlank(format))format=SignalKConstants.FORMAT_DELTA;
-			
-			//convert map to json and put in body
-			@SuppressWarnings("unchecked")
-			NavigableMap<String, Json> map = (NavigableMap<String, Json>) msg.getObjectProperty(Config.JSON_MAP);
-			Json delta = SignalkMapConvertor.mapToDelta(map);
-			msg.getBodyBuffer().clear();
-			msg.getBodyBuffer().writeString(delta.toString());
-			if (logger.isDebugEnabled())
-				logger.debug("Msg body is:" + Util.readBodyBufferToString(msg));
+			if (!SignalKConstants.FORMAT_FULL.equals(format))
+				return true;
+			try {
+				// convert map to json and put in body
+				@SuppressWarnings("unchecked")
+				NavigableMap<String, Json> map = (NavigableMap<String, Json>) msg.getObjectProperty(Config.JSON_MAP);
+				Json delta;
+
+				delta = SignalkMapConvertor.mapToFull(map);
+
+				msg.getBodyBuffer().clear();
+				msg.getBodyBuffer().writeString(delta.toString());
+				if (logger.isDebugEnabled())
+					logger.debug("Msg body is:" + Util.readBodyBufferToString(msg));
+			} catch (IOException e) {
+				logger.error(e,e);
+				throw new ActiveMQException(ActiveMQExceptionType.INTERNAL_ERROR,e.getMessage(),e);
+			}
 		}
 		return true;
 	}
-
-	
 
 }

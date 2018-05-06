@@ -15,11 +15,11 @@ public class UpdateMsgInterceptorTest  extends EasyMockSupport {
     public EasyMockRule rule = new EasyMockRule(this);
 
     @Mock
-    private UpdateMsgInterceptor interceptor;// 1
+    private DeltaMsgInterceptor interceptor;// 1
 
     @Before
     public void before(){
-    	interceptor = partialMockBuilder(UpdateMsgInterceptor.class)
+    	interceptor = partialMockBuilder(DeltaMsgInterceptor.class)
 	    	.addMockedMethod("sendSourceMsg")
 	    	.addMockedMethod("sendMsg").createMock(); 
     }
