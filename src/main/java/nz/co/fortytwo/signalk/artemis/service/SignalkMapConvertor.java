@@ -230,11 +230,14 @@ public class SignalkMapConvertor {
 							if (vKey.contains(dot + values + dot))
 								vKey = vKey.substring(0, vKey.indexOf(dot + values + dot));
 							Json val = Json.object(PATH, vKey);
-							val.set(value, v.getValue());
-							if (v.getValue().isObject())
+							
+							if (v.getValue().isObject()){
 								v.getValue().delAt(timestamp);
-							if (v.getValue().isObject())
 								v.getValue().delAt(sourceRef);
+								val.set(value, v.getValue().at(value));
+							}else{
+								val.set(value, v.getValue());
+							}
 							valuesArray.add(val);
 						}
 					}
