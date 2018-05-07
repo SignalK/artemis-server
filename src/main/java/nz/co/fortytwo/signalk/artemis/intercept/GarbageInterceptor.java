@@ -20,6 +20,7 @@ import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 /**
@@ -39,7 +40,8 @@ public class GarbageInterceptor implements Interceptor {
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
 
 			ICoreMessage msg = realPacket.getMessage();
-
+			if(msg.getBooleanProperty(SignalKConstants.REPLY))return true;
+			
 			String msgType = getContentType(msg);
 			if (logger.isDebugEnabled())
 				logger.debug("Msg type is:" + msgType);

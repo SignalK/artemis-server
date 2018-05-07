@@ -12,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 
 import nz.co.fortytwo.signalk.artemis.server.ArtemisServer;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 
 /**
  * A way to acquire the session in a message
@@ -32,10 +33,13 @@ public class SessionInterceptor extends BaseInterceptor implements Interceptor {
 		// System.out.println("Sessions
 		// count:"+ArtemisServer.embedded.getActiveMQServer().getSessions().size());
 		if(packet.isResponse())return true;
+		
 		if (packet instanceof SessionSendMessage) {
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
-	
+			
 			Message msg = realPacket.getMessage();
+			if(msg.getBooleanProperty(SignalKConstants.REPLY))return true;
+			
 			if(msg.getStringProperty(Config.MSG_SRC_BUS)==null)
 				msg.putStringProperty(Config.MSG_SRC_BUS, connection.getRemoteAddress());
 			

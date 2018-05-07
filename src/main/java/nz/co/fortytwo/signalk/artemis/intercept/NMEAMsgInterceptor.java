@@ -23,7 +23,7 @@
  */
 package nz.co.fortytwo.signalk.artemis.intercept;
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UNKNOWN;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_depth_belowTransducer;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_wind_angleApparent;
@@ -85,6 +85,7 @@ import net.sf.marineapi.nmea.sentence.VHWSentence;
 import nz.co.fortytwo.signalk.artemis.server.ArtemisServer;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 
@@ -144,11 +145,13 @@ public class NMEAMsgInterceptor extends BaseInterceptor implements Interceptor {
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
 
 			ICoreMessage message = realPacket.getMessage();
+			if(message.getBooleanProperty(SignalKConstants.REPLY))return true;
+			
 			if(!Config._0183.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))return true;
 			//String sessionId = message.getStringProperty(Config.AMQ_SESSION_ID);
 			//ServerSession sess = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
 			String bodyStr = Util.readBodyBufferToString(message);
-			if(logger.isDebugEnabled())logger.debug("Message: " +bodyStr);
+			if(logger.isDebugEnabled())logger.debug("NMEA Message: " +bodyStr);
 			
 			if (StringUtils.isNotBlank(bodyStr) && bodyStr.startsWith("$")) {
 				try {
@@ -158,13 +161,24 @@ public class NMEAMsgInterceptor extends BaseInterceptor implements Interceptor {
 			        // invoke the method named "hello" on the object defined in the script
 			        // with "Script Method!" as the argument
 					Object result = inv.invokeFunction("parse",bodyStr );
+					
+					if (logger.isDebugEnabled())
+						logger.debug("Processed NMEA:[" + result.toString() + "]");
+					
 					if(result==null || result.toString().startsWith("Error")){
 						logger.error(bodyStr+","+result.toString());
 						return false;
 					}
-					NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
-					SignalkMapConvertor.parseDelta(Json.read(result.toString()),map );
-					message.putObjectProperty(Config.JSON_MAP, map);
+					Json json = Json.read(result.toString());
+					json=json.at("delta");
+					json.set(SignalKConstants.CONTEXT,vessels+dot+Util.fixSelfKey(self_str));
+					//NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
+					//SignalkMapConvertor.parseDelta(Json.read(result.toString()),map );
+					message.putStringProperty(Config.AMQ_CONTENT_TYPE,Config.JSON_DELTA);
+					message.getBodyBuffer().clear();
+					message.getBodyBuffer().writeString(json.toString());
+					if (logger.isDebugEnabled())
+						logger.debug("Sent NMEA msg:" + json.toString());
 				} catch (Exception e) {
 					logger.error(e,e);
 					throw new ActiveMQException(ActiveMQExceptionType.INTERNAL_ERROR,e.getMessage(),e);

@@ -166,6 +166,7 @@ public class InfluxDbService {
 					Map<String, String> tagMap = s.getTags();
 					String key = s.getName()+dot+tagMap.get("uuid")+dot+tagMap.get("skey");
 					Json attr = getAttrJson(tagMap);
+					
 					Json val = getJsonValue(s,0);
 					
 					
@@ -216,7 +217,13 @@ public class InfluxDbService {
 						}
 						
 						//add attributes
-						extractValue(attrJson,s,subkey,val);
+						boolean primary = Boolean.valueOf((String)getValue("primary", s, 0));
+						if(primary){
+							extractPrimaryValue(parent,s,subkey,val);
+						}else{
+							extractValue(attrJson,s,subkey, val);
+						}
+						
 						processed=true;
 					}
 					if(!processed && (key.endsWith(".value")||key.contains(".value."))){
@@ -433,18 +440,20 @@ public class InfluxDbService {
 
 	}
 
-	private void extractValue(Json parent, Series s, String attr, Json val) {
-		String sr = s.getTags().get("sourceRef");
-		boolean primary = Boolean.valueOf((String)getValue("primary", s, 0));
-		if(primary){
-			extractPrimaryValue(parent,s,attr,val,sr);
-		}else{
-			extractValue(parent,s,attr, val,sr);
-		}
-	}
+//	private void extractValue(Json parent, Series s, String attr, Json val) {
+//		String sr = s.getTags().get("sourceRef");
+//		boolean primary = Boolean.valueOf((String)getValue("primary", s, 0));
+//		if(primary){
+//			extractPrimaryValue(parent,s,attr,val,sr);
+//		}else{
+//			extractValue(parent,s,attr, val,sr);
+//		}
+//	}
 	
-	private void extractPrimaryValue(Json parent, Series s, String attr, Json val, String srcref) {
+	private void extractPrimaryValue(Json parent, Series s, String subKey, Json val) {
+		String srcref = s.getTags().get("sourceRef");
 		logger.debug("extractPrimaryValue: {}:{}",s, srcref);
+		
 		Json node = parent;
 		Object ts = getValue("time", s, 0);
 		if (ts != null) {
@@ -459,9 +468,9 @@ public class InfluxDbService {
 
 		
 		// check if its an object value
-		if (StringUtils.isNotBlank(attr)) {
+		if (StringUtils.isNotBlank(subKey)) {
 			Json valJson = Util.getJson(parent,value );
-			valJson.set(attr, val);
+			valJson.set(subKey, val);
 		} else {
 			node.set(value, val);
 		}
@@ -470,10 +479,11 @@ public class InfluxDbService {
 			Json pValues = Json.object(value,parent.at(value),timestamp,parent.at(timestamp));
 			parent.at(values).set(parent.at(sourceRef).asString(),pValues);
 		}
-		logger.debug("extractValue: {}",parent);
+		logger.debug("extractPrimaryValueObj: {}",parent);
 	}
 	
-	private void extractValue(Json parent, Series s, String attr, Json val, String srcref) {
+	private void extractValue(Json parent, Series s, String attr, Json val) {
+		String srcref = s.getTags().get("sourceRef");
 		logger.debug("extractValue: {}:{}",s, srcref);
 		Json node = parent;
 		

@@ -53,10 +53,13 @@ import org.apache.logging.log4j.Logger;
 import io.netty.buffer.ByteBuf;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.server.ArtemisServer;
+import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
+import nz.co.fortytwo.signalk.artemis.service.SecurityService;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.artemis.util.JsonSerializer;
+import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 
 
 /**
@@ -69,8 +72,9 @@ public class FullMsgInterceptor extends BaseInterceptor implements Interceptor {
 
 	private static Logger logger = LogManager.getLogger(FullMsgInterceptor.class);
 
-	private JsonSerializer ser = new JsonSerializer();
-
+	private static InfluxDbService influx = new InfluxDbService();
+	private static SecurityService security = new SecurityService();
+	
 	public FullMsgInterceptor() {
 		super();
 	}
@@ -82,6 +86,8 @@ public class FullMsgInterceptor extends BaseInterceptor implements Interceptor {
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
 
 			ICoreMessage message = realPacket.getMessage();
+			if(message.getBooleanProperty(SignalKConstants.REPLY))return true;
+			
 			if(!Config.JSON_FULL.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))return true;
 			//if(logger.isDebugEnabled())logger.debug("Processing: " + message);
 			Json node = Util.readBodyBuffer(message);
@@ -98,7 +104,9 @@ public class FullMsgInterceptor extends BaseInterceptor implements Interceptor {
 				try {
 					NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
 					SignalkMapConvertor.parseFull(node,map,"");
-					message.putObjectProperty(Config.JSON_MAP, map);
+					map = security.addAttributes(map);
+					influx.save(map);
+					return true;
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

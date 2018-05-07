@@ -1,6 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PATH;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PUT;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
@@ -22,11 +22,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ActiveMQPropertyConversionException;
 import org.apache.activemq.artemis.api.core.client.ClientConsumer;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -39,6 +41,9 @@ public class SignalkMapConvertor {
 	private static Logger logger = LogManager.getLogger(SignalkMapConvertor.class);
 	
 	public static NavigableMap<String, Json> parseFull(Json json, NavigableMap<String, Json> map, String prefix) {
+		if(map==null)map = new ConcurrentSkipListMap<>();
+		if(json==null|| json.isNull()) return map;
+		
 		for (Entry<String, Json> entry : json.asJsonMap().entrySet()) {
 			
 				logger.debug("Recurse {} = {}",()->entry.getKey(),()->entry.getValue());
@@ -65,6 +70,9 @@ public class SignalkMapConvertor {
 	 * @throws Exception
 	 */
 	public static NavigableMap<String, Json> parseDelta(Json node, NavigableMap<String, Json> temp){
+		
+		if(temp==null)temp = new ConcurrentSkipListMap<>();
+		if(node==null|| node.isNull()) return temp;
 		// avoid full signalk syntax
 		if (node.has(vessels))
 			return null;
@@ -77,6 +85,7 @@ public class SignalkMapConvertor {
 			// go to context
 			String ctx = node.at(CONTEXT).asString();
 			ctx = Util.fixSelfKey(ctx);
+			ctx = StringUtils.removeEnd(ctx,".");
 			logger.debug("ctx: {}", node);
 			// Json pathNode = temp.addNode(path);
 			Json updates = node.at(UPDATES);
@@ -111,7 +120,11 @@ public class SignalkMapConvertor {
 			String srcRef=null;
 			if (update.has(source)) {
 				Json src = update.at(source);
-				srcRef=src.at(type).asString()+dot+src.at(label).asString();
+				if(src.has(label)){
+					srcRef=src.at(type).asString()+dot+src.at(label).asString();
+				}else if(src.has(talker)){
+					srcRef=src.at(type).asString()+dot+src.at(talker).asString();
+				}
 				
 				//add sources
 				parseFull(src,temp,sources+dot+srcRef+dot);
@@ -136,11 +149,13 @@ public class SignalkMapConvertor {
 	}
 	
 	public static Json mapToFull(NavigableMap<String, Json> map) throws IOException{
+		if(map==null)return Json.nil();
 		JsonSerializer ser = new JsonSerializer();
 		return Json.read(ser.write(map));
 	}
 
 	public static Json mapToDelta(NavigableMap<String, Json> map)  {
+		if(map==null)return Json.nil();
 		//ClientMessage msgReceived = null;
 		Map<String, Map<String, Map<String, Map<String,List<Entry<String,Json>>>>>> msgs = new HashMap<>();
 		for (Entry<String,Json>entry: map.entrySet()) {
@@ -148,6 +163,7 @@ public class SignalkMapConvertor {
 			String eKey = entry.getKey();
 			
 			if(eKey.startsWith(sources))continue;
+			if(eKey.endsWith(attr))continue;
 			
 			logger.debug("message = {} : {}",eKey,eValue);
 			String ctx = Util.getContext(eKey);
@@ -156,6 +172,7 @@ public class SignalkMapConvertor {
 				ctxMap = new HashMap<>();
 				msgs.put(ctx, ctxMap);
 			}
+			logger.debug("$timestamp: {}",eValue.at(timestamp));
 			Map<String, Map<String,List<Entry<String,Json>>>> tsMap = ctxMap.get(eValue.at(timestamp).asString());
 			if (tsMap == null) {
 				tsMap = new HashMap<>();

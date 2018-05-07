@@ -7,6 +7,7 @@ import org.apache.activemq.artemis.api.core.ICoreMessage;
 import org.apache.activemq.artemis.api.core.Interceptor;
 import org.apache.activemq.artemis.core.protocol.core.Packet;
 import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionReceiveMessage;
+import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendMessage;
 import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -30,7 +31,7 @@ public class MapToDeltaInterceptor implements Interceptor {
 
 	@Override
 	public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException {
-		if(!packet.isResponse())return true;
+		//if(!packet.isResponse())return true;
 		//we only want outgoing packets
 		if (logger.isDebugEnabled())
 			logger.debug("Outgoing Msg is:" + packet.getClass());
@@ -39,17 +40,29 @@ public class MapToDeltaInterceptor implements Interceptor {
 			SessionReceiveMessage realPacket = (SessionReceiveMessage) packet;
 			
 			ICoreMessage msg = realPacket.getMessage();
-			String format = msg.getStringProperty(SignalKConstants.FORMAT);
-			if(SignalKConstants.FORMAT_FULL.equals(format)) return true;
+			if(msg.getBooleanProperty(SignalKConstants.REPLY))return true;
+			//String format = msg.getStringProperty(SignalKConstants.FORMAT);
+			//if(SignalKConstants.FORMAT_FULL.equals(format)) return true;
 			
-			if(StringUtils.isBlank(format))format=SignalKConstants.FORMAT_DELTA;
+			//if(StringUtils.isBlank(format))format=SignalKConstants.FORMAT_DELTA;
 			
 			//convert map to json and put in body
-			@SuppressWarnings("unchecked")
-			NavigableMap<String, Json> map = (NavigableMap<String, Json>) msg.getObjectProperty(Config.JSON_MAP);
-			Json delta = SignalkMapConvertor.mapToDelta(map);
-			msg.getBodyBuffer().clear();
-			msg.getBodyBuffer().writeString(delta.toString());
+			
+			if (logger.isDebugEnabled())
+				logger.debug("Msg body is:" + Util.readBodyBufferToString(msg));
+		}
+		if (packet instanceof SessionSendMessage) {
+			SessionSendMessage realPacket = (SessionSendMessage) packet;
+			
+			ICoreMessage msg = realPacket.getMessage();
+			if(msg.getBooleanProperty(SignalKConstants.REPLY))return true;
+			//String format = msg.getStringProperty(SignalKConstants.FORMAT);
+			//if(SignalKConstants.FORMAT_FULL.equals(format)) return true;
+			
+			//if(StringUtils.isBlank(format))format=SignalKConstants.FORMAT_DELTA;
+			
+			//convert map to json and put in body
+			
 			if (logger.isDebugEnabled())
 				logger.debug("Msg body is:" + Util.readBodyBufferToString(msg));
 		}

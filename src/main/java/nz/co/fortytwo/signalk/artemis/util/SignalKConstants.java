@@ -86,6 +86,7 @@ public class SignalKConstants {
 
 	public static final String type = "type";
 	public static final String label = "label";
+	public static final String talker = "talker";
 	public static final String routes = "routes";
 	public static final String key= "key";
 	public static final String currentTrack = "currentTrack";
@@ -140,6 +141,7 @@ public class SignalKConstants {
 	public static final String MIN_PERIOD = "minPeriod";
 	public static final String SIGNALK_FORMAT="SIGNALK_FORMAT";
 	public static final String FORMAT="format";
+	public static final String REPLY="reply";
 	public static final String FORMAT_DELTA="delta";
 	public static final String FORMAT_FULL="full";
 	public static final String POLICY="policy";

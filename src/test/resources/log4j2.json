@@ -52,7 +52,7 @@
 			"logger": [
 			{
 				"name": "nz.co.fortytwo.signalk.artemis.intercept",
-				"level": "error"
+				"level": "debug"
 			},
 			{
 				"name": "nz.co.fortytwo.signalk",
@@ -61,7 +61,7 @@
 			
 			{
 				"name": "nz.co.fortytwo.signalk.artemis.intercept.MapToDeltaInterceptor",
-				"level": "debug"
+				"level": "warn"
 			},
 			{
 				"name": "nz.co.fortytwo.signalk.artemis.intercept.UpdateMsgInterceptor",
@@ -84,8 +84,12 @@
 				"level": "error"
 			},
 			{
-				"name": "nz.co.fortytwo.signalk.artemis.server.SaveListener",
-				"level": "error"
+				"name": "nz.co.fortytwo.signalk.artemis.service",
+				"level": "debug"
+			},
+			{
+				"name": "nz.co.fortytwo.signalk.artemis.service.InfluxDbService",
+				"level": "warn"
 			},
 			{
 				"name": "nz.co.fortytwo.signalk.artemis.util.JsonSerializer",

@@ -20,6 +20,7 @@ import org.apache.activemq.artemis.core.protocol.core.Packet;
 import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendMessage;
 import org.apache.activemq.artemis.core.server.ServerSession;
 import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -30,6 +31,7 @@ import nz.co.fortytwo.signalk.artemis.server.SubscriptionManagerFactory;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
+import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 
 
 
@@ -84,6 +86,8 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
 
 			ICoreMessage message = realPacket.getMessage();
+			if(message.getBooleanProperty(SignalKConstants.REPLY))return true;
+			
 			if(!Config.JSON_SUBSCRIBE.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))return true;
 			if(logger.isTraceEnabled())logger.trace("Processing: " + message);
 			Json node = Util.readBodyBuffer(message);
@@ -95,6 +99,7 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 				if(logger.isDebugEnabled())logger.debug("Processing SUBSCRIBE: " + message);
 				String ctx = node.at(CONTEXT).asString();
 				ctx = Util.fixSelfKey(ctx);
+				ctx=StringUtils.removeEnd(ctx,".");
 				Json subscribe = node.at(SUBSCRIBE);
 				if (subscribe.isNull())
 					return true;
@@ -174,7 +179,7 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 	 */
 	private void parseSubscribe(String sessionId, String destination, String user, String password, String context, Json subscription) throws Exception {
 		//get values
-		if(logger.isDebugEnabled())logger.debug("Parsing subscribe for : "+user+" : "+password+" : " +subscription );
+		if(logger.isDebugEnabled())logger.debug("Parsing subscribe for : "+user+" : "+password+" : " +destination+" : " +context+" : " +subscription );
 		
 		String path = context+"."+subscription.at(PATH).asString();
 		long period = 1000;

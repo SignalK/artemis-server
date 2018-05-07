@@ -41,11 +41,15 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.regex.Pattern;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
+import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.api.core.client.ClientConsumer;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
+import org.apache.activemq.artemis.core.client.impl.ClientMessageImpl;
+import org.apache.activemq.artemis.core.postoffice.RoutingStatus;
+import org.apache.activemq.artemis.core.server.ServerSession;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -57,6 +61,7 @@ import io.netty.util.internal.ConcurrentSet;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.event.PathEvent;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
+import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
@@ -111,46 +116,65 @@ public class Subscription {
 			
 			@Override
 			public void run() {
-				if(logger.isDebugEnabled())logger.debug("Running for:"+destination+", "+getPath());
-				ClientSession rxSession = null;
-				ClientProducer producer= null;
+				if(logger.isDebugEnabled()){
+					logger.debug("Running for client:"+destination+", "+getPath());
+					logger.debug("Running for session:"+sessionId);
+				}
+				ServerSession s = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
+				if(logger.isDebugEnabled())
+					logger.debug("Running server session:"+(s==null?s:s.getName()));
+				
+				if(s==null)	return;
+				
 				try {
 					//get a map of the current subs values
 					NavigableMap<String, Json> rslt = new ConcurrentSkipListMap<String, Json>();
 					//select * from vessels where uuid='urn:mrn:imo:mmsi:209023000' AND skey=~/nav.*cou/ group by skey,uuid,sourceRef,owner,grp order by time desc limit 1
+					if(logger.isDebugEnabled())
+						logger.debug("select * from "+table+" where uuid='"+uuid+"' AND skey=~/"+pattern+"/ group by skey,uuid,sourceRef,owner,grp order by time desc limit 1");
 					influx.loadData(rslt,"select * from "+table+" where uuid='"+uuid+"' AND skey=~/"+pattern+"/ group by skey,uuid,sourceRef,owner,grp order by time desc limit 1","signalk");
-					
-					rxSession = Util.getVmSession(user, password);
-					producer=rxSession.createProducer();
-					
-					ClientMessage txMsg = rxSession.createMessage(true);
-					txMsg.putObjectProperty(Config.JSON_MAP, rslt);
-					txMsg.putStringProperty(Config.JAVA_TYPE, rslt.getClass().getSimpleName());
-					txMsg.putStringProperty(Config.AMQ_SUB_DESTINATION, destination);
-					txMsg.putBooleanProperty(Config.SK_SEND_TO_ALL, false);
-					txMsg.putStringProperty(SignalKConstants.FORMAT, format);
-					producer.send(new SimpleString("outgoing.reply."+destination),txMsg);
 					if(logger.isDebugEnabled())logger.debug("rslt map = "+rslt);
-					
-									
+						
+					if(SignalKConstants.FORMAT_DELTA.equals(format)){
+						Json json = SignalkMapConvertor.mapToDelta(rslt);
+						if(logger.isDebugEnabled())logger.debug("Delta json = "+json);
+						
+						for(Json j :json.asJsonList()){
+							ClientMessage txMsg = new ClientMessageImpl((byte) 0, false, 0, System.currentTimeMillis(), (byte) 4, 1024);
+							//ClientMessage txMsg = rxSession.createMessage(true);
+							txMsg.putStringProperty(Config.JAVA_TYPE, rslt.getClass().getSimpleName());
+							txMsg.putStringProperty(Config.AMQ_SUB_DESTINATION, destination);
+							txMsg.putBooleanProperty(Config.SK_SEND_TO_ALL, false);
+							txMsg.putStringProperty(SignalKConstants.FORMAT, format);	
+							txMsg.putBooleanProperty(SignalKConstants.REPLY, true);
+							txMsg.getBodyBuffer().writeString(j.toString());
+							txMsg.setAddress(new SimpleString("outgoing.reply."+destination));
+							//txMsg.setReplyTo(new SimpleString("outgoing.reply."+destination));
+							if(logger.isDebugEnabled())logger.debug("Sending to = "+txMsg.getAddress());
+							RoutingStatus r = s.send(txMsg,true);
+							if(logger.isDebugEnabled())logger.debug("Routing = "+r.name());
+						}
+
+					}
+					if(SignalKConstants.FORMAT_FULL.equals(format)){
+						Json json = SignalkMapConvertor.mapToFull(rslt);
+						if(logger.isDebugEnabled())logger.debug("Full json = "+json);
+						ClientMessage txMsg = new ClientMessageImpl((byte) 0, false, 0, System.currentTimeMillis(), (byte) 4, 1024);
+						txMsg.putStringProperty(Config.JAVA_TYPE, rslt.getClass().getSimpleName());
+						txMsg.putStringProperty(Config.AMQ_SUB_DESTINATION, destination);
+						txMsg.putBooleanProperty(Config.SK_SEND_TO_ALL, false);
+						txMsg.putStringProperty(SignalKConstants.FORMAT, format);		
+						txMsg.putBooleanProperty(SignalKConstants.REPLY, true);
+						txMsg.getBodyBuffer().writeString(json.toString());
+						txMsg.setAddress(new SimpleString("outgoing.reply."+destination));
+						//txMsg.setReplyTo(new SimpleString("outgoing.reply."+destination));
+						RoutingStatus r = s.send(txMsg,true);
+						if(logger.isDebugEnabled())logger.debug("Routing = "+r.name());
+					}
+					s.commit();				
 				} catch (Exception e) {
 					logger.error(e.getMessage(),e);
 				
-				}finally {
-					if(producer!=null){
-						try {
-							producer.close();
-						} catch (ActiveMQException e) {
-							logger.error(e);
-						}
-					}
-					if(rxSession!=null){
-						try {
-							rxSession.close();
-						} catch (ActiveMQException e) {
-							logger.error(e);
-						}
-					}
 				}
 				
 			}
