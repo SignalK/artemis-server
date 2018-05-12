@@ -15,6 +15,7 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.source;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sourceRef;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sources;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.timestamp;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.type;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.values;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.version;
@@ -29,16 +30,14 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NavigableMap;
 import java.util.SortedMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.regex.Pattern;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ActiveMQPropertyConversionException;
-import org.apache.activemq.artemis.api.core.ActiveMQSecurityException;
 import org.apache.activemq.artemis.api.core.ICoreMessage;
-import org.apache.activemq.artemis.api.core.Message;
+import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.api.core.TransportConfiguration;
 import org.apache.activemq.artemis.api.core.client.ActiveMQClient;
@@ -46,8 +45,10 @@ import org.apache.activemq.artemis.api.core.client.ClientConsumer;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
+import org.apache.activemq.artemis.api.core.client.MessageHandler;
 import org.apache.activemq.artemis.api.core.client.ServerLocator;
 import org.apache.activemq.artemis.core.client.impl.ClientMessageImpl;
+import org.apache.activemq.artemis.core.postoffice.RoutingStatus;
 import org.apache.activemq.artemis.core.remoting.impl.invm.InVMConnectorFactory;
 import org.apache.activemq.artemis.core.remoting.impl.netty.NettyConnectorFactory;
 import org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants;
@@ -55,6 +56,8 @@ import org.apache.activemq.artemis.core.server.ServerSession;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.atmosphere.cpr.AtmosphereResource;
+import org.jgroups.util.UUID;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
@@ -72,7 +75,7 @@ public class Util {
 	public static final String SIGNALK_RESOURCES_SAVE_FILE = "./conf/resources.json";
 	public static final String SIGNALK_SOURCES_SAVE_FILE = "./conf/sources.json";
 	private static boolean timeSet = false;
-	
+
 	private static ServerLocator nettyLocator;
 	private static ServerLocator inVmLocator;
 	protected static Pattern selfMatch = Pattern.compile("\\.self\\.|\\.self$");
@@ -104,54 +107,56 @@ public class Util {
 		return msg;
 	}
 
-	   /**
-     * Convert a speed in knots to meters/sec
-     *
-     * @param speed in knots
-     * @return speed in m/s
-     */
-    public static double kntToMs(double speed) {
-        return speed * KNOTS_TO_MS;
-    }
+	/**
+	 * Convert a speed in knots to meters/sec
+	 *
+	 * @param speed
+	 *            in knots
+	 * @return speed in m/s
+	 */
+	public static double kntToMs(double speed) {
+		return speed * KNOTS_TO_MS;
+	}
 
-    /**
-     * Convert a speed in meter/sec to knots
-     *
-     * @param speed in m/s
-     * @return speed in knots
-     */
-    public static double msToKnts(double speed) {
-        return speed * MS_TO_KNOTS;
-    }
+	/**
+	 * Convert a speed in meter/sec to knots
+	 *
+	 * @param speed
+	 *            in m/s
+	 * @return speed in knots
+	 */
+	public static double msToKnts(double speed) {
+		return speed * MS_TO_KNOTS;
+	}
 
-    /**
-     * Convert a distance in fathoms to meters
-     *
-     * @param fathoms
-     * @return distance in meters
-     */
-    public static double fToM(double fathoms) {
-        return fathoms / SignalKConstants.MTR_TO_FATHOM;
-    }
+	/**
+	 * Convert a distance in fathoms to meters
+	 *
+	 * @param fathoms
+	 * @return distance in meters
+	 */
+	public static double fToM(double fathoms) {
+		return fathoms / SignalKConstants.MTR_TO_FATHOM;
+	}
 
-    public static double cToFahr(double c) {
-        return c * (9. / 5.) * c + 32.;
-    }
+	public static double cToFahr(double c) {
+		return c * (9. / 5.) * c + 32.;
+	}
 
-    public static double fahrToC(double f) {
-        return (f - 32.) * 5. / 9.;
-    }
-    
-    /**
-     * Convert a distance in ft to meters
-     *
-     * @param feet
-     * @return distance in meters
-     */
-    public static double ftToM(double feet) {
-        return feet / SignalKConstants.MTR_TO_FEET;
-    }
-    
+	public static double fahrToC(double f) {
+		return (f - 32.) * 5. / 9.;
+	}
+
+	/**
+	 * Convert a distance in ft to meters
+	 *
+	 * @param feet
+	 * @return distance in meters
+	 */
+	public static double ftToM(double feet) {
+		return feet / SignalKConstants.MTR_TO_FEET;
+	}
+
 	/**
 	 * If we receive messages for 'self, convert to our UUID
 	 * 
@@ -160,9 +165,10 @@ public class Util {
 	 */
 	public static String fixSelfKey(String key) {
 		if (selfMatch == null) {
-			selfMatch = Pattern.compile("\\." + Config.getConfigProperty(ConfigConstants.UUID) + "\\.|\\." + Config.getConfigProperty(ConfigConstants.UUID) + "$");
+			selfMatch = Pattern.compile("\\." + Config.getConfigProperty(ConfigConstants.UUID) + "\\.|\\."
+					+ Config.getConfigProperty(ConfigConstants.UUID) + "$");
 		}
-		key = selfMatch.matcher(key).replaceAll(dot+Config.getConfigProperty(ConfigConstants.UUID)+dot);
+		key = selfMatch.matcher(key).replaceAll(dot + Config.getConfigProperty(ConfigConstants.UUID) + dot);
 
 		return key;
 	}
@@ -177,61 +183,13 @@ public class Util {
 		return nettyLocator.createSessionFactory().createSession(user, password, false, true, true, false, 10);
 	}
 
-	public static void sendDoubleAsMsg(String key, double value, String timeStamp, String srcRef, ServerSession session)
-			throws Exception {
-		if (StringUtils.isNotBlank(srcRef)) {
-			sendObjMsg(key + dot + values + dot + srcRef, Json.make(value), timeStamp, srcRef, session);
-		} else {
-			sendObjMsg(key, Json.make(value), timeStamp, srcRef, session);
-		}
-	}
-
-	public static SortedMap<String, Object> readAllMessages(String user, String password, String queue, String filter)
-			throws Exception {
-		SortedMap<String, Object> msgs = null;
-		ClientSession rxSession = null;
-		ClientConsumer consumer = null;
-		try {
-			// start polling consumer.
-			rxSession = Util.getVmSession(user, password);
-			rxSession.start();
-			consumer = rxSession.createConsumer(queue, filter, true);
-
-			msgs = readAllMessages(consumer);// new
-												// ConcurrentSkipListMap<>();
-			consumer.close();
-
-		} catch (ActiveMQException e) {
-			logger.error(e);
-		} finally {
-			if (consumer != null) {
-				try {
-					consumer.close();
-				} catch (ActiveMQException e) {
-					logger.error(e);
-				}
-			}
-			if (rxSession != null) {
-				try {
-					rxSession.close();
-				} catch (ActiveMQException e) {
-					logger.error(e);
-				}
-			}
-		}
-		if (msgs != null) {
-			return msgs;
-		}
-		return new ConcurrentSkipListMap<String, Object>();
-	}
-
 	public static void sendRawMessage(String user, String password, String content) throws Exception {
 		ClientSession txSession = null;
 		ClientProducer producer = null;
 		try {
 			// start polling consumer.
 			txSession = Util.getVmSession(user, password);
-			Message message = txSession.createMessage(false);
+			ClientMessage message = txSession.createMessage(false);
 			message.getBodyBuffer().writeString(content);
 			producer = txSession.createProducer();
 			producer.send(Config.INCOMING_RAW, message);
@@ -253,160 +211,153 @@ public class Util {
 		}
 	}
 
-	public static void sendMsg(String key, Json body, String timeStamp, String srcRef, ServerSession sess)
+	public static RoutingStatus sendReply(String type, String destination, String format, Json json, ServerSession s)
 			throws Exception {
-		if (StringUtils.isNotBlank(srcRef) && !key.contains(values)) {
-			sendObjMsg(key + dot + values + dot + srcRef, body, timeStamp, srcRef, sess);
-		} else {
-			sendObjMsg(key, body, timeStamp, srcRef, sess);
-		}
+		ClientMessage txMsg = new ClientMessageImpl((byte) 0, false, 0, System.currentTimeMillis(), (byte) 4, 1024);
+		txMsg.putStringProperty(Config.JAVA_TYPE, type);
+		txMsg.putStringProperty(Config.AMQ_SUB_DESTINATION, destination);
+		txMsg.putBooleanProperty(Config.SK_SEND_TO_ALL, false);
+		txMsg.putStringProperty(SignalKConstants.FORMAT, format);
+		txMsg.putBooleanProperty(SignalKConstants.REPLY, true);
+
+		txMsg.getBodyBuffer().writeString(json.toString());
+		if (logger.isDebugEnabled())
+			logger.debug("Msg body = " + json.toString());
+		txMsg.setAddress(new SimpleString("outgoing.reply." + destination));
+		// txMsg.setReplyTo(new SimpleString("outgoing.reply."+destination));
+		RoutingStatus r = s.send(txMsg, true);
+		if (logger.isDebugEnabled())
+			logger.debug("Routing = " + r.name());
+		return r;
 	}
 
-	public static void sendMsg(String key, Json body, String timeStamp, Json src, ServerSession sess) throws Exception {
-		if (src != null && !src.isNull()) {
-			String srclabel = src.at(label).asString();
-			if (srclabel.startsWith(sources))
-				srclabel = srclabel.substring(sources.length() + 1);
-			sendObjMsg(key + dot + values + dot + srclabel, body, timeStamp, src, sess);
-		} else {
-			sendObjMsg(key, body, timeStamp, src, sess);
-		}
-	}
-
-	private static void sendObjMsg(String key, Json body, String timeStamp, Object src, ServerSession sess)
+	public static void readAll(String user, String password, String path, AtmosphereResource resource)
 			throws Exception {
-		try {
-			Message m2 = getMessage(key, body, timeStamp, src);
-			sess.send(m2, true);
-		} catch (ActiveMQSecurityException se) {
-			logger.warn(se.getMessage());
-		} catch (Exception e1) {
-			logger.error(e1.getMessage(), e1);
-		}
-	}
+		String tempQ = UUID.randomUUID().toString();
 
-	protected static Message getMessage(String key, Json body, String timeStamp, Object src) {
-		ClientMessage m2 = new ClientMessageImpl((byte) 0, false, 0, System.currentTimeMillis(), (byte) 4, 1024);
-		if (StringUtils.isNotBlank(timeStamp))
-			m2.putStringProperty(timestamp, timeStamp);
-		if (src != null) {
-			if (src instanceof String) {
-				m2.putStringProperty(sourceRef, src.toString());
-			} else {
-				m2.putStringProperty(source, src.toString());
+		try (ClientSession txSession = Util.getVmSession(user, password);
+				ClientProducer producer = txSession.createProducer();) {
+			txSession.start();
+			ClientMessage message = txSession.createMessage(true);
+			txSession.createTemporaryQueue("outgoing.reply." + tempQ, RoutingType.MULTICAST, tempQ);
+			message.putStringProperty(Config.AMQ_REPLY_Q, tempQ);
+			message.getBodyBuffer().writeString(getJsonGetRequest(path).toString());
+			producer.send(Config.INCOMING_RAW, message);
+
+			try (ClientConsumer consumer = txSession.createConsumer(tempQ, false);) {
+
+				consumer.setMessageHandler(new MessageHandler() {
+
+					@Override
+					public void onMessage(ClientMessage message) {
+						String recv = message.getBodyBuffer().readString();
+						logger.debug("onMessage = " + recv);
+						Json json = Json.read(recv);
+
+						// for REST we only send back the sub-node, so find it
+						if (StringUtils.isNotBlank(path) && !path.startsWith(CONFIG))
+							json = Util.findNodeMatch(json, path);
+
+						// if (logger.isDebugEnabled())
+						// logger.debug("json node = " + json.toString());
+						resource.getResponse().setContentType("application/json");
+						resource.getResponse().write(json == null ? "{}" : json.toString());
+						try {
+							consumer.close();
+						} catch (ActiveMQException e) {
+							logger.error(e, e);
+						}
+					}
+				});
+				int c = 0;
+				while (!consumer.isClosed() && c < 1000) {
+					Thread.currentThread();
+					Thread.sleep(10);
+					c++;
+				}
 			}
+
+		} catch (Exception e) {
+			logger.error(e, e);
+			throw e;
 		}
-		String type = body.getClass().getSimpleName();
-		m2.putStringProperty(Config.JAVA_TYPE, type);
+	}
 
-		switch (type) {
-		case "NullJson":
-			m2.getBodyBuffer().writeString(body.toString());
-			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_VALUE);
-			break;
-		case "BooleanJson":
-			m2.getBodyBuffer().writeString(body.toString());
-			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_VALUE);
-			break;
-		case "StringJson":
-			m2.getBodyBuffer().writeString(body.toString());
-			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_VALUE);
-			break;
-		case "NumberJson":
-			m2.getBodyBuffer().writeString(body.toString());
-			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_VALUE);
-			break;
-		case "Json":
-			m2.getBodyBuffer().writeString(body.toString());
-			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_COMPOSITE);
-			break;
-		case "ObjectJson":
-			m2.getBodyBuffer().writeString(body.toString());
-			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_COMPOSITE);
-			break;
-		case "ArrayJson":
-			m2.getBodyBuffer().writeString(body.toString());
-			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_COMPOSITE);
-			break;
-		default:
-			logger.error("Unknown Json Class type: {}",type);
-			m2.putStringProperty(Config.SK_TYPE, Config.SK_TYPE_VALUE);
-			m2.getBodyBuffer().writeString(body.toString());
-			break;
+	public static Json getJsonGetRequest(String path) {
+		String ctx = Util.getContext(path);
+		if (StringUtils.isBlank(ctx)) {
+			ctx = vessels + dot + self_str;
+		}
+		return getJsonGetRequest(ctx, StringUtils.substringAfter(path, ctx + dot));
+
+	}
+
+	public static Json getJsonGetRequest(String context, String path) {
+		Json json = Json.read("{\"context\":\"" + context + "\",\"get\": []}");
+		Json sub = Json.object();
+		sub.set("path", StringUtils.defaultIfBlank(path, "*"));
+		json.at("get").add(sub);
+		logger.debug("Created json sub: " + json);
+		return json;
+	}
+
+	/**
+	 * Attempt to set the system time using the GPS time
+	 *
+	 * @param sen
+	 */
+	@SuppressWarnings("deprecation")
+	public static void checkTime(RMCSentence sen) {
+		if (timeSet) {
+			return;
+		}
+		try {
+			net.sf.marineapi.nmea.util.Date dayNow = sen.getDate();
+			// if we need to set the time, we will be WAAYYY out
+			// we only try once, so we dont get lots of native processes
+			// spawning if we fail
+			timeSet = true;
+			Date date = new Date();
+			if ((date.getYear() + 1900) == dayNow.getYear()) {
+				logger.debug("Current date is {}", date);
+				return;
+			}
+			// so we need to set the date and time
+			net.sf.marineapi.nmea.util.Time timeNow = sen.getTime();
+			String yy = String.valueOf(dayNow.getYear());
+			String MM = pad(2, String.valueOf(dayNow.getMonth()));
+			String dd = pad(2, String.valueOf(dayNow.getDay()));
+			String hh = pad(2, String.valueOf(timeNow.getHour()));
+			String mm = pad(2, String.valueOf(timeNow.getMinutes()));
+			String ss = pad(2, String.valueOf(timeNow.getSeconds()));
+
+			logger.debug("Setting current date to {} {}", dayNow, timeNow);
+
+			String cmd = "sudo date --utc " + MM + dd + hh + mm + yy + "." + ss;
+			Runtime.getRuntime().exec(cmd.split(" "));// MMddhhmm[[yy]yy]
+
+			logger.debug("Executed date setting command: {}", cmd);
+
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
 		}
 
-		m2.setAddress(new SimpleString(key));
-		m2.putStringProperty(Config._AMQ_LVQ_NAME, key);
-		return m2;
 	}
 
-	public static void sendSourceMsg(String key, String src, String now, ServerSession sess) throws Exception {
-		sendObjMsg("sources." + key, Json.read(src), now, null, sess);
-
+	/**
+	 * pad the value to i places, eg 2 >> 02
+	 *
+	 * @param i
+	 * @param valueOf
+	 * @return
+	 */
+	private static String pad(int i, String value) {
+		while (value.length() < i) {
+			value = "0" + value;
+		}
+		return value;
 	}
 
-	public static void sendSourceMsg(String key, Json src, String now, ServerSession sess) throws Exception {
-		sendObjMsg("sources." + key, src, now, null, sess);
-
-	}
-	
-    /**
-     * Attempt to set the system time using the GPS time
-     *
-     * @param sen
-     */
-    @SuppressWarnings("deprecation")
-    public static void checkTime(RMCSentence sen) {
-        if (timeSet) {
-            return;
-        }
-        try {
-            net.sf.marineapi.nmea.util.Date dayNow = sen.getDate();
-            // if we need to set the time, we will be WAAYYY out
-            // we only try once, so we dont get lots of native processes
-            // spawning if we fail
-            timeSet = true;
-            Date date = new Date();
-            if ((date.getYear() + 1900) == dayNow.getYear()) {
-               logger.debug("Current date is {}", date);
-               return;
-            }
-            // so we need to set the date and time
-            net.sf.marineapi.nmea.util.Time timeNow = sen.getTime();
-            String yy = String.valueOf(dayNow.getYear());
-            String MM = pad(2, String.valueOf(dayNow.getMonth()));
-            String dd = pad(2, String.valueOf(dayNow.getDay()));
-            String hh = pad(2, String.valueOf(timeNow.getHour()));
-            String mm = pad(2, String.valueOf(timeNow.getMinutes()));
-            String ss = pad(2, String.valueOf(timeNow.getSeconds()));
-           
-            logger.debug("Setting current date to {} {}" ,dayNow , timeNow);
-            
-            String cmd = "sudo date --utc " + MM + dd + hh + mm + yy + "." + ss;
-            Runtime.getRuntime().exec(cmd.split(" "));// MMddhhmm[[yy]yy]
-            
-            logger.debug("Executed date setting command: {}",cmd);
-            
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        }
-
-    }
-
-
-    /**
-     * pad the value to i places, eg 2 >> 02
-     *
-     * @param i
-     * @param valueOf
-     * @return
-     */
-    private static String pad(int i, String value) {
-        while (value.length() < i) {
-            value = "0" + value;
-        }
-        return value;
-    }
 	public static String sanitizePath(String newPath) {
 		newPath = newPath.replace('/', '.');
 		if (newPath.startsWith(dot)) {
@@ -460,8 +411,8 @@ public class Util {
 						if (key.contains(dot + values + dot))
 							key = key.substring(0, key.indexOf(dot + values + dot));
 						Json v = Util.readBodyBuffer(msg);
-						
-						logger.debug("Key: {}, value: {}", key,v);
+
+						logger.debug("Key: {}, value: {}", key, v);
 						Json val = Json.object(PATH, key);
 						val.set(value, v);
 						if (v.isObject())
@@ -481,7 +432,8 @@ public class Util {
 
 	public static Json readBodyBuffer(ICoreMessage msg) {
 		if (msg.getBodyBuffer().readableBytes() == 0) {
-			logger.debug("Empty msg: {} : {}",()->msg.getAddress(),()->msg.getBodyBuffer().readableBytes());
+			if (logger.isDebugEnabled())
+				logger.debug("Empty msg: {} : {}", () -> msg.getAddress(), () -> msg.getBodyBuffer().readableBytes());
 			return Json.nil();
 		}
 		return Json.read(readBodyBufferToString(msg));
@@ -502,7 +454,8 @@ public class Util {
 		ClientMessage msgReceived = null;
 		Map<String, Map<String, Map<String, List<ClientMessage>>>> msgs = new HashMap<>();
 		while ((msgReceived = consumer.receive(10)) != null) {
-			logger.debug("message = {} : {}",msgReceived.getMessageID(),msgReceived.getAddress());
+			if (logger.isDebugEnabled())
+				logger.debug("message = {} : {}", msgReceived.getMessageID(), msgReceived.getAddress());
 			String ctx = Util.getContext(msgReceived.getAddress().toString());
 			Map<String, Map<String, List<ClientMessage>>> ctxMap = msgs.get(ctx);
 			if (ctxMap == null) {
@@ -514,7 +467,8 @@ public class Util {
 				tsMap = new HashMap<>();
 				ctxMap.put(msgReceived.getStringProperty(timestamp), tsMap);
 			}
-			logger.debug("$source: {}",msgReceived.getStringProperty(sourceRef));
+			if (logger.isDebugEnabled())
+				logger.debug("$source: {}", msgReceived.getStringProperty(sourceRef));
 			List<ClientMessage> srcMap = tsMap.get(msgReceived.getStringProperty(sourceRef));
 			if (srcMap == null) {
 				srcMap = new ArrayList<>();
@@ -531,7 +485,8 @@ public class Util {
 		SortedMap<String, Object> msgs = new ConcurrentSkipListMap<>();
 		while ((msgReceived = consumer.receive(10)) != null) {
 			String key = msgReceived.getAddress().toString();
-			logger.debug("message = {} : {}",msgReceived.getMessageID(),key);
+			if (logger.isDebugEnabled())
+				logger.debug("message = {} : {}", msgReceived.getMessageID(), key);
 			String ts = msgReceived.getStringProperty(timestamp);
 			String src = msgReceived.getStringProperty(source);
 			if (ts != null)
@@ -556,11 +511,12 @@ public class Util {
 	 * @throws IOException
 	 */
 	public static Json mapToJson(SortedMap<String, Object> msgs) throws IOException {
-		
+
 		if (msgs.size() > 0) {
 			JsonSerializer ser = new JsonSerializer();
 			Json json = Json.read(ser.write(msgs));
-			logger.debug("json = {}",()-> json.toString());
+			if (logger.isDebugEnabled())
+				logger.debug("json = {}", () -> json.toString());
 			return json;
 		}
 		return null;
@@ -573,8 +529,6 @@ public class Util {
 		producer.send(address, msg);
 
 	}
-	
-
 
 	public static Pattern regexPath(String newPath) {
 		// regex it
@@ -601,6 +555,7 @@ public class Util {
 			return path;
 		}
 		if (path.startsWith(CONFIG + dot)) {
+
 			int p1 = path.indexOf(CONFIG) + CONFIG.length() + 1;
 
 			int pos = path.indexOf(".", p1);
@@ -623,18 +578,18 @@ public class Util {
 		}
 		return "";
 	}
-	
-	public static Json getJson(Json parent, String key){
-		String[] path = StringUtils.split(key,".");
+
+	public static Json getJson(Json parent, String key) {
+		String[] path = StringUtils.split(key, ".");
 		Json node = parent;
-		for(int i = 0; i<path.length;i++){
-			if(!node.has(path[i])){
-				node.set(path[i],Json.object());
+		for (int i = 0; i < path.length; i++) {
+			if (!node.has(path[i])) {
+				node.set(path[i], Json.object());
 			}
 			node = node.at(path[i]);
 		}
 		return node;
-		
+
 	}
 
 	public static boolean sameNetwork(String localAddress, String remoteAddress) throws Exception {
@@ -653,8 +608,10 @@ public class Util {
 		byte[] a1 = InetAddress.getByName(localAddress).getAddress();
 		byte[] a2 = InetAddress.getByName(remoteAddress).getAddress();
 		byte[] m = InetAddress.getByName(normalizeFromCIDR(netmask)).getAddress();
-		logger.debug("sameNetwork?: {}/{},{},{}" ,() -> localAddress , () ->  normalizeFromCIDR(netmask), () -> remoteAddress ,() -> netmask);
-	
+		if (logger.isDebugEnabled())
+			logger.debug("sameNetwork?: {}/{},{},{}", () -> localAddress, () -> normalizeFromCIDR(netmask),
+					() -> remoteAddress, () -> netmask);
+
 		for (int i = 0; i < a1.length; i++) {
 			if ((a1[i] & m[i]) != (a2[i] & m[i])) {
 				return false;
@@ -673,8 +630,9 @@ public class Util {
 				netmask = (short) (32 - Short.valueOf(p[1]));
 			}
 			if (Util.sameNetwork(p[0], netmask, ip)) {
-				logger.debug("IP found {} in list: {}",ip,denyIp);
-				
+				if (logger.isDebugEnabled())
+					logger.debug("IP found {} in list: {}", ip, denyIp);
+
 				return true;
 			}
 
@@ -696,22 +654,39 @@ public class Util {
 
 	/**
 	 * Recursive findNode(). Returns null if not found
+	 * 
+	 * Does a regex search if a path element has * or [, and for the last path
+	 * to ensure we get partial matches.
 	 *
 	 * @param node
 	 * @param fullPath
 	 * @return
 	 */
-	public static Json findNode(Json node, String fullPath) {
+	public static Json findNodeMatch(Json node, String fullPath) {
 		String[] paths = fullPath.split("\\.");
 		// Json endNode = null;
-		for (String path : paths) {
-			logger.debug("findNode: {}",path);
-			node = node.at(path);
-			if (node == null) {
-				return null;
+		for (int x = 0; x < paths.length; x++) {
+			if (logger.isDebugEnabled())
+				logger.debug("findNode: {}", paths[x]);
+
+			if (node.has(paths[x])) {
+				if (x == paths.length - 1) {
+					return node.at(paths[x]);
+				} else {
+					node = node.at(paths[x]);
+				}
+			} else {
+				for (String k : node.asJsonMap().keySet()) {
+					if (Util.regexPath(paths[x]).matcher(k).find())
+						if (x == paths.length - 1) {
+							return node.at(k);
+						} else {
+							node = node.at(k);
+						}
+				}
 			}
 		}
-		return node;
+		return null;
 	}
 
 	public static long getMillisFromIsoTime(String iso) {
@@ -728,5 +703,67 @@ public class Util {
 
 	public static String getIsoTimeString(long timestamp) {
 		return new DateTime(timestamp, DateTimeZone.UTC).toDateTimeISO().toString();
+	}
+
+	public static Json setJson(Json parent, String path, Json json) {
+		String[] paths = path.split("\\.");
+		Json node = parent;
+		for (int x = 0; x < path.length(); x++) {
+			if (logger.isDebugEnabled())
+				logger.debug("setJson: {}", paths[x]);
+			if (x == paths.length - 1) {
+				node.set(paths[x], json);
+				return json;
+			}
+			if (node.has(paths[x])) {
+				node = node.at(paths[x]);
+			} else {
+				node.set(paths[x], Json.object());
+				node = node.at(paths[x]);
+			}
+		}
+		return node;
+
+	}
+
+	/**
+	 * Converts a source key to a $source key, and returns the relevant
+	 * sources.* tree Returns null if there is no source key. Only looks in the
+	 * immediate object, does not recurse.
+	 * 
+	 * @param input
+	 * @param defaultType,
+	 *            if source object has no type, can be null
+	 * @param defaultLabel,
+	 *            if source object has no label, can be null
+	 * @return
+	 */
+	public static Json convertSourceToRef(Json input, String defaultType, String defaultLabel) {
+		if (input.has(source)) {
+			if (logger.isDebugEnabled())
+				logger.debug("source Json: {}", input);
+			// extract as full and save
+			Json src = input.at(source);
+			Json srcJson = Json.object(sources, Json.object());
+			StringBuffer srcRef = new StringBuffer();
+			if (src.has(type)) {
+				srcRef.append(src.at(type).asString());
+			} else {
+				srcRef.append(StringUtils.defaultString(defaultType, "unknown"));
+			}
+			if (src.has(label)) {
+				srcRef.append(dot + src.at(label).asString());
+			} else {
+				srcRef.append(dot + StringUtils.defaultString(defaultLabel, "unknown"));
+			}
+			// replace source with sourceRef
+			input.delAt(source);
+			input.set(sourceRef, srcRef.toString());
+			if (logger.isDebugEnabled())
+				logger.debug("srcRef Json: {}", input);
+			Util.setJson(srcJson, sources + dot + srcRef.toString(), src);
+			return srcJson;
+		}
+		return null;
 	}
 }

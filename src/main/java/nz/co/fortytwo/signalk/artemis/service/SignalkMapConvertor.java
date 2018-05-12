@@ -33,6 +33,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.JsonSerializer;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
@@ -46,6 +48,7 @@ public class SignalkMapConvertor {
 		
 		for (Entry<String, Json> entry : json.asJsonMap().entrySet()) {
 			
+			if (logger.isDebugEnabled())
 				logger.debug("Recurse {} = {}",()->entry.getKey(),()->entry.getValue());
 			if (entry.getValue().isPrimitive() 
 					|| entry.getValue().isNull() 
@@ -79,14 +82,16 @@ public class SignalkMapConvertor {
 
 		if (node.has(CONTEXT) && (node.has(UPDATES) || node.has(PUT))) {
 			
-			logger.debug("processing delta  {}",node);
+			if (logger.isDebugEnabled())
+				logger.debug("processing delta  {}",node);
 			// process it
 
 			// go to context
 			String ctx = node.at(CONTEXT).asString();
 			ctx = Util.fixSelfKey(ctx);
 			ctx = StringUtils.removeEnd(ctx,".");
-			logger.debug("ctx: {}", node);
+			if (logger.isDebugEnabled())
+				logger.debug("ctx: {}", node);
 			// Json pathNode = temp.addNode(path);
 			Json updates = node.at(UPDATES);
 			if (updates == null)
@@ -99,6 +104,7 @@ public class SignalkMapConvertor {
 			}
 
 			
+			if (logger.isDebugEnabled())
 				logger.debug("processed delta  {}" ,temp);
 			return temp;
 		}
@@ -110,39 +116,35 @@ public class SignalkMapConvertor {
 
 		// grab values and add
 		Json array = update.at(values);
-		for (Json e : array.asJsonList()) {
-			if (e == null || e.isNull() || !e.has(PATH))
+		for (Json val : array.asJsonList()) {
+			if (val == null || val.isNull() || !val.has(PATH))
 				continue;
+			
+			Json e = val.dup();
+			
 			String key = dot + e.at(PATH).asString();
 			if(key.equals(dot))key="";
 			//e.delAt(PATH);
 			// temp.put(ctx+"."+key, e.at(value).getValue());
 			String srcRef=null;
-			if (update.has(source)) {
-				Json src = update.at(source);
-				if(src.has(label)){
-					srcRef=src.at(type).asString()+dot+src.at(label).asString();
-				}else if(src.has(talker)){
-					srcRef=src.at(type).asString()+dot+src.at(talker).asString();
-				}
-				
-				//add sources
-				parseFull(src,temp,sources+dot+srcRef+dot);
-			}else{
-				srcRef="self";
+			if (update.has(sourceRef)) {
+				srcRef=update.at(sourceRef).asString();
+				e.set(sourceRef, srcRef);
 			}
-			e.set(sourceRef, srcRef);
+			
 
 			if (update.has(timestamp)) {
-				logger.debug("put timestamp: {}:{}", ctx + key, e);
+				if (logger.isDebugEnabled())
+					logger.debug("put timestamp: {}:{}", ctx + key, e);
 				e.set(timestamp, update.at(timestamp).asString());
 			}else{
 				e.set(timestamp,Util.getIsoTimeString());
 			}
-			
+			e.delAt(PATH);
 			if (e.has(value)) {
-				logger.debug("put: {}:{}", ctx +  key, e);
-				temp.put(ctx +  key+dot+values+dot+srcRef, e.dup().delAt(PATH));
+				if (logger.isDebugEnabled())
+					logger.debug("put: {}:{}", ctx +  key, e);
+				temp.put(ctx +  key+dot+values+dot+srcRef, e);
 			}
 		}
 
@@ -150,8 +152,14 @@ public class SignalkMapConvertor {
 	
 	public static Json mapToFull(NavigableMap<String, Json> map) throws IOException{
 		if(map==null)return Json.nil();
-		JsonSerializer ser = new JsonSerializer();
-		return Json.read(ser.write(map));
+		Json root = Json.object();
+		root.set(self_str,Json.make(Config.getConfigProperty(ConfigConstants.UUID)));
+		root.set(version,Json.make(Config.getConfigProperty(ConfigConstants.VERSION)));
+		map.entrySet().forEach((entry)->{
+			if(entry.getKey().endsWith(attr))return;
+			Util.setJson(root,entry.getKey(),entry.getValue());
+		});
+		return root;
 	}
 
 	public static Json mapToDelta(NavigableMap<String, Json> map)  {
@@ -165,34 +173,42 @@ public class SignalkMapConvertor {
 			if(eKey.startsWith(sources))continue;
 			if(eKey.endsWith(attr))continue;
 			
-			logger.debug("message = {} : {}",eKey,eValue);
+			if (logger.isDebugEnabled())
+				logger.debug("message = {} : {}",eKey, eValue);
 			String ctx = Util.getContext(eKey);
 			Map<String, Map<String, Map<String,List<Entry<String,Json>>>>> ctxMap = msgs.get(ctx);
 			if (ctxMap == null) {
 				ctxMap = new HashMap<>();
 				msgs.put(ctx, ctxMap);
 			}
-			logger.debug("$timestamp: {}",eValue.at(timestamp));
-			Map<String, Map<String,List<Entry<String,Json>>>> tsMap = ctxMap.get(eValue.at(timestamp).asString());
+			
+			String tsVal = (eValue.isObject() && eValue.has(timestamp))? eValue.at(timestamp).asString():"none";
+			if (logger.isDebugEnabled())
+				logger.debug("$timestamp: {}",tsVal);
+			Map<String, Map<String,List<Entry<String,Json>>>> tsMap = ctxMap.get(tsVal);
 			if (tsMap == null) {
 				tsMap = new HashMap<>();
-				ctxMap.put(eValue.at(timestamp).asString(), tsMap);
+				ctxMap.put(tsVal, tsMap);
 			}
-			logger.debug("$source: {}",eValue.at(sourceRef));
-			Map<String,List<Entry<String,Json>>> srcMap = tsMap.get(eValue.at(sourceRef).asString());
+			
+			String srVal = (eValue.isObject() && eValue.has(sourceRef))? eValue.at(sourceRef).asString():"none";
+			if (logger.isDebugEnabled())
+				logger.debug("$source: {}",srVal);
+			Map<String,List<Entry<String,Json>>> srcMap = tsMap.get(srVal);
 			if (srcMap == null) {
 				srcMap = new HashMap<>();
-				tsMap.put(eValue.at(sourceRef).asString(), srcMap);
+				tsMap.put(srVal, srcMap);
 			}
-			eKey = eKey.substring(ctx.length()+1);
-			if (eKey.contains(dot + values + dot))
-				eKey = eKey.substring(0, eKey.indexOf(dot + values + dot));
+			eKey = StringUtils.substringAfter(eKey,ctx+dot);
+			eKey = StringUtils.substringBefore(eKey,dot + values + dot);
+	
 			List<Entry<String,Json>> list = srcMap.get(eKey);
 			if (list == null) {
 				list = new ArrayList<>();
 				srcMap.put(eKey, list);
 			}
-			logger.debug("Add entry: {}:{}",eKey,entry);
+			if (logger.isDebugEnabled())
+				logger.debug("Add entry: {}:{}",eKey,entry);
 			list.add(entry);
 		}
 		return generateDelta(msgs);
@@ -208,13 +224,11 @@ public class SignalkMapConvertor {
 	 */
 	public static Json generateDelta(Map<String, Map<String, Map<String, Map<String,List<Entry<String,Json>>>>>> msgs) {
 		logger.debug("Delta map: {}",msgs);
-		Json deltaArray = Json.array();
-		// add values
-		if (msgs.size() == 0)
-			return deltaArray;
-		// each timestamp
+
 		Json delta = Json.object();
-		deltaArray.add(delta);
+	
+		if (msgs.size() == 0)
+			return delta;
 
 		Json updatesArray = Json.array();
 		delta.set(UPDATES, updatesArray);
@@ -241,20 +255,27 @@ public class SignalkMapConvertor {
 						List<Entry<String,Json>> list = msg.getValue();
 						
 						for( Entry<String,Json> v :list){
-							logger.debug("Key: {}, value: {}", v.getKey(),v.getValue());
 							String vKey = v.getKey();
-							vKey = vKey.substring(ctx.length()+1);
-							if (vKey.contains(dot + values + dot))
-								vKey = vKey.substring(0, vKey.indexOf(dot + values + dot));
+							Json vJson = v.getValue();
+							logger.debug("Key: {}, value: {}", vKey,vJson);
+							
+							vKey = StringUtils.substringAfter(vKey,ctx+dot);
+							vKey = StringUtils.substringBefore(vKey,dot + values + dot);
+							
 							Json val = Json.object(PATH, vKey);
 							
-							if (v.getValue().isObject()){
-								v.getValue().delAt(timestamp);
-								v.getValue().delAt(sourceRef);
-								val.set(value, v.getValue().at(value));
-							}else{
-								val.set(value, v.getValue());
+							if (vJson.has(timestamp)){
+								vJson.delAt(timestamp);
 							}
+							if (vJson.has(sourceRef)){
+								vJson.delAt(sourceRef);
+							}
+							if(vJson.has(value)){
+								val.set(value, vJson.at(value));
+							}else{
+								val.set(value, vJson);
+							}
+							logger.debug("Added Key: {}, value: {}", vKey,vJson);
 							valuesArray.add(val);
 						}
 					}
@@ -264,7 +285,7 @@ public class SignalkMapConvertor {
 			delta.set(CONTEXT, ctx);
 		}
 
-		return deltaArray;
+		return delta;
 	}
 
 }

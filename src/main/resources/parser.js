@@ -10,12 +10,11 @@ console.log = print;
 console.error = print;
 var process = {"argv":[]};
 var mappings = {}
-//var RMC = require('./hooks-es5/RMC.js')
+
 var getTagBlock = require('./lib-es5/getTagBlock');
-//var findHook = require('./lib-es5/findHook');
+
 var transformSource = require('./lib-es5/transformSource');
-//const Parser = require('../lib/index.js')
-//const parser = new Parser()
+
 
 var loadHook = function(hook){
 	//findHooks
@@ -73,9 +72,8 @@ var parse = function(sentence){
 	  	result= JSON.stringify(error)
 	    
 	  })
-//  setTimeout(function(){
-//      print('Complete')}, 5000);
+
   global.nashornEventLoop.process();
-//  print('End')
+
   return result
 }

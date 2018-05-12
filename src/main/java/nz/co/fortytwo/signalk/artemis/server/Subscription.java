@@ -138,38 +138,12 @@ public class Subscription {
 					if(SignalKConstants.FORMAT_DELTA.equals(format)){
 						Json json = SignalkMapConvertor.mapToDelta(rslt);
 						if(logger.isDebugEnabled())logger.debug("Delta json = "+json);
-						
-						for(Json j :json.asJsonList()){
-							ClientMessage txMsg = new ClientMessageImpl((byte) 0, false, 0, System.currentTimeMillis(), (byte) 4, 1024);
-							//ClientMessage txMsg = rxSession.createMessage(true);
-							txMsg.putStringProperty(Config.JAVA_TYPE, rslt.getClass().getSimpleName());
-							txMsg.putStringProperty(Config.AMQ_SUB_DESTINATION, destination);
-							txMsg.putBooleanProperty(Config.SK_SEND_TO_ALL, false);
-							txMsg.putStringProperty(SignalKConstants.FORMAT, format);	
-							txMsg.putBooleanProperty(SignalKConstants.REPLY, true);
-							txMsg.getBodyBuffer().writeString(j.toString());
-							txMsg.setAddress(new SimpleString("outgoing.reply."+destination));
-							//txMsg.setReplyTo(new SimpleString("outgoing.reply."+destination));
-							if(logger.isDebugEnabled())logger.debug("Sending to = "+txMsg.getAddress());
-							RoutingStatus r = s.send(txMsg,true);
-							if(logger.isDebugEnabled())logger.debug("Routing = "+r.name());
-						}
-
+						Util.sendReply(rslt.getClass().getSimpleName(),destination,format,json,s);
 					}
 					if(SignalKConstants.FORMAT_FULL.equals(format)){
 						Json json = SignalkMapConvertor.mapToFull(rslt);
 						if(logger.isDebugEnabled())logger.debug("Full json = "+json);
-						ClientMessage txMsg = new ClientMessageImpl((byte) 0, false, 0, System.currentTimeMillis(), (byte) 4, 1024);
-						txMsg.putStringProperty(Config.JAVA_TYPE, rslt.getClass().getSimpleName());
-						txMsg.putStringProperty(Config.AMQ_SUB_DESTINATION, destination);
-						txMsg.putBooleanProperty(Config.SK_SEND_TO_ALL, false);
-						txMsg.putStringProperty(SignalKConstants.FORMAT, format);		
-						txMsg.putBooleanProperty(SignalKConstants.REPLY, true);
-						txMsg.getBodyBuffer().writeString(json.toString());
-						txMsg.setAddress(new SimpleString("outgoing.reply."+destination));
-						//txMsg.setReplyTo(new SimpleString("outgoing.reply."+destination));
-						RoutingStatus r = s.send(txMsg,true);
-						if(logger.isDebugEnabled())logger.debug("Routing = "+r.name());
+						Util.sendReply(rslt.getClass().getSimpleName(),destination,format,json,s);
 					}
 					s.commit();				
 				} catch (Exception e) {

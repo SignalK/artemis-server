@@ -42,10 +42,6 @@
 			</address-setting>
 		</address-settings>
 		<queues>
-			<queue name="incoming.map">
-				<address>incoming.map</address>
-				<durable>false</durable>
-			</queue>
 			<queue name="incoming.raw">
 				<address>incoming.raw</address>
 				<durable>false</durable>
@@ -68,14 +64,18 @@
 			</class-name>
 			<class-name>nz.co.fortytwo.signalk.artemis.intercept.SubscribeMsgInterceptor
 			</class-name>
+			<class-name>nz.co.fortytwo.signalk.artemis.intercept.DeltaSourceInterceptor
+			</class-name>
 			<class-name>nz.co.fortytwo.signalk.artemis.intercept.DeltaMsgInterceptor
+			</class-name>
+			<class-name>nz.co.fortytwo.signalk.artemis.intercept.GetMsgInterceptor
 			</class-name>
 		</remoting-incoming-interceptors>
 			<!-- outgoing -->
-		<remoting-outgoing-interceptors>
-			<class-name>nz.co.fortytwo.signalk.artemis.intercept.MapToDeltaInterceptor</class-name>
+<!-- 		<remoting-outgoing-interceptors> -->
+<!-- 			<class-name>nz.co.fortytwo.signalk.artemis.intercept.MapToDeltaInterceptor</class-name> -->
 <!-- 			<class-name>nz.co.fortytwo.signalk.artemis.intercept.MapToFullInterceptor</class-name> -->
-		</remoting-outgoing-interceptors>
+<!-- 		</remoting-outgoing-interceptors> -->
 
 		<!-- Other config -->
 		<security-enabled>false</security-enabled>
@@ -86,15 +86,7 @@
 				<permission type="createNonDurableQueue" roles="guest" />
 				<permission type="send" roles="guest" />
 			</security-setting>
-			<security-setting match="incoming.map">
-				<permission type="createDurableQueue" roles="admin" />
-				<permission type="deleteDurableQueue" roles="admin" />
-				<permission type="createNonDurableQueue" roles="admin" />
-				<permission type="deleteNonDurableQueue" roles="admin" />
-				<permission type="consume" roles="admin" />
-				<permission type="send" roles="admin" />
-				<permission type="browse" roles="admin" />
-			</security-setting>
+
 			<security-setting match="outgoing.#">
 				<permission type="createDurableQueue" roles="guest" />
 				<permission type="createNonDurableQueue" roles="guest" />

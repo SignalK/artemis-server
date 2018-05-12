@@ -88,7 +88,7 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 			ICoreMessage message = realPacket.getMessage();
 			if(message.getBooleanProperty(SignalKConstants.REPLY))return true;
 			
-			if(!Config.JSON_SUBSCRIBE.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))return true;
+			if(!Config.JSON_DELTA.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))return true;
 			if(logger.isTraceEnabled())logger.trace("Processing: " + message);
 			Json node = Util.readBodyBuffer(message);
 			// avoid full signalk syntax

@@ -1,6 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONFIG;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PATH;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PUT;
@@ -210,10 +210,10 @@ public class InfluxDbService {
 							valuesJson = Json.object();
 							parent.set(values,valuesJson);
 						}
-						Json attrJson = valuesJson.at(valKey);
-						if(attrJson==null){
-							attrJson = Json.object();
-							valuesJson.set(valKey,attrJson);
+						Json subJson = valuesJson.at(valKey);
+						if(subJson==null){
+							subJson = Json.object();
+							valuesJson.set(valKey,subJson);
 						}
 						
 						//add attributes
@@ -221,7 +221,7 @@ public class InfluxDbService {
 						if(primary){
 							extractPrimaryValue(parent,s,subkey,val);
 						}else{
-							extractValue(attrJson,s,subkey, val);
+							extractValue(subJson,s,subkey, val);
 						}
 						
 						processed=true;
@@ -474,7 +474,7 @@ public class InfluxDbService {
 		} else {
 			node.set(value, val);
 		}
-		//if we have a 'values' copy value into values.srcRef too
+		//if we have a 'values' key, and its primary, copy back into value{} 
 		if(parent.has(values)){
 			Json pValues = Json.object(value,parent.at(value),timestamp,parent.at(timestamp));
 			parent.at(values).set(parent.at(sourceRef).asString(),pValues);
@@ -511,7 +511,7 @@ public class InfluxDbService {
 			node.set(value, val);
 		}
 		if (StringUtils.isNotBlank(srcref)) {
-			//if we have a 'value' copy it into values.srcRef too
+			//if we have a 'value' copy it into values.srcRef.{} too
 			if(parent.has(value)){
 				Json pValues = Json.object(value,parent.at(value),timestamp,parent.at(timestamp));
 				parent.at(values).set(parent.at(sourceRef).asString(),pValues);
@@ -529,27 +529,13 @@ public class InfluxDbService {
 			else{
 				logger.debug("save {} : {}",()->null,()->key);
 			}
+			
+			if(self_str.equals(key))return;
+			if(version.equals(key))return;
 			String[] path = StringUtils.split(key, '.');
 			String field = getFieldType(value);
 			Builder point = null;
-			switch (path[0]) {
-			case vessels:
-				//is it a primary value
-				Boolean primary = isPrimary(key,sourceRef);
-				
-				point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS)
-						.tag("sourceRef", sourceRef)
-						.tag("uuid", path[1])
-						.tag(SecurityService.OWNER, attr.at(SecurityService.OWNER).asString())
-						.tag(SecurityService.GROUP, attr.at(SecurityService.GROUP).asString())
-						.tag(InfluxDbService.PRIMARY_VALUE, primary.toString())
-						//.tag(SecurityService.ROLE_READ, attr.at(SecurityService.ROLE_READ).toString())
-						//.tag(SecurityService.ROLE_WRITE, attr.at(SecurityService.ROLE_WRITE).toString())
-						//.tag(SecurityService.OTHER_READ, attr.at(SecurityService.OTHER_READ).toString())
-						//.tag(SecurityService.OTHER_WRITE, attr.at(SecurityService.OTHER_WRITE).toString())
-						.tag("skey", String.join(".", ArrayUtils.subarray(path, 2, path.length)));
-				influxDB.write(addPoint(point, field, value));
-				break;
+			switch (path[0]) {	
 			case resources:
 				point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS)
 						.tag("sourceRef", sourceRef)
@@ -593,6 +579,21 @@ public class InfluxDbService {
 				
 				break;
 			default:
+				//is it a primary value
+				Boolean primary = isPrimary(key,sourceRef);
+				
+				point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS)
+						.tag("sourceRef", sourceRef)
+						.tag("uuid", path[1])
+						.tag(SecurityService.OWNER, attr.at(SecurityService.OWNER).asString())
+						.tag(SecurityService.GROUP, attr.at(SecurityService.GROUP).asString())
+						.tag(InfluxDbService.PRIMARY_VALUE, primary.toString())
+						//.tag(SecurityService.ROLE_READ, attr.at(SecurityService.ROLE_READ).toString())
+						//.tag(SecurityService.ROLE_WRITE, attr.at(SecurityService.ROLE_WRITE).toString())
+						//.tag(SecurityService.OTHER_READ, attr.at(SecurityService.OTHER_READ).toString())
+						//.tag(SecurityService.OTHER_WRITE, attr.at(SecurityService.OTHER_WRITE).toString())
+						.tag("skey", String.join(".", ArrayUtils.subarray(path, 2, path.length)));
+				influxDB.write(addPoint(point, field, value));
 				break;
 			}
 		

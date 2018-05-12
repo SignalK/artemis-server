@@ -36,20 +36,20 @@ public class SubscribeTest extends BaseServerTest{
 	@Test
 	public void checkSelfSubscribe() throws Exception {
 
-		ClientSession session = Util.getLocalhostClientSession("guest", "guest");
-		try {
+		String tempQ = UUID.randomUUID().toString();
+		try (ClientSession session = Util.getLocalhostClientSession("admin", "admin");
+				ClientProducer producer = session.createProducer();	
+				){
 			session.start();
-
-			ClientProducer producer = session.createProducer(Config.INCOMING_RAW);
 
 			ClientMessage message = session.createMessage(true);
 			Json msg = getSubscriptionJson("vessels." + SignalKConstants.self, "navigation", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
 			message.getBodyBuffer().writeString(msg.toString());
-			String tempQ = UUID.randomUUID().toString();
+			
 			session.createTemporaryQueue("outgoing.reply."+tempQ, RoutingType.MULTICAST, tempQ);
 			message.putStringProperty(Config.AMQ_REPLY_Q, tempQ);
-			
-			producer.send(message);
+			logger.debug("Sending msg: {}, {} ", producer, message);
+			producer.send(Config.INCOMING_RAW, message);
 			
 			message = session.createMessage(true);
 			String line = "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78";
@@ -57,50 +57,38 @@ public class SubscribeTest extends BaseServerTest{
 			producer.send(Config.INCOMING_RAW, message);
 			
 			
+			try(ClientConsumer consumer = session.createConsumer(tempQ,false);){
 			
-			ClientConsumer consumer = session.createConsumer(tempQ,false);
-			consumer.setMessageHandler(new MessageHandler() {
-				
-				@Override
-				public void onMessage(ClientMessage message) {
-					String recv = message.getBodyBuffer().readString();
-					logger.debug("onMessage = " + recv);
-					assertNotNull(recv);
-				}
-			});
+				consumer.setMessageHandler(new MessageHandler() {
+					
+					@Override
+					public void onMessage(ClientMessage message) {
+						String recv = message.getBodyBuffer().readString();
+						logger.debug("onMessage = " + recv);
+						assertNotNull(recv);
+					}
+				});
+			}
 			CountDownLatch latch = new CountDownLatch(1);
-			latch.await(10, TimeUnit.SECONDS);
-			//ClientMessage msgReceived = consumer.receive(10000);
-			//String recv = msgReceived.getBodyBuffer().readString();
-			
-			// assertEquals("Hello", recv);
-			//assertNotNull(msgReceived);
-			producer.close();
-			consumer.close();
-		} finally {
-			session.close();
-		}
+			latch.await(5, TimeUnit.SECONDS);
+		} 
 	}
 
 	@Test
 	@Ignore
 	public void shouldStartNetty() throws Exception {
-		ClientSession session = Util.getLocalhostClientSession("admin", "admin");
 		
-		try {
+		
+		try (ClientSession session = Util.getLocalhostClientSession("admin", "admin");
+				ClientProducer producer = session.createProducer();	){
 			session.start();
-			ClientProducer producer = session.createProducer();
 
-			for (String line : FileUtils.readLines(new File("./src/test/resources/samples/signalkKeesLog.txt"))) {
-
-				ClientMessage message = session.createMessage(true);
-				message.getBodyBuffer().writeString(line);
-				producer.send(Config.INCOMING_RAW, message);
-				
-			}
-			producer.close();
-		}finally{
-			session.close();
+//			for (String line : FileUtils.readLines(new File("./src/test/resources/samples/signalkKeesLog.txt"))) {
+//
+//				ClientMessage message = session.createMessage(true);
+//				message.getBodyBuffer().writeString(line);
+//				producer.send(Config.INCOMING_RAW, message);
+//			}
 		}
 		CountDownLatch latch = new CountDownLatch(1);
 		latch.await(60, TimeUnit.SECONDS);
@@ -116,24 +104,21 @@ public class SubscribeTest extends BaseServerTest{
 	}
 
 	private void readPartialKeys(String user, int expected) throws Exception{
-		ClientSession session = Util.getLocalhostClientSession(user, user);
-	
-		try {
+		try (ClientSession session = Util.getLocalhostClientSession("admin", "admin");
+				ClientProducer producer = session.createProducer();	){
 			session.start();
-			ClientProducer producer = session.createProducer();
-
 			
 			int c = 0;
-			for (String line : FileUtils.readLines(new File("./src/test/resources/samples/signalkKeesLog.txt"))) {
-
-				ClientMessage message = session.createMessage(true);
-				message.getBodyBuffer().writeString(line);
-				producer.send(Config.INCOMING_RAW, message);
-				if (logger.isDebugEnabled())
-					logger.debug("Sent:" + message.getMessageID() + ":" + line);
-				c++;
-
-			}
+//			for (String line : FileUtils.readLines(new File("./src/test/resources/samples/signalkKeesLog.txt"))) {
+//
+//				ClientMessage message = session.createMessage(true);
+//				message.getBodyBuffer().writeString(line);
+//				producer.send(Config.INCOMING_RAW, message);
+//				if (logger.isDebugEnabled())
+//					logger.debug("Sent:" + message.getMessageID() + ":" + line);
+//				c++;
+//
+//			}
 			//subscribe, and wait for some responses, should be 1 per second
 			ClientMessage subMsg = session.createMessage(true);
 			Json msg = getSubscriptionJson("vessels.urn:mrn:imo:mmsi:123456789", "navigation", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
@@ -142,7 +127,7 @@ public class SubscribeTest extends BaseServerTest{
 			session.createTemporaryQueue("outgoing.reply."+tempQ, RoutingType.MULTICAST, tempQ);
 			subMsg.putStringProperty(Config.AMQ_REPLY_Q, tempQ);
 			producer.send(Config.INCOMING_RAW, subMsg);
-			producer.close();
+			
 			logger.debug("Subscribe sent");
 			
 			CountDownLatch latch = new CountDownLatch(1);
@@ -150,29 +135,21 @@ public class SubscribeTest extends BaseServerTest{
 			logger.debug("Receive started");
 			
 			int d = 0; // now read partial
-			ClientConsumer consumer = session.createConsumer(tempQ, false);
-			ClientMessage msgReceived = null;
-			while ((msgReceived = consumer.receive(100)) != null) {
-				Object recv = Util.readBodyBuffer(msgReceived);
-				if (logger.isDebugEnabled())
-					logger.debug("Client message = " + msgReceived.getAddress() + ", " + recv); //
-				if (logger.isDebugEnabled())
-					logger.debug("Client message = " + msgReceived.toString());
-				d++;
+			try(ClientConsumer consumer = session.createConsumer(tempQ,false);){
+				ClientMessage msgReceived = null;
+				while ((msgReceived = consumer.receive(100)) != null) {
+					Object recv = Util.readBodyBuffer(msgReceived);
+					if (logger.isDebugEnabled())
+						logger.debug("Client message = " + msgReceived.getAddress() + ", " + recv); //
+					if (logger.isDebugEnabled())
+						logger.debug("Client message = " + msgReceived.toString());
+					d++;
+				}
 			}
-
 			
-			consumer.close();
-
-			// session.close();
-			// if(logger.isDebugEnabled())logger.debug("Sent = " + c + ", recd="
-			// +
-			// d);
 			assertEquals(1000, c);
 			assertEquals(expected, d);
-		} finally {
-			session.close();
-		}
+		} 
 	}
 
 	

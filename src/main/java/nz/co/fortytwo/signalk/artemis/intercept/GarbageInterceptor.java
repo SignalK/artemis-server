@@ -49,7 +49,7 @@ public class GarbageInterceptor implements Interceptor {
 			if (msgType != null) {
 				msg.putStringProperty(Config.AMQ_CONTENT_TYPE, msgType);
 			} else {
-				return false;
+				return true;
 			}
 
 			return true;
@@ -92,8 +92,6 @@ public class GarbageInterceptor implements Interceptor {
 						|| node.has(sar)
 						|| node.has(aton))
 					return Config.JSON_FULL;
-				if (node.has(CONTEXT) && (node.has(SUBSCRIBE)||(node.has(UNSUBSCRIBE))))
-					return Config.JSON_SUBSCRIBE;
 				
 				if (node.has(CONTEXT))
 					return Config.JSON_DELTA;

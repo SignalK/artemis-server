@@ -51,6 +51,8 @@ import org.atmosphere.nettosphere.Nettosphere;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Log4J2LoggerFactory;
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.service.SignalkManagedApiService;
+import nz.co.fortytwo.signalk.artemis.service.SignalkManagedStreamService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
@@ -65,10 +67,7 @@ public final class ArtemisServer {
 	private static EmbeddedActiveMQ embedded;
 	private static Nettosphere server;
 	private JmmDNS jmdns;
-	//private SaveListener vesselListener;
-	//private SaveListener resourceListener;
-	//private SaveListener sourceListener;
-	private InfluxDbConsumer influxConsumer;
+
 	private nz.co.fortytwo.signalk.artemis.server.SerialPortManager serialPortManager;
 	private nz.co.fortytwo.signalk.artemis.server.NettyServer skServer;
 	private nz.co.fortytwo.signalk.artemis.server.NettyServer nmeaServer;
@@ -99,18 +98,19 @@ public final class ArtemisServer {
 		// start serial manager
 
 		// start a serial port manager
-//		if (serialPortManager == null) {
-//			serialPortManager = new SerialPortManager();
-//		}
-//		new Thread(serialPortManager).start();
+		if (serialPortManager == null) {
+			serialPortManager = new SerialPortManager();
+		}
+		new Thread(serialPortManager).start();
 
 		addShutdownHook(this);
 		server = new Nettosphere.Builder().config(new org.atmosphere.nettosphere.Config.Builder()
 				.host("0.0.0.0")
 				.port(8080)
 				.initParam(ApplicationConfig.PROPERTY_SESSION_SUPPORT, "true")
-				.interceptor(new AuthenticationInterceptor(conf) )
-				//.resource(SignalkManagedStreamService.class)
+				//.interceptor(new AuthenticationInterceptor(conf) )
+				.resource(SignalkManagedStreamService.class)
+				.resource(SignalkManagedApiService.class)
 				.resource("./signalk-static").build()).build();
 		server.start();
 
@@ -125,8 +125,8 @@ public final class ArtemisServer {
 		nmeaServer.run();
 
 		// create a new Camel Main so we can easily start Camel
-		Main main = new Main();
-		main.enableHangupSupport();
+		//Main main = new Main();
+		startMdns();
 	}
 
 
@@ -154,30 +154,6 @@ public final class ArtemisServer {
 		try {
 			if (serialPortManager != null)
 				serialPortManager.stopSerial();
-		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
-		}
-//		try {
-//			if (vesselListener != null)
-//				vesselListener.stop();
-//		} catch (Exception e) {
-//			logger.error(e.getMessage(), e);
-//		}
-//		try {
-//			if (resourceListener != null)
-//				resourceListener.stop();
-//		} catch (Exception e) {
-//			logger.error(e.getMessage(), e);
-//		}
-//
-//		try {
-//			if (sourceListener != null)
-//				sourceListener.stop();
-//		} catch (Exception e) {
-//			logger.error(e.getMessage(), e);
-//		}
-		try {
-			Config.stopConfigListener();
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}

@@ -64,6 +64,11 @@ public class Config {
 	public static final String JSON_MAP = "JSON_MAP";
 	public static final String JSON_SUBSCRIBE = "JSON_SUBSCRIBE";
 	public static final String _0183 = "0183";
+	public static final String STOMP = "STOMP";
+	public static final String AIS = "AIS";
+	public static final String N2K = "N2K";
+	public static final String MQTT = "MQTT";
+	public static final String SERIAL = "SERIAL";
 	
 	public static final String AMQ_REPLY_Q = "AMQ_REPLY_Q";
 	public static final String JAVA_TYPE = "JAVA_TYPE";
@@ -81,8 +86,7 @@ public class Config {
 	public static final String AMQ_SUB_DESTINATION = "AMQ_SUB_DESTINATION";
 
 	public static final String INCOMING_RAW = "incoming.raw";
-	public static final String STOMP = "STOMP";
-	public static final String AIS = "AIS";
+	
 
 	protected Config() {
 		listener = new ConfigListener(map, (String) map.get(ADMIN_USER).asString(),

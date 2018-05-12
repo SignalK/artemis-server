@@ -1,4 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.util;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.attr;
+
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -124,6 +126,7 @@ public class JsonSerializer {
             String key = e.getKey();
             Object value = e.getValue();
             if(logger.isDebugEnabled())logger.debug(key+"="+value);
+            if(key.endsWith(attr))continue;
             if (!begun) {
                 jsonBegin(out);
                 begun = true;
