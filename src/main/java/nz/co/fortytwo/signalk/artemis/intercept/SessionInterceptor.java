@@ -32,13 +32,12 @@ public class SessionInterceptor extends BaseInterceptor implements Interceptor {
 		// connection.getTransportConnection().toString());
 		// System.out.println("Sessions
 		// count:"+ArtemisServer.embedded.getActiveMQServer().getSessions().size());
-		if(packet.isResponse())return true;
+		 if(isResponse(packet))return true;
 		
 		if (packet instanceof SessionSendMessage) {
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
 			
 			Message msg = realPacket.getMessage();
-			if(msg.getBooleanProperty(SignalKConstants.REPLY))return true;
 			
 			if(msg.getStringProperty(Config.MSG_SRC_BUS)==null)
 				msg.putStringProperty(Config.MSG_SRC_BUS, connection.getRemoteAddress());

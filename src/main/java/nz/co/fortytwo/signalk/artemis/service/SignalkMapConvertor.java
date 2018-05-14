@@ -80,7 +80,7 @@ public class SignalkMapConvertor {
 		if (node.has(vessels))
 			return null;
 
-		if (node.has(CONTEXT) && (node.has(UPDATES) || node.has(PUT))) {
+		if (node.has(CONTEXT) && (node.has(UPDATES) || node.has(PUT) || node.has(CONFIG))) {
 			
 			if (logger.isDebugEnabled())
 				logger.debug("processing delta  {}",node);
@@ -92,15 +92,21 @@ public class SignalkMapConvertor {
 			ctx = StringUtils.removeEnd(ctx,".");
 			if (logger.isDebugEnabled())
 				logger.debug("ctx: {}", node);
-			// Json pathNode = temp.addNode(path);
-			Json updates = node.at(UPDATES);
-			if (updates == null)
-				updates = node.at(PUT);
-			if (updates == null)
-				return temp;
 
-			for (Json update : updates.asJsonList()) {
-				parseUpdate(temp, update, ctx);
+			if(node.has(UPDATES)){
+				for (Json update : node.at(UPDATES).asJsonList()) {
+					parseUpdate(temp, update, ctx);
+				}
+			}
+			if(node.has(PUT)){
+				for (Json put : node.at(PUT).asJsonList()) {
+					parsePut(temp, put, ctx);
+				}
+			}
+			if(node.has(CONFIG)){
+				for (Json update : node.at(CONFIG).asJsonList()) {
+					parseUpdate(temp, update, ctx);
+				}
 			}
 
 			
@@ -150,6 +156,32 @@ public class SignalkMapConvertor {
 
 	}
 	
+	protected static void parsePut(NavigableMap<String, Json> temp, Json put, String ctx)  {
+
+			if (put == null || put.isNull() || !put.has(PATH))
+				return;
+			
+			Json e = put.dup();
+			
+			String key = dot + e.at(PATH).asString();
+			if(key.equals(dot))key="";
+			
+			if (!e.has(sourceRef)) {
+				e.set(sourceRef,UNKNOWN);
+			}
+			if (!e.has(timestamp)) {
+				e.set(timestamp,Util.getIsoTimeString());
+			}
+			e.delAt(PATH);
+			if (e.has(value)) {
+				if (logger.isDebugEnabled())
+					logger.debug("put: {}:{}", ctx +  key, e);
+				temp.put(ctx +  key+dot+values+dot+e.at(sourceRef).asString(), e);
+			}
+		
+
+	}
+	
 	public static Json mapToFull(NavigableMap<String, Json> map) throws IOException{
 		if(map==null)return Json.nil();
 		Json root = Json.object();
@@ -162,10 +194,26 @@ public class SignalkMapConvertor {
 		return root;
 	}
 
-	public static Json mapToDelta(NavigableMap<String, Json> map)  {
-		if(map==null)return Json.nil();
+	public static Json mapToUpdatesDelta(NavigableMap<String, Json> map)  {
+		Map<String, Map<String, Map<String, Map<String, List<Entry<String, Json>>>>>> deltaMap = mapToDeltaMap(map);
+		return generateDelta(deltaMap,UPDATES);
+	}
+	
+	public static Json mapToPutDelta(NavigableMap<String, Json> map)  {
+		Map<String, Map<String, Map<String, Map<String, List<Entry<String, Json>>>>>> deltaMap = mapToDeltaMap(map);
+		return generateDelta(deltaMap,PUT);
+	}
+	
+	public static Json mapToConfigDelta(NavigableMap<String, Json> map)  {
+		Map<String, Map<String, Map<String, Map<String, List<Entry<String, Json>>>>>> deltaMap = mapToDeltaMap(map);
+		return generateDelta(deltaMap,CONFIG);
+	}
+	
+	public static Map<String, Map<String, Map<String, Map<String, List<Entry<String, Json>>>>>> mapToDeltaMap(NavigableMap<String, Json> map)  {
+		
 		//ClientMessage msgReceived = null;
 		Map<String, Map<String, Map<String, Map<String,List<Entry<String,Json>>>>>> msgs = new HashMap<>();
+		if(map==null)return msgs;
 		for (Entry<String,Json>entry: map.entrySet()) {
 			Json eValue = entry.getValue();
 			String eKey = entry.getKey();
@@ -211,7 +259,7 @@ public class SignalkMapConvertor {
 				logger.debug("Add entry: {}:{}",eKey,entry);
 			list.add(entry);
 		}
-		return generateDelta(msgs);
+		return msgs;
 	}
 	
 	/**
@@ -220,18 +268,18 @@ public class SignalkMapConvertor {
 	 * creates the deltas as a Json array, one Json delta per context.
 	 * 
 	 * @param msgs
+	 * @param deltatype 
 	 * @return
 	 */
-	public static Json generateDelta(Map<String, Map<String, Map<String, Map<String,List<Entry<String,Json>>>>>> msgs) {
+	public static Json generateDelta(Map<String, Map<String, Map<String, Map<String,List<Entry<String,Json>>>>>> msgs, String deltatype) {
 		logger.debug("Delta map: {}",msgs);
-
 		Json delta = Json.object();
 	
-		if (msgs.size() == 0)
+		if (msgs==null || msgs.size() == 0)
 			return delta;
 
 		Json updatesArray = Json.array();
-		delta.set(UPDATES, updatesArray);
+		delta.set(deltatype, updatesArray);
 
 		for (String ctx : msgs.keySet()) {
 
@@ -245,7 +293,7 @@ public class SignalkMapConvertor {
 					updatesArray.add(valObj);
 
 					Json valuesArray = Json.array();
-					valObj.at(values, valuesArray);
+					valObj.set(values, valuesArray);
 					valObj.set(timestamp, ts);
 					valObj.set(sourceRef, src);
 

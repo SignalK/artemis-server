@@ -43,6 +43,7 @@ public class SecurityService {
 		
 	}
 	public  NavigableMap<String, Json> addAttributes( NavigableMap<String, Json> map){
+		logger.debug("Securing :{}",map);
 		map.forEach((k,v)->{
 			if(k.endsWith("_attr"))return;
 			logger.debug("Securing :{}={}",k,v);

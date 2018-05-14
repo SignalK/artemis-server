@@ -1,10 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.intercept;
 
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PUT;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -62,8 +58,7 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 public class DeltaSourceInterceptor extends BaseInterceptor implements Interceptor {
 
 	private static Logger logger = LogManager.getLogger(DeltaSourceInterceptor.class);
-	private static InfluxDbService influx = new InfluxDbService();
-	private static SecurityService security = new SecurityService();
+	
 	/**
 	 * Reads Delta format JSON and inserts in the influxdb. Does nothing if json
 	 * is not an update, and returns the original message
@@ -74,13 +69,11 @@ public class DeltaSourceInterceptor extends BaseInterceptor implements Intercept
 
 	@Override
 	public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException {
-		if (packet.isResponse())
-			return true;
+		if(isResponse(packet))return true;
 		if (packet instanceof SessionSendMessage) {
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
 
 			ICoreMessage message = realPacket.getMessage();
-			if(message.getBooleanProperty(SignalKConstants.REPLY))return true;
 			
 			if (!Config.JSON_DELTA.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))
 				return true;
@@ -94,18 +87,19 @@ public class DeltaSourceInterceptor extends BaseInterceptor implements Intercept
 				logger.debug("Delta msg: " + node.toString());
 
 			// deal with diff format
-			if (node.has(CONTEXT) && (node.has(UPDATES) )) {
+			if (isDelta(node)) {
 				try {
 					if (logger.isDebugEnabled())
 						logger.debug("Converting source in delta: " + node.toString());
+					
 					node.at(UPDATES).asJsonList().forEach((j) -> {
-						Json srcJson = Util.convertSourceToRef(j,message.getStringProperty(Config.MSG_SRC_BUS),message.getStringProperty(Config.MSG_TYPE));
-						if(srcJson!=null){
-							NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
-							SignalkMapConvertor.parseFull(srcJson,map, "");
-							map = security.addAttributes(map);
-							influx.save(map);
-						}
+						convertSource(j,message);
+					});
+					node.at(PUT).asJsonList().forEach((j) -> {
+						convertSource(j,message);
+					});
+					node.at(CONFIG).asJsonList().forEach((j) -> {
+						convertSource(j,message);
 					});
 					return true;
 				} catch (Exception e) {
@@ -118,5 +112,13 @@ public class DeltaSourceInterceptor extends BaseInterceptor implements Intercept
 		return true;
 
 	}
+
+	private void convertSource(Json j, ICoreMessage message) {
+		Json srcJson = Util.convertSourceToRef(j,message.getStringProperty(Config.MSG_SRC_BUS),message.getStringProperty(Config.MSG_TYPE));
+		saveSource(srcJson);
+	}
+	
+	
+	
 
 }

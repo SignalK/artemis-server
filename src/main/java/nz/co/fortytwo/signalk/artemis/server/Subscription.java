@@ -136,7 +136,7 @@ public class Subscription {
 					if(logger.isDebugEnabled())logger.debug("rslt map = "+rslt);
 						
 					if(SignalKConstants.FORMAT_DELTA.equals(format)){
-						Json json = SignalkMapConvertor.mapToDelta(rslt);
+						Json json = SignalkMapConvertor.mapToUpdatesDelta(rslt);
 						if(logger.isDebugEnabled())logger.debug("Delta json = "+json);
 						Util.sendReply(rslt.getClass().getSimpleName(),destination,format,json,s);
 					}

@@ -14,6 +14,7 @@ import org.apache.activemq.artemis.api.core.ActiveMQExceptionType;
 import org.apache.activemq.artemis.api.core.ICoreMessage;
 import org.apache.activemq.artemis.api.core.Interceptor;
 import org.apache.activemq.artemis.core.protocol.core.Packet;
+import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.MessagePacket;
 import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendMessage;
 import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
 import org.apache.logging.log4j.LogManager;
@@ -61,8 +62,6 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 public class DeltaMsgInterceptor extends BaseInterceptor implements Interceptor {
 
 	private static Logger logger = LogManager.getLogger(DeltaMsgInterceptor.class);
-	private static InfluxDbService influx = new InfluxDbService();
-	private static SecurityService security = new SecurityService();
 
 	/**
 	 * Reads Delta format JSON and inserts in the influxdb. Does nothing if json
@@ -74,34 +73,25 @@ public class DeltaMsgInterceptor extends BaseInterceptor implements Interceptor 
 
 	@Override
 	public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException {
-		if (packet.isResponse())
-			return true;
+		if(isResponse(packet))return true;
+		
 		if (packet instanceof SessionSendMessage) {
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
 
 			ICoreMessage message = realPacket.getMessage();
-			if(message.getBooleanProperty(SignalKConstants.REPLY))return true;
 			
 			if (!Config.JSON_DELTA.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))
 				return true;
-			// if(logger.isDebugEnabled())logger.debug("Processing: " +
-			// message);
+		
 			Json node = Util.readBodyBuffer(message);
-			// avoid full signalk syntax
-			if (node.has(vessels))
-				return true;
+			
 			if (logger.isDebugEnabled())
 				logger.debug("Delta msg: " + node.toString());
 
 			// deal with diff format
-			if (node.has(CONTEXT) && (node.has(UPDATES) || node.has(PUT) || node.has(CONFIG))) {
+			if (isDelta(node)) {
 				try {
-					if (logger.isDebugEnabled())
-						logger.debug("Saving delta: " + node.toString());
-					NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
-					SignalkMapConvertor.parseDelta(node, map);
-					map = security.addAttributes(map);
-					influx.save(map);
+					saveMap(processDelta(node));
 					return true;
 				} catch (Exception e) {
 					logger.error(e, e);
@@ -113,5 +103,16 @@ public class DeltaMsgInterceptor extends BaseInterceptor implements Interceptor 
 		return true;
 
 	}
+	
+	protected NavigableMap<String, Json> processDelta(Json node){
+		if (logger.isDebugEnabled())
+			logger.debug("Saving delta: " + node.toString());
+		NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
+		SignalkMapConvertor.parseDelta(node, map);
+		map = security.addAttributes(map);
+		return map;
+		
+	}
+	
 
 }

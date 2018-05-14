@@ -140,12 +140,12 @@ public class NMEAMsgInterceptor extends BaseInterceptor implements Interceptor {
 
 	@Override
 	public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException {
-		if(packet.isResponse())return true;
+		if(isResponse(packet))return true;
+		
 		if (packet instanceof SessionSendMessage) {
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
 
 			ICoreMessage message = realPacket.getMessage();
-			if(message.getBooleanProperty(SignalKConstants.REPLY))return true;
 			
 			if(!Config._0183.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))return true;
 			//String sessionId = message.getStringProperty(Config.AMQ_SESSION_ID);
@@ -178,7 +178,7 @@ public class NMEAMsgInterceptor extends BaseInterceptor implements Interceptor {
 					message.getBodyBuffer().clear();
 					message.getBodyBuffer().writeString(json.toString());
 					if (logger.isDebugEnabled())
-						logger.debug("Sent NMEA msg:" + json.toString());
+						logger.debug("Converted NMEA msg:" + json.toString());
 				} catch (Exception e) {
 					logger.error(e,e);
 					throw new ActiveMQException(ActiveMQExceptionType.INTERNAL_ERROR,e.getMessage(),e);

@@ -6,10 +6,14 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.KNOTS_TO_MS;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.LIST;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.MS_TO_KNOTS;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PATH;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PUT;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.aircraft;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.aton;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.label;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.resources;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sar;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self_str;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.source;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sourceRef;
@@ -766,4 +770,26 @@ public class Util {
 		}
 		return null;
 	}
+
+	public static boolean isDelta(Json node) {
+		if(node==null)return false;
+		// deal with diff format
+		if (node.has(CONTEXT) && (node.has(UPDATES) || node.has(PUT) || node.has(CONFIG))) return true;
+		return false;
+	}
+	
+	public static boolean isFullFormat(Json node) {
+		if(node==null)return false;
+		// avoid full signalk syntax
+		if (node.has(vessels) 
+				|| node.has(CONFIG) 
+				|| node.has(sources) 
+				|| node.has(resources)
+				|| node.has(aircraft)
+				|| node.has(sar)
+				|| node.has(aton))
+			return true;
+		return false;
+	}
 }
+

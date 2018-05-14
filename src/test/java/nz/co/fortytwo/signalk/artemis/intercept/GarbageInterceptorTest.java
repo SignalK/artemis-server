@@ -13,7 +13,7 @@ import org.junit.Test;
 
 import nz.co.fortytwo.signalk.artemis.util.Config;
 
-public class GarbageInterceptorTest {
+public class GarbageInterceptorTest extends BaseMsgInterceptorTest{
 
 	@Test
 	public void shouldAvoidGarbage() {

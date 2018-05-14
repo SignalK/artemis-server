@@ -71,9 +71,6 @@ import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 public class FullMsgInterceptor extends BaseInterceptor implements Interceptor {
 
 	private static Logger logger = LogManager.getLogger(FullMsgInterceptor.class);
-
-	private static InfluxDbService influx = new InfluxDbService();
-	private static SecurityService security = new SecurityService();
 	
 	public FullMsgInterceptor() {
 		super();
@@ -81,31 +78,25 @@ public class FullMsgInterceptor extends BaseInterceptor implements Interceptor {
 
 	@Override
 	public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException {
-		if(packet.isResponse())return true;
+		if(isResponse(packet))return true;
 		if (packet instanceof SessionSendMessage) {
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
 
 			ICoreMessage message = realPacket.getMessage();
-			if(message.getBooleanProperty(SignalKConstants.REPLY))return true;
 			
 			if(!Config.JSON_FULL.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))return true;
-			//if(logger.isDebugEnabled())logger.debug("Processing: " + message);
-			Json node = Util.readBodyBuffer(message);
-			// avoid delta signalk syntax
-			if (node.has(CONTEXT))
-				return true;
 			
-			//String sessionId = message.getStringProperty(Config.AMQ_SESSION_ID);
-			//ServerSession sess = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
+			Json node = Util.readBodyBuffer(message);
+			
 			// deal with full format
-			if (node.has(vessels) || node.has(CONFIG) || node.has(resources) || node.has(sources) || node.has(aircraft) ||node.has(aton)||node.has(sar)) {
+			if (isFullFormat(node)) {
 				if (logger.isDebugEnabled())
 					logger.debug("processing full  " + node);
 				try {
 					NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
 					SignalkMapConvertor.parseFull(node,map,"");
 					map = security.addAttributes(map);
-					influx.save(map);
+					saveMap(map);
 					return true;
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
@@ -117,6 +108,8 @@ public class FullMsgInterceptor extends BaseInterceptor implements Interceptor {
 		}
 		return true;
 	}
+
+	
 
 	
 	

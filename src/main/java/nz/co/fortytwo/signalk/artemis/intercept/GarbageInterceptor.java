@@ -1,16 +1,8 @@
 package nz.co.fortytwo.signalk.artemis.intercept;
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SUBSCRIBE;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.resources;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sources;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
-
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ICoreMessage;
 import org.apache.activemq.artemis.api.core.Interceptor;
-import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.core.protocol.core.Packet;
 import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendMessage;
 import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
@@ -20,7 +12,6 @@ import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
-import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 /**
@@ -29,18 +20,17 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
  * @author robert
  *
  */
-public class GarbageInterceptor implements Interceptor {
+public class GarbageInterceptor extends BaseInterceptor implements Interceptor {
 
 	private static Logger logger = LogManager.getLogger(GarbageInterceptor.class);
 
 	@Override
 	public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException {
-		if(packet.isResponse())return true;
+		if(isResponse(packet))return true;
 		if (packet instanceof SessionSendMessage) {
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
 
 			ICoreMessage msg = realPacket.getMessage();
-			if(msg.getBooleanProperty(SignalKConstants.REPLY))return true;
 			
 			String msgType = getContentType(msg);
 			if (logger.isDebugEnabled())
@@ -83,17 +73,11 @@ public class GarbageInterceptor implements Interceptor {
 				return Config._0183;
 			} else if (msg.startsWith("{") && msg.endsWith("}")) {
 				Json node = Json.read(msg);
-				// avoid full signalk syntax
-				if (node.has(vessels) 
-						|| node.has(CONFIG) 
-						|| node.has(sources) 
-						|| node.has(resources)
-						|| node.has(aircraft)
-						|| node.has(sar)
-						|| node.has(aton))
+				
+				if (Util.isFullFormat(node))
 					return Config.JSON_FULL;
 				
-				if (node.has(CONTEXT))
+				if (Util.isDelta(node))
 					return Config.JSON_DELTA;
 			}
 		}

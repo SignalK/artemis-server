@@ -60,9 +60,7 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 
 	private static Logger logger = LogManager.getLogger(GetMsgInterceptor.class);
-	private static InfluxDbService influx = new InfluxDbService();
-	private static SecurityService security = new SecurityService();
-
+	
 	/**
 	 * Reads Delta GET message and returns the result in full format. Does nothing if json
 	 * is not a GET, and returns the original message
@@ -73,18 +71,16 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 
 	@Override
 	public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException {
-		if (packet.isResponse())
-			return true;
+		if(isResponse(packet))return true;
+		
 		if (packet instanceof SessionSendMessage) {
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
 
 			ICoreMessage message = realPacket.getMessage();
-			if(message.getBooleanProperty(SignalKConstants.REPLY))return true;
 			
 			if (!Config.JSON_DELTA.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))
 				return true;
-			// if(logger.isDebugEnabled())logger.debug("Processing: " +
-			// message);
+		
 			Json node = Util.readBodyBuffer(message);
 
 			String sessionId = message.getStringProperty(Config.AMQ_SESSION_ID);
@@ -106,7 +102,7 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 					&& !sar.equals(table)
 					&& !aton.equals(table)){
 					try{
-						Util.sendReply(String.class.getSimpleName(),destination,FORMAT_FULL,Json.nil(),s);
+						sendReply(String.class.getSimpleName(),destination,FORMAT_FULL,Json.nil(),s);
 						return true;
 					} catch (Exception e) {
 						logger.error(e, e);
@@ -157,7 +153,7 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 					Json json = SignalkMapConvertor.mapToFull(map);
 					
 					
-					Util.sendReply(map.getClass().getSimpleName(),destination,FORMAT_FULL,json,s);
+					sendReply(map.getClass().getSimpleName(),destination,FORMAT_FULL,json,s);
 
 					return true;
 				} catch (Exception e) {
@@ -170,6 +166,8 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 		return true;
 
 	}
+
+	
 	
 	
 
