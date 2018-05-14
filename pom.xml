@@ -10,8 +10,9 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<artemis.version>2.3.0</artemis.version>
-		<camel.version>2.18.3</camel.version>
-		<camel.core.version>2.18.3</camel.core.version>
+		<netty.version>4.1.5.Final</netty.version>
+		<log4j.version>2.8.2</log4j.version>
+		<slf4j.version>1.7.25</slf4j.version>
 	</properties>
 	<licenses>
 		<license>
@@ -32,34 +33,7 @@
 		</developer>
 	</developers>
 	<repositories>
-		<!-- <repository> -->
-		<!-- <id>apache.snapshots</id> -->
-		<!-- <name>Apache Development Snapshot Repository</name> -->
-		<!-- <url>https://repository.apache.org/content/repositories/snapshots/</url> -->
-		<!-- <snapshots> -->
-		<!-- <enabled>true</enabled> -->
-		<!-- </snapshots> -->
-		<!-- </repository> -->
-		<!-- <repository> -->
-		<!-- <id>java.net jni</id> -->
-		<!-- <name>java.nt JNI Snapshot Repository</name> -->
-		<!-- <url>https://maven.java.net/content/repositories/snapshots/</url> -->
-		<!-- </repository> -->
-		<!-- <repository> -->
-		<!-- <id>PJC</id> -->
-		<!-- <name>Sparetime Repository</name> -->
-		<!-- <url>http://www.sparetimelabs.com/maven2</url> -->
-		<!-- </repository> -->
-		<repository>
-			<id>dma AIS</id>
-			<name>DMA AisLib Repository</name>
-			<url>http://repository-dma.forge.cloudbees.com/release</url>
-		</repository>
-		<repository>
-			<id>maven-restlet</id>
-			<name>Public online Restlet repository</name>
-			<url>http://maven.restlet.com</url>
-		</repository>
+
 		<repository>
 			<id>eclipse-paho</id>
 			<url>https://repo.eclipse.org/content/repositories/paho-releases</url>
@@ -74,37 +48,32 @@
 
 	</repositories>
 	<dependencies>
-		<!-- <dependency> -->
-		<!-- <groupId>org.apache.activemq</groupId> -->
-		<!-- <artifactId>apache-artemis</artifactId> -->
-		<!-- <version>1.5.1</version> -->
-		<!-- </dependency> -->
 
 		<!-- apache licence -->
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
-			<version>2.8.2</version>
+			<version>${log4j.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
-			<version>2.8.2</version>
+			<version>${log4j.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-1.2-api</artifactId>
-			<version>2.8.2</version>
+			<version>${log4j.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>1.7.25</version>
+			<version>${slf4j.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.7.25</version>
+			<version>${slf4j.version}</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>log4j</artifactId>
@@ -117,57 +86,14 @@
 			<artifactId>javax.inject</artifactId>
 			<version>1</version>
 		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-core</artifactId>
-			<version>2.6.3</version>
-		</dependency>
 
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-			<version>2.6.3</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-annotations</artifactId>
-			<version>2.6.3</version>
-		</dependency>
-
-		<!-- LGPL 3 -->
-		<dependency>
-			<groupId>net.sf.marineapi</groupId>
-			<artifactId>marineapi</artifactId>
-			<version>0.9.0</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.codehaus.mojo</groupId>
-					<artifactId>cobertura-maven-plugin</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.jboss.logmanager</groupId>
-			<artifactId>jboss-logmanager</artifactId>
-			<version>1.5.3.Final</version>
-		</dependency>
 		<!-- apache licence -->
 		<dependency>
 			<groupId>org.apache.activemq</groupId>
 			<artifactId>artemis-server</artifactId>
 			<version>${artemis.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>org.apache.activemq</groupId>
-			<artifactId>artemis-jms-server</artifactId>
-			<version>${artemis.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.activemq</groupId>
-			<artifactId>artemis-jms-client</artifactId>
-			<version>${artemis.version}</version>
-		</dependency>
+
 		<dependency>
 			<groupId>org.apache.activemq</groupId>
 			<artifactId>artemis-core-client</artifactId>
@@ -209,114 +135,20 @@
 			<version>1.0.2.RELEASE</version>
 		</dependency>
 
-		<!-- Camel Apache2 licence -->
-		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-core</artifactId>
-			<version>${camel.core.version}</version>
 
-		</dependency>
-		<!-- <dependency> -->
-		<!-- <groupId>org.apache.camel</groupId> -->
-		<!-- <artifactId>camel-spring-security</artifactId> -->
-		<!-- <version>${camel.version}</version> -->
-		<!-- </dependency> -->
-		<!-- <dependency> -->
-		<!-- <groupId>org.apache.camel</groupId> -->
-		<!-- <artifactId>camel-websocket</artifactId> -->
-		<!-- <version>${camel.core.version}</version> -->
-		<!-- </dependency> -->
 		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-jms</artifactId>
-			<version>${camel.version}</version>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.3.2</version>
+				
 		</dependency>
-		<!-- <dependency> -->
-		<!-- <groupId>org.apache.camel</groupId> -->
-		<!-- <artifactId>camel-stomp</artifactId> -->
-		<!-- <version>${camel.version}</version> -->
-		<!-- </dependency> -->
-		<!-- <dependency> -->
-		<!-- <groupId>org.apache.camel</groupId> -->
-		<!-- <artifactId>camel-cometd</artifactId> -->
-		<!-- <version>${camel.version}</version> -->
-		<!-- </dependency> -->
-		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-xstream</artifactId>
-			<version>${camel.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-stream</artifactId>
-			<version>${camel.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-exec</artifactId>
-			<version>${camel.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-restlet</artifactId>
-			<version>${camel.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.restlet.osgi</groupId>
-			<artifactId>org.restlet.ext.fileupload</artifactId>
-			<version>2.2.2</version>
-		</dependency>
-		<!-- <dependency> -->
-		<!-- <groupId>org.apache.camel</groupId> -->
-		<!-- <artifactId>camel-jetty</artifactId> -->
-		<!-- <version>${camel.version}</version> -->
-		<!-- </dependency> -->
-		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-test</artifactId>
-			<version>${camel.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-quartz2</artifactId>
-			<version>${camel.version}</version>
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.apache.httpcomponents</groupId> -->
+<!-- 			<artifactId>httpcore</artifactId> -->
+<!-- 			<version>4.3.1</version> -->
+				
+<!-- 		</dependency> -->
 
-		</dependency>
-		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-netty4</artifactId>
-			<version>${camel.version}</version>
-		</dependency>
-		<!-- <dependency> -->
-		<!-- <groupId>org.apache.camel</groupId> -->
-		<!-- <artifactId>camel-mqtt</artifactId> -->
-		<!-- <version>${camel.version}</version> -->
-		<!-- </dependency> -->
-		<!-- <dependency> -->
-		<!-- <groupId>org.apache.camel</groupId> -->
-		<!-- <artifactId>camel-urlrewrite</artifactId> -->
-		<!-- <version>${camel.version}</version> -->
-		<!-- </dependency> -->
-		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-ahc-ws</artifactId>
-			<version>${camel.version}</version>
-
-		</dependency>
-		<!-- <dependency> -->
-		<!-- <groupId>org.apache.camel</groupId> -->
-		<!-- <artifactId>camel-xmpp</artifactId> -->
-		<!-- <version>${camel.version}</version> -->
-		<!-- </dependency> -->
-
-		<!-- ais apache licence -->
-		<dependency>
-			<groupId>dk.dma.ais.lib</groupId>
-			<artifactId>ais-lib-communication</artifactId>
-			<version>2.2</version>
-
-		</dependency>
 		<!-- zeroconf apache licence -->
 		<dependency>
 			<groupId>org.jmdns</groupId>
@@ -340,34 +172,32 @@
 			<artifactId>commons-io</artifactId>
 			<version>2.4</version>
 		</dependency>
-		<dependency>
-			<groupId>com.ning</groupId>
-			<artifactId>async-http-client</artifactId>
-			<version>1.9.40</version>
-			<scope>test</scope>
-
-		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/io.netty/netty-codec -->
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-codec</artifactId>
-			<version>4.1.5.Final</version>
+			<version>${netty.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-handler</artifactId>
-			<version>4.1.5.Final</version>
+			<version>${netty.version}</version>
 		</dependency>
-<!-- MIT -->
+		<!-- MIT -->
 		<dependency>
 			<groupId>com.coveo</groupId>
 			<artifactId>nashorn-commonjs-modules</artifactId>
 			<version>1.0.9</version>
 		</dependency>
 		<!-- test> -->
-
+		<dependency>
+			<groupId>com.ning</groupId>
+			<artifactId>async-http-client</artifactId>
+			<version>1.9.40</version>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.easymock</groupId>
 			<artifactId>easymock</artifactId>
@@ -383,6 +213,15 @@
 	</dependencies>
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
 			<!-- <plugin> -->
 			<!-- <groupId>org.apache.activemq</groupId> -->
 			<!-- <artifactId>artemis-maven-plugin</artifactId> -->

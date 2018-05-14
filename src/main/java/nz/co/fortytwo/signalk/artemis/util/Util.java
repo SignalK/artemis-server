@@ -30,7 +30,6 @@ import java.net.InetAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,7 +66,6 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
 
 import mjson.Json;
-import net.sf.marineapi.nmea.sentence.RMCSentence;
 
 public class Util {
 
@@ -310,43 +308,43 @@ public class Util {
 	 *
 	 * @param sen
 	 */
-	@SuppressWarnings("deprecation")
-	public static void checkTime(RMCSentence sen) {
-		if (timeSet) {
-			return;
-		}
-		try {
-			net.sf.marineapi.nmea.util.Date dayNow = sen.getDate();
-			// if we need to set the time, we will be WAAYYY out
-			// we only try once, so we dont get lots of native processes
-			// spawning if we fail
-			timeSet = true;
-			Date date = new Date();
-			if ((date.getYear() + 1900) == dayNow.getYear()) {
-				logger.debug("Current date is {}", date);
-				return;
-			}
-			// so we need to set the date and time
-			net.sf.marineapi.nmea.util.Time timeNow = sen.getTime();
-			String yy = String.valueOf(dayNow.getYear());
-			String MM = pad(2, String.valueOf(dayNow.getMonth()));
-			String dd = pad(2, String.valueOf(dayNow.getDay()));
-			String hh = pad(2, String.valueOf(timeNow.getHour()));
-			String mm = pad(2, String.valueOf(timeNow.getMinutes()));
-			String ss = pad(2, String.valueOf(timeNow.getSeconds()));
-
-			logger.debug("Setting current date to {} {}", dayNow, timeNow);
-
-			String cmd = "sudo date --utc " + MM + dd + hh + mm + yy + "." + ss;
-			Runtime.getRuntime().exec(cmd.split(" "));// MMddhhmm[[yy]yy]
-
-			logger.debug("Executed date setting command: {}", cmd);
-
-		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
-		}
-
-	}
+//	@SuppressWarnings("deprecation")
+//	public static void checkTime(RMCSentence sen) {
+//		if (timeSet) {
+//			return;
+//		}
+//		try {
+//			net.sf.marineapi.nmea.util.Date dayNow = sen.getDate();
+//			// if we need to set the time, we will be WAAYYY out
+//			// we only try once, so we dont get lots of native processes
+//			// spawning if we fail
+//			timeSet = true;
+//			Date date = new Date();
+//			if ((date.getYear() + 1900) == dayNow.getYear()) {
+//				logger.debug("Current date is {}", date);
+//				return;
+//			}
+//			// so we need to set the date and time
+//			net.sf.marineapi.nmea.util.Time timeNow = sen.getTime();
+//			String yy = String.valueOf(dayNow.getYear());
+//			String MM = pad(2, String.valueOf(dayNow.getMonth()));
+//			String dd = pad(2, String.valueOf(dayNow.getDay()));
+//			String hh = pad(2, String.valueOf(timeNow.getHour()));
+//			String mm = pad(2, String.valueOf(timeNow.getMinutes()));
+//			String ss = pad(2, String.valueOf(timeNow.getSeconds()));
+//
+//			logger.debug("Setting current date to {} {}", dayNow, timeNow);
+//
+//			String cmd = "sudo date --utc " + MM + dd + hh + mm + yy + "." + ss;
+//			Runtime.getRuntime().exec(cmd.split(" "));// MMddhhmm[[yy]yy]
+//
+//			logger.debug("Executed date setting command: {}", cmd);
+//
+//		} catch (Exception e) {
+//			logger.error(e.getMessage(), e);
+//		}
+//
+//	}
 
 	/**
 	 * pad the value to i places, eg 2 >> 02

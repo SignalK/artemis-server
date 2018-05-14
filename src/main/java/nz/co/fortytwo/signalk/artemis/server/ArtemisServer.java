@@ -17,12 +17,6 @@ package nz.co.fortytwo.signalk.artemis.server;
  */
 
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SIGNALK_DISCOVERY;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.mmsi;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.name;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.resources;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sources;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.uuid;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,14 +27,11 @@ import java.util.Properties;
 import javax.jmdns.JmmDNS;
 import javax.jmdns.ServiceInfo;
 
-import org.apache.activemq.artemis.api.core.client.ClientProducer;
-import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.activemq.artemis.core.config.impl.SecurityConfiguration;
 import org.apache.activemq.artemis.core.server.ActiveMQServer;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.activemq.artemis.spi.core.security.ActiveMQSecurityManager;
 import org.apache.activemq.artemis.spi.core.security.ActiveMQSecurityManagerImpl;
-import org.apache.camel.main.Main;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -50,11 +41,9 @@ import org.atmosphere.nettosphere.Nettosphere;
 
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Log4J2LoggerFactory;
-import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.service.SignalkManagedApiService;
 import nz.co.fortytwo.signalk.artemis.service.SignalkManagedStreamService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
-import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 

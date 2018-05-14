@@ -29,8 +29,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.apache.camel.Exchange;
-import org.apache.camel.Processor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
@@ -47,7 +45,7 @@ import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
  * @author robert
  * 
  */
-public class SerialPortManager implements Runnable, Processor {
+public class SerialPortManager implements Runnable {
 
 	private static Logger logger = LogManager.getLogger(SerialPortManager.class);
 
@@ -155,13 +153,12 @@ public class SerialPortManager implements Runnable, Processor {
 			}
 		}
 		running = false;
-
 	}
 
-	public void process(Exchange exchange) throws Exception {
+	public void process(String message) throws Exception {
 		for (SerialPortReader serial : serialPortList) {
 			if (serial != null) {
-				serial.process(exchange);
+				serial.process(message);
 			}
 		}
 		

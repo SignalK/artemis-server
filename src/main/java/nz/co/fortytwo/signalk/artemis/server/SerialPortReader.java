@@ -34,40 +34,38 @@ import java.util.regex.Pattern;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.SimpleString;
+import org.apache.activemq.artemis.api.core.client.ClientConsumer;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
-import org.apache.camel.Exchange;
-import org.apache.camel.Processor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import nz.co.fortytwo.signalk.artemis.util.Config;
-import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
+import nz.co.fortytwo.signalk.artemis.util.Util;
 import purejavacomm.CommPortIdentifier;
 import purejavacomm.SerialPort;
 import purejavacomm.SerialPortEvent;
 import purejavacomm.SerialPortEventListener;
 
 /**
- * Wrapper to read serial port via rxtx, then fire messages into the camel route
- * via the seda queue.
+ * Wrapper to read serial port via rxtx, then fire messages into the artemis queue
  * 
  * @author robert
  * 
  */
-public class SerialPortReader implements Processor {
+public class SerialPortReader {
 
 	
 	private static Logger logger = LogManager.getLogger(SerialPortReader.class);
 	private String portName;
 	private File portFile;
 	private ClientProducer producer;
-
+	private ClientConsumer consumer;
 	private boolean running = true;
 	private boolean mapped = false;
 	private String deviceType = null;
@@ -83,6 +81,8 @@ public class SerialPortReader implements Processor {
 		session = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
 				Config.getConfigProperty(Config.ADMIN_PWD));
 		producer=session.createProducer();
+		
+		consumer=session.createConsumer(Config.INCOMING_RAW);
 	}
 
 	/**
@@ -173,16 +173,12 @@ public class SerialPortReader implements Processor {
 		protected InputStream in;
 		byte[] buff = new byte[256];
 		int x = 0;
-		//Map<String, Object> headers = new HashMap<String, Object>();
-
+		
 		public SerialReader() throws Exception {
 
-			// this.in = new BufferedReader(new
-			// InputStreamReader(serialPort.getInputStream()));
+		
 			this.in = new BufferedInputStream(serialPort.getInputStream());
-			//headers.put(SignalKConstants.MSG_TYPE, SignalKConstants.SERIAL);
-			//headers.put(SignalKConstants.MSG_SERIAL_PORT, portName);
-			//headers.put(SignalKConstants.MSG_SRC_BUS, portName);
+		
 			uid = Pattern.compile(ConfigConstants.UID + ":");
 			if (logger.isDebugEnabled())
 				logger.info("Setup serialReader on :" + portName);
@@ -348,9 +344,8 @@ public class SerialPortReader implements Processor {
 	 * 
 	 * @see org.apache.camel.Processor#process(org.apache.camel.Exchange)
 	 */
-	public void process(Exchange exchange) throws Exception {
+	public void process(String message) throws Exception {
 		// send to device
-		String message = exchange.getIn().getBody(String.class);
 		logger.debug(portName + ":msg received for device:" + message);
 		if (StringUtils.isNotBlank(message)) {
 			// check its valid for this device

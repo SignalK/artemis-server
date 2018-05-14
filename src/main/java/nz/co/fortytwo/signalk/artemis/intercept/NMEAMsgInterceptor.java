@@ -23,43 +23,26 @@
  */
 package nz.co.fortytwo.signalk.artemis.intercept;
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_depth_belowTransducer;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_wind_angleApparent;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_wind_speedApparent;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.label;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_courseOverGroundMagnetic;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_courseOverGroundTrue;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_position;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_speedOverGround;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.type;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels_dot_self_dot;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self_str;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.util.NavigableMap;
-import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 import javax.script.Invocable;
 import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ActiveMQExceptionType;
 import org.apache.activemq.artemis.api.core.ICoreMessage;
 import org.apache.activemq.artemis.api.core.Interceptor;
-import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.core.protocol.core.Packet;
 import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendMessage;
-import org.apache.activemq.artemis.core.server.ServerSession;
 import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
-import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -71,19 +54,6 @@ import com.coveo.nashorn_modules.Require;
 import jdk.nashorn.api.scripting.NashornScriptEngine;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import mjson.Json;
-import net.sf.marineapi.nmea.event.SentenceEvent;
-import net.sf.marineapi.nmea.event.SentenceListener;
-import net.sf.marineapi.nmea.parser.DataNotAvailableException;
-import net.sf.marineapi.nmea.parser.SentenceFactory;
-import net.sf.marineapi.nmea.sentence.DepthSentence;
-import net.sf.marineapi.nmea.sentence.HeadingSentence;
-import net.sf.marineapi.nmea.sentence.MWVSentence;
-import net.sf.marineapi.nmea.sentence.PositionSentence;
-import net.sf.marineapi.nmea.sentence.RMCSentence;
-import net.sf.marineapi.nmea.sentence.Sentence;
-import net.sf.marineapi.nmea.sentence.VHWSentence;
-import nz.co.fortytwo.signalk.artemis.server.ArtemisServer;
-import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
@@ -100,14 +70,17 @@ public class NMEAMsgInterceptor extends BaseInterceptor implements Interceptor {
 
 	private static Logger logger = LogManager.getLogger(NMEAMsgInterceptor.class);
 	private File jsRoot;
+	@SuppressWarnings("restriction")
 	private NashornScriptEngine engine;
 	private Invocable inv;
 	private boolean rmcClock = false;
 	
 	private static ScheduledExecutorService globalScheduledThreadPool = Executors.newScheduledThreadPool(20);
 
+	@SuppressWarnings("restriction")
 	public NMEAMsgInterceptor() throws ScriptException, FileNotFoundException, NoSuchMethodException {
 		super();
+		
 		NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
 		//console.error
 	    engine = (NashornScriptEngine) factory.getScriptEngine(new String[] { "--language=es6" });

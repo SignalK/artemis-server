@@ -1,6 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.intercept;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,16 +15,12 @@ import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.easymock.EasyMockRule;
-
-import static org.easymock.EasyMock.*;
 import org.easymock.Mock;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.restlet.data.Expectation;
 
 import mjson.Json;
-import nz.co.fortytwo.signalk.artemis.service.SecurityService;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 
