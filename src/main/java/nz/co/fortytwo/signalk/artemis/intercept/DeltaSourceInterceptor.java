@@ -74,15 +74,10 @@ public class DeltaSourceInterceptor extends BaseInterceptor implements Intercept
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
 
 			ICoreMessage message = realPacket.getMessage();
-			
-			if (!Config.JSON_DELTA.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))
-				return true;
-			// if(logger.isDebugEnabled())logger.debug("Processing: " +
-			// message);
+			String srcBus = message.getStringProperty(Config.MSG_SRC_BUS);
+			String msgType = message.getStringProperty(Config.MSG_TYPE);
 			Json node = Util.readBodyBuffer(message);
-			// avoid full signalk syntax
-			if (node.has(vessels))
-				return true;
+			
 			if (logger.isDebugEnabled())
 				logger.debug("Delta msg: " + node.toString());
 
@@ -91,16 +86,23 @@ public class DeltaSourceInterceptor extends BaseInterceptor implements Intercept
 				try {
 					if (logger.isDebugEnabled())
 						logger.debug("Converting source in delta: " + node.toString());
-					
-					node.at(UPDATES).asJsonList().forEach((j) -> {
-						convertSource(j,message);
-					});
-					node.at(PUT).asJsonList().forEach((j) -> {
-						convertSource(j,message);
-					});
-					node.at(CONFIG).asJsonList().forEach((j) -> {
-						convertSource(j,message);
-					});
+					if(node.has(UPDATES)){
+						node.at(UPDATES).asJsonList().forEach((j) -> {
+							convertSource(j,srcBus, msgType);
+						});
+					}
+					if(node.has(PUT)){
+						node.at(PUT).asJsonList().forEach((j) -> {
+							convertSource(j,srcBus, msgType);
+						});
+					}
+					if(node.has(CONFIG)){
+						node.at(CONFIG).asJsonList().forEach((j) -> {
+							convertSource(j,srcBus, msgType);
+						});
+					}
+					message.getBodyBuffer().clear();
+					message.getBodyBuffer().writeString(node.toString());
 					return true;
 				} catch (Exception e) {
 					logger.error(e, e);
@@ -113,8 +115,8 @@ public class DeltaSourceInterceptor extends BaseInterceptor implements Intercept
 
 	}
 
-	private void convertSource(Json j, ICoreMessage message) {
-		Json srcJson = Util.convertSourceToRef(j,message.getStringProperty(Config.MSG_SRC_BUS),message.getStringProperty(Config.MSG_TYPE));
+	private void convertSource(Json j, String srcBus, String msgType) {
+		Json srcJson = Util.convertSourceToRef(j,srcBus,msgType);
 		saveSource(srcJson);
 	}
 	
