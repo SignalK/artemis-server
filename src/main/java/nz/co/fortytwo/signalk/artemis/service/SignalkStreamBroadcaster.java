@@ -54,6 +54,7 @@ public class SignalkStreamBroadcaster {
 			
 			@Override
 			public void onMessage(ClientMessage message) {
+				if(logger.isDebugEnabled())logger.debug("Received : "+message);
 				broadcast(Util.readBodyBuffer(message).toString());
 			}
 		});

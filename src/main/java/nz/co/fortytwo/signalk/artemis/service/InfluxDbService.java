@@ -606,17 +606,17 @@ public class InfluxDbService {
 		QueryResult result = influxDB.query(new Query("select * from vessels where primary='true' group by skey,uuid,owner,grp,sourceRef,primary order by time desc limit 1",dbName));
 		if(result==null || result.getResults()==null)return ;
 		result.getResults().forEach((r)-> {
-			logger.debug(r);
+			if(logger.isTraceEnabled())logger.trace(r);
 			if(r==null||r.getSeries()==null)return;
 			r.getSeries().forEach(
 				(s)->{
-					logger.debug(s);
+					if(logger.isTraceEnabled())logger.trace(s);
 					if(s==null)return;
 					
 					Map<String, String> tagMap = s.getTags();
 					String key = s.getName()+dot+tagMap.get("uuid")+dot+StringUtils.substringBeforeLast(tagMap.get("skey"),dot+value);
 					primaryMap.put(key, tagMap.get("sourceRef"));
-					logger.debug("Primary map: {}={}",key,tagMap.get("sourceRef"));
+					if(logger.isTraceEnabled())logger.trace("Primary map: {}={}",key,tagMap.get("sourceRef"));
 				});
 		});
 	}

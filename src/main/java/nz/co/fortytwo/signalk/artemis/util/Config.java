@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NavigableMap;
 import java.util.SortedMap;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -23,6 +24,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
+import nz.co.fortytwo.signalk.artemis.service.SecurityService;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.JsonSerializer;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
@@ -41,15 +44,17 @@ public class Config {
 	private static Logger logger = LogManager.getLogger(Config.class);
 
 	private static ConfigListener listener;
-	private static SortedMap<String, Json> map = new ConcurrentSkipListMap<>();
-
+	private static NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
+	private static InfluxDbService influx = new InfluxDbService();
+	private static SecurityService security = new SecurityService();
 	private static Config config = null;
 
 	static {
 		try {
 			map = Config.loadConfig(map);
 			config = new Config();
-
+			security.addAttributes(map);
+			influx.save(map);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}
@@ -226,7 +231,7 @@ public class Config {
 		return Config.getConfigProperty(ConfigConstants.VERSION);
 	}
 
-	public static SortedMap<String, Json> loadConfig(SortedMap<String, Json> model) throws IOException {
+	public static NavigableMap<String, Json> loadConfig(NavigableMap<String, Json> model) throws IOException {
 		File jsonFile = new File(Util.SIGNALK_CFG_SAVE_FILE);
 		logger.info("Checking for previous config: " + jsonFile.getAbsolutePath());
 

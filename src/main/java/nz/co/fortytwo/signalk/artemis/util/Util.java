@@ -216,7 +216,7 @@ public class Util {
 	
 	public static RoutingStatus sendReply(String type, String destination, String format, Json json, ServerSession s)
 			throws Exception {
-		return sendReply(String.class.getSimpleName(),destination,FORMAT_FULL,Json.nil(),s,null);
+		return sendReply(String.class.getSimpleName(),destination,FORMAT_FULL,json,s,null);
 	}
 
 	public static RoutingStatus sendReply(String type, String destination, String format, Json json, ServerSession s,String correlation)
