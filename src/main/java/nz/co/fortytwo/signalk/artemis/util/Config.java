@@ -43,7 +43,7 @@ public class Config {
 
 	private static Logger logger = LogManager.getLogger(Config.class);
 
-	private static ConfigListener listener;
+//	private static ConfigListener listener;
 	private static NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
 	private static InfluxDbService influx = new InfluxDbService();
 	private static SecurityService security = new SecurityService();
@@ -53,8 +53,8 @@ public class Config {
 		try {
 			map = Config.loadConfig(map);
 			config = new Config();
-			security.addAttributes(map);
-			influx.save(map);
+			//security.addAttributes(map);
+			//influx.save(map);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}
@@ -95,29 +95,29 @@ public class Config {
 	
 
 	protected Config() {
-		listener = new ConfigListener(map, (String) map.get(ADMIN_USER).asString(),
-				(String) map.get(ADMIN_PWD).asString());
+//		listener = new ConfigListener(map, (String) map.get(ADMIN_USER).asString(),
+//				(String) map.get(ADMIN_PWD).asString());
 	}
 
 	public static Config getInstance() {
 		return config;
 	}
 
-	public static void startConfigListener() {
-		if (listener != null && !listener.isRunning()) {
-			listener.running=true;
-			Thread t = new Thread(listener);
-			t.setDaemon(true);
-			t.start();
-			logger.info("Config listener started for user:" + map.get(ADMIN_USER));
-		}
-	}
-
-	public static void stopConfigListener() {
-		if (listener != null) {
-			listener.stop();
-		}
-	}
+//	public static void startConfigListener() {
+//		if (listener != null && !listener.isRunning()) {
+//			listener.running=true;
+//			Thread t = new Thread(listener);
+//			t.setDaemon(true);
+//			t.start();
+//			logger.info("Config listener started for user:" + map.get(ADMIN_USER));
+//		}
+//	}
+//
+//	public static void stopConfigListener() {
+//		if (listener != null) {
+//			listener.stop();
+//		}
+//	}
 
 	private Map<String, Json> getMap() {
 		return map;
@@ -232,10 +232,10 @@ public class Config {
 	}
 
 	public static NavigableMap<String, Json> loadConfig(NavigableMap<String, Json> model) throws IOException {
-		File jsonFile = new File(Util.SIGNALK_CFG_SAVE_FILE);
-		logger.info("Checking for previous config: " + jsonFile.getAbsolutePath());
-
-		if (!jsonFile.exists()) {
+		
+		influx.loadConfig(model,"select * from config group by skey,owner,grp order by time desc limit 1" ,"signalk");
+		
+		if (map.size()<10) {
 			logger.info("   Saved config not found, creating default");
 			Config.setDefaults(model);
 			// write a new one for next time
@@ -244,60 +244,36 @@ public class Config {
 			model.put(ConfigConstants.UUID, Json.make(self));
 			saveConfig(model);
 
-		} else {
-			Json json = Json.read(jsonFile.toURI().toURL());
-			JsonSerializer ser = new JsonSerializer();
-			model = ser.readToJsonMap(json);
-		}
+		} 
+		logger.debug("Config: {}",model);
 		return model;
 	}
 
-	public static Json load(String fileName) {
-		File jsonFile = new File(fileName);
-		logger.info("Checking for previous state: " + jsonFile.getAbsolutePath());
-		if (jsonFile.exists()) {
-			try {
-				Json temp = Json.read(jsonFile.toURI().toURL());
-				logger.info("   Saved state loaded from " + fileName);
-				return temp;
-			} catch (Exception ex) {
-				logger.error(ex.getMessage());
-			}
-		} else {
-			logger.info("   Saved state not found");
-		}
-		return Json.object();
-	}
+//	public static Json load(String fileName) {
+//		File jsonFile = new File(fileName);
+//		logger.info("Checking for previous state: " + jsonFile.getAbsolutePath());
+//		if (jsonFile.exists()) {
+//			try {
+//				Json temp = Json.read(jsonFile.toURI().toURL());
+//				logger.info("   Saved state loaded from " + fileName);
+//				return temp;
+//			} catch (Exception ex) {
+//				logger.error(ex.getMessage());
+//			}
+//		} else {
+//			logger.info("   Saved state not found");
+//		}
+//		return Json.object();
+//	}
 
 	/**
 	 * Save the current state of the signalk config
 	 * 
 	 * @throws IOException
 	 */
-	public static void saveConfig(Map<String, Json> config) throws IOException {
-		saveMap(config, new File(Util.SIGNALK_CFG_SAVE_FILE));
-	}
-
-	public static void saveMap(Map<String, Json> config, File jsonFile) throws IOException {
-		if (config != null) {
-			// de-json it
-			SortedMap<String, Object> model = new ConcurrentSkipListMap<>();
-			for (Entry<String, Json> e : config.entrySet()) {
-				model.put(e.getKey(), e.getValue().getValue());
-			}
-			JsonSerializer ser = new JsonSerializer();
-			ser.setPretty(3);
-			StringBuilder buffer = new StringBuilder();
-			if (model != null && model.size() > 0) {
-				//ser.write(model.entrySet().iterator(), '.', buffer);
-			} else {
-				buffer.append("{}");
-			}
-			FileUtils.writeStringToFile(jsonFile, buffer.toString(), StandardCharsets.UTF_8);
-			if (logger.isDebugEnabled())
-				logger.debug("   Saved model state to " + jsonFile);
-		}
-
+	public static void saveConfig(NavigableMap<String, Json> config) throws IOException {
+		security.addAttributes(config);
+		influx.save(config);
 	}
 
 	public static String getConfigProperty(String prop) {
@@ -341,85 +317,6 @@ public class Config {
 			logger.warn(e.getMessage(), e);
 		}
 		return null;
-	}
-
-	private class ConfigListener implements Runnable {
-
-		private String user;
-		private String password;
-		private boolean running = false;
-
-		public ConfigListener(SortedMap<String, Json> map, String user, String password) {
-			this.user = user;
-			this.password = password;
-		}
-
-		public void stop() {
-			running = false;
-		}
-
-		@Override
-		public void run() {
-			
-			ClientSession rxSession = null;
-			ClientConsumer consumer = null;
-			try {
-				// start polling consumer.
-				rxSession = Util.getVmSession(user, password);
-				rxSession.start();
-
-				consumer = rxSession.createConsumer("config", "_AMQ_LVQ_NAME like 'config.%'", true);
-				if (logger.isDebugEnabled())
-					logger.debug("Starting queue listener..");
-				while (running) {
-					ClientMessage msgReceived = consumer.receive(5000);
-					if (msgReceived == null) {
-						// when no changes for 5 seconds we will get a null
-						// message, so save first time if we need to.
-
-						if (logger.isDebugEnabled())
-							logger.debug(" saving config");
-						Config.saveConfig(map);
-						// stop till next time
-						running = false;
-
-						continue;
-					}
-					// if we have changes, we read until there are more and
-					// trigger a save later.
-					Json json = Util.readBodyBuffer(msgReceived);
-					if (logger.isDebugEnabled())
-						logger.debug(" message = " + msgReceived.getMessageID() + ":" + msgReceived.getAddress() + ", "
-								+ json);
-					map.put(msgReceived.getAddress().toString(), json);
-
-				}
-				
-			} catch (Exception e) {
-				logger.error(e.getMessage(), e);
-			} finally {
-				
-				if (consumer != null) {
-					try {
-						consumer.close();
-					} catch (ActiveMQException e) {
-						logger.error(e);
-					}
-				}
-				if (rxSession != null) {
-					try {
-						rxSession.close();
-					} catch (ActiveMQException e) {
-						logger.error(e);
-					}
-				}
-			}
-
-		}
-
-		public boolean isRunning() {
-			return running;
-		}
 	}
 
 }

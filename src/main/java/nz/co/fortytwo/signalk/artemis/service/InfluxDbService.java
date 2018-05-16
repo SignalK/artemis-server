@@ -131,7 +131,7 @@ public class InfluxDbService {
 				if(s==null)return;
 				
 				Map<String, String> tagMap = s.getTags();
-				String key = s.getName() + dot + s.getTags().get("skey");
+				String key = s.getName() + dot + tagMap.get("skey");
 				Json attr = getAttrJson(tagMap);
 				Json val = getJsonValue(s,0);
 				map.put(key,val);

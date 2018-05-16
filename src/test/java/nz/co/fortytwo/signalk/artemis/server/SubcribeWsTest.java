@@ -193,9 +193,9 @@ public class SubcribeWsTest extends BaseServerTest {
 
 			// special case, we have /vessels/self/, which should be found by
 			// this..
-			resp = getUrlAsString(c,SIGNALK_API + "/" + vessels + "/urn", restPort);
-			respJson = Json.read(resp);
-			 assertTrue(resp, respJson.has("urn:mrn:signalk:uuid:b7590868-1d62-47d9-989c-32321b349fb9"));
+//			resp = getUrlAsString(c,SIGNALK_API + "/" + vessels + "/urn", restPort);
+//			respJson = Json.read(resp);
+//			 assertTrue(resp, respJson.has("urn:mrn:signalk:uuid:b7590868-1d62-47d9-989c-32321b349fb9"));
 		}
 	}
 
@@ -234,12 +234,11 @@ public class SubcribeWsTest extends BaseServerTest {
 		try (final AsyncHttpClient c = new AsyncHttpClient();) {
 
 			Response r2 = c
-					.prepareGet("http://localhost:" + restPort + SIGNALK_API + "/vessels/"
-							+ self_str + "/uuid")
+					.prepareGet("http://localhost:" + restPort + SIGNALK_API + "/vessels/urn:mrn:signalk:uuid:b7590868-1d62-47d9-989c-32321b349fb9/uuid")
 					.setHeader("Authorization", "Basic YWRtaW46YWRtaW4=").execute().get();
 			String resp = r2.getResponseBody();
 			logger.debug("Endpoint json:" + resp);
-			assertEquals("\"urn:mrn:signalk:uuid:5da2f032-fc33-43f0-bc24-935bf55a17d1\"", resp);
+			assertEquals("\"urn:mrn:signalk:uuid:b7590868-1d62-47d9-989c-32321b349fb9\"", resp);
 		}
 	}
 
