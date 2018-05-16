@@ -89,7 +89,7 @@
 			},
 			{
 				"name": "nz.co.fortytwo.signalk.artemis.service.InfluxDbService",
-				"level": "debug"
+				"level": "warn"
 			},
 			{
 				"name": "nz.co.fortytwo.signalk.artemis.util.JsonSerializer",

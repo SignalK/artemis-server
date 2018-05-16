@@ -80,7 +80,7 @@ public class SignalkMapConvertor {
 		if (node.has(vessels))
 			return null;
 
-		if (node.has(CONTEXT) && (node.has(UPDATES) || node.has(PUT) || node.has(CONFIG))) {
+		if (Util.isDelta(node) && !Util.isSubscribe(node) && !node.has(GET)) {
 			
 			if (logger.isDebugEnabled())
 				logger.debug("processing delta  {}",node);

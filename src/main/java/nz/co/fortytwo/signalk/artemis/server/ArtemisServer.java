@@ -52,7 +52,7 @@ import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
  */
 public final class ArtemisServer {
 
-	private static Logger logger = LogManager.getLogger(ArtemisServer.class);
+	private static Logger logger;
 	private static EmbeddedActiveMQ embedded;
 	private static Nettosphere server;
 	private JmmDNS jmdns;
@@ -64,10 +64,10 @@ public final class ArtemisServer {
 	public ArtemisServer() throws Exception {
 		Properties props = System.getProperties();
 		props.setProperty("java.net.preferIPv4Stack", "true");
-		props.setProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager");
 		props.setProperty("log4j.configurationFile", "./conf/log4j2.json");
+		props.setProperty("org.apache.logging.log4j.simplelog.StatusLogger.level","TRACE");
 		System.setProperties(props);
-		
+		logger = LogManager.getLogger(ArtemisServer.class);
 		Config.getInstance();
 
 		embedded = new EmbeddedActiveMQ();
@@ -225,8 +225,9 @@ public final class ArtemisServer {
 	public static void main(String[] args) throws Exception {
 		Properties props = System.getProperties();
 		props.setProperty("java.net.preferIPv4Stack", "true");
-		props.setProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager");
+		//props.setProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager");
 		props.setProperty("log4j.configurationFile", "./conf/log4j2.json");
+		props.setProperty("org.apache.logging.log4j.simplelog.StatusLogger.level","TRACE");
 		System.setProperties(props);
 		
 		PropertyConfigurator.configure("./conf/log4j2.json");

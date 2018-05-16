@@ -1,23 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PATH;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PUT;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.label;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.meta;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.resources;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sentence;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.source;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sourceRef;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sources;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.timestamp;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.type;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.values;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -542,11 +525,6 @@ public class InfluxDbService {
 						.tag("uuid", path[1])
 						.tag(SecurityService.OWNER, attr.at(SecurityService.OWNER).asString())
 						.tag(SecurityService.GROUP, attr.at(SecurityService.GROUP).asString())
-						//.tag(InfluxDbService.PRIMARY_VALUE, attr.at(InfluxDbService.PRIMARY_VALUE).asString())
-						//.tag(SecurityService.ROLE_READ, attr.at(SecurityService.ROLE_READ).toString())
-						//.tag(SecurityService.ROLE_WRITE, attr.at(SecurityService.ROLE_WRITE).toString())
-						//.tag(SecurityService.OTHER_READ, attr.at(SecurityService.OTHER_READ).toString())
-						//.tag(SecurityService.OTHER_WRITE, attr.at(SecurityService.OTHER_WRITE).toString())
 						.tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)));
 				influxDB.write(addPoint(point, field, value));
 				break;
@@ -555,48 +533,46 @@ public class InfluxDbService {
 						.tag("sourceRef", path[1])
 						.tag(SecurityService.OWNER, attr.at(SecurityService.OWNER).asString())
 						.tag(SecurityService.GROUP, attr.at(SecurityService.GROUP).asString())
-						//.tag(InfluxDbService.PRIMARY_VALUE, attr.at(InfluxDbService.PRIMARY_VALUE).asString())
-						//.tag(SecurityService.ROLE_READ, attr.at(SecurityService.ROLE_READ).toString())
-						//.tag(SecurityService.ROLE_WRITE, attr.at(SecurityService.ROLE_WRITE).toString())
-						//.tag(SecurityService.OTHER_READ, attr.at(SecurityService.OTHER_READ).toString())
-						//.tag(SecurityService.OTHER_WRITE, attr.at(SecurityService.OTHER_WRITE).toString())
 						.tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)));
 				influxDB.write(addPoint(point, field, value));
 				break;
 			case CONFIG:
 				point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS)
-						//.tag("sourceRef", sourceRef)
 						.tag(SecurityService.OWNER, attr.at(SecurityService.OWNER).asString())
 						.tag(SecurityService.GROUP, attr.at(SecurityService.GROUP).asString())
-						//.tag(InfluxDbService.PRIMARY_VALUE, attr.at(InfluxDbService.PRIMARY_VALUE).asString())
-						//.tag(SecurityService.ROLE_READ, attr.at(SecurityService.ROLE_READ).toString())
-						//.tag(SecurityService.ROLE_WRITE, attr.at(SecurityService.ROLE_WRITE).toString())
-						//.tag(SecurityService.OTHER_READ, attr.at(SecurityService.OTHER_READ).toString())
-						//.tag(SecurityService.OTHER_WRITE, attr.at(SecurityService.OTHER_WRITE).toString())
 						.tag("uuid", path[1])
 						.tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)));
 				influxDB.write(addPoint(point, field, value));
-				
+				break;
+			case vessels:
+				writeToInflux(path, millis, key, sourceRef, field, attr);
+				break;
+			case aircraft:
+				writeToInflux(path, millis, key, sourceRef, field, attr);
+				break;
+			case sar:
+				writeToInflux(path, millis, key, sourceRef, field, attr);
+				break;
+			case aton:
+				writeToInflux(path, millis, key, sourceRef, field, attr);
 				break;
 			default:
-				//is it a primary value
-				Boolean primary = isPrimary(key,sourceRef);
-				
-				point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS)
-						.tag("sourceRef", sourceRef)
-						.tag("uuid", path[1])
-						.tag(SecurityService.OWNER, attr.at(SecurityService.OWNER).asString())
-						.tag(SecurityService.GROUP, attr.at(SecurityService.GROUP).asString())
-						.tag(InfluxDbService.PRIMARY_VALUE, primary.toString())
-						//.tag(SecurityService.ROLE_READ, attr.at(SecurityService.ROLE_READ).toString())
-						//.tag(SecurityService.ROLE_WRITE, attr.at(SecurityService.ROLE_WRITE).toString())
-						//.tag(SecurityService.OTHER_READ, attr.at(SecurityService.OTHER_READ).toString())
-						//.tag(SecurityService.OTHER_WRITE, attr.at(SecurityService.OTHER_WRITE).toString())
-						.tag("skey", String.join(".", ArrayUtils.subarray(path, 2, path.length)));
-				influxDB.write(addPoint(point, field, value));
 				break;
 			}
 		
+		
+	}
+
+	private void writeToInflux(String[] path, long millis, String key, String sourceRef, String field, Json attr) {
+		Boolean primary = isPrimary(key,sourceRef);
+		Builder point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS)
+				.tag("sourceRef", sourceRef)
+				.tag("uuid", path[1])
+				.tag(SecurityService.OWNER, attr.at(SecurityService.OWNER).asString())
+				.tag(SecurityService.GROUP, attr.at(SecurityService.GROUP).asString())
+				.tag(InfluxDbService.PRIMARY_VALUE, primary.toString())
+				.tag("skey", String.join(".", ArrayUtils.subarray(path, 2, path.length)));
+		influxDB.write(addPoint(point, field, value));
 		
 	}
 
