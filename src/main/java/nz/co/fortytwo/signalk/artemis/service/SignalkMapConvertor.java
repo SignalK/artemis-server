@@ -183,8 +183,10 @@ public class SignalkMapConvertor {
 	}
 	
 	public static Json mapToFull(NavigableMap<String, Json> map) throws IOException{
-		if(map==null)return Json.nil();
+		
 		Json root = Json.object();
+		if(map==null)return root;
+		
 		root.set(self_str,Json.make(Config.getConfigProperty(ConfigConstants.UUID)));
 		root.set(version,Json.make(Config.getConfigProperty(ConfigConstants.VERSION)));
 		map.entrySet().forEach((entry)->{

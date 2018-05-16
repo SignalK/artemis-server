@@ -81,34 +81,6 @@ public class SubcribeWsTest extends BaseServerTest {
 
 	}
 
-	@Before
-	public void startServer() throws Exception {
-		// remove self file so we have clean model
-		FileUtils.writeStringToFile(new File(Util.SIGNALK_MODEL_SAVE_FILE), "{}", StandardCharsets.UTF_8);
-		server = new ArtemisServer();
-
-		try (ClientSession session = Util.getVmSession("admin", "admin");
-				ClientProducer producer = session.createProducer();) {
-			session.start();
-//			ClientMessage message = session.createMessage(true);
-//			message.getBodyBuffer().writeString(FileUtils.readFileToString(new File("./src/test/resources/samples/full/vessel-time.json")));
-//			producer.send(Config.INCOMING_RAW, message);
-//			
-//			message = session.createMessage(true);
-//			message.getBodyBuffer().writeString("$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78");
-//			producer.send(Config.INCOMING_RAW, message);
-			
-//			for (String line : FileUtils.readLines(new File("./src/test/resources/samples/signalkKeesLog.txt"))) {
-//				line = line.replaceAll("urn:mrn:imo:mmsi:123456789", "self");
-//				message = session.createMessage(true);
-//				message.getBodyBuffer().writeString(line);
-//				producer.send(Config.INCOMING_RAW, message);
-//				if (logger.isDebugEnabled())
-//					logger.debug("Sent:" + message.getMessageID() + ":" + line);
-//			}
-		}
-	}
-
 	@Test
 	public void shouldGetWsUrl() throws Exception {
 
@@ -124,92 +96,105 @@ public class SubcribeWsTest extends BaseServerTest {
 	}
 
 	@Test
+	public void shouldGetAllData() throws Exception {
+
+		try (final AsyncHttpClient c = new AsyncHttpClient();) {
+		
+			String resp = getUrlAsString(c,SIGNALK_API,restPort);
+			 Json respJson = Json.read(resp);
+			 assertTrue(resp, respJson.has(vessels));
+			 
+		}
+	}
+	@Test
 	public void shouldGetWsPublicUrls() throws Exception {
 
 		try (final AsyncHttpClient c = new AsyncHttpClient();) {
-			Json json = getUrlAsJson(SIGNALK_DISCOVERY, restPort);
+			Json json = getUrlAsJson(c,SIGNALK_DISCOVERY, restPort);
 			assertEquals("ws://localhost:" + wsPort + SIGNALK_WS,
 					json.at("endpoints").at("v1").at(websocketUrl).asString());
+			assertEquals("http://localhost:" + restPort + SIGNALK_API+"/",
+					json.at("endpoints").at("v1").at(restUrl).asString());
+			assertEquals("1.0.0",
+					json.at("endpoints").at("v1").at(version).asString());
 
-			String resp = getUrlAsString(SIGNALK_API + "/self", restPort);
-			assertTrue(resp, resp.startsWith("\"urn:mrn:signalk:uuid:"));
-
-			 resp = getUrlAsString(SIGNALK_API,restPort);
+			String resp = getUrlAsString(c,SIGNALK_API + "/self", restPort);
+			
+			 assertEquals("\"urn:mrn:signalk:uuid:5da2f032-fc33-43f0-bc24-935bf55a17d1\"", resp);
+			
+			 resp = getUrlAsString(c,SIGNALK_API,restPort);
 			 Json respJson = Json.read(resp);
 			 assertTrue(resp, respJson.has(vessels));
 			
-			 resp = getUrlAsString(SIGNALK_API+"/",restPort);
+			 resp = getUrlAsString(c,SIGNALK_API+"/",restPort);
 			 respJson = Json.read(resp);
 			 assertTrue(resp, respJson.has(vessels));
 			
-			 resp = getUrlAsString(SIGNALK_API+"/"+vessels,restPort);
+			 resp = getUrlAsString(c,SIGNALK_API+"/"+vessels,restPort);
 			 respJson = Json.read(resp);
 			 assertTrue(resp, respJson.has("urn:mrn:signalk:uuid:b7590868-1d62-47d9-989c-32321b349fb9"));
 			
-			 resp = getUrlAsString(SIGNALK_API+"/"+vessels+"/",restPort);
+			 resp = getUrlAsString(c,SIGNALK_API+"/"+vessels+"/",restPort);
 			 respJson = Json.read(resp);
 			 assertTrue(resp, respJson.has("urn:mrn:signalk:uuid:b7590868-1d62-47d9-989c-32321b349fb9"));
 			
-			 resp = getUrlAsString(SIGNALK_API+"/ves",restPort);
+			 resp = getUrlAsString(c,SIGNALK_API+"/ves",restPort);
 			 respJson = Json.read(resp);
-			 assertTrue(resp, respJson.isNull());
+			 assertTrue(resp, respJson.has("urn:mrn:signalk:uuid:b7590868-1d62-47d9-989c-32321b349fb9"));
 			
-			 resp = getUrlAsString(SIGNALK_API+"/vssls",restPort);
-			 respJson = Json.read(resp);
-			 assertTrue(resp, respJson.isNull());
+			 resp = getUrlAsString(c,SIGNALK_API+"/vssls",restPort);
+			 assertEquals("{}",resp);
 			
-			resp = getUrlAsString(SIGNALK_API + "/" + vessels + "/urn:mrn:signalk:uuid:b7590868-1d62-47d9-989c-32321b349fb9", restPort);
+			resp = getUrlAsString(c,SIGNALK_API + "/" + vessels + "/urn:mrn:signalk:uuid:b7590868-1d62-47d9-989c-32321b349fb9", restPort);
 			respJson = Json.read(resp);
 			assertTrue(respJson.has("uuid"));
 
-			resp = getUrlAsString(SIGNALK_API + "/" + vessels + "/self/nav", restPort);
+			resp = getUrlAsString(c,SIGNALK_API + "/" + vessels + "/self/nav", restPort);
 			respJson = Json.read(resp);
 			assertTrue(resp, respJson.has("courseOverGroundTrue"));
 
-			resp = getUrlAsString(SIGNALK_API + "/" + vessels + "/self/nav*", restPort);
+			resp = getUrlAsString(c,SIGNALK_API + "/" + vessels + "/self/nav*", restPort);
 			respJson = Json.read(resp);
 			assertTrue(resp, respJson.has("courseOverGroundTrue"));
 
-			resp = getUrlAsString(SIGNALK_API + "/" + sources, restPort);
+			resp = getUrlAsString(c,SIGNALK_API + "/" + sources, restPort);
 			respJson = Json.read(resp);
 			assertTrue(resp, respJson.has("NMEA0183"));
 
-			resp = getUrlAsString(SIGNALK_API + "/" + sources + "/", restPort);
+			resp = getUrlAsString(c,SIGNALK_API + "/" + sources + "/", restPort);
 			respJson = Json.read(resp);
 			assertTrue(resp, respJson.has("NMEA0183"));
 
-			resp = getUrlAsString(SIGNALK_API + "/sou", restPort);
+			resp = getUrlAsString(c,SIGNALK_API + "/sou", restPort);
 			respJson = Json.read(resp);
-			assertTrue(resp, respJson.isNull());
+			assertTrue(resp, respJson.has("NMEA0183"));
 
-			resp = getUrlAsString(SIGNALK_API + "/" + CONFIG, "admin", "admin", restPort);
+			resp = getUrlAsString(c,SIGNALK_API + "/" + CONFIG, "admin", "admin", restPort);
 			respJson = Json.read(resp);
 			assertTrue(resp, respJson.has(CONFIG));
 
-			resp = getUrlAsString(SIGNALK_API + "/" + CONFIG + "/", "admin", "admin", restPort);
+			resp = getUrlAsString(c,SIGNALK_API + "/" + CONFIG + "/", "admin", "admin", restPort);
 			respJson = Json.read(resp);
 			assertTrue(resp, respJson.has(CONFIG));
 			// assertTrue( resp.contains("\"ports\": [\""));
-			resp = getUrlAsString(SIGNALK_API + "/con", "admin", "admin", restPort);
+			resp = getUrlAsString(c,SIGNALK_API + "/con", "admin", "admin", restPort);
 			respJson = Json.read(resp);
-			assertTrue(resp, respJson.isNull());
+			assertTrue(resp, respJson.has(CONFIG));
 
-			resp = getUrlAsString(SIGNALK_API + "/" + CONFIG, restPort);
-			respJson = Json.read(resp);
-			assertTrue(resp, respJson.isNull());
+			resp = getUrlAsString(c,SIGNALK_API + "/" + CONFIG, restPort);
+			assertEquals("{}",resp);
 
-			resp = getUrlAsString(SIGNALK_API + "/" + CONFIG + "/", restPort);
-			respJson = Json.read(resp);
-			assertTrue(resp, respJson.isNull());
+			resp = getUrlAsString(c,SIGNALK_API + "/" + CONFIG + "/", restPort);
+			assertEquals("{}",resp);
 			
-			resp = getUrlAsString(SIGNALK_API + "/con", restPort);
-			respJson = Json.read(resp);
-			assertTrue(resp, respJson.isNull());
+			resp = getUrlAsString(c,SIGNALK_API + "/con", restPort);
+			assertEquals("{}",resp);
 
 			// special case, we have /vessels/self/, which should be found by
 			// this..
-			resp = getUrlAsString(SIGNALK_API + "/" + vessels + "/urn", restPort);
-			assertTrue(resp, resp.startsWith("{\"urn:mrn:"));
+			resp = getUrlAsString(c,SIGNALK_API + "/" + vessels + "/urn", restPort);
+			respJson = Json.read(resp);
+			 assertTrue(resp, respJson.has("urn:mrn:signalk:uuid:b7590868-1d62-47d9-989c-32321b349fb9"));
 		}
 	}
 
@@ -249,7 +234,7 @@ public class SubcribeWsTest extends BaseServerTest {
 
 			Response r2 = c
 					.prepareGet("http://localhost:" + restPort + SIGNALK_API + "/vessels/"
-							+ Config.getConfigProperty(ConfigConstants.UUID) + "/uuid")
+							+ self + "/uuid")
 					.setHeader("Authorization", "Basic YWRtaW46YWRtaW4=").execute().get();
 			String resp = r2.getResponseBody();
 			logger.debug("Endpoint json:" + resp);

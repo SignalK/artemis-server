@@ -45,7 +45,8 @@ public class SignalKConstants {
     public static final String FAHR = "F";
     public static final String CENT = "C";
 
-
+    public static final String ALL = "all";
+    
 	public static final String dot = ".";
 	public static final String vessels = "vessels";
 	public static final String aircraft = "aircraft";

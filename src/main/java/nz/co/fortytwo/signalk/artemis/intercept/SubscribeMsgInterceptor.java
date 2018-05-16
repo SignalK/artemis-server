@@ -33,8 +33,6 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 
-
-
 /*
 *
 * Copyright (C) 2012-2014 R T Huitema. All Rights Reserved.
@@ -71,6 +69,7 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 	// private ClientProducer producer;
 
 	private static Logger logger = LogManager.getLogger(SubscribeMsgInterceptor.class);
+
 	/**
 	 * Reads Subscribe format JSON and creates a subscription. Does nothing if
 	 * json is not a subscribe, and returns the original message
@@ -78,60 +77,67 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 	 * @param node
 	 * @return
 	 */
-	
+
 	@Override
 	public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException {
-		if(isResponse(packet))return true;
-		
+		if (isResponse(packet))
+			return true;
+
 		if (packet instanceof SessionSendMessage) {
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
 
 			ICoreMessage message = realPacket.getMessage();
-			
-			if(!Config.JSON_DELTA.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))return true;
-			
-			if(logger.isTraceEnabled())logger.trace("Processing: " + message);
+
+			if (!Config.JSON_SUBSCRIBE.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))
+				return true;
+
+			if (logger.isTraceEnabled())
+				logger.trace("Processing: " + message);
 			Json node = Util.readBodyBuffer(message);
-			// avoid full signalk syntax
-			if (node.has(vessels))
-				return true;
+
 			// deal with diff format
-			if (node.has(CONTEXT) && node.has(SUBSCRIBE)) {
-				if(logger.isDebugEnabled())logger.debug("Processing SUBSCRIBE: " + message);
-				String ctx = node.at(CONTEXT).asString();
-				ctx = Util.fixSelfKey(ctx);
-				ctx=StringUtils.removeEnd(ctx,".");
-				Json subscribe = node.at(SUBSCRIBE);
-				if (subscribe.isNull())
+			if (isSubscribe(node)) {
+				if (node.has(SUBSCRIBE)) {
+					if (logger.isDebugEnabled())
+						logger.debug("Processing SUBSCRIBE: " + message);
+					String ctx = node.at(CONTEXT).asString();
+					ctx = Util.fixSelfKey(ctx);
+					ctx = StringUtils.removeEnd(ctx, ".");
+					Json subscribe = node.at(SUBSCRIBE);
+					if (subscribe.isNull())
+						return true;
+
+					try {
+						parseSubscribe(node, subscribe, ctx, message);
+					} catch (Exception e) {
+						logger.error(e, e);
+					}
+
+					if (logger.isDebugEnabled())
+						logger.debug("SubscribeMsg processed subscribe " + node);
 					return true;
-	
-				try {
-					parseSubscribe(node, subscribe, ctx, message);
-				} catch (Exception e) {
-					logger.error(e,e);
 				}
-	
-				 if(logger.isDebugEnabled())logger.debug("SubscribeMsg processed subscribe "+node );
-				return true;
-			}
-			
-			if (node.has(CONTEXT) && (node.has(UNSUBSCRIBE))) {
-				if(logger.isDebugEnabled())logger.debug("Processing UNSUBSCRIBE: " + message);
-				String ctx = node.at(CONTEXT).asString();
-				ctx = Util.fixSelfKey(ctx);
-				ctx=StringUtils.removeEnd(ctx,".");
-				Json unsubscribe = node.at(UNSUBSCRIBE);
-				if (unsubscribe == null)
+
+				if (node.has(UNSUBSCRIBE)) {
+					if (logger.isDebugEnabled())
+						logger.debug("Processing UNSUBSCRIBE: " + message);
+					String ctx = node.at(CONTEXT).asString();
+					ctx = Util.fixSelfKey(ctx);
+					ctx = StringUtils.removeEnd(ctx, ".");
+					Json unsubscribe = node.at(UNSUBSCRIBE);
+					if (unsubscribe == null)
+						return true;
+
+					try {
+						parseUnSubscribe(node, unsubscribe, ctx, message);
+					} catch (Exception e) {
+						logger.error(e, e);
+					}
+
+					if (logger.isDebugEnabled())
+						logger.debug("SubscribeMsg processed unsubscribe " + node);
 					return true;
-	
-				try {
-					parseUnSubscribe(node, unsubscribe, ctx, message);
-				} catch (Exception e) {
-					logger.error(e,e);
 				}
-	
-				 if(logger.isDebugEnabled())logger.debug("SubscribeMsg processed unsubscribe "+node );
-				return true;
 			}
 		}
 		return true;
@@ -139,91 +145,105 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 	}
 
 	private void parseUnSubscribe(Json node, Json subscriptions, String ctx, ICoreMessage message) throws Exception {
-		if(subscriptions!=null){
-			//MQTT and STOMP wont have created proper session links
+		if (subscriptions != null) {
+			// MQTT and STOMP wont have created proper session links
 
 			String sessionId = message.getStringProperty(Config.AMQ_SESSION_ID);
 			String destination = message.getStringProperty(Config.AMQ_REPLY_Q);
 			ServerSession s = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
-			
-			if(subscriptions.isArray()){
-				for(Json subscription: subscriptions.asJsonList()){
-					Subscription sub =  parseSubscribe(sessionId, destination, s.getUsername(), s.getPassword(), ctx, subscription);
-					if(logger.isDebugEnabled())logger.debug("Remove subscription; "+sub.toString() );
+
+			if (subscriptions.isArray()) {
+				for (Json subscription : subscriptions.asJsonList()) {
+					Subscription sub = parseSubscribe(sessionId, destination, s.getUsername(), s.getPassword(), ctx,
+							subscription);
+					if (logger.isDebugEnabled())
+						logger.debug("Remove subscription; " + sub.toString());
 					SubscriptionManagerFactory.getInstance().removeSubscription(sub);
 				}
 			}
-			
-			if(logger.isDebugEnabled())logger.debug("processed unsubscribe  "+node );
+
+			if (logger.isDebugEnabled())
+				logger.debug("processed unsubscribe  " + node);
 		}
 	}
 
 	protected void parseSubscribe(Json node, Json subscriptions, String ctx, ICoreMessage message) throws Exception {
 
-		if(subscriptions!=null){
-			//MQTT and STOMP wont have created proper session links
+		if (subscriptions != null) {
+			// MQTT and STOMP wont have created proper session links
 
 			String sessionId = message.getStringProperty(Config.AMQ_SESSION_ID);
 			String destination = message.getStringProperty(Config.AMQ_REPLY_Q);
 			ServerSession s = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
-			
-			if(node.has(ConfigConstants.OUTPUT_TYPE)){
+
+			if (node.has(ConfigConstants.OUTPUT_TYPE)) {
 				String outputType = node.at(ConfigConstants.OUTPUT_TYPE).asString();
-				SubscriptionManagerFactory.getInstance().add(sessionId, sessionId, outputType,"127.0.0.1","127.0.0.1");
+				SubscriptionManagerFactory.getInstance().add(sessionId, sessionId, outputType, "127.0.0.1",
+						"127.0.0.1");
 			}
-			
-			if(subscriptions.isArray()){
-				for(Json subscription: subscriptions.asJsonList()){
-					Subscription sub = parseSubscribe(sessionId, destination, s.getUsername(), s.getPassword(), ctx, subscription);
-					if(logger.isDebugEnabled())logger.debug("Created subscription; "+sub.toString() );
+
+			if (subscriptions.isArray()) {
+				for (Json subscription : subscriptions.asJsonList()) {
+					Subscription sub = parseSubscribe(sessionId, destination, s.getUsername(), s.getPassword(), ctx,
+							subscription);
+					if (logger.isDebugEnabled())
+						logger.debug("Created subscription; " + sub.toString());
 					SubscriptionManagerFactory.getInstance().addSubscription(sub);
 				}
 			}
-			if(logger.isDebugEnabled())logger.debug("processed subscribe  "+node );
+			if (logger.isDebugEnabled())
+				logger.debug("processed subscribe  " + node);
 		}
 	}
 
 	/**
-	 *  
-	 *   <pre>{
-                    "path": "navigation.speedThroughWater",
-                    "period": 1000,
-                    "format": "delta",
-                    "policy": "ideal",
-                    "minPeriod": 200
-                }
-                </pre>
+	 * 
+	 * <pre>
+	 * {
+	                "path": "navigation.speedThroughWater",
+	                "period": 1000,
+	                "format": "delta",
+	                "policy": "ideal",
+	                "minPeriod": 200
+	            }
+	 * </pre>
+	 * 
 	 * @param context
 	 * @param subscription
-	 * @throws Exception 
+	 * @throws Exception
 	 */
-	private Subscription parseSubscribe(String sessionId, String destination, String user, String password, String context, Json subscription) throws Exception {
-		//get values
-		if(logger.isDebugEnabled())logger.debug("Parsing subscribe for : "+user+" : "+password+" : " +destination+" : " +context+" : " +subscription );
-		
-		String path = context+"."+subscription.at(PATH).asString();
-		long period = 1000;
-		if(subscription.at(PERIOD)!=null)period = subscription.at(PERIOD).asInteger();
-		String format = FORMAT_DELTA;
-		if(subscription.at(FORMAT)!=null)format=subscription.at(FORMAT).asString();
-		String policy = POLICY_FIXED;
-		if(subscription.at(POLICY)!=null)policy=subscription.at(POLICY).asString();
-		long minPeriod = 0;
-		if(subscription.at(MIN_PERIOD)!=null)minPeriod=subscription.at(MIN_PERIOD).asInteger();
-	
-		Subscription sub = new Subscription(sessionId, destination, user, password,  path, period, minPeriod, format, policy);
-		
-		
-		//STOMP, MQTT
-		//if(headers.containsKey(ConfigConstants.DESTINATION)){
-		//	sub.setDestination( headers.get(ConfigConstants.DESTINATION).toString());
-		//}
-	
-		return sub;
-		
-	}
+	private Subscription parseSubscribe(String sessionId, String destination, String user, String password,
+			String context, Json subscription) throws Exception {
+		// get values
+		if (logger.isDebugEnabled())
+			logger.debug("Parsing subscribe for : " + user + " : " + password + " : " + destination + " : " + context
+					+ " : " + subscription);
 
-	
-	
+		String path = context + "." + subscription.at(PATH).asString();
+		long period = 1000;
+		if (subscription.at(PERIOD) != null)
+			period = subscription.at(PERIOD).asInteger();
+		String format = FORMAT_DELTA;
+		if (subscription.at(FORMAT) != null)
+			format = subscription.at(FORMAT).asString();
+		String policy = POLICY_FIXED;
+		if (subscription.at(POLICY) != null)
+			policy = subscription.at(POLICY).asString();
+		long minPeriod = 0;
+		if (subscription.at(MIN_PERIOD) != null)
+			minPeriod = subscription.at(MIN_PERIOD).asInteger();
+
+		Subscription sub = new Subscription(sessionId, destination, user, password, path, period, minPeriod, format,
+				policy);
+
+		// STOMP, MQTT
+		// if(headers.containsKey(ConfigConstants.DESTINATION)){
+		// sub.setDestination(
+		// headers.get(ConfigConstants.DESTINATION).toString());
+		// }
+
+		return sub;
+
+	}
 
 }

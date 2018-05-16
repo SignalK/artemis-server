@@ -33,28 +33,6 @@ public class UdpSubscribeTest extends BaseServerTest{
 	
 	private static Logger logger = LogManager.getLogger(UdpSubscribeTest.class);
 
-	@Before
-	public void startServer() throws Exception {
-		//remove self file so we have clean model
-		FileUtils.writeStringToFile(new File(Util.SIGNALK_MODEL_SAVE_FILE), "{}", StandardCharsets.UTF_8);
-		server = new ArtemisServer();
-	
-		ClientSession session = Util.getVmSession("admin", "admin");
-		session.start();
-	
-		ClientProducer producer = session.createProducer();
-	
-		for (String line : FileUtils.readLines(new File("./src/test/resources/samples/signalkKeesLog.txt"))) {
-			line=line.replaceAll("urn:mrn:imo:mmsi:123456789","self");
-			ClientMessage message = session.createMessage(true);
-			message.getBodyBuffer().writeString(line);
-			producer.send(Config.INCOMING_RAW, message);
-			if (logger.isDebugEnabled())
-				logger.debug("Sent:" + message.getMessageID() + ":" + line);
-		}
-	}
-
-
 	
 	@Test
 	public void checkSelfSubscribe() throws Exception {

@@ -74,11 +74,13 @@ public class GarbageInterceptor extends BaseInterceptor implements Interceptor {
 			} else if (msg.startsWith("{") && msg.endsWith("}")) {
 				Json node = Json.read(msg);
 				
-				if (Util.isFullFormat(node))
+				if (isFullFormat(node))
 					return Config.JSON_FULL;
 				
-				if (Util.isDelta(node))
+				if (isDelta(node))
 					return Config.JSON_DELTA;
+				if (isSubscribe(node))
+					return Config.JSON_SUBSCRIBE;
 			}
 		}
 		if (logger.isWarnEnabled()) {

@@ -74,6 +74,10 @@ public class DeltaSourceInterceptor extends BaseInterceptor implements Intercept
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
 
 			ICoreMessage message = realPacket.getMessage();
+			
+			if (!Config.JSON_DELTA.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))
+				return true;
+			
 			String srcBus = message.getStringProperty(Config.MSG_SRC_BUS);
 			String msgType = message.getStringProperty(Config.MSG_TYPE);
 			Json node = Util.readBodyBuffer(message);
@@ -82,7 +86,7 @@ public class DeltaSourceInterceptor extends BaseInterceptor implements Intercept
 				logger.debug("Delta msg: " + node.toString());
 
 			// deal with diff format
-			if (isDelta(node)) {
+			if (isDelta(node) && !node.has(GET)) {
 				try {
 					if (logger.isDebugEnabled())
 						logger.debug("Converting source in delta: " + node.toString());

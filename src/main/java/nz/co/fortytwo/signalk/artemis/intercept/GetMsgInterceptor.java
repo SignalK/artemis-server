@@ -2,6 +2,7 @@ package nz.co.fortytwo.signalk.artemis.intercept;
 
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 
+import java.util.ArrayList;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
@@ -59,6 +60,7 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 
+	
 	private static Logger logger = LogManager.getLogger(GetMsgInterceptor.class);
 	
 	/**
@@ -82,7 +84,7 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 				return true;
 		
 			Json node = Util.readBodyBuffer(message);
-
+			String correlation = message.getStringProperty(Config.AMQ_CORR_ID);
 			String sessionId = message.getStringProperty(Config.AMQ_SESSION_ID);
 			String destination = message.getStringProperty(Config.AMQ_REPLY_Q);
 			ServerSession s = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
@@ -92,31 +94,39 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 				if (logger.isDebugEnabled())
 					logger.debug("GET msg: " + node.toString());
 				String ctx = node.at(CONTEXT).asString();
-				String table = StringUtils.substringBefore(ctx,dot);
+				String root = StringUtils.substringBefore(ctx,dot);
+				root = Util.sanitizeRoot(root);
+				
+				
 				//limit to explicit series
-				if (!vessels.equals(table) 
-					&& !CONFIG.equals(table) 
-					&& !sources.equals(table) 
-					&& !resources.equals(table)
-					&& !aircraft.equals(table)
-					&& !sar.equals(table)
-					&& !aton.equals(table)){
+				if (!vessels.equals(root) 
+					&& !CONFIG.equals(root) 
+					&& !sources.equals(root) 
+					&& !resources.equals(root)
+					&& !aircraft.equals(root)
+					&& !sar.equals(root)
+					&& !aton.equals(root)
+					&& !ALL.equals(root)){
 					try{
-						sendReply(String.class.getSimpleName(),destination,FORMAT_FULL,Json.nil(),s);
+						sendReply(String.class.getSimpleName(),destination,FORMAT_FULL,Json.object(),s,correlation);
 						return true;
 					} catch (Exception e) {
 						logger.error(e, e);
 						throw new ActiveMQException(ActiveMQExceptionType.INTERNAL_ERROR, e.getMessage(), e);
 					}
 				}
-				String uuid = StringUtils.substringAfter(ctx,dot);
+				String qUuid = StringUtils.substringAfter(ctx,dot);
+				if(StringUtils.isBlank(qUuid))qUuid="*";
+				ArrayList<String> fullPaths=new ArrayList<>();
+				
 				try {
 					NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
 					for(Json p: node.at(GET).asJsonList()){
 						String path = p.at(PATH).asString();
+						fullPaths.add(Util.sanitizeRoot(ctx+dot+path));
 						StringBuffer sql=new StringBuffer();
 						path=Util.regexPath(path).toString();
-						switch (StringUtils.substringBefore(table, ".")) {
+						switch (root) {
 						case CONFIG:
 							sql.append("select * from config");
 							if(StringUtils.isNotBlank(path))sql.append(" where skey=~/"+path+"/");
@@ -135,25 +145,46 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 							sql.append(" group by skey,owner,grp order by time desc limit 1");
 							influx.loadSources(map, sql.toString(),"signalk");
 							break;
+						case vessels:
+							loadDataFromInflux(root,qUuid,path,map);
+							break;
+						case aircraft:
+							loadDataFromInflux(root,qUuid,path,map);
+							break;
+						case sar:
+							loadDataFromInflux(root,qUuid,path,map);
+							break;
+						case aton:
+							loadDataFromInflux(root,qUuid,path,map);
+							break;
+						case ALL:
+							loadAllDataFromInflux(map,vessels);
+							//loadAllDataFromInflux(map,aircraft);
+							//loadAllDataFromInflux(map,sar);
+							//loadAllDataFromInflux(map,aton);
 						default:
-							sql.append("select * from "+table);
-							if(StringUtils.isNotBlank(uuid) && StringUtils.isNotBlank(path))sql.append(" where skey=~/"+path+"/ and uuid=~/"+Util.regexPath(uuid).toString()+"/");
-							if(StringUtils.isNotBlank(uuid) && StringUtils.isBlank(path))sql.append(" where uuid=~/"+Util.regexPath(uuid).toString()+"/");
-							if(StringUtils.isBlank(uuid) && StringUtils.isNotBlank(path))sql.append(" where skey=~/"+path+"/");
-							sql.append(" group by uuid, primary,skey,owner, grp order by time desc limit 1");
-							influx.loadData(map, sql.toString(),"signalk");
 						}
 						
 						if (logger.isDebugEnabled())
 							logger.debug("GET sql : {}", sql);
 					}
 					
-					if (logger.isDebugEnabled())
-						logger.debug("GET map : {}", map);
+					if (logger.isDebugEnabled())logger.debug("GET map : {}", map);
+					
 					Json json = SignalkMapConvertor.mapToFull(map);
 					
+					if (logger.isDebugEnabled())logger.debug("GET json : {}", json);
 					
-					sendReply(map.getClass().getSimpleName(),destination,FORMAT_FULL,json,s);
+					String fullPath = StringUtils.getCommonPrefix(fullPaths.toArray(new String[]{}));
+					fullPath=StringUtils.remove(fullPath,".*");
+					
+					// for REST we only send back the sub-node, so find it
+					if (logger.isDebugEnabled())logger.debug("GET node : {}", fullPath);
+					
+					if (StringUtils.isNotBlank(fullPath) && !root.startsWith(CONFIG) && !root.startsWith(ALL))
+						json = Util.findNodeMatch(json, fullPath);
+					
+					sendReply(map.getClass().getSimpleName(),destination,FORMAT_FULL,json,s,correlation);
 
 					return true;
 				} catch (Exception e) {
@@ -165,6 +196,31 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 		}
 		return true;
 
+	}
+
+	
+
+	private NavigableMap<String, Json> loadDataFromInflux(String table, String qUuid, String path, NavigableMap<String, Json> map) {
+		StringBuffer sql=new StringBuffer();
+		sql.append("select * from "+table);
+		if(StringUtils.isNotBlank(qUuid) && StringUtils.isNotBlank(path))sql.append(" where skey=~/"+path+"/ and uuid=~/"+Util.regexPath(qUuid).toString()+"/");
+		if(StringUtils.isNotBlank(qUuid) && StringUtils.isBlank(path))sql.append(" where uuid=~/"+Util.regexPath(qUuid).toString()+"/");
+		if(StringUtils.isBlank(qUuid) && StringUtils.isNotBlank(path))sql.append(" where skey=~/"+path+"/");
+		sql.append(" group by uuid, primary,skey,owner, grp order by time desc limit 1");
+		if (logger.isDebugEnabled())
+			logger.debug("GET sql : {}", sql);
+		influx.loadData(map, sql.toString(),"signalk");
+		return map;
+	}
+	
+	private NavigableMap<String, Json> loadAllDataFromInflux(NavigableMap<String, Json> map, String table) {
+		StringBuffer sql=new StringBuffer();
+		sql.append("select * from "+table);
+		sql.append(" group by uuid, primary,skey,owner, grp order by time desc limit 1");
+		if (logger.isDebugEnabled())
+			logger.debug("GET sql : {}", sql);
+		influx.loadData(map, sql.toString(),"signalk");
+		return map;
 	}
 
 	

@@ -28,12 +28,20 @@ public class BaseInterceptor {
 		return Util.isDelta(node);
 	}
 	
+	protected boolean isSubscribe(Json node){
+		return Util.isSubscribe(node);
+	}
+	
 	protected boolean isFullFormat(Json node) {
 		return Util.isFullFormat(node);
 	}
 	
-	protected void sendReply(String simpleName, String destination, String formatFull, Json nil, ServerSession s) throws Exception {
-		Util.sendReply(String.class.getSimpleName(),destination,FORMAT_FULL,Json.nil(),s);
+	protected void sendReply(String simpleName, String destination, String formatFull, Json json, ServerSession s) throws Exception {
+		Util.sendReply(String.class.getSimpleName(),destination,formatFull,json,s);
+	}
+	
+	protected void sendReply(String simpleName, String destination, String formatFull, Json json, ServerSession s, String correlation) throws Exception {
+		Util.sendReply(String.class.getSimpleName(),destination,formatFull,json,s,correlation);
 	}
 	
 	protected void saveMap(NavigableMap<String, Json> map) {

@@ -70,6 +70,7 @@ public class Config {
 	public static final String MQTT = "MQTT";
 	public static final String SERIAL = "SERIAL";
 	
+	public static final String AMQ_CORR_ID = "AMQ_CORR_ID";
 	public static final String AMQ_REPLY_Q = "AMQ_REPLY_Q";
 	public static final String JAVA_TYPE = "JAVA_TYPE";
 	public static final String SK_TYPE = "SK_TYPE";

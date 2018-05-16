@@ -1,33 +1,24 @@
 package nz.co.fortytwo.signalk.artemis.server;
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT_DELTA;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.POLICY_FIXED;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
-import java.io.File;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.activemq.artemis.api.core.RoutingType;
-import org.apache.activemq.artemis.api.core.client.ClientConsumer;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
-import org.apache.activemq.artemis.api.core.client.MessageHandler;
-import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jgroups.util.UUID;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import mjson.Json;
-import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
-import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 
 public class SubscribeTest extends BaseServerTest{
 	
@@ -41,38 +32,18 @@ public class SubscribeTest extends BaseServerTest{
 				ClientProducer producer = session.createProducer();	
 				){
 			session.start();
-
-			ClientMessage message = session.createMessage(true);
-			Json msg = getSubscriptionJson("vessels." + SignalKConstants.self, "navigation", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
-			message.getBodyBuffer().writeString(msg.toString());
+			session.createTemporaryQueue("outgoing.reply." + tempQ, RoutingType.MULTICAST, tempQ);
 			
-			session.createTemporaryQueue("outgoing.reply."+tempQ, RoutingType.MULTICAST, tempQ);
-			message.putStringProperty(Config.AMQ_REPLY_Q, tempQ);
-			logger.debug("Sending msg: {}, {} ", producer, message);
-			producer.send(Config.INCOMING_RAW, message);
+			sendSubsribeMsg(session,producer, "vessels." + self, "navigation",tempQ);
 			
-			message = session.createMessage(true);
-			String line = "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78";
-			message.getBodyBuffer().writeString(line);
-			producer.send(Config.INCOMING_RAW, message);
+			sendMessage(session, producer, "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78");
 			
+			List<ClientMessage> replies = listen(session, tempQ, 5);
 			
-			try(ClientConsumer consumer = session.createConsumer(tempQ,false);){
-			
-				consumer.setMessageHandler(new MessageHandler() {
-					
-					@Override
-					public void onMessage(ClientMessage message) {
-						String recv = message.getBodyBuffer().readString();
-						logger.debug("onMessage = " + recv);
-						assertNotNull(recv);
-					}
-				});
-			}
-			CountDownLatch latch = new CountDownLatch(1);
-			latch.await(5, TimeUnit.SECONDS);
 		} 
 	}
+	
+	
 
 	@Test
 	@Ignore
@@ -107,50 +78,23 @@ public class SubscribeTest extends BaseServerTest{
 		try (ClientSession session = Util.getLocalhostClientSession("admin", "admin");
 				ClientProducer producer = session.createProducer();	){
 			session.start();
-			
-			int c = 0;
-//			for (String line : FileUtils.readLines(new File("./src/test/resources/samples/signalkKeesLog.txt"))) {
-//
-//				ClientMessage message = session.createMessage(true);
-//				message.getBodyBuffer().writeString(line);
-//				producer.send(Config.INCOMING_RAW, message);
-//				if (logger.isDebugEnabled())
-//					logger.debug("Sent:" + message.getMessageID() + ":" + line);
-//				c++;
-//
-//			}
-			//subscribe, and wait for some responses, should be 1 per second
-			ClientMessage subMsg = session.createMessage(true);
-			Json msg = getSubscriptionJson("vessels.urn:mrn:imo:mmsi:123456789", "navigation", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
-			subMsg.getBodyBuffer().writeString(msg.toString());
 			String tempQ = UUID.randomUUID().toString();
-			session.createTemporaryQueue("outgoing.reply."+tempQ, RoutingType.MULTICAST, tempQ);
-			subMsg.putStringProperty(Config.AMQ_REPLY_Q, tempQ);
-			producer.send(Config.INCOMING_RAW, subMsg);
+			session.createTemporaryQueue("outgoing.reply." + tempQ, RoutingType.MULTICAST, tempQ);
+			
+			sendSubsribeMsg(session,producer, "vessels." + self, "navigation",tempQ);
+			
+			sendMessage(session, producer, "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78");
 			
 			logger.debug("Subscribe sent");
-			
-			CountDownLatch latch = new CountDownLatch(1);
-			latch.await(5, TimeUnit.SECONDS);
+		
 			logger.debug("Receive started");
-			
-			int d = 0; // now read partial
-			try(ClientConsumer consumer = session.createConsumer(tempQ,false);){
-				ClientMessage msgReceived = null;
-				while ((msgReceived = consumer.receive(100)) != null) {
-					Object recv = Util.readBodyBuffer(msgReceived);
-					if (logger.isDebugEnabled())
-						logger.debug("Client message = " + msgReceived.getAddress() + ", " + recv); //
-					if (logger.isDebugEnabled())
-						logger.debug("Client message = " + msgReceived.toString());
-					d++;
-				}
-			}
-			
-			assertEquals(1000, c);
-			assertEquals(expected, d);
+			List<ClientMessage> replies = listen(session, tempQ, 5);
+			//assertEquals(expected, replies.size());
+			assertTrue(replies.size()>expected);
 		} 
 	}
+
+	
 
 	
 

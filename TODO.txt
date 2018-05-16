@@ -1,26 +1,33 @@
 Done:
-	REST GET/PUT/POST API
 	websockets
-	subscriptions
 	delta
 	full
 	0183
-	n2k (as signalk)
-	security
-	source to srcRef
-	Save self.json
-	serial input
+	AIS
 	TCP
 	UDP
+	source to srcRef
+	serial input
+	subscriptions
+TODO:
+	REST GET/PUT/POST API
+	websockets
+	
+	source to srcRef - full format
+	srcRef back to source
+	
+	n2k (as signalk)
+	security
+	save config 
+	
+	serial output
+	in serial, add TYPE=SERIAL header, add as type in sendMessage.
+	
 	big messages > 200K
 	REST login/auth
-	Input filter
-TODO:
-	srcRef back to source
+
 	convert self back to urn on reply
 	
-	
-	in serial, add TYPE=SERIAL header, add as type in sendMessage.
 	Alarms
 	Resources
 		charts (upload)
@@ -29,14 +36,13 @@ TODO:
 		waypoints
 	
 	Declination
-	Depth
-	Wind
+
 	Git
 	REST LIST
-	N2K conversion
+
 	MQTT
 	STOMP
-	AIS
+	
 	UI
 	log conf
 	

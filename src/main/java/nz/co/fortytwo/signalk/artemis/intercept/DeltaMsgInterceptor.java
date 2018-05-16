@@ -2,6 +2,7 @@ package nz.co.fortytwo.signalk.artemis.intercept;
 
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONFIG;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.GET;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PUT;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
@@ -89,7 +90,7 @@ public class DeltaMsgInterceptor extends BaseInterceptor implements Interceptor 
 				logger.debug("Delta msg: " + node.toString());
 
 			// deal with diff format
-			if (isDelta(node)) {
+			if (isDelta(node) && !node.has(GET)) {
 				try {
 					saveMap(processDelta(node));
 					return true;

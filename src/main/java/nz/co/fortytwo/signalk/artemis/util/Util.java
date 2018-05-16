@@ -1,12 +1,17 @@
 package nz.co.fortytwo.signalk.artemis.util;
 
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.ALL;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONFIG;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT_FULL;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.GET;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.KNOTS_TO_MS;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.LIST;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.MS_TO_KNOTS;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PATH;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PUT;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SUBSCRIBE;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UNSUBSCRIBE;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.aircraft;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.aton;
@@ -40,7 +45,6 @@ import java.util.regex.Pattern;
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ActiveMQPropertyConversionException;
 import org.apache.activemq.artemis.api.core.ICoreMessage;
-import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.api.core.TransportConfiguration;
 import org.apache.activemq.artemis.api.core.client.ActiveMQClient;
@@ -48,7 +52,6 @@ import org.apache.activemq.artemis.api.core.client.ClientConsumer;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
-import org.apache.activemq.artemis.api.core.client.MessageHandler;
 import org.apache.activemq.artemis.api.core.client.ServerLocator;
 import org.apache.activemq.artemis.core.client.impl.ClientMessageImpl;
 import org.apache.activemq.artemis.core.postoffice.RoutingStatus;
@@ -59,8 +62,6 @@ import org.apache.activemq.artemis.core.server.ServerSession;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.atmosphere.cpr.AtmosphereResource;
-import org.jgroups.util.UUID;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
@@ -212,11 +213,18 @@ public class Util {
 			}
 		}
 	}
-
+	
 	public static RoutingStatus sendReply(String type, String destination, String format, Json json, ServerSession s)
+			throws Exception {
+		return sendReply(String.class.getSimpleName(),destination,FORMAT_FULL,Json.nil(),s,null);
+	}
+
+	public static RoutingStatus sendReply(String type, String destination, String format, Json json, ServerSession s,String correlation)
 			throws Exception {
 		ClientMessage txMsg = new ClientMessageImpl((byte) 0, false, 0, System.currentTimeMillis(), (byte) 4, 1024);
 		txMsg.putStringProperty(Config.JAVA_TYPE, type);
+		if(correlation!=null)
+			txMsg.putStringProperty(Config.AMQ_CORR_ID, correlation);
 		txMsg.putStringProperty(Config.AMQ_SUB_DESTINATION, destination);
 		txMsg.putBooleanProperty(Config.SK_SEND_TO_ALL, false);
 		txMsg.putStringProperty(SignalKConstants.FORMAT, format);
@@ -233,63 +241,14 @@ public class Util {
 		return r;
 	}
 
-	public static void readAll(String user, String password, String path, AtmosphereResource resource)
-			throws Exception {
-		String tempQ = UUID.randomUUID().toString();
-
-		try (ClientSession txSession = Util.getVmSession(user, password);
-				ClientProducer producer = txSession.createProducer();) {
-			txSession.start();
-			ClientMessage message = txSession.createMessage(true);
-			txSession.createTemporaryQueue("outgoing.reply." + tempQ, RoutingType.MULTICAST, tempQ);
-			message.putStringProperty(Config.AMQ_REPLY_Q, tempQ);
-			message.getBodyBuffer().writeString(getJsonGetRequest(path).toString());
-			producer.send(Config.INCOMING_RAW, message);
-
-			try (ClientConsumer consumer = txSession.createConsumer(tempQ, false);) {
-
-				consumer.setMessageHandler(new MessageHandler() {
-
-					@Override
-					public void onMessage(ClientMessage message) {
-						String recv = message.getBodyBuffer().readString();
-						logger.debug("onMessage = " + recv);
-						Json json = Json.read(recv);
-
-						// for REST we only send back the sub-node, so find it
-						if (StringUtils.isNotBlank(path) && !path.startsWith(CONFIG))
-							json = Util.findNodeMatch(json, path);
-
-						// if (logger.isDebugEnabled())
-						// logger.debug("json node = " + json.toString());
-						resource.getResponse().setContentType("application/json");
-						resource.getResponse().write(json == null ? "{}" : json.toString());
-						try {
-							consumer.close();
-						} catch (ActiveMQException e) {
-							logger.error(e, e);
-						}
-					}
-				});
-				int c = 0;
-				while (!consumer.isClosed() && c < 1000) {
-					Thread.currentThread();
-					Thread.sleep(10);
-					c++;
-				}
-			}
-
-		} catch (Exception e) {
-			logger.error(e, e);
-			throw e;
-		}
-	}
+	
 
 	public static Json getJsonGetRequest(String path) {
+		path=Util.sanitizePath(path);
 		String ctx = Util.getContext(path);
-		if (StringUtils.isBlank(ctx)) {
-			ctx = vessels + dot + self_str;
-		}
+//		if (StringUtils.isBlank(ctx)) {
+//			ctx = vessels + dot + self_str;
+//		}
 		return getJsonGetRequest(ctx, StringUtils.substringAfter(path, ctx + dot));
 
 	}
@@ -346,20 +305,22 @@ public class Util {
 //
 //	}
 
-	/**
-	 * pad the value to i places, eg 2 >> 02
-	 *
-	 * @param i
-	 * @param valueOf
-	 * @return
-	 */
-	private static String pad(int i, String value) {
-		while (value.length() < i) {
-			value = "0" + value;
-		}
-		return value;
-	}
 
+
+	public static  String sanitizeRoot(String root) {
+		if(StringUtils.isBlank(root)) root = ALL;
+		if(StringUtils.equals(dot,root)) root = ALL;
+		if(StringUtils.equals(".*",root)) root = ALL;
+		if(StringUtils.startsWith(vessels, root))root = vessels;
+		if(StringUtils.startsWith(aircraft, root))root = aircraft;
+		if(StringUtils.startsWith(sar, root))root = sar;
+		if(StringUtils.startsWith(aton, root))root = aton;
+		if(StringUtils.startsWith(CONFIG, root))root = CONFIG;
+		if(StringUtils.startsWith(resources, root))root = resources;
+		if(StringUtils.startsWith(sources, root))root = sources;
+		return root;
+	}
+	
 	public static String sanitizePath(String newPath) {
 		newPath = newPath.replace('/', '.');
 		if (newPath.startsWith(dot)) {
@@ -534,41 +495,38 @@ public class Util {
 
 	public static Pattern regexPath(String newPath) {
 		// regex it
+		if(StringUtils.isBlank(newPath))newPath = "*";
 		String regex = newPath.replaceAll(".", "[$0]").replace("[*]", ".*").replace("[?]", ".");
 		return Pattern.compile(regex);
 	}
 
 	public static String getContext(String path) {
-		// return vessels.*
+		path=path.trim();
+
 		// TODO; robustness for "signalk/api/v1/", and "vessels.*" and
 		// "list/vessels"
+		
 		if (StringUtils.isBlank(path)) {
 			return "";
 		}
-		if (path.equals(resources) || path.startsWith(resources + dot)) {
+		
+		if (path.equals(resources) || path.startsWith(resources + dot) 
+			|| path.equals(sources) || path.startsWith(sources + dot)
+			|| path.equals(CONFIG)
+			||path.equals(vessels)) {
 			return path;
 		}
 
-		if (path.equals(sources) || path.startsWith(sources + dot)) {
-			return path;
-		}
-
-		if (path.equals(CONFIG)) {
-			return path;
-		}
+		
 		if (path.startsWith(CONFIG + dot)) {
 
-			int p1 = path.indexOf(CONFIG) + CONFIG.length() + 1;
-
-			int pos = path.indexOf(".", p1);
+			int pos = path.indexOf(".", CONFIG.length() + 1);
 			if (pos < 0) {
 				return path;
 			}
 			return path.substring(0, pos);
 		}
-		if (path.equals(vessels)) {
-			return path;
-		}
+		
 		if (path.startsWith(vessels + dot) || path.startsWith(LIST + dot + vessels + dot)) {
 			int p1 = path.indexOf(vessels) + vessels.length() + 1;
 
@@ -578,7 +536,7 @@ public class Util {
 			}
 			return path.substring(0, pos);
 		}
-		return "";
+		return path;
 	}
 
 	public static Json getJson(Json parent, String key) {
@@ -680,7 +638,7 @@ public class Util {
 			} else {
 				for (String k : node.asJsonMap().keySet()) {
 					if (Util.regexPath(paths[x]).matcher(k).find())
-						if (x == paths.length - 1) {
+						if (x == paths.length - 1 || !node.isObject()) {
 							return node.at(k);
 						} else {
 							node = node.at(k);
@@ -772,7 +730,14 @@ public class Util {
 	public static boolean isDelta(Json node) {
 		if(node==null)return false;
 		// deal with diff format
-		if (node.has(CONTEXT) && (node.has(UPDATES) || node.has(PUT) || node.has(CONFIG))) return true;
+		if (node.has(CONTEXT) && (node.has(UPDATES) || node.has(PUT) ||node.has(GET) || node.has(CONFIG))) return true;
+		return false;
+	}
+	
+	public static boolean isSubscribe(Json node) {
+		if(node==null)return false;
+		// deal with diff format
+		if (node.has(CONTEXT) && (node.has(SUBSCRIBE) || node.has(UNSUBSCRIBE))) return true;
 		return false;
 	}
 	

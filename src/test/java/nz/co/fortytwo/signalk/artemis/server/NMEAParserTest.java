@@ -25,12 +25,14 @@ public class NMEAParserTest {
 
 	private static Logger logger = LogManager.getLogger(NMEAParserTest.class);
 	
+	@SuppressWarnings("restriction")
 	private NashornScriptEngine engine;
 	private File jsRoot;
 	private boolean rmcClock = false;
 
 	private static ScheduledExecutorService globalScheduledThreadPool = Executors.newScheduledThreadPool(20);
 
+	@SuppressWarnings("restriction")
 	public NMEAParserTest() throws ScriptException {
 		super();
 		NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
