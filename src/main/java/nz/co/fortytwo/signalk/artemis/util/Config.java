@@ -103,26 +103,13 @@ public class Config {
 		return config;
 	}
 
-//	public static void startConfigListener() {
-//		if (listener != null && !listener.isRunning()) {
-//			listener.running=true;
-//			Thread t = new Thread(listener);
-//			t.setDaemon(true);
-//			t.start();
-//			logger.info("Config listener started for user:" + map.get(ADMIN_USER));
-//		}
-//	}
-//
-//	public static void stopConfigListener() {
-//		if (listener != null) {
-//			listener.stop();
-//		}
-//	}
-
 	private Map<String, Json> getMap() {
 		return map;
 	}
 
+	public static void setProperty(String property, Json value){
+		map.put(property, value);
+	}
 	public static Json getDiscoveryMsg(String hostname) {
 
 		Json version = Json.object();
@@ -249,22 +236,6 @@ public class Config {
 		return model;
 	}
 
-//	public static Json load(String fileName) {
-//		File jsonFile = new File(fileName);
-//		logger.info("Checking for previous state: " + jsonFile.getAbsolutePath());
-//		if (jsonFile.exists()) {
-//			try {
-//				Json temp = Json.read(jsonFile.toURI().toURL());
-//				logger.info("   Saved state loaded from " + fileName);
-//				return temp;
-//			} catch (Exception ex) {
-//				logger.error(ex.getMessage());
-//			}
-//		} else {
-//			logger.info("   Saved state not found");
-//		}
-//		return Json.object();
-//	}
 
 	/**
 	 * Save the current state of the signalk config

@@ -26,6 +26,8 @@ import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
 
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class InfluxDbService {
@@ -543,6 +545,8 @@ public class InfluxDbService {
 						.tag("uuid", path[1])
 						.tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)));
 				influxDB.write(addPoint(point, field, value));
+				//also update the config map
+				Config.setProperty(String.join(".", path), Json.make(value));
 				break;
 			case vessels:
 				writeToInflux(path, millis, key, sourceRef, field, attr);
