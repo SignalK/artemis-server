@@ -79,7 +79,7 @@ public class DeltaSourceInterceptor extends BaseInterceptor implements Intercept
 				return true;
 			
 			String srcBus = message.getStringProperty(Config.MSG_SRC_BUS);
-			String msgType = message.getStringProperty(Config.MSG_TYPE);
+			String msgSrcType = message.getStringProperty(Config.MSG_SRC_TYPE);
 			Json node = Util.readBodyBuffer(message);
 			
 			if (logger.isDebugEnabled())
@@ -92,17 +92,17 @@ public class DeltaSourceInterceptor extends BaseInterceptor implements Intercept
 						logger.debug("Converting source in delta: " + node.toString());
 					if(node.has(UPDATES)){
 						node.at(UPDATES).asJsonList().forEach((j) -> {
-							convertSource(j,srcBus, msgType);
+							convertSource(j,srcBus, msgSrcType);
 						});
 					}
 					if(node.has(PUT)){
 						node.at(PUT).asJsonList().forEach((j) -> {
-							convertSource(j,srcBus, msgType);
+							convertSource(j,srcBus, msgSrcType);
 						});
 					}
 					if(node.has(CONFIG)){
 						node.at(CONFIG).asJsonList().forEach((j) -> {
-							convertSource(j,srcBus, msgType);
+							convertSource(j,srcBus, msgSrcType);
 						});
 					}
 					message.getBodyBuffer().clear();

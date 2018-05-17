@@ -41,6 +41,8 @@ public class SessionInterceptor extends BaseInterceptor implements Interceptor {
 			
 			if(msg.getStringProperty(Config.MSG_SRC_BUS)==null)
 				msg.putStringProperty(Config.MSG_SRC_BUS, connection.getRemoteAddress());
+			if(msg.getStringProperty(Config.MSG_SRC_TYPE)==null)
+				msg.putStringProperty(Config.MSG_SRC_TYPE, connection.getClientID());
 			
 			for (ServerSession s : ArtemisServer.getActiveMQServer().getSessions(connection.getID().toString())) {
 				if (s.getConnectionID().equals(connection.getID())) {

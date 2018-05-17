@@ -164,10 +164,20 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 	}
 
 	private Map<String, Object> getHeaders(String wsSession) {
+		String srcIp = socketList.get(wsSession).getHostString();
+		//String localAddress = socketList.get(wsSession).;
 		Map<String, Object> headers = new HashMap<>();
 		headers.put(Config.AMQ_SESSION_ID, wsSession);
-		headers.put(Config.MSG_SRC_IP, socketList.get(wsSession).getHostString());
+		headers.put(Config.MSG_SRC_IP, srcIp);
 		headers.put(Config.MSG_SRC_BUS, "udp." + wsSession.replace('.', '_'));
+		//TODO: fix UDP ip network source
+//		if (logger.isDebugEnabled())
+//			logger.debug("IP: local:" + localAddress + ", remote:" + srcIp);
+//		if (Util.sameNetwork(localAddress, srcIp)) {
+//			headers.put(Config.MSG_TYPE, Config.INTERNAL_IP);
+//		} else {
+//			headers.put(Config.MSG_TYPE, Config.EXTERNAL_IP);
+//		}
 		headers.put(ConfigConstants.OUTPUT_TYPE, outputType);
 		return headers;
 	}

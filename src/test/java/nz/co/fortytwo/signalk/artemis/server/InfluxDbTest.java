@@ -41,7 +41,7 @@ public class InfluxDbTest {
 	private void clearDb(){
 		influx.getInfluxDB().query(new Query("drop measurement vessels", "signalk"));
 		influx.getInfluxDB().query(new Query("drop measurement sources", "signalk"));
-		influx.getInfluxDB().query(new Query("drop measurement config", "signalk"));
+		//influx.getInfluxDB().query(new Query("drop measurement config", "signalk"));
 		influx.getInfluxDB().query(new Query("drop measurement resources", "signalk"));
 	}
 	
@@ -102,7 +102,7 @@ public class InfluxDbTest {
 		//save and flush
 		influx.save(map);
 		//reload
-		rslt = influx.loadData(map,"select * from vessels group by skey,uuid,grp order by time desc limit 1","signalk");
+		rslt = influx.loadData(map,"select * from vessels group by skey,primary, uuid,grp order by time desc limit 1","signalk");
 		compareMaps(map,rslt);
 	}
 	
@@ -271,7 +271,7 @@ public class InfluxDbTest {
 	private NavigableMap<String, Json> loadFromDb() {
 		NavigableMap<String, Json> rslt = new ConcurrentSkipListMap<String, Json>();
 		
-		rslt = influx.loadData(rslt,"select * from vessels group by skey,uuid,sourceRef,owner,grp order by time desc limit 1","signalk");
+		rslt = influx.loadData(rslt,"select * from vessels group by skey,primary, uuid,sourceRef,owner,grp order by time desc limit 1","signalk");
 		rslt = influx.loadSources(rslt,"select * from sources group by skey,uuid,owner,grp order by time desc limit 1","signalk");
 		rslt = influx.loadResources(rslt,"select * from resources group by skey,uuid,owner,grp order by time desc limit 1","signalk");
 		rslt.forEach((t, u) -> logger.debug(t + "=" + u));

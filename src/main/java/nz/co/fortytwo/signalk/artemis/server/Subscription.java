@@ -131,8 +131,8 @@ public class Subscription {
 					NavigableMap<String, Json> rslt = new ConcurrentSkipListMap<String, Json>();
 					//select * from vessels where uuid='urn:mrn:imo:mmsi:209023000' AND skey=~/nav.*cou/ group by skey,uuid,sourceRef,owner,grp order by time desc limit 1
 					if(logger.isDebugEnabled())
-						logger.debug("select * from "+table+" where uuid='"+uuid+"' AND skey=~/"+pattern+"/ group by skey,uuid,sourceRef,owner,grp order by time desc limit 1");
-					influx.loadData(rslt,"select * from "+table+" where uuid='"+uuid+"' AND skey=~/"+pattern+"/ group by skey,uuid,sourceRef,owner,grp order by time desc limit 1","signalk");
+						logger.debug("select * from "+table+" where uuid='"+uuid+"' AND skey=~/"+pattern+"/ group by skey,primary, uuid,sourceRef,owner,grp order by time desc limit 1");
+					influx.loadData(rslt,"select * from "+table+" where uuid='"+uuid+"' AND skey=~/"+pattern+"/ group by skey,primary, uuid,sourceRef,owner,grp order by time desc limit 1","signalk");
 					if(logger.isDebugEnabled())logger.debug("rslt map = "+rslt);
 						
 					if(SignalKConstants.FORMAT_DELTA.equals(format)){

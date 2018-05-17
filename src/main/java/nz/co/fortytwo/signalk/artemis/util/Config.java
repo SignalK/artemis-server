@@ -86,7 +86,7 @@ public class Config {
 	public static final String SK_SEND_TO_ALL = "SK_SEND_TO_ALL";
 	public static final String MSG_SRC_IP = "MSG_SRC_IP";
 	public static final String MSG_SRC_BUS = "MSG_SRC_BUS";
-	public static final String MSG_TYPE = "MSG_TYPE";
+	public static final String MSG_SRC_TYPE = "MSG_SRC_TYPE";
 	public static final Object INTERNAL_IP = "INTERNAL_IP";
 	public static final Object EXTERNAL_IP = "EXTERNAL_IP";
 	public static final String AMQ_SUB_DESTINATION = "AMQ_SUB_DESTINATION";
@@ -249,7 +249,8 @@ public class Config {
 
 	public static String getConfigProperty(String prop) {
 		try {
-			return (String) config.getMap().get(prop).getValue();
+			if(config.getMap().containsKey(prop))
+				return (String) config.getMap().get(prop).getValue();
 		} catch (Exception e) {
 			logger.warn(e.getMessage(), e);
 		}
@@ -263,7 +264,8 @@ public class Config {
 
 	public static Integer getConfigPropertyInt(String prop) {
 		try {
-			return config.getMap().get(prop).asInteger();
+			if(config.getMap().containsKey(prop))
+				return config.getMap().get(prop).asInteger();
 		} catch (Exception e) {
 			logger.warn(e.getMessage(), e);
 		}
@@ -274,7 +276,8 @@ public class Config {
 	public static Double getConfigPropertyDouble(String prop) {
 
 		try {
-			return config.getMap().get(prop).asDouble();
+			if(config.getMap().containsKey(prop))
+				return config.getMap().get(prop).asDouble();
 		} catch (Exception e) {
 			logger.warn(e.getMessage(), e);
 		}
@@ -283,7 +286,8 @@ public class Config {
 
 	public static Boolean getConfigPropertyBoolean(String prop) {
 		try {
-			return config.getMap().get(prop).asBoolean();
+			if(config.getMap().containsKey(prop))
+				return config.getMap().get(prop).asBoolean();
 		} catch (Exception e) {
 			logger.warn(e.getMessage(), e);
 		}

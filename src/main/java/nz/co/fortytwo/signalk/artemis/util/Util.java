@@ -221,6 +221,7 @@ public class Util {
 
 	public static RoutingStatus sendReply(String type, String destination, String format, Json json, ServerSession s,String correlation)
 			throws Exception {
+		if(json==null || json.isNull())json=Json.object();
 		ClientMessage txMsg = new ClientMessageImpl((byte) 0, false, 0, System.currentTimeMillis(), (byte) 4, 1024);
 		txMsg.putStringProperty(Config.JAVA_TYPE, type);
 		if(correlation!=null)
@@ -326,7 +327,7 @@ public class Util {
 		if (newPath.startsWith(dot)) {
 			newPath = newPath.substring(1);
 		}
-		if (newPath.endsWith("*") || newPath.endsWith("?")) {
+		if (newPath.endsWith(".") || newPath.endsWith("*") || newPath.endsWith("?")) {
 			newPath = newPath.substring(0, newPath.length() - 1);
 		}
 
@@ -639,7 +640,7 @@ public class Util {
 				for (String k : node.asJsonMap().keySet()) {
 					if (Util.regexPath(paths[x]).matcher(k).find())
 						if (x == paths.length - 1 || !node.isObject()) {
-							return node.at(k);
+							return node;
 						} else {
 							node = node.at(k);
 						}

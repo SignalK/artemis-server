@@ -123,6 +123,7 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 					NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
 					for(Json p: node.at(GET).asJsonList()){
 						String path = p.at(PATH).asString();
+						path=Util.sanitizePath(path);
 						fullPaths.add(Util.sanitizeRoot(ctx+dot+path));
 						StringBuffer sql=new StringBuffer();
 						path=Util.regexPath(path).toString();
@@ -176,7 +177,8 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 					if (logger.isDebugEnabled())logger.debug("GET json : {}", json);
 					
 					String fullPath = StringUtils.getCommonPrefix(fullPaths.toArray(new String[]{}));
-					fullPath=StringUtils.remove(fullPath,".*");
+					//fullPath=StringUtils.remove(fullPath,".*");
+					//fullPath=StringUtils.removeEnd(fullPath,".");
 					
 					// for REST we only send back the sub-node, so find it
 					if (logger.isDebugEnabled())logger.debug("GET node : {}", fullPath);
@@ -206,7 +208,7 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 		if(StringUtils.isNotBlank(qUuid) && StringUtils.isNotBlank(path))sql.append(" where skey=~/"+path+"/ and uuid=~/"+Util.regexPath(qUuid).toString()+"/");
 		if(StringUtils.isNotBlank(qUuid) && StringUtils.isBlank(path))sql.append(" where uuid=~/"+Util.regexPath(qUuid).toString()+"/");
 		if(StringUtils.isBlank(qUuid) && StringUtils.isNotBlank(path))sql.append(" where skey=~/"+path+"/");
-		sql.append(" group by uuid, primary,skey,owner, grp order by time desc limit 1");
+		sql.append(" group by uuid, primary, skey,owner, grp order by time desc limit 1");
 		if (logger.isDebugEnabled())
 			logger.debug("GET sql : {}", sql);
 		influx.loadData(map, sql.toString(),"signalk");

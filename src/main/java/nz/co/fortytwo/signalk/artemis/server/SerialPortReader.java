@@ -239,6 +239,7 @@ public class SerialPortReader {
 									ClientMessage txMsg = session.createMessage(true);
 									txMsg.getBodyBuffer().writeString(line);
 									txMsg.putStringProperty(SignalKConstants.MSG_SRC_BUS, portName);
+									txMsg.putStringProperty(Config.MSG_SRC_TYPE, Config.SERIAL);
 									producer.send(new SimpleString(Config.INCOMING_RAW), txMsg);
 									if (logger.isDebugEnabled())
 										logger.debug("json = " + line);

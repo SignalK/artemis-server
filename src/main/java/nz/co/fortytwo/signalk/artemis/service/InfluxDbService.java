@@ -158,7 +158,7 @@ public class InfluxDbService {
 					boolean processed = false;
 					//add timestamp and sourceRef
 					if(key.endsWith(".sentence")){
-						
+						logger.debug("sentence: {}",val);
 						//make parent Json
 						String parentKey = StringUtils.substringBeforeLast(key,".");
 						
@@ -170,6 +170,7 @@ public class InfluxDbService {
 					}
 					if(key.contains(".meta.")){
 						//add meta to parent of value
+						logger.debug("meta: {}",val);
 						String parentKey = StringUtils.substringBeforeLast(key,".meta.");
 						String metaKey = StringUtils.substringAfterLast(key,".meta.");
 						
@@ -182,6 +183,7 @@ public class InfluxDbService {
 					}
 					if(key.contains(".values.")){
 						//handle values
+						logger.debug("values: {}",val);
 						String parentKey = StringUtils.substringBeforeLast(key,".values.");
 						String valKey = StringUtils.substringAfterLast(key,".values.");
 						String subkey = StringUtils.substringAfterLast(valKey,".value.");
@@ -202,7 +204,8 @@ public class InfluxDbService {
 						}
 						
 						//add attributes
-						boolean primary = Boolean.valueOf((String)getValue("primary", s, 0));
+						logger.debug("Primary value: {}",tagMap.get("primary"));
+						boolean primary = Boolean.valueOf((String)tagMap.get("primary"));
 						if(primary){
 							extractPrimaryValue(parent,s,subkey,val);
 						}else{
@@ -212,14 +215,21 @@ public class InfluxDbService {
 						processed=true;
 					}
 					if(!processed && (key.endsWith(".value")||key.contains(".value."))){
+						logger.debug("value: {}",val);
 						String subkey = StringUtils.substringAfterLast(key,".value.");
 					
 						key = StringUtils.substringBeforeLast(key,".value");
 						
 						//make parent Json
 						Json parent = getParent(map,key,attr);
-						
-						extractValue(parent,s, subkey, val);
+						logger.debug("Primary value: {}",tagMap.get("primary"));
+						boolean primary = Boolean.valueOf((String)tagMap.get("primary"));
+						if(primary){
+							extractPrimaryValue(parent,s,subkey,val);
+						}else{
+							extractValue(parent,s,subkey, val);
+						}
+						//extractValue(parent,s, subkey, val);
 						
 						map.put(key,parent);
 						processed=true;
@@ -425,15 +435,6 @@ public class InfluxDbService {
 
 	}
 
-//	private void extractValue(Json parent, Series s, String attr, Json val) {
-//		String sr = s.getTags().get("sourceRef");
-//		boolean primary = Boolean.valueOf((String)getValue("primary", s, 0));
-//		if(primary){
-//			extractPrimaryValue(parent,s,attr,val,sr);
-//		}else{
-//			extractValue(parent,s,attr, val,sr);
-//		}
-//	}
 	
 	private void extractPrimaryValue(Json parent, Series s, String subKey, Json val) {
 		String srcref = s.getTags().get("sourceRef");
@@ -461,7 +462,7 @@ public class InfluxDbService {
 		}
 		//if we have a 'values' key, and its primary, copy back into value{} 
 		if(parent.has(values)){
-			Json pValues = Json.object(value,parent.at(value),timestamp,parent.at(timestamp));
+			Json pValues = Json.object(value,parent.at(value).dup(),timestamp,parent.at(timestamp).dup());
 			parent.at(values).set(parent.at(sourceRef).asString(),pValues);
 		}
 		logger.debug("extractPrimaryValueObj: {}",parent);
@@ -507,10 +508,10 @@ public class InfluxDbService {
 	}
 
 
-	protected void saveData(String key, String sourceRef, long millis, Object value, Json attr) {
+	protected void saveData(String key, String sourceRef, long millis, Object val, Json attr) {
 		
-			if(value!=null)
-				logger.debug("save {} : {}",()->value.getClass().getSimpleName(),()->key);
+			if(val!=null)
+				logger.debug("save {} : {}",()->val.getClass().getSimpleName(),()->key);
 			else{
 				logger.debug("save {} : {}",()->null,()->key);
 			}
@@ -518,7 +519,7 @@ public class InfluxDbService {
 			if(self_str.equals(key))return;
 			if(version.equals(key))return;
 			String[] path = StringUtils.split(key, '.');
-			String field = getFieldType(value);
+			String field = getFieldType(val);
 			Builder point = null;
 			switch (path[0]) {	
 			case resources:
@@ -528,7 +529,7 @@ public class InfluxDbService {
 						.tag(SecurityService.OWNER, attr.at(SecurityService.OWNER).asString())
 						.tag(SecurityService.GROUP, attr.at(SecurityService.GROUP).asString())
 						.tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)));
-				influxDB.write(addPoint(point, field, value));
+				influxDB.write(addPoint(point, field, val));
 				break;
 			case sources:
 				point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS)
@@ -536,7 +537,7 @@ public class InfluxDbService {
 						.tag(SecurityService.OWNER, attr.at(SecurityService.OWNER).asString())
 						.tag(SecurityService.GROUP, attr.at(SecurityService.GROUP).asString())
 						.tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)));
-				influxDB.write(addPoint(point, field, value));
+				influxDB.write(addPoint(point, field, val));
 				break;
 			case CONFIG:
 				point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS)
@@ -544,21 +545,21 @@ public class InfluxDbService {
 						.tag(SecurityService.GROUP, attr.at(SecurityService.GROUP).asString())
 						.tag("uuid", path[1])
 						.tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)));
-				influxDB.write(addPoint(point, field, value));
+				influxDB.write(addPoint(point, field, val));
 				//also update the config map
-				Config.setProperty(String.join(".", path), Json.make(value));
+				Config.setProperty(String.join(".", path), Json.make(val));
 				break;
 			case vessels:
-				writeToInflux(path, millis, key, sourceRef, field, attr);
+				writeToInflux(path, millis, key, sourceRef, field, attr,val);
 				break;
 			case aircraft:
-				writeToInflux(path, millis, key, sourceRef, field, attr);
+				writeToInflux(path, millis, key, sourceRef, field, attr,val);
 				break;
 			case sar:
-				writeToInflux(path, millis, key, sourceRef, field, attr);
+				writeToInflux(path, millis, key, sourceRef, field, attr,val);
 				break;
 			case aton:
-				writeToInflux(path, millis, key, sourceRef, field, attr);
+				writeToInflux(path, millis, key, sourceRef, field, attr,val);
 				break;
 			default:
 				break;
@@ -567,7 +568,7 @@ public class InfluxDbService {
 		
 	}
 
-	private void writeToInflux(String[] path, long millis, String key, String sourceRef, String field, Json attr) {
+	private void writeToInflux(String[] path, long millis, String key, String sourceRef, String field, Json attr, Object val) {
 		Boolean primary = isPrimary(key,sourceRef);
 		Builder point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS)
 				.tag("sourceRef", sourceRef)
@@ -576,14 +577,14 @@ public class InfluxDbService {
 				.tag(SecurityService.GROUP, attr.at(SecurityService.GROUP).asString())
 				.tag(InfluxDbService.PRIMARY_VALUE, primary.toString())
 				.tag("skey", String.join(".", ArrayUtils.subarray(path, 2, path.length)));
-		influxDB.write(addPoint(point, field, value));
+		influxDB.write(addPoint(point, field, val));
 		
 	}
 
 	public void loadPrimary(){
 		primaryMap.clear();
 		logger.info("Adding primaryMap");
-		QueryResult result = influxDB.query(new Query("select * from vessels where primary='true' group by skey,uuid,owner,grp,sourceRef,primary order by time desc limit 1",dbName));
+		QueryResult result = influxDB.query(new Query("select * from vessels where primary='true' group by skey,primary,uuid,owner,grp,sourceRef,primary order by time desc limit 1",dbName));
 		if(result==null || result.getResults()==null)return ;
 		result.getResults().forEach((r)-> {
 			if(logger.isTraceEnabled())logger.trace(r);
@@ -606,14 +607,14 @@ public class InfluxDbService {
 		if(mapRef==null){
 			//no result = primary
 			setPrimary(key, sourceRef);
-			logger.debug("isPrimary: {}={} : {}",key,sourceRef, null);
+			logger.debug("isPrimary: {}={} : {}",key,sourceRef, true);
 			return true;
 		}
 		if(StringUtils.equals(sourceRef, mapRef)){
-			logger.debug("isPrimary: {}={} : {}",key,sourceRef, mapRef);
+			logger.debug("isPrimary: {}={} : {}, {}",key,sourceRef, mapRef, true);
 			return true;
 		}
-		logger.debug("isPrimary: {}={} : {}",key,sourceRef, mapRef);
+		logger.debug("isPrimary: {}={} : {}, {}",key,sourceRef, mapRef, false);
 		return false;
 	}
 	

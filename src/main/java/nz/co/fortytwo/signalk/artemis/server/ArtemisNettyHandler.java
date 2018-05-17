@@ -159,9 +159,9 @@ public class ArtemisNettyHandler extends SimpleChannelInboundHandler<String> {
 		if (logger.isDebugEnabled())
 			logger.debug("IP: local:" + localAddress + ", remote:" + remoteAddress);
 		if (Util.sameNetwork(localAddress, remoteAddress)) {
-			headers.put(Config.MSG_TYPE, Config.INTERNAL_IP);
+			headers.put(Config.MSG_SRC_TYPE, Config.INTERNAL_IP);
 		} else {
-			headers.put(Config.MSG_TYPE, Config.EXTERNAL_IP);
+			headers.put(Config.MSG_SRC_TYPE, Config.EXTERNAL_IP);
 		}
 		return headers;
 	}
