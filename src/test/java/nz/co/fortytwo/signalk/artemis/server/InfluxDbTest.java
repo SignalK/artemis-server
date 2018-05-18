@@ -1,6 +1,9 @@
 package nz.co.fortytwo.signalk.artemis.server;
 
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.values;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,6 +22,7 @@ import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.service.SecurityService;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
+import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 
 public class InfluxDbTest {
 
@@ -74,14 +78,24 @@ public class InfluxDbTest {
 	public void shouldSaveFullModelAndReturnLatest() throws IOException {
 		clearDb();
 		// get a sample of signalk
-		NavigableMap<String, Json> map = getJsonMap("./src/test/resources/samples/full/docs-data_model.json");
+		Json json = getJson("./src/test/resources/samples/full/docs-data_model.json");
+		NavigableMap<String, Json> map = getJsonMap(json);
 		SecurityService secure = new SecurityService();
 		secure.addAttributes(map);
 		//save and flush
 		influx.save(map);
 		//reload from db
 		NavigableMap<String, Json> rslt = loadFromDb("urn:mrn:signalk:uuid:705f5f1a-efaf-44aa-9cb8-a0fd6305567c");
-		compareMaps(map,rslt);
+		logger.debug("Map: {}", map);
+		for(String k:map.keySet()){
+			logger.debug("Put Key: {}",k);
+			if(!k.contains(SignalKConstants.nav))continue;
+			assertTrue(k.contains(dot+values+dot));
+		}
+		Json jsonRslt = SignalkMapConvertor.mapToFull(rslt);
+		logger.debug("Json result: {}",jsonRslt);
+		assertEquals(json,jsonRslt );
+		//compareMaps(map,rslt);
 	}
 	
 	@Test
@@ -102,7 +116,15 @@ public class InfluxDbTest {
 		//save and flush
 		influx.save(map);
 		//reload
-		rslt = influx.loadData(map,"select * from vessels group by skey,primary, uuid,grp order by time desc limit 1","signalk");
+		rslt = influx.loadData(map,"select * from vessels group by skey, primary, uuid,grp order by time desc limit 1","signalk");
+		//check for .values.
+		logger.debug("Map: {}", map);
+		for(String k:map.keySet()){
+			logger.debug("Map Key: {}",k);
+			if(!k.contains(SignalKConstants.nav))continue;
+			assertTrue(k.contains(dot+values+dot));
+		}
+		logger.debug(SignalkMapConvertor.mapToFull(map));
 		compareMaps(map,rslt);
 	}
 	
@@ -235,13 +257,22 @@ public class InfluxDbTest {
 	}
 	
 
-	private NavigableMap<String, Json> getJsonMap(String file) throws IOException {
+	private Json getJson(String file) throws IOException {
 		String body = FileUtils.readFileToString(new File(file));
+		Json json = Json.read(body);
+		return json;
+	}
+	private NavigableMap<String, Json> getJsonMap(Json json) throws IOException {
 		//convert to map
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();
-		SignalkMapConvertor.parseFull(Json.read(body), map, "");
+		SignalkMapConvertor.parseFull(json, map, "");
 		map.forEach((t, u) -> logger.debug(t + "=" + u));
 		return map;
+	}
+	private NavigableMap<String, Json> getJsonMap(String file) throws IOException {
+		//convert to map
+		Json json = getJson(file);
+		return getJsonMap(json);
 	}
 	
 	private NavigableMap<String, Json> getJsonDeltaMap(String file) throws Exception {
@@ -271,7 +302,7 @@ public class InfluxDbTest {
 	private NavigableMap<String, Json> loadFromDb() {
 		NavigableMap<String, Json> rslt = new ConcurrentSkipListMap<String, Json>();
 		
-		rslt = influx.loadData(rslt,"select * from vessels group by skey,primary, uuid,sourceRef,owner,grp order by time desc limit 1","signalk");
+		rslt = influx.loadData(rslt,"select * from vessels group by skey, primary, uuid, sourceRef,owner,grp order by time desc limit 1","signalk");
 		rslt = influx.loadSources(rslt,"select * from sources group by skey,uuid,owner,grp order by time desc limit 1","signalk");
 		rslt = influx.loadResources(rslt,"select * from resources group by skey,uuid,owner,grp order by time desc limit 1","signalk");
 		rslt.forEach((t, u) -> logger.debug(t + "=" + u));

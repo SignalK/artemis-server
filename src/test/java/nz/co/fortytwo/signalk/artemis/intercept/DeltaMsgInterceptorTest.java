@@ -21,12 +21,13 @@ import org.junit.Test;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 
 public class DeltaMsgInterceptorTest  extends BaseMsgInterceptorTest {
 
 	private static Logger logger = LogManager.getLogger(DeltaMsgInterceptor.class);
 	private Json update = Json.read("{\"context\":\"vessels.urn:mrn:imo:mmsi:234567890\",\"updates\":[{\"$source\":\"NMEA2000.N2000-01\",\"timestamp\":\"2010-01-07T07:18:44.000Z\",\"values\":[{\"path\":\"propulsion.0.revolutions\",\"value\":16.341667},{\"path\":\"propulsion.0.boostPressure\",\"value\":45500.0}]}]}");
-	private Json put = Json.read("{\"context\":\"vessels.urn:mrn:imo:mmsi:234567890\",\"put\":[{\"$source\":\"NMEA2000.N2000-01\",\"timestamp\":\"2010-01-07T07:18:44.000Z\",\"values\":[{\"path\":\"propulsion.0.boostPressure\",\"value\":45500.0}]}]}");
+	private Json put = Json.read("{\"context\":\"vessels.urn:mrn:imo:mmsi:234567890\",\"put\":[{\"path\":\"propulsion.0.boostPressure\",\"value\":45500.0}]}");
 	private Json config = Json.read("{\"context\":\"vessels.urn:mrn:imo:mmsi:234567890\",\"config\":[{\"$source\":\"NMEA2000.N2000-01\",\"timestamp\":\"2010-01-07T07:18:44.000Z\",\"values\":[{\"path\":\"propulsion.0.boostPressure\",\"value\":45500.0}]}]}");
 	
 	@Rule
@@ -38,7 +39,8 @@ public class DeltaMsgInterceptorTest  extends BaseMsgInterceptorTest {
     @Before
     public void before(){
     	interceptor = partialMockBuilder(DeltaMsgInterceptor.class)
-	    	.addMockedMethod("saveMap").createMock(); 
+	    	.addMockedMethod("saveMap")
+    			.createMock(); 
     }
 	@Test
 	public void shouldProcessUpdate() throws ActiveMQException {
@@ -55,6 +57,23 @@ public class DeltaMsgInterceptorTest  extends BaseMsgInterceptorTest {
 		assertTrue(interceptor.intercept(packet, null));
 		
 		verifyAll();
+	}
+	
+	@Test
+	public void shouldCreateValuesExtension() throws ActiveMQException {
+		
+		NavigableMap<String, Json> map = SignalkMapConvertor.parseDelta(update, new ConcurrentSkipListMap<String,Json>());
+		for(String k:map.keySet()){
+			logger.debug("Update Key: {}",k);
+			assertTrue(k.contains(dot+values+dot));
+		}
+
+		map = SignalkMapConvertor.parseDelta(put, new ConcurrentSkipListMap<String,Json>());
+		for(String k:map.keySet()){
+			logger.debug("Put Key: {}",k);
+			assertTrue(k.contains(dot+values+dot));
+		}
+		
 	}
 	@Test
 	public void shouldProcessPut() throws ActiveMQException {

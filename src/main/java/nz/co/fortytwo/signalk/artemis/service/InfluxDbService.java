@@ -166,6 +166,7 @@ public class InfluxDbService {
 				
 						parent.set(sentence,val);
 						processed=true;
+						return;
 						
 					}
 					if(key.contains(".meta.")){
@@ -180,6 +181,7 @@ public class InfluxDbService {
 						//add attributes
 						addAtPath(parent,"meta."+metaKey, val);
 						processed=true;
+						return;
 					}
 					if(key.contains(".values.")){
 						//handle values
@@ -187,28 +189,28 @@ public class InfluxDbService {
 						String parentKey = StringUtils.substringBeforeLast(key,".values.");
 						String valKey = StringUtils.substringAfterLast(key,".values.");
 						String subkey = StringUtils.substringAfterLast(valKey,".value.");
-						valKey=StringUtils.substringBeforeLast(valKey,".");
 						
 						//make parent Json
 						Json parent = getParent(map,parentKey,attr);
-						
-						Json valuesJson = parent.at(values);
-						if(valuesJson==null){
-							valuesJson = Json.object();
-							parent.set(values,valuesJson);
-						}
-						Json subJson = valuesJson.at(valKey);
-						if(subJson==null){
-							subJson = Json.object();
-							valuesJson.set(valKey,subJson);
-						}
-						
+							
 						//add attributes
 						logger.debug("Primary value: {}",tagMap.get("primary"));
 						boolean primary = Boolean.valueOf((String)tagMap.get("primary"));
 						if(primary){
 							extractPrimaryValue(parent,s,subkey,val);
 						}else{
+							
+							valKey=StringUtils.substringBeforeLast(valKey,".");
+							Json valuesJson = parent.at(values);
+							if(valuesJson==null){
+								valuesJson = Json.object();
+								parent.set(values,valuesJson);
+							}
+							Json subJson = valuesJson.at(valKey);
+							if(subJson==null){
+								subJson = Json.object();
+								valuesJson.set(valKey,subJson);
+							}
 							extractValue(subJson,s,subkey, val);
 						}
 						
@@ -325,10 +327,6 @@ public class InfluxDbService {
 		Json attr = Json.object()
 				.set(SecurityService.OWNER, tagMap.get(SecurityService.OWNER))
 				.set(SecurityService.GROUP, tagMap.get(SecurityService.GROUP));
-//				.set(SecurityService.ROLE_READ, Boolean.valueOf(tagMap.get(SecurityService.ROLE_READ)))
-//				.set(SecurityService.ROLE_WRITE, Boolean.valueOf(tagMap.get(SecurityService.ROLE_WRITE)))
-//				.set(SecurityService.OTHER_READ, Boolean.valueOf(tagMap.get(SecurityService.OTHER_READ)))
-//				.set(SecurityService.OTHER_WRITE, Boolean.valueOf(tagMap.get(SecurityService.OTHER_WRITE)));
 		return attr;
 	}
 

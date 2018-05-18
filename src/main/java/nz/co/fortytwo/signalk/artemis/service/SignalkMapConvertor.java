@@ -48,16 +48,41 @@ public class SignalkMapConvertor {
 		
 		for (Entry<String, Json> entry : json.asJsonMap().entrySet()) {
 			
+			String key = entry.getKey();
+			Json val = entry.getValue();
+			
 			if (logger.isDebugEnabled())
-				logger.debug("Recurse {} = {}",()->entry.getKey(),()->entry.getValue());
-			if (entry.getValue().isPrimitive() 
-					|| entry.getValue().isNull() 
-					|| entry.getValue().isArray() 
-					||entry.getValue().has(value)) {
-				map.put(prefix + entry.getKey(), entry.getValue());
+				logger.debug("Recurse {} = {}",()->key,()->val);
+			
+			if (val.isPrimitive() 
+					|| val.isNull() 
+					|| val.isArray()) {
+				map.put(prefix + key, val);
 				continue;
 			}  
-			parseFull(entry.getValue(), map, prefix + entry.getKey() + ".");
+			if (val.has(value)) {
+				String srcRef=null;
+				if (val.has(sourceRef)) {
+					srcRef=val.at(sourceRef).asString();
+					//e.set(sourceRef, srcRef);
+				}else{
+					srcRef=UNKNOWN;
+					val.set(sourceRef, srcRef);
+				}
+				
+				if (val.has(timestamp)) {
+					if (logger.isDebugEnabled())
+						logger.debug("put timestamp: {}:{}", key, val);
+					val.set(timestamp, val.at(timestamp).asString());
+				}else{
+					val.set(timestamp,Util.getIsoTimeString());
+				}
+				
+					map.put(prefix + key+dot+values+dot+srcRef, val);
+					continue;
+				}  
+		
+			parseFull(val, map, prefix + key + ".");
 		
 		}
 		return map;
@@ -149,7 +174,7 @@ public class SignalkMapConvertor {
 			e.delAt(PATH);
 			if (e.has(value)) {
 				if (logger.isDebugEnabled())
-					logger.debug("put: {}:{}", ctx +  key, e);
+					logger.debug("map.put: {}:{}", ctx +  key, e);
 				temp.put(ctx +  key+dot+values+dot+srcRef, e);
 			}
 		}
@@ -186,12 +211,20 @@ public class SignalkMapConvertor {
 		
 		Json root = Json.object();
 		if(map==null)return root;
-		
+		logger.debug("Map to full: {}",map);
 		root.set(self_str,Json.make(Config.getConfigProperty(ConfigConstants.UUID)));
 		root.set(version,Json.make(Config.getConfigProperty(ConfigConstants.VERSION)));
 		map.entrySet().forEach((entry)->{
 			if(entry.getKey().endsWith(attr))return;
-			Util.setJson(root,entry.getKey(),entry.getValue());
+			
+			Json val = entry.getValue();;
+			String path = StringUtils.substringBefore(entry.getKey(),dot+values+dot);
+			logger.debug("Add key: {}, value: {}",entry.getKey(),val.toString());
+			if(val.isObject() && val.has(sentence)){
+				Util.setJson(root,path+dot+sentence, val.at(sentence).dup());
+				return;
+			}
+			Util.setJson(root,path, val.dup());
 		});
 		return root;
 	}
