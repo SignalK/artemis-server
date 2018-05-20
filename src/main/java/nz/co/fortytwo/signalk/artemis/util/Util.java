@@ -630,7 +630,7 @@ public class Util {
 			if (logger.isDebugEnabled())
 				logger.debug("findNode: {}", paths[x]);
 
-			if (node.has(paths[x])) {
+			if (StringUtils.isNotBlank(paths[x])&&node.has(paths[x])) {
 				if (x == paths.length - 1) {
 					return node.at(paths[x]);
 				} else {
@@ -638,12 +638,13 @@ public class Util {
 				}
 			} else {
 				for (String k : node.asJsonMap().keySet()) {
-					if (Util.regexPath(paths[x]).matcher(k).find())
+					if (StringUtils.isNotBlank(paths[x]) && Util.regexPath(paths[x]).matcher(k).find()){
 						if (x == paths.length - 1 || !node.isObject()) {
 							return node;
 						} else {
 							node = node.at(k);
 						}
+					}
 				}
 			}
 		}

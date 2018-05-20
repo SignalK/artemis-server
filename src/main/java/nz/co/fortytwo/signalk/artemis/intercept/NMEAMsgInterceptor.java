@@ -136,11 +136,11 @@ public class NMEAMsgInterceptor extends BaseInterceptor implements Interceptor {
 					Object result = inv.invokeFunction("parse",bodyStr );
 					
 					if (logger.isDebugEnabled())
-						logger.debug("Processed NMEA:[" + result.toString() + "]");
+						logger.debug("Processed NMEA:[" + result + "]");
 					
 					if(result==null || result.toString().startsWith("Error")){
-						logger.error(bodyStr+","+result.toString());
-						return false;
+						logger.error(bodyStr+","+result);
+						return true;
 					}
 					Json json = Json.read(result.toString());
 					json=json.at("delta");

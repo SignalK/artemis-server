@@ -100,6 +100,7 @@ public class SerialPortReader {
 			this.portFile = new File(portName);
 		}
 		CommPortIdentifier portid = CommPortIdentifier.getPortIdentifier(portName);
+		
 		serialPort = (SerialPort) portid.open("FreeboardSerialReader", 100);
 		
 		serialPort.setSerialPortParams(baudRate, 8, 1, 0);

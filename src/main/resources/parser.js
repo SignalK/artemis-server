@@ -20,9 +20,9 @@ var loadHook = function(hook){
 	//findHooks
 	var subhook = require('./hooks-es5/'+hook);
 	mappings[hook] = subhook
-	print(JSON.stringify(mappings))
+	print('JS:Loading NMEA sentence:'+hook)
 }
-print("Parser instantiated!")
+print("JS:Parser instantiated!")
 
 var parse = function(sentence){
 	var tags = getTagBlock(sentence);
@@ -36,13 +36,13 @@ var parse = function(sentence){
 	  if (typeof tags.timestamp === 'undefined') {
 	    tags.timestamp = new Date().toISOString();
 	  }
-	  print(JSON.stringify(tags))
-	  print (sentence)
+	  //print(JSON.stringify(tags))
+	 // print (sentence)
 	 if (sentence.charCodeAt(sentence.length - 1) == 10) {
     //in case there's a newline
     sentence = sentence.substr(0, sentence.length - 1);
   }
-
+  
   var data = sentence.split('*')[0];
   var dataParts = data.split(',');
   var id = dataParts[0].substr(3, 3).toUpperCase();
@@ -55,6 +55,10 @@ var parse = function(sentence){
     tags.source = tags.source + ':' + id;
   }
   this.session = 0;
+  if(mappings[id]==undefined){
+	  print("JS:NMEA: unsupported sentence "+sentence);
+	  return null;
+  }
   var parser = mappings[id](this, {
     id: id,
     sentence: sentence,
@@ -68,7 +72,7 @@ var parse = function(sentence){
 	    
 	  })
 	  .catch(function (error) {
-		  print('Error:')
+		  print('JS:Error:')
 	  	result= JSON.stringify(error)
 	    
 	  })
