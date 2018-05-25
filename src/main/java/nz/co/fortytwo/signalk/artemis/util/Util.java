@@ -187,31 +187,16 @@ public class Util {
 	}
 
 	public static void sendRawMessage(String user, String password, String content) throws Exception {
-		ClientSession txSession = null;
-		ClientProducer producer = null;
-		try {
+		
+		try (ClientSession txSession = Util.getVmSession(user, password);
+				ClientProducer producer = txSession.createProducer();){
 			// start polling consumer.
-			txSession = Util.getVmSession(user, password);
+			
 			ClientMessage message = txSession.createMessage(false);
 			message.getBodyBuffer().writeString(content);
-			producer = txSession.createProducer();
+			
 			producer.send(Config.INCOMING_RAW, message);
-		} finally {
-			if (producer != null) {
-				try {
-					producer.close();
-				} catch (ActiveMQException e) {
-					logger.error(e);
-				}
-			}
-			if (txSession != null) {
-				try {
-					txSession.close();
-				} catch (ActiveMQException e) {
-					logger.error(e);
-				}
-			}
-		}
+		} 
 	}
 	
 	public static RoutingStatus sendReply(String type, String destination, String format, Json json, ServerSession s)

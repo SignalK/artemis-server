@@ -129,7 +129,7 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 						fullPaths.add(Util.sanitizeRoot(ctx+dot+path));
 						StringBuffer sql=new StringBuffer();
 						path=Util.regexPath(path).toString();
-						Map<String, Object> queryMap = new HashMap<>();
+						Map<String, String> queryMap = new HashMap<>();
 						if(StringUtils.isNotBlank(qUuid))queryMap.put("skey",path);
 						if(StringUtils.isBlank(path))queryMap.put("uuid",Util.regexPath(qUuid).toString());
 						switch (root) {

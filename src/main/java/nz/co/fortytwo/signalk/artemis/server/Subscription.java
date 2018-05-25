@@ -88,7 +88,8 @@ public class Subscription {
 	private long minPeriod;
 	private String format;
 	private String policy;
-	private Pattern pattern = null;
+	private Pattern pathPattern = null;
+	private Pattern uuidPattern = null;
 	private String vesselPath;
 	Set<String> subscribedPaths = new ConcurrentSet<String>();
 	private String routeId;
@@ -98,7 +99,7 @@ public class Subscription {
 	private Timer timer;
 	private String table;
 	private String uuid;
-	private Map<String, Object> map = new HashMap<>();
+	private Map<String, String> map = new HashMap<>();
 	
 	public Subscription(String sessionId, String destination, String user, String password, String path, long period, long minPeriod, String format, String policy) throws Exception {
 		this.sessionId = sessionId;
@@ -107,14 +108,15 @@ public class Subscription {
 		String context = Util.getContext(path);
 		this.table=StringUtils.substringBefore(context,".");
 		this.uuid=StringUtils.substringAfter(context,".");
-		pattern = Util.regexPath(StringUtils.substring(path,context.length()+1));
+		uuidPattern=Util.regexPath(uuid);
+		pathPattern = Util.regexPath(StringUtils.substring(path,context.length()+1));
 		this.period = period;
 		this.minPeriod = minPeriod;
 		this.format = format;
 		this.policy = policy;
 		this.destination=destination;
-		map.put("uuid",uuid);
-		map.put("skey",pattern);
+		map.put("uuid",uuidPattern.toString());
+		map.put("skey",pathPattern.toString());
 		
 		task = new TimerTask() {
 			
@@ -305,7 +307,7 @@ public class Subscription {
 	 * @return
 	 */
 	public boolean isSubscribed(String key) {
-		return pattern.matcher(key).find();
+		return pathPattern.matcher(key).find();
 	}
 
 	public long getMinPeriod() {

@@ -142,8 +142,23 @@
 			<artifactId>influxdb-java</artifactId>
 			<version>2.9</version>
 		</dependency>
-		<!-- serial comms -->
+		<dependency>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-server</artifactId>
+			<version>1.19.4</version>
+		</dependency>
 
+		<dependency>
+			<groupId>com.sun.jersey.contribs</groupId>
+			<artifactId>jersey-multipart</artifactId>
+			<version>1.19.4</version>
+		</dependency>
+<!-- xml BSD -->
+		<dependency>
+			<groupId>dom4j</groupId>
+			<artifactId>dom4j</artifactId>
+			<version>1.6.1</version>
+		</dependency>
 		<!-- jna LGPL, Apache -->
 		<dependency>
 			<groupId>net.java.dev.jna</groupId>

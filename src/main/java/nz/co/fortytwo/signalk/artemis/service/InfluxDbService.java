@@ -72,17 +72,17 @@ public class InfluxDbService implements TDBService {
 	}
 	
 	@Override
-	public NavigableMap<String, Json> loadResources(NavigableMap<String, Json> map, Map<String, Object> query, String db) {
+	public NavigableMap<String, Json> loadResources(NavigableMap<String, Json> map, Map<String, String> query, String db) {
 		//"select * from "+table+" where uuid='"+uuid+"' AND skey=~/"+pattern+"/ group by skey,primary, uuid,sourceRef,owner,grp order by time desc limit 1"
 		String queryStr="select * from resources "+getWhereString(query)+" group by skey,owner,grp order by time desc limit 1";
 		return loadResources(map, queryStr, db);
 	}
 
-	private String getWhereString(Map<String, Object> query) {
+	private String getWhereString(Map<String, String> query) {
 		StringBuilder builder = new StringBuilder();
 		if(query==null || query.size()==0)return "";
 		String joiner=" where ";
-		for(Entry<String, Object> e: query.entrySet()){
+		for(Entry<String, String> e: query.entrySet()){
 			builder.append(joiner+e.getKey()+"=~/"+e.getValue()+"/");
 			joiner=" and ";
 		}
@@ -90,19 +90,19 @@ public class InfluxDbService implements TDBService {
 	}
 
 	@Override
-	public NavigableMap<String, Json> loadConfig(NavigableMap<String, Json> map, Map<String, Object> query, String db) {
+	public NavigableMap<String, Json> loadConfig(NavigableMap<String, Json> map, Map<String, String> query, String db) {
 		String queryStr="select * from config "+getWhereString(query)+" group by skey,owner,grp order by time desc limit 1";
 		return loadConfig(map, queryStr, db);
 	}
 
 	@Override
-	public NavigableMap<String, Json> loadData(NavigableMap<String, Json> map, String table, Map<String, Object> query, String db) {
+	public NavigableMap<String, Json> loadData(NavigableMap<String, Json> map, String table, Map<String, String> query, String db) {
 		String queryStr="select * from "+table+getWhereString(query)+" group by skey,primary, uuid,sourceRef,owner,grp order by time desc limit 1";
 		return loadData(map, queryStr, db);
 	}
 
 	@Override
-	public NavigableMap<String, Json> loadSources(NavigableMap<String, Json> map, Map<String, Object> query,
+	public NavigableMap<String, Json> loadSources(NavigableMap<String, Json> map, Map<String, String> query,
 			String db) {
 		String queryStr="select * from sources "+getWhereString(query)+" group by skey,owner,grp order by time desc limit 1";
 		return loadSources(map, queryStr, db);
@@ -173,6 +173,7 @@ public class InfluxDbService implements TDBService {
 
 	
 	public NavigableMap<String, Json> loadData(NavigableMap<String, Json> map, String queryStr, String db){
+		logger.debug("queryStr: {}",queryStr);
 		Query query = new Query(queryStr, db);
 		QueryResult result = influxDB.query(query);
 		//NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();

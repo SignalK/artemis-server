@@ -11,9 +11,9 @@ public interface TDBService {
 
 	public void closeTDb();
 
-	public NavigableMap<String, Json> loadResources(NavigableMap<String, Json> map, Map<String,Object> query, String db);
+	public NavigableMap<String, Json> loadResources(NavigableMap<String, Json> map, Map<String,String> query, String db);
 
-	public NavigableMap<String, Json> loadConfig(NavigableMap<String, Json> map, Map<String,Object> query, String db);
+	public NavigableMap<String, Json> loadConfig(NavigableMap<String, Json> map, Map<String,String> query, String db);
 
 	/**
 	 * @param map
@@ -22,9 +22,9 @@ public interface TDBService {
 	 * @param db
 	 * @return
 	 */
-	public NavigableMap<String, Json> loadData(NavigableMap<String, Json> map, String table, Map<String,Object> query, String db);
+	public NavigableMap<String, Json> loadData(NavigableMap<String, Json> map, String table, Map<String,String> query, String db);
 
-	public NavigableMap<String, Json> loadSources(NavigableMap<String, Json> map, Map<String,Object> query, String db);
+	public NavigableMap<String, Json> loadSources(NavigableMap<String, Json> map, Map<String,String> query, String db);
 
 	public void save(NavigableMap<String, Json> map);
 

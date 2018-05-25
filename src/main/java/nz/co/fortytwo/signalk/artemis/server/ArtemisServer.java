@@ -16,13 +16,14 @@ package nz.co.fortytwo.signalk.artemis.server;
  * limitations under the License.
  */
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SIGNALK_DISCOVERY;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.TreeMap;
 
 import javax.jmdns.JmmDNS;
 import javax.jmdns.ServiceInfo;
@@ -41,11 +42,16 @@ import org.atmosphere.nettosphere.Nettosphere;
 
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Log4J2LoggerFactory;
+import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.service.SignalkManagedApiService;
+import nz.co.fortytwo.signalk.artemis.service.SignalkManagedChartService;
 import nz.co.fortytwo.signalk.artemis.service.SignalkManagedStreamService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
-import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
-import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
+import nz.co.fortytwo.signalk.artemis.util.Util;
+
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.*;
+
+
 
 /**
  * ActiveMQ Artemis embedded with JMS
@@ -100,22 +106,24 @@ public final class ArtemisServer {
 				//.interceptor(new AuthenticationInterceptor(conf) )
 				.resource(SignalkManagedStreamService.class)
 				.resource(SignalkManagedApiService.class)
+				.resource(SignalkManagedChartService.class)
 				.resource("./signalk-static").build()).build();
 		server.start();
 
-		skServer = new NettyServer(null, ConfigConstants.OUTPUT_TCP);
-		skServer.setTcpPort(Config.getConfigPropertyInt(ConfigConstants.TCP_PORT));
-		skServer.setUdpPort(Config.getConfigPropertyInt(ConfigConstants.UDP_PORT));
+		skServer = new NettyServer(null, OUTPUT_TCP);
+		skServer.setTcpPort(Config.getConfigPropertyInt(TCP_PORT));
+		skServer.setUdpPort(Config.getConfigPropertyInt(UDP_PORT));
 		skServer.run();
 
-		nmeaServer = new NettyServer(null, ConfigConstants.OUTPUT_NMEA);
-		nmeaServer.setTcpPort(Config.getConfigPropertyInt(ConfigConstants.TCP_NMEA_PORT));
-		nmeaServer.setUdpPort(Config.getConfigPropertyInt(ConfigConstants.UDP_NMEA_PORT));
+		nmeaServer = new NettyServer(null, OUTPUT_NMEA);
+		nmeaServer.setTcpPort(Config.getConfigPropertyInt(TCP_NMEA_PORT));
+		nmeaServer.setUdpPort(Config.getConfigPropertyInt(UDP_NMEA_PORT));
 		nmeaServer.run();
 
 		// create a new Camel Main so we can easily start Camel
 		//Main main = new Main();
 		startMdns();
+		reloadCharts();
 	}
 
 
@@ -191,14 +199,14 @@ public final class ArtemisServer {
 			public void run() {
 				jmdns = JmmDNS.Factory.getInstance();
 
-				jmdns.registerServiceType(SignalKConstants._SIGNALK_WS_TCP_LOCAL);
-				jmdns.registerServiceType(SignalKConstants._SIGNALK_HTTP_TCP_LOCAL);
-				ServiceInfo wsInfo = ServiceInfo.create(SignalKConstants._SIGNALK_WS_TCP_LOCAL, "signalk-ws",
-						Config.getConfigPropertyInt(ConfigConstants.WEBSOCKET_PORT), 0, 0, getMdnsTxt());
+				jmdns.registerServiceType(_SIGNALK_WS_TCP_LOCAL);
+				jmdns.registerServiceType(_SIGNALK_HTTP_TCP_LOCAL);
+				ServiceInfo wsInfo = ServiceInfo.create(_SIGNALK_WS_TCP_LOCAL, "signalk-ws",
+						Config.getConfigPropertyInt(WEBSOCKET_PORT), 0, 0, getMdnsTxt());
 				try {
 					jmdns.registerService(wsInfo);
-					ServiceInfo httpInfo = ServiceInfo.create(SignalKConstants._SIGNALK_HTTP_TCP_LOCAL, "signalk-http",
-							Config.getConfigPropertyInt(ConfigConstants.REST_PORT), 0, 0, getMdnsTxt());
+					ServiceInfo httpInfo = ServiceInfo.create(_SIGNALK_HTTP_TCP_LOCAL, "signalk-http",
+							Config.getConfigPropertyInt(REST_PORT), 0, 0, getMdnsTxt());
 					jmdns.registerService(httpInfo);
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -215,10 +223,10 @@ public final class ArtemisServer {
 		Map<String, String> txtSet = new HashMap<String, String>();
 		txtSet.put("path", SIGNALK_DISCOVERY);
 		txtSet.put("server", "signalk-server");
-		txtSet.put("version", Config.getConfigProperty(ConfigConstants.VERSION));
-		txtSet.put("vessel_name", Config.getConfigProperty(ConfigConstants.UUID));
-		txtSet.put("vessel_mmsi", Config.getConfigProperty(ConfigConstants.UUID));
-		txtSet.put("vessel_uuid", Config.getConfigProperty(ConfigConstants.UUID));
+		txtSet.put("version", Config.getConfigProperty(VERSION));
+		txtSet.put("vessel_name", Config.getConfigProperty(UUID));
+		txtSet.put("vessel_mmsi", Config.getConfigProperty(UUID));
+		txtSet.put("vessel_uuid", Config.getConfigProperty(UUID));
 		return txtSet;
 	}
 
@@ -239,6 +247,31 @@ public final class ArtemisServer {
 		context.setConfigLocation(file.toURI());
 		new ArtemisServer();
 
+	}
+	
+	private void reloadCharts() throws Exception {
+		String staticDir = Config.getConfigProperty(STATIC_DIR);
+		if(!staticDir.endsWith("/")){
+			staticDir=staticDir+"/";
+		}
+		
+		File mapDir = new File(staticDir+Config.getConfigProperty(MAP_DIR));
+		logger.debug("Reloading charts from: "+mapDir.getAbsolutePath());
+		if(mapDir==null || !mapDir.exists() || mapDir.listFiles()==null)return;
+		//TreeMap<String, Object> treeMap = new TreeMap<String, Object>(signalkModel.getSubMap("resources.charts"));
+		for(File chart:mapDir.listFiles()){
+			if(chart.isDirectory()){
+				Json chartJson = SignalkManagedChartService.loadChart(chart.getName());
+					logger.debug("Reloading: {}= {}",chart.getName(),chartJson);
+					try {
+						Util.sendRawMessage("admin", "admin",chartJson.toString());
+					} catch (Exception e) {
+						logger.warn(e.getMessage());
+					}
+				
+			}
+		}
+		
 	}
 
 }
