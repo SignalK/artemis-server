@@ -3,6 +3,8 @@ package nz.co.fortytwo.signalk.artemis.intercept;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
@@ -127,39 +129,33 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 						fullPaths.add(Util.sanitizeRoot(ctx+dot+path));
 						StringBuffer sql=new StringBuffer();
 						path=Util.regexPath(path).toString();
+						Map<String, Object> queryMap = new HashMap<>();
+						if(StringUtils.isNotBlank(qUuid))queryMap.put("skey",path);
+						if(StringUtils.isBlank(path))queryMap.put("uuid",Util.regexPath(qUuid).toString());
 						switch (root) {
 						case CONFIG:
-							sql.append("select * from config");
-							if(StringUtils.isNotBlank(path))sql.append(" where skey=~/"+path+"/");
-							sql.append(" group by skey,owner,grp order by time desc limit 1");
-							influx.loadConfig(map, sql.toString(),"signalk");
+							influx.loadConfig(map, queryMap,"signalk");
 							break;
 						case resources:
-							sql.append("select * from resources");
-							if(StringUtils.isNotBlank(path))sql.append(" where skey=~/"+path+"/");
-							sql.append(" group by skey,owner,grp order by time desc limit 1");
-							influx.loadResources(map, sql.toString(),"signalk");
+							influx.loadResources(map, queryMap,"signalk");
 							break;
 						case sources:
-							sql.append("select * from sources");
-							if(StringUtils.isNotBlank(path))sql.append(" where skey=~/"+path+"/");
-							sql.append(" group by skey,owner,grp order by time desc limit 1");
-							influx.loadSources(map, sql.toString(),"signalk");
+						influx.loadSources(map, queryMap,"signalk");
 							break;
 						case vessels:
-							loadDataFromInflux(root,qUuid,path,map);
+							influx.loadData(map, vessels, queryMap,"signalk");
 							break;
 						case aircraft:
-							loadDataFromInflux(root,qUuid,path,map);
+							influx.loadData(map, aircraft, queryMap,"signalk");
 							break;
 						case sar:
-							loadDataFromInflux(root,qUuid,path,map);
+							influx.loadData(map, sar, queryMap,"signalk");
 							break;
 						case aton:
-							loadDataFromInflux(root,qUuid,path,map);
+							influx.loadData(map, aton, queryMap,"signalk");
 							break;
 						case ALL:
-							loadAllDataFromInflux(map,vessels);
+							influx.loadData(map, vessels, null,"signalk");
 							//loadAllDataFromInflux(map,aircraft);
 							//loadAllDataFromInflux(map,sar);
 							//loadAllDataFromInflux(map,aton);
@@ -199,34 +195,5 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 		return true;
 
 	}
-
-	
-
-	private NavigableMap<String, Json> loadDataFromInflux(String table, String qUuid, String path, NavigableMap<String, Json> map) {
-		StringBuffer sql=new StringBuffer();
-		sql.append("select * from "+table);
-		if(StringUtils.isNotBlank(qUuid) && StringUtils.isNotBlank(path))sql.append(" where skey=~/"+path+"/ and uuid=~/"+Util.regexPath(qUuid).toString()+"/");
-		if(StringUtils.isNotBlank(qUuid) && StringUtils.isBlank(path))sql.append(" where uuid=~/"+Util.regexPath(qUuid).toString()+"/");
-		if(StringUtils.isBlank(qUuid) && StringUtils.isNotBlank(path))sql.append(" where skey=~/"+path+"/");
-		sql.append(" group by skey,primary, uuid,sourceRef,owner,grp order by time desc limit 1");
-		if (logger.isDebugEnabled())
-			logger.debug("GET sql : {}", sql);
-		influx.loadData(map, sql.toString(),"signalk");
-		return map;
-	}
-	
-	private NavigableMap<String, Json> loadAllDataFromInflux(NavigableMap<String, Json> map, String table) {
-		StringBuffer sql=new StringBuffer();
-		sql.append("select * from "+table);
-		sql.append(" group by skey,primary, uuid,sourceRef,owner,grp order by time desc limit 1");
-		if (logger.isDebugEnabled())
-			logger.debug("GET sql : {}", sql);
-		influx.loadData(map, sql.toString(),"signalk");
-		return map;
-	}
-
-	
-	
-	
 
 }

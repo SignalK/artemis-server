@@ -30,7 +30,7 @@ import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
-public class InfluxDbService {
+public class InfluxDbService implements TDBService {
 
 	private static final String STR_VALUE = "strValue";
 	private static final String LONG_VALUE = "longValue";
@@ -43,10 +43,14 @@ public class InfluxDbService {
 	public static final ConcurrentSkipListMap<String, String> primaryMap = new ConcurrentSkipListMap<>();
 	
 	public InfluxDbService() {
-		setUpInfluxDb();
+		setUpTDb();
 	}
 
-	public void setUpInfluxDb() {
+	/* (non-Javadoc)
+	 * @see nz.co.fortytwo.signalk.artemis.service.TDBService#setUpInfluxDb()
+	 */
+	@Override
+	public void setUpTDb() {
 		influxDB = InfluxDBFactory.connect("http://localhost:8086", "admin", "admin");
 		if (!influxDB.databaseExists(dbName))
 			influxDB.createDatabase(dbName);
@@ -59,11 +63,50 @@ public class InfluxDbService {
 		loadPrimary();
 	}
 
-	public void closeInfluxDb() {
+	/* (non-Javadoc)
+	 * @see nz.co.fortytwo.signalk.artemis.service.TDBService#closeInfluxDb()
+	 */
+	@Override
+	public void closeTDb() {
 		influxDB.close();
 	}
-
 	
+	@Override
+	public NavigableMap<String, Json> loadResources(NavigableMap<String, Json> map, Map<String, Object> query, String db) {
+		//"select * from "+table+" where uuid='"+uuid+"' AND skey=~/"+pattern+"/ group by skey,primary, uuid,sourceRef,owner,grp order by time desc limit 1"
+		String queryStr="select * from resources "+getWhereString(query)+" group by skey,owner,grp order by time desc limit 1";
+		return loadResources(map, queryStr, db);
+	}
+
+	private String getWhereString(Map<String, Object> query) {
+		StringBuilder builder = new StringBuilder();
+		if(query==null || query.size()==0)return "";
+		String joiner=" where ";
+		for(Entry<String, Object> e: query.entrySet()){
+			builder.append(joiner+e.getKey()+"=~/"+e.getValue()+"/");
+			joiner=" and ";
+		}
+		return builder.toString();
+	}
+
+	@Override
+	public NavigableMap<String, Json> loadConfig(NavigableMap<String, Json> map, Map<String, Object> query, String db) {
+		String queryStr="select * from config "+getWhereString(query)+" group by skey,owner,grp order by time desc limit 1";
+		return loadConfig(map, queryStr, db);
+	}
+
+	@Override
+	public NavigableMap<String, Json> loadData(NavigableMap<String, Json> map, String table, Map<String, Object> query, String db) {
+		String queryStr="select * from "+table+getWhereString(query)+" group by skey,primary, uuid,sourceRef,owner,grp order by time desc limit 1";
+		return loadData(map, queryStr, db);
+	}
+
+	@Override
+	public NavigableMap<String, Json> loadSources(NavigableMap<String, Json> map, Map<String, Object> query,
+			String db) {
+		String queryStr="select * from sources "+getWhereString(query)+" group by skey,owner,grp order by time desc limit 1";
+		return loadSources(map, queryStr, db);
+	}
 	
 	public NavigableMap<String, Json> loadResources(NavigableMap<String, Json> map, String queryStr, String db) {
 		Query query = new Query(queryStr, db);
@@ -102,6 +145,7 @@ public class InfluxDbService {
 		});
 		return map;
 	}
+
 	public NavigableMap<String, Json> loadConfig(NavigableMap<String, Json> map, String queryStr, String db) {
 		Query query = new Query(queryStr, db);
 		QueryResult result = influxDB.query(query);
@@ -128,12 +172,6 @@ public class InfluxDbService {
 	}
 
 	
-	/**
-	 * @param map
-	 * @param queryStr
-	 * @param db
-	 * @return
-	 */
 	public NavigableMap<String, Json> loadData(NavigableMap<String, Json> map, String queryStr, String db){
 		Query query = new Query(queryStr, db);
 		QueryResult result = influxDB.query(query);
@@ -330,12 +368,20 @@ public class InfluxDbService {
 		return attr;
 	}
 
+	/* (non-Javadoc)
+	 * @see nz.co.fortytwo.signalk.artemis.service.TDBService#save(java.util.NavigableMap)
+	 */
+	@Override
 	public void save(NavigableMap<String, Json> map) {
 		logger.debug("Save map:  {}" ,map);
 		map.forEach((k, v) -> save(k, v, map.get(k+"._attr")));
 		influxDB.flush();
 	}
 
+	/* (non-Javadoc)
+	 * @see nz.co.fortytwo.signalk.artemis.service.TDBService#save(java.lang.String, mjson.Json, mjson.Json)
+	 */
+	@Override
 	public void save(String k, Json v, Json attr) {
 		logger.debug("Save json:  {}={}" , k , v);
 		//avoid _attr
@@ -349,6 +395,10 @@ public class InfluxDbService {
 		save(k,v,srcRef, tStamp, attr);
 	}
 	
+	/* (non-Javadoc)
+	 * @see nz.co.fortytwo.signalk.artemis.service.TDBService#save(java.lang.String, mjson.Json, java.lang.String, long, mjson.Json)
+	 */
+	@Override
 	public void save(String k, Json v, String srcRef ,long tStamp, Json attr) {
 		if (v.isPrimitive()|| v.isBoolean()) {
 			
@@ -579,6 +629,10 @@ public class InfluxDbService {
 		
 	}
 
+	/* (non-Javadoc)
+	 * @see nz.co.fortytwo.signalk.artemis.service.TDBService#loadPrimary()
+	 */
+	@Override
 	public void loadPrimary(){
 		primaryMap.clear();
 		logger.info("Adding primaryMap");
@@ -599,6 +653,10 @@ public class InfluxDbService {
 				});
 		});
 	}
+	/* (non-Javadoc)
+	 * @see nz.co.fortytwo.signalk.artemis.service.TDBService#isPrimary(java.lang.String, java.lang.String)
+	 */
+	@Override
 	public Boolean isPrimary(String key, String sourceRef) {
 		String mapRef = primaryMap.get(key);
 		
@@ -616,14 +674,10 @@ public class InfluxDbService {
 		return false;
 	}
 	
-	/**
-	 * Sets the primary key
-	 * Returns true if the keys sourceRef was null or changed, false if the keys sourceRef was unchanged.
-	 * 
-	 * @param key
-	 * @param sourceRef
-	 * @return
+	/* (non-Javadoc)
+	 * @see nz.co.fortytwo.signalk.artemis.service.TDBService#setPrimary(java.lang.String, java.lang.String)
 	 */
+	@Override
 	public Boolean setPrimary(String key, String sourceRef) {
 		logger.debug("setPrimary: {}={}",key,sourceRef);
 		return !StringUtils.equals(sourceRef, primaryMap.put(key,sourceRef));
@@ -679,6 +733,10 @@ public class InfluxDbService {
 		return null;
 	}
 
+	/* (non-Javadoc)
+	 * @see nz.co.fortytwo.signalk.artemis.service.TDBService#close()
+	 */
+	@Override
 	public void close() {
 		influxDB.close();
 	}
@@ -686,4 +744,6 @@ public class InfluxDbService {
 	public InfluxDB getInfluxDB() {
 		return influxDB;
 	}
+
+
 }

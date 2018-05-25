@@ -629,7 +629,7 @@ public class Util {
 		for (int x = 0; x < paths.length; x++) {
 			if (logger.isDebugEnabled())
 				logger.debug("findNode: {}", paths[x]);
-
+			if (StringUtils.isNotBlank(paths[x])&&!node.isObject()) return node;
 			if (StringUtils.isNotBlank(paths[x])&&node.has(paths[x])) {
 				if (x == paths.length - 1) {
 					return node.at(paths[x]);

@@ -26,6 +26,7 @@ import org.apache.logging.log4j.Logger;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.service.SecurityService;
+import nz.co.fortytwo.signalk.artemis.service.TDBService;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.JsonSerializer;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
@@ -45,7 +46,7 @@ public class Config {
 
 //	private static ConfigListener listener;
 	private static NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
-	private static InfluxDbService influx = new InfluxDbService();
+	private static TDBService influx = new InfluxDbService();
 	private static SecurityService security = new SecurityService();
 	private static Config config = null;
 
@@ -220,7 +221,7 @@ public class Config {
 
 	public static NavigableMap<String, Json> loadConfig(NavigableMap<String, Json> model) throws IOException {
 		
-		influx.loadConfig(model,"select * from config group by skey,owner,grp order by time desc limit 1" ,"signalk");
+		influx.loadConfig(model,null ,"signalk");
 		
 		if (map.size()<10) {
 			logger.info("   Saved config not found, creating default");

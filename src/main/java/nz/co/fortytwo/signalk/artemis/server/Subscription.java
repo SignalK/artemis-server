@@ -31,6 +31,7 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.timestamp;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -62,6 +63,7 @@ import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.event.PathEvent;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
+import nz.co.fortytwo.signalk.artemis.service.TDBService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
@@ -78,7 +80,7 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
  */
 public class Subscription {
 	private static Logger logger = LogManager.getLogger(Subscription.class);
-	private static InfluxDbService influx=new InfluxDbService();
+	private static TDBService influx=new InfluxDbService();
 	String sessionId = null;
 	String path = null;
 	long period = -1;
@@ -96,7 +98,8 @@ public class Subscription {
 	private Timer timer;
 	private String table;
 	private String uuid;
-
+	private Map<String, Object> map = new HashMap<>();
+	
 	public Subscription(String sessionId, String destination, String user, String password, String path, long period, long minPeriod, String format, String policy) throws Exception {
 		this.sessionId = sessionId;
 
@@ -110,7 +113,8 @@ public class Subscription {
 		this.format = format;
 		this.policy = policy;
 		this.destination=destination;
-
+		map.put("uuid",uuid);
+		map.put("skey",pattern);
 		
 		task = new TimerTask() {
 			
@@ -130,9 +134,7 @@ public class Subscription {
 					//get a map of the current subs values
 					NavigableMap<String, Json> rslt = new ConcurrentSkipListMap<String, Json>();
 					//select * from vessels where uuid='urn:mrn:imo:mmsi:209023000' AND skey=~/nav.*cou/ group by skey,uuid,sourceRef,owner,grp order by time desc limit 1
-					if(logger.isDebugEnabled())
-						logger.debug("select * from "+table+" where uuid='"+uuid+"' AND skey=~/"+pattern+"/ group by skey,primary, uuid,sourceRef,owner,grp order by time desc limit 1");
-					influx.loadData(rslt,"select * from "+table+" where uuid='"+uuid+"' AND skey=~/"+pattern+"/ group by skey,primary, uuid,sourceRef,owner,grp order by time desc limit 1","signalk");
+					influx.loadData(rslt,table, map,"signalk");
 					if(logger.isDebugEnabled())logger.debug("rslt map = "+rslt);
 						
 					if(SignalKConstants.FORMAT_DELTA.equals(format)){

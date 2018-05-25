@@ -16,12 +16,13 @@ import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.service.SecurityService;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
+import nz.co.fortytwo.signalk.artemis.service.TDBService;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class BaseInterceptor {
 	private static Logger logger = LogManager.getLogger(BaseInterceptor.class);
-	protected static InfluxDbService influx = new InfluxDbService();
+	protected static TDBService influx = new InfluxDbService();
 	protected static SecurityService security = new SecurityService();
 
 	protected boolean isDelta(Json node){
