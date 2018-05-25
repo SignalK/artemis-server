@@ -48,23 +48,32 @@ public class SignalkStreamBroadcaster {
 		producer = session.createProducer();
 		String qName = UUID.randomUUID().toString();
 		tempQ=new SimpleString(qName);
-		session.createTemporaryQueue(new SimpleString("outgoing.reply."+qName), RoutingType.MULTICAST, tempQ);
+		session.createTemporaryQueue(new SimpleString("outgoing.reply."+qName), RoutingType.ANYCAST, tempQ);
 		consumer = session.createConsumer(tempQ, false);
 		consumer.setMessageHandler(new MessageHandler() {
 			
 			@Override
 			public void onMessage(ClientMessage message) {
 				if(logger.isDebugEnabled())logger.debug("Received : "+message);
+				try {
+					message.acknowledge();
+				} catch (ActiveMQException e) {
+					logger.error(e,e);
+				}
 				broadcast(Util.readBodyBuffer(message).toString());
 			}
 		});
 	}
 	
 	public void onClose(AtmosphereResource resource) throws Exception {
+		if(consumer!=null){
+			consumer.close();
+		}
 		if(producer!=null){
 			producer.close();
 		}
 		if(session!=null){
+			session.deleteQueue(tempQ);
 			session.close();
 		}
 		

@@ -109,7 +109,7 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 			if(!sessionList.containsKey(session)){
 				ClientSession txSession = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
 						Config.getConfigProperty(Config.ADMIN_PWD));
-				txSession.createTemporaryQueue(new SimpleString("outgoing.reply." + session), RoutingType.MULTICAST, tempQ);
+				txSession.createTemporaryQueue(new SimpleString("outgoing.reply." + session), RoutingType.ANYCAST, tempQ);
 				txSession.start();
 				sessionList.put(session, txSession);
 				producerList.put(session, txSession.createProducer());

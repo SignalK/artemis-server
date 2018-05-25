@@ -45,5 +45,4 @@ public class SignalkManagedLogListService extends SignalkApiService {
 		}
 	}
 	
-	
 }

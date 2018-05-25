@@ -24,21 +24,23 @@
 		</connectors>
 
 		<acceptors>
-			<acceptor name="in-vm">vm://0?multicastPrefix=multicast://</acceptor>
-			<acceptor name="netty">tcp://localhost:61617?multicastPrefix=multicast://</acceptor>
+			<acceptor name="in-vm">vm://0</acceptor>
+			<acceptor name="netty">tcp://localhost:61617//</acceptor>
 
 		</acceptors>
 		
 		<address-settings>
 			<address-setting match="incoming.#">
-				<last-value-queue>false</last-value-queue>
 				<auto-create-queues>true</auto-create-queues>
+				<default-address-routing-type>ANYCAST</default-address-routing-type>
 				<auto-delete-queues>true</auto-delete-queues>
+				<expiry-delay>1000</expiry-delay>
 			</address-setting>
 			<address-setting match="outgoing.#">
-				<last-value-queue>false</last-value-queue>
 				<auto-create-queues>true</auto-create-queues>
+				<default-address-routing-type>ANYCAST</default-address-routing-type>
 				<auto-delete-queues>true</auto-delete-queues>
+				<expiry-delay>5000</expiry-delay>
 			</address-setting>
 		</address-settings>
 		<queues>

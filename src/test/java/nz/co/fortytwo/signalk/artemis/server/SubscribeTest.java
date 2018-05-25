@@ -32,7 +32,7 @@ public class SubscribeTest extends BaseServerTest{
 				ClientProducer producer = session.createProducer();	
 				){
 			session.start();
-			session.createTemporaryQueue("outgoing.reply." + tempQ, RoutingType.MULTICAST, tempQ);
+			session.createTemporaryQueue("outgoing.reply." + tempQ, RoutingType.ANYCAST, tempQ);
 			
 			sendSubsribeMsg(session,producer, "vessels." + self, "navigation",tempQ);
 			
@@ -79,7 +79,7 @@ public class SubscribeTest extends BaseServerTest{
 				ClientProducer producer = session.createProducer();	){
 			session.start();
 			String tempQ = UUID.randomUUID().toString();
-			session.createTemporaryQueue("outgoing.reply." + tempQ, RoutingType.MULTICAST, tempQ);
+			session.createTemporaryQueue("outgoing.reply." + tempQ, RoutingType.ANYCAST, tempQ);
 			
 			sendSubsribeMsg(session,producer, "vessels." + self, "navigation",tempQ);
 			

@@ -6,12 +6,15 @@ import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
+import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.client.ClientConsumer;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.activemq.artemis.api.core.client.MessageHandler;
+import org.apache.activemq.artemis.api.core.client.SendAcknowledgementHandler;
+import org.apache.activemq.artemis.core.client.impl.ClientProducerImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
@@ -41,14 +44,20 @@ public abstract class SignalkApiService {
 		try{
 		txSession = Util.getVmSession("admin", "admin");
 		producer = txSession.createProducer();
+
 		txSession.start();
-		txSession.createTemporaryQueue("outgoing.reply." + tempQ, RoutingType.MULTICAST, tempQ);
+		txSession.createTemporaryQueue("outgoing.reply." + tempQ, RoutingType.ANYCAST, tempQ);
 		consumer = txSession.createConsumer(tempQ, false);
 		consumer.setMessageHandler(new MessageHandler() {
 
 			@Override
 			public void onMessage(ClientMessage message) {
 				String recv = message.getBodyBuffer().readString();
+				try {
+					message.acknowledge();
+				} catch (ActiveMQException e) {
+					logger.error(e,e);
+				}
 				logger.debug("onMessage = " + recv);
 				Json json = Json.read(recv);
 
@@ -157,7 +166,7 @@ public abstract class SignalkApiService {
 		if(correlation!=null){
 			message.putStringProperty(Config.AMQ_CORR_ID,correlation);
 		}
-		producer = txSession.createProducer();
+		//producer = txSession.createProducer();
 		producer.send(Config.INCOMING_RAW, message);
 		return correlation;
 	}
@@ -202,6 +211,7 @@ public abstract class SignalkApiService {
 		}
 		if(txSession!=null){
 			try{
+				txSession.deleteQueue(tempQ);
 				txSession.close();
 			} catch (ActiveMQException e) {
 				logger.warn(e,e);

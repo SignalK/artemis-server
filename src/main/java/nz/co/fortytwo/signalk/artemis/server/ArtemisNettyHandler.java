@@ -89,7 +89,7 @@ public class ArtemisNettyHandler extends SimpleChannelInboundHandler<String> {
 				Config.getConfigProperty(Config.ADMIN_PWD));
 		rxSession.start();
 		sessionList.put(session, rxSession);
-		rxSession.createTemporaryQueue(new SimpleString("outgoing.reply." + session), RoutingType.MULTICAST, tempQ);
+		rxSession.createTemporaryQueue(new SimpleString("outgoing.reply." + session), RoutingType.ANYCAST, tempQ);
 		if (logger.isDebugEnabled())
 			logger.debug("channelActive, setup headers:" + ctx);
 		// make up headers

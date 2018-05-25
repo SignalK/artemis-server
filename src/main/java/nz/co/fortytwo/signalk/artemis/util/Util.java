@@ -178,12 +178,12 @@ public class Util {
 
 	public static ClientSession getVmSession(String user, String password) throws Exception {
 
-		return inVmLocator.createSessionFactory().createSession(user, password, false, true, true, false, 10);
+		return inVmLocator.createSessionFactory().createSession(user, password, false, true, true, true, 10);
 	}
 
 	public static ClientSession getLocalhostClientSession(String user, String password) throws Exception {
 
-		return nettyLocator.createSessionFactory().createSession(user, password, false, true, true, false, 10);
+		return nettyLocator.createSessionFactory().createSession(user, password, false, true, true, true, 10);
 	}
 
 	public static void sendRawMessage(String user, String password, String content) throws Exception {
@@ -230,7 +230,7 @@ public class Util {
 		txMsg.putBooleanProperty(Config.SK_SEND_TO_ALL, false);
 		txMsg.putStringProperty(SignalKConstants.FORMAT, format);
 		txMsg.putBooleanProperty(SignalKConstants.REPLY, true);
-
+		txMsg.setExpiration(System.currentTimeMillis()+5000);
 		txMsg.getBodyBuffer().writeString(json.toString());
 		if (logger.isDebugEnabled())
 			logger.debug("Msg body = " + json.toString());

@@ -208,7 +208,7 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 		if(StringUtils.isNotBlank(qUuid) && StringUtils.isNotBlank(path))sql.append(" where skey=~/"+path+"/ and uuid=~/"+Util.regexPath(qUuid).toString()+"/");
 		if(StringUtils.isNotBlank(qUuid) && StringUtils.isBlank(path))sql.append(" where uuid=~/"+Util.regexPath(qUuid).toString()+"/");
 		if(StringUtils.isBlank(qUuid) && StringUtils.isNotBlank(path))sql.append(" where skey=~/"+path+"/");
-		sql.append(" group by uuid, primary, skey,owner, grp order by time desc limit 1");
+		sql.append(" group by skey,primary, uuid,sourceRef,owner,grp order by time desc limit 1");
 		if (logger.isDebugEnabled())
 			logger.debug("GET sql : {}", sql);
 		influx.loadData(map, sql.toString(),"signalk");
@@ -218,7 +218,7 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 	private NavigableMap<String, Json> loadAllDataFromInflux(NavigableMap<String, Json> map, String table) {
 		StringBuffer sql=new StringBuffer();
 		sql.append("select * from "+table);
-		sql.append(" group by uuid, primary,skey,owner, grp order by time desc limit 1");
+		sql.append(" group by skey,primary, uuid,sourceRef,owner,grp order by time desc limit 1");
 		if (logger.isDebugEnabled())
 			logger.debug("GET sql : {}", sql);
 		influx.loadData(map, sql.toString(),"signalk");
