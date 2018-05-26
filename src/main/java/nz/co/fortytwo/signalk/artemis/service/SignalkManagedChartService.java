@@ -24,8 +24,6 @@ import javax.ws.rs.core.Response;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
-import org.apache.activemq.artemis.api.core.client.ClientProducer;
-import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,20 +43,42 @@ import nz.co.fortytwo.signalk.artemis.util.ZipUtils;
 
 
 @Path("/signalk/v1/")
-public class SignalkManagedChartService  {
+public class SignalkManagedChartService extends BaseApiService  {
 
 	private static Logger logger = LogManager.getLogger(SignalkManagedChartService.class);
-	private ClientSession txSession;
-	private ClientProducer producer;
-
 	
 	public SignalkManagedChartService() throws Exception {
 		txSession = Util.getVmSession("admin", "admin");
 		producer = txSession.createProducer();
-
+		reloadCharts();
 	}
 
-
+	private void reloadCharts() throws Exception {
+		String staticDir = Config.getConfigProperty(STATIC_DIR);
+		if(!staticDir.endsWith("/")){
+			staticDir=staticDir+"/";
+		}
+		
+		File mapDir = new File(staticDir+Config.getConfigProperty(MAP_DIR));
+		logger.debug("Reloading charts from: "+mapDir.getAbsolutePath());
+		if(mapDir==null || !mapDir.exists() || mapDir.listFiles()==null)return;
+		//TreeMap<String, Object> treeMap = new TreeMap<String, Object>(signalkModel.getSubMap("resources.charts"));
+		//get a list of current charts
+		
+		for(File chart:mapDir.listFiles()){
+			if(chart.isDirectory()){
+				Json chartJson = SignalkManagedChartService.loadChart(chart.getName());
+					logger.debug("Reloading: {}= {}",chart.getName(),chartJson);
+					try {
+						Util.sendRawMessage("admin", "admin",chartJson.toString());
+					} catch (Exception e) {
+						logger.warn(e.getMessage());
+					}
+				
+			}
+		}
+		
+	}
 
 	@POST
 	@Path("/upload")
@@ -104,7 +124,7 @@ public class SignalkManagedChartService  {
 			ZipUtils.unzip(destDir, zipFile);
 			logger.debug("Unzipped file:"+destDir);
 			//now add a reference in resources
-			sendMessage(loadChart(f).toString());
+			sendChartMessage(loadChart(f).toString());
 		}catch(Exception e){
 			logger.error(e.getMessage(),e);
 			throw e;
@@ -176,7 +196,7 @@ public class SignalkManagedChartService  {
 		if(logger.isDebugEnabled())logger.debug("Created new chart msg:"+msg);
 		return msg;
 	}
-	private void sendMessage(String body) throws ActiveMQException {
+	private void sendChartMessage(String body) throws ActiveMQException {
 		ClientMessage message = txSession.createMessage(false);
 		message.getBodyBuffer().writeString(body);
 		//message.putStringProperty(Config.AMQ_REPLY_Q, tempQ);
@@ -186,24 +206,5 @@ public class SignalkManagedChartService  {
 		
 	}
 	
-	@Override
-	protected void finalize() throws Throwable {
-		
-		if(producer!=null){
-			try{
-				producer.close();
-			} catch (ActiveMQException e) {
-				logger.warn(e,e);
-			}
-		}
-		if(txSession!=null){
-			try{
-				txSession.close();
-			} catch (ActiveMQException e) {
-				logger.warn(e,e);
-			}
-		}
-		super.finalize();
-	}
 }
 

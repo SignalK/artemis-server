@@ -347,14 +347,16 @@ public class SignalkMapConvertor {
 							
 							Json val = Json.object(PATH, vKey);
 							
-							if (vJson.has(timestamp)){
-								vJson.delAt(timestamp);
-							}
-							if (vJson.has(sourceRef)){
-								vJson.delAt(sourceRef);
-							}
-							if(vJson.has(value)){
-								val.set(value, vJson.at(value));
+							if (vJson != null && vJson.isObject()){
+								if (vJson.has(timestamp)){
+									vJson.delAt(timestamp);
+								}
+								if (vJson.has(sourceRef)){
+									vJson.delAt(sourceRef);
+								}
+								if(vJson.has(value)){
+									val.set(value, vJson.at(value));
+								}
 							}else{
 								val.set(value, vJson);
 							}

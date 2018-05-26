@@ -17,6 +17,10 @@ import org.atmosphere.cpr.AtmosphereResourceFactory;
 @ManagedService(path = "/signalk/v1/api")
 public class SignalkManagedApiService extends SignalkApiService {
 
+	public SignalkManagedApiService() throws Exception {
+		super();
+	}
+
 	private static Logger logger = LogManager.getLogger(SignalkManagedApiService.class);
 
 	@Inject

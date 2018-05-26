@@ -8,10 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.api.core.RoutingType;
-import org.apache.activemq.artemis.api.core.client.ClientConsumer;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
-import org.apache.activemq.artemis.api.core.client.ClientProducer;
-import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.activemq.artemis.api.core.client.MessageHandler;
 import org.apache.activemq.artemis.api.core.client.SendAcknowledgementHandler;
 import org.apache.activemq.artemis.core.client.impl.ClientProducerImpl;
@@ -23,31 +20,20 @@ import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.cpr.AtmosphereResourceEvent;
 import org.atmosphere.cpr.AtmosphereResourceEventListener;
 import org.atmosphere.cpr.AtmosphereResourceEventListenerAdapter;
-import org.jgroups.util.UUID;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
-public abstract class SignalkApiService {
+public abstract class SignalkApiService extends BaseApiService {
 
-	private static Logger logger = LogManager.getLogger(SignalkApiService.class);
-
-	private ClientSession txSession;
-	private ClientProducer producer;
-	private ClientConsumer consumer;
-	private String tempQ = UUID.randomUUID().toString();
+	
 	private ConcurrentHashMap<String,AtmosphereResource> corrHash = new ConcurrentHashMap<>();
 	
-	public SignalkApiService(){
+	public SignalkApiService() throws Exception{
 		try{
-		txSession = Util.getVmSession("admin", "admin");
-		producer = txSession.createProducer();
 
-		txSession.start();
-		txSession.createTemporaryQueue("outgoing.reply." + tempQ, RoutingType.ANYCAST, tempQ);
-		consumer = txSession.createConsumer(tempQ, false);
 		consumer.setMessageHandler(new MessageHandler() {
 
 			@Override
@@ -82,6 +68,7 @@ public abstract class SignalkApiService {
 		});
 		}catch(Exception e){
 			logger.error(e,e);
+			throw e;
 		}
 	}
 
@@ -156,21 +143,6 @@ public abstract class SignalkApiService {
 		}
 	}
 
-	private String sendMessage(String body) throws ActiveMQException {
-		return sendMessage(body,null);
-	}
-	private String sendMessage(String body, String correlation) throws ActiveMQException {
-		ClientMessage message = txSession.createMessage(false);
-		message.getBodyBuffer().writeString(body);
-		message.putStringProperty(Config.AMQ_REPLY_Q, tempQ);
-		if(correlation!=null){
-			message.putStringProperty(Config.AMQ_CORR_ID,correlation);
-		}
-		//producer = txSession.createProducer();
-		producer.send(Config.INCOMING_RAW, message);
-		return correlation;
-	}
-
 	public void put(AtmosphereResource resource, String path) {
 		String body = resource.getRequest().body().asString();
 		if (logger.isDebugEnabled())
@@ -190,34 +162,6 @@ public abstract class SignalkApiService {
 				logger.error(e1.getMessage(), e1);
 			}
 		}
-	}
-
-
-	@Override
-	protected void finalize() throws Throwable {
-		if(consumer!=null){
-			try {
-				consumer.close();
-			} catch (ActiveMQException e) {
-				logger.warn(e,e);
-			}
-		}
-		if(producer!=null){
-			try{
-				producer.close();
-			} catch (ActiveMQException e) {
-				logger.warn(e,e);
-			}
-		}
-		if(txSession!=null){
-			try{
-				txSession.deleteQueue(tempQ);
-				txSession.close();
-			} catch (ActiveMQException e) {
-				logger.warn(e,e);
-			}
-		}
-		super.finalize();
 	}
 	
 	

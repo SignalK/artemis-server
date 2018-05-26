@@ -74,7 +74,7 @@ public class InfluxDbService implements TDBService {
 	@Override
 	public NavigableMap<String, Json> loadResources(NavigableMap<String, Json> map, Map<String, String> query, String db) {
 		//"select * from "+table+" where uuid='"+uuid+"' AND skey=~/"+pattern+"/ group by skey,primary, uuid,sourceRef,owner,grp order by time desc limit 1"
-		String queryStr="select * from resources "+getWhereString(query)+" group by skey,owner,grp order by time desc limit 1";
+		String queryStr="select * from resources "+getWhereString(query)+" group by skey,primary, uuid,sourceRef,owner,grp order by time desc limit 1";
 		return loadResources(map, queryStr, db);
 	}
 
@@ -125,21 +125,78 @@ public class InfluxDbService implements TDBService {
 				String key = s.getName() + dot + s.getTags().get("skey");
 				Json attr = getAttrJson(tagMap);
 				Json val = getJsonValue(s,0);
-				if((key.endsWith(".value")||key.contains(".value."))){
+				if(key.contains(".values.")){
+					//handle values
+					logger.debug("values: {}",val);
+					String parentKey = StringUtils.substringBeforeLast(key,".values.");
+					String valKey = StringUtils.substringAfterLast(key,".values.");
+					String subkey = StringUtils.substringAfterLast(valKey,".value.");
+					
+					//make parent Json
+					Json parent = getParent(map,parentKey,attr);
+						
+					//add attributes
+					logger.debug("Primary value: {}",tagMap.get("primary"));
+					boolean primary = Boolean.valueOf((String)tagMap.get("primary"));
+					if(primary){
+						extractPrimaryValue(parent,s,subkey,val, false);
+					}else{
+						
+						valKey=StringUtils.substringBeforeLast(valKey,".");
+						Json valuesJson = parent.at(values);
+						if(valuesJson==null){
+							valuesJson = Json.object();
+							parent.set(values,valuesJson);
+						}
+						Json subJson = valuesJson.at(valKey);
+						if(subJson==null){
+							subJson = Json.object();
+							valuesJson.set(valKey,subJson);
+						}
+						extractValue(subJson,s,subkey, val, false);
+					}
+					
+					return;
+				}
+				if( (key.endsWith(".value")||key.contains(".value."))){
+					logger.debug("value: {}",val);
 					String subkey = StringUtils.substringAfterLast(key,".value.");
 				
 					key = StringUtils.substringBeforeLast(key,".value");
 					
 					//make parent Json
 					Json parent = getParent(map,key,attr);
-					
-					extractValue(parent,s, subkey, val);
+					logger.debug("Primary value: {}",tagMap.get("primary"));
+					boolean primary = Boolean.valueOf((String)tagMap.get("primary"));
+					if(primary){
+						extractPrimaryValue(parent,s,subkey,val, false);
+					}else{
+						extractValue(parent,s,subkey, val, false);
+					}
+					//extractValue(parent,s, subkey, val);
 					
 					map.put(key,parent);
-				}else{
-					map.put(key,val);
-					map.put(key+"._attr",attr);
+					return;
 				}
+				
+				map.put(key,val);
+				map.put(key+"._attr",attr);
+				
+//				if((key.endsWith(".value")||key.contains(".value."))){
+//					String subkey = StringUtils.substringAfterLast(key,".value.");
+//				
+//					key = StringUtils.substringBeforeLast(key,".value");
+//					
+//					//make parent Json
+//					Json parent = getParent(map,key,attr);
+//					
+//					extractValue(parent,s, subkey, val);
+//					
+//					map.put(key,parent);
+//				}else{
+//					map.put(key,val);
+//					map.put(key+"._attr",attr);
+//				}
 
 			});
 		});
@@ -236,7 +293,7 @@ public class InfluxDbService implements TDBService {
 						logger.debug("Primary value: {}",tagMap.get("primary"));
 						boolean primary = Boolean.valueOf((String)tagMap.get("primary"));
 						if(primary){
-							extractPrimaryValue(parent,s,subkey,val);
+							extractPrimaryValue(parent,s,subkey,val,true);
 						}else{
 							
 							valKey=StringUtils.substringBeforeLast(valKey,".");
@@ -250,7 +307,7 @@ public class InfluxDbService implements TDBService {
 								subJson = Json.object();
 								valuesJson.set(valKey,subJson);
 							}
-							extractValue(subJson,s,subkey, val);
+							extractValue(subJson,s,subkey, val, true);
 						}
 						
 						processed=true;
@@ -266,9 +323,9 @@ public class InfluxDbService implements TDBService {
 						logger.debug("Primary value: {}",tagMap.get("primary"));
 						boolean primary = Boolean.valueOf((String)tagMap.get("primary"));
 						if(primary){
-							extractPrimaryValue(parent,s,subkey,val);
+							extractPrimaryValue(parent,s,subkey,val,true);
 						}else{
-							extractValue(parent,s,subkey, val);
+							extractValue(parent,s,subkey, val, true);
 						}
 						//extractValue(parent,s, subkey, val);
 						
@@ -485,7 +542,7 @@ public class InfluxDbService implements TDBService {
 	}
 
 	
-	private void extractPrimaryValue(Json parent, Series s, String subKey, Json val) {
+	private void extractPrimaryValue(Json parent, Series s, String subKey, Json val, boolean useValue) {
 		String srcref = s.getTags().get("sourceRef");
 		logger.debug("extractPrimaryValue: {}:{}",s, srcref);
 		
@@ -501,23 +558,38 @@ public class InfluxDbService implements TDBService {
 			node.set(sourceRef, Json.make(srcref));
 		}
 
-		
-		// check if its an object value
-		if (StringUtils.isNotBlank(subKey)) {
-			Json valJson = Util.getJson(parent,value );
-			valJson.set(subKey, val);
-		} else {
-			node.set(value, val);
-		}
-		//if we have a 'values' key, and its primary, copy back into value{} 
-		if(parent.has(values)){
-			Json pValues = Json.object(value,parent.at(value).dup(),timestamp,parent.at(timestamp).dup());
-			parent.at(values).set(parent.at(sourceRef).asString(),pValues);
+		if(useValue){
+			// check if its an object value
+			if (StringUtils.isNotBlank(subKey)) {
+				Json valJson = Util.getJson(parent,value );
+				valJson.set(subKey, val);
+			} else {
+				node.set(value, val);
+			}
+			//if we have a 'values' key, and its primary, copy back into value{} 
+			if(parent.has(values)){
+				Json pValues = Json.object(value,parent.at(value).dup(),timestamp,parent.at(timestamp).dup());
+				parent.at(values).set(parent.at(sourceRef).asString(),pValues);
+			}
+		}else{
+			// check if its an object value
+			if (StringUtils.isNotBlank(subKey)) {
+				parent.set(subKey, val);
+			} else {
+				node.set(value, val);
+			}
+			//if we have a 'values' key, and its primary, copy back into value{} 
+			if(parent.has(values)){
+				Json pValues = parent.dup();
+				parent.delAt(values);
+				parent.delAt(sourceRef);
+				parent.at(values).set(parent.at(sourceRef).asString(),pValues);
+			}
 		}
 		logger.debug("extractPrimaryValueObj: {}",parent);
 	}
 	
-	private void extractValue(Json parent, Series s, String attr, Json val) {
+	private void extractValue(Json parent, Series s, String attr, Json val, boolean useValue) {
 		String srcref = s.getTags().get("sourceRef");
 		logger.debug("extractValue: {}:{}",s, srcref);
 		Json node = parent;
@@ -535,21 +607,42 @@ public class InfluxDbService implements TDBService {
 		}
 			
 		// check if its an object value
-		if (StringUtils.isNotBlank(attr)) {
-			Json valJson = parent.at(value);
-			if (valJson == null) {
-				valJson = Json.object();
-				node.set(value, valJson);
+		if(useValue){
+			if (StringUtils.isNotBlank(attr)) {
+				Json valJson = parent.at(value);
+				if (valJson == null) {
+					valJson = Json.object();
+					node.set(value, valJson);
+				}
+				valJson.set(attr, val);
+			} else {
+				node.set(value, val);
 			}
-			valJson.set(attr, val);
-		} else {
-			node.set(value, val);
-		}
-		if (StringUtils.isNotBlank(srcref)) {
-			//if we have a 'value' copy it into values.srcRef.{} too
-			if(parent.has(value)){
-				Json pValues = Json.object(value,parent.at(value),timestamp,parent.at(timestamp));
-				parent.at(values).set(parent.at(sourceRef).asString(),pValues);
+			if (StringUtils.isNotBlank(srcref)) {
+				//if we have a 'value' copy it into values.srcRef.{} too
+				if(parent.has(value)){
+					Json pValues = Json.object(value,parent.at(value),timestamp,parent.at(timestamp));
+					parent.at(values).set(parent.at(sourceRef).asString(),pValues);
+				}
+			}
+		}else{
+			//TODO: what happens here?
+			if (StringUtils.isNotBlank(attr)) {
+				Json valJson = parent.at(value);
+				if (valJson == null) {
+					valJson = Json.object();
+					node.set(value, valJson);
+				}
+				valJson.set(attr, val);
+			} else {
+				node.set(value, val);
+			}
+			if (StringUtils.isNotBlank(srcref)) {
+				//if we have a 'value' copy it into values.srcRef.{} too
+				if(parent.has(value)){
+					Json pValues = Json.object(value,parent.at(value),timestamp,parent.at(timestamp));
+					parent.at(values).set(parent.at(sourceRef).asString(),pValues);
+				}
 			}
 		}
 		
@@ -577,6 +670,7 @@ public class InfluxDbService implements TDBService {
 						.tag("uuid", path[1])
 						.tag(SecurityService.OWNER, attr.at(SecurityService.OWNER).asString())
 						.tag(SecurityService.GROUP, attr.at(SecurityService.GROUP).asString())
+						.tag(InfluxDbService.PRIMARY_VALUE, isPrimary(key,sourceRef).toString())
 						.tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)));
 				influxDB.write(addPoint(point, field, val));
 				break;

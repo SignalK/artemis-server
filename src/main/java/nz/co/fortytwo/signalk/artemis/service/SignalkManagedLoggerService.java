@@ -17,7 +17,11 @@ import org.atmosphere.config.service.Ready;
 import org.atmosphere.cpr.AtmosphereResource;
 
 @ManagedService(path = "/signalk/v1/logger/config")
-public class SignalkManagedLoggerService extends SignalkApiService {
+public class SignalkManagedLoggerService extends BaseApiService {
+
+	public SignalkManagedLoggerService() throws Exception {
+		super();
+	}
 
 	private static Logger logger = LogManager.getLogger(SignalkManagedLoggerService.class);
 

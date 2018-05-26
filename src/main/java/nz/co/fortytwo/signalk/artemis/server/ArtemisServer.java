@@ -123,7 +123,7 @@ public final class ArtemisServer {
 		// create a new Camel Main so we can easily start Camel
 		//Main main = new Main();
 		startMdns();
-		reloadCharts();
+		//reloadCharts();
 	}
 
 
@@ -249,29 +249,6 @@ public final class ArtemisServer {
 
 	}
 	
-	private void reloadCharts() throws Exception {
-		String staticDir = Config.getConfigProperty(STATIC_DIR);
-		if(!staticDir.endsWith("/")){
-			staticDir=staticDir+"/";
-		}
-		
-		File mapDir = new File(staticDir+Config.getConfigProperty(MAP_DIR));
-		logger.debug("Reloading charts from: "+mapDir.getAbsolutePath());
-		if(mapDir==null || !mapDir.exists() || mapDir.listFiles()==null)return;
-		//TreeMap<String, Object> treeMap = new TreeMap<String, Object>(signalkModel.getSubMap("resources.charts"));
-		for(File chart:mapDir.listFiles()){
-			if(chart.isDirectory()){
-				Json chartJson = SignalkManagedChartService.loadChart(chart.getName());
-					logger.debug("Reloading: {}= {}",chart.getName(),chartJson);
-					try {
-						Util.sendRawMessage("admin", "admin",chartJson.toString());
-					} catch (Exception e) {
-						logger.warn(e.getMessage());
-					}
-				
-			}
-		}
-		
-	}
+	
 
 }
