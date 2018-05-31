@@ -19,12 +19,13 @@ public class SignalkManagedApiService extends SignalkApiService {
 
 	public SignalkManagedApiService() throws Exception {
 		super();
+		logger.debug("SignalkManagedApiService starting..");
 	}
 
 	private static Logger logger = LogManager.getLogger(SignalkManagedApiService.class);
 
-	@Inject
-	private AtmosphereResourceFactory resourceFactory;
+//	@Inject
+//	private AtmosphereResourceFactory resourceFactory;
 
 	@Get
 	public void get(AtmosphereResource resource) {

@@ -59,11 +59,6 @@ public class SignalkManagedChartService extends BaseApiService {
 
 	public SignalkManagedChartService() {
 		logger.info("Startup SignalkManagedChartService");
-		try {
-			reloadCharts();
-		} catch (Exception e) {
-			logger.error(e,e);
-		}
 	}
 
 	@POST

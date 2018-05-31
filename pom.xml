@@ -144,9 +144,8 @@
 			<groupId>org.atmosphere</groupId>
 			<artifactId>atmosphere-jersey</artifactId>
 			<version>${atmosphere-version}</version>
-
 		</dependency>
-
+		
 		<dependency>
 			<groupId>org.influxdb</groupId>
 			<artifactId>influxdb-java</artifactId>
@@ -170,7 +169,13 @@
 			<artifactId>jersey-json</artifactId>
 			<version>${jersey.version}</version>
 		</dependency>
-
+		<!-- https://mvnrepository.com/artifact/com.sun.jersey.contribs/jersey-contribs -->
+		<dependency>
+		    <groupId>com.sun.jersey.contribs</groupId>
+		    <artifactId>jersey-contribs</artifactId>
+		    <version>${jersey.version}</version>
+		    <type>pom</type>
+		</dependency>
 		<!-- xml BSD -->
 		<dependency>
 			<groupId>dom4j</groupId>

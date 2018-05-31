@@ -32,7 +32,6 @@ public class SignalkManagedLoggerService extends BaseApiService {
 		
 		try {
 			//send back the log4j.json
-			String log4j2 = FileUtils.readFileToString(new File("./conf/log4j2.json"));
 			return Response.status(HttpStatus.SC_OK)
 					.entity(FileUtils.readFileToString(new File("./conf/log4j2.json")))
 					.type(MediaType.APPLICATION_JSON).build();
