@@ -30,6 +30,7 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.values;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.version;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InterfaceAddress;
@@ -41,6 +42,8 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.regex.Pattern;
+
+import javax.servlet.ServletInputStream;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ActiveMQPropertyConversionException;
@@ -740,6 +743,18 @@ public class Util {
 				|| node.has(aton))
 			return true;
 		return false;
+	}
+
+	public static String readString(ServletInputStream inputStream, String characterEncoding) throws IOException {
+		try(ByteArrayOutputStream result = new ByteArrayOutputStream();){
+		byte[] buffer = new byte[1024];
+		int length;
+		while ((length = inputStream.read(buffer)) != -1) {
+		    result.write(buffer, 0, length);
+		}
+		// StandardCharsets.UTF_8.name() > JDK 7
+		return result.toString(characterEncoding);
+		}
 	}
 }
 

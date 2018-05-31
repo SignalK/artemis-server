@@ -16,57 +16,44 @@ package nz.co.fortytwo.signalk.artemis.server;
  * limitations under the License.
  */
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.OUTPUT_NMEA;
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.OUTPUT_TCP;
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.REST_PORT;
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.TCP_NMEA_PORT;
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.TCP_PORT;
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.UDP_NMEA_PORT;
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.UDP_PORT;
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.UUID;
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.VERSION;
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.WEBSOCKET_PORT;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SIGNALK_DISCOVERY;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants._SIGNALK_HTTP_TCP_LOCAL;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants._SIGNALK_WS_TCP_LOCAL;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.TreeMap;
 
 import javax.jmdns.JmmDNS;
 import javax.jmdns.ServiceInfo;
 
-import org.apache.activemq.artemis.api.core.ActiveMQException;
-import org.apache.activemq.artemis.api.core.Interceptor;
 import org.apache.activemq.artemis.core.config.impl.SecurityConfiguration;
-import org.apache.activemq.artemis.core.protocol.core.Packet;
-import org.apache.activemq.artemis.core.protocol.core.impl.RemotingConnectionImpl;
 import org.apache.activemq.artemis.core.server.ActiveMQServer;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
-import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
 import org.apache.activemq.artemis.spi.core.security.ActiveMQSecurityManager;
 import org.apache.activemq.artemis.spi.core.security.ActiveMQSecurityManagerImpl;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
-import org.atmosphere.cpr.ApplicationConfig;
-import org.atmosphere.cpr.AtmosphereResource;
-import org.atmosphere.cpr.AtmosphereServlet;
-import org.atmosphere.nettosphere.Handler;
 import org.atmosphere.nettosphere.Nettosphere;
-
-import org.jboss.netty.channel.ChannelEvent;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ChannelUpstreamHandler;
-import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.multipart.DiskFileUpload;
-import org.jboss.netty.handler.codec.http.multipart.FileUpload;
-import org.jboss.netty.handler.codec.http.multipart.HttpPostMultipartRequestDecoder;
 
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Log4J2LoggerFactory;
-import mjson.Json;
-import nz.co.fortytwo.signalk.artemis.service.ManagedApiService;
 import nz.co.fortytwo.signalk.artemis.service.ChartService;
-import nz.co.fortytwo.signalk.artemis.service.SignalkManagedStreamService;
-import nz.co.fortytwo.signalk.artemis.service.TestService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
-import nz.co.fortytwo.signalk.artemis.util.Util;
-
-import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.*;
 
 
 

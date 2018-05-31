@@ -3,33 +3,44 @@ package nz.co.fortytwo.signalk.artemis.service;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SIGNALK_API;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 import org.apache.activemq.artemis.api.core.ActiveMQException;
-import org.apache.activemq.artemis.api.core.Message;
-import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.MessageHandler;
-import org.apache.activemq.artemis.api.core.client.SendAcknowledgementHandler;
-import org.apache.activemq.artemis.core.client.impl.ClientProducerImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.atmosphere.annotation.Broadcast;
+import org.atmosphere.annotation.Suspend;
 import org.atmosphere.cpr.AtmosphereResource;
-import org.atmosphere.cpr.AtmosphereResourceEvent;
-import org.atmosphere.cpr.AtmosphereResourceEventListener;
-import org.atmosphere.cpr.AtmosphereResourceEventListenerAdapter;
+import org.atmosphere.cpr.BroadcasterFactory;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
-public abstract class SignalkApiService extends BaseApiService {
+@Path("/signalk/v1/api")
+public class SignalkApiService extends BaseApiService {
 
 	
-	private ConcurrentHashMap<String,AtmosphereResource> corrHash = new ConcurrentHashMap<>();
+	//private ConcurrentHashMap<String,AtmosphereResource> corrHash = new ConcurrentHashMap<>();
+	
+	@Context 
+	private AtmosphereResource resource;
 	
 	public SignalkApiService() throws Exception{
 		try{
@@ -45,25 +56,26 @@ public abstract class SignalkApiService extends BaseApiService {
 					logger.error(e,e);
 				}
 				logger.debug("onMessage = " + recv);
-				Json json = Json.read(recv);
+				//Json json = Json.read(recv);
 
-				String correlation = message.getStringProperty(Config.AMQ_CORR_ID);
-				if(correlation==null){
-					logger.warn("Message received for REST API request with no correlation");
-					return;
-				}
-				AtmosphereResource resource = corrHash.get(correlation);
-				if (logger.isDebugEnabled()) {
-					logger.debug("Found resource: {}, {}" ,correlation,resource);
-				}
-				if(resource==null ){
-					logger.warn("Message received for closed REST API request");
-					return;
-				}
+//				String correlation = message.getStringProperty(Config.AMQ_CORR_ID);
+//				if(correlation==null){
+//					logger.warn("Message received for REST API request with no correlation");
+//					return;
+//				}
+			//	AtmosphereResource res = corrHash.get(correlation);
+//				if (logger.isDebugEnabled()) {
+//					logger.debug("Found response: {}, {}" ,correlation,res);
+//					logger.debug("Equal? {}", resource.equals(res));
+//				}
+//				if(res==null ){
+//					logger.warn("Message received for closed REST API request");
+//					return;
+//				}
 				
-				resource.getResponse().setContentType("application/json");
-				resource.getResponse().write(json == null ? "{}" : json.toString());
+				resource.write(recv == null ? "{}" : recv);
 				resource.resume();
+				
 			}
 		});
 		}catch(Exception e){
@@ -72,24 +84,53 @@ public abstract class SignalkApiService extends BaseApiService {
 		}
 	}
 
+	@GET
+	@Produces(MediaType.TEXT_PLAIN)
+	@Path("self")
+	public Response getSelf(@Context HttpServletRequest req) throws Exception {
+		String path = req.getPathInfo();
+		if (logger.isDebugEnabled())
+			logger.debug("get :" + path + " for " + req.getRemoteUser());
+		// handle /self
+			return Response.ok().entity("\""+Config.getConfigProperty(ConfigConstants.UUID)+"\"").build();
+
+		}
 	
 	/**
 	 * @param resource
 	 * @param path
 	 * @throws Exception
 	 */
-	public void get(AtmosphereResource resource, String path) throws Exception {
+	@Suspend(contentType = MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@GET
+	public void getAll(@Context HttpServletRequest req) throws Exception {
+		get(null,req);
+	}
+	
+	/**
+	 * @param resource
+	 * @param path
+	 * @throws Exception
+	 */
+	@Suspend(contentType = MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@GET
+	@Path( "{file:[^?]*}")
+	public void get(@Context HttpServletRequest req) throws Exception {
+		String path = req.getPathInfo();
+		get(path,req);
+	}
+	
+	public void get(String path, HttpServletRequest req) throws Exception {
+	
+		path=StringUtils.defaultIfBlank(path,"*");
 		if (logger.isDebugEnabled())
-			logger.debug("get raw:" + path + " for " + resource.getRequest().getRemoteUser());
+			logger.debug("get raw:" + path + " for " + req.getRemoteUser());
 		// handle /self
 		
 		path = StringUtils.removeStart(path,SIGNALK_API);
 		path = StringUtils.removeStart(path,"/");
-		if (path.equals("self")){
-			resource.getResponse().write("\""+Config.getConfigProperty(ConfigConstants.UUID)+"\"");
-			return;
-		}
-		resource.suspend(20000);
 		path = path.replace('/', '.');
 
 		// handle /vessels.* etc
@@ -98,73 +139,59 @@ public abstract class SignalkApiService extends BaseApiService {
 			logger.debug("get path:" + path);
 	
 
-		String user = resource.getRequest().getHeader("X-User");
-		String pass = resource.getRequest().getHeader("X-Pass");
+		String user = req.getHeader("X-User");
+		String pass = req.getHeader("X-Pass");
 		if (logger.isDebugEnabled()) {
 			logger.debug("User:" + user + ":" + pass);
 		}
 		
 		//add resource to correlationHash
 		String correlation = java.util.UUID.randomUUID().toString();
-		resource.addEventListener(new AtmosphereResourceEventListenerAdapter.OnClose() {
-			
-			@Override
-			public void onClose(AtmosphereResourceEvent event) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Remove on close:" + correlation);
-				}
-				corrHash.remove(correlation);
-			}	
-		});
 		
-		corrHash.put(correlation,resource);
+		//corrHash.put(correlation,resource);
 		sendMessage(Util.getJsonGetRequest(path).toString(),correlation);
 		
 	}
 
-
-	public void post(AtmosphereResource resource, String path) {
-		String body = resource.getRequest().body().asString();
-		if (logger.isDebugEnabled())
-			logger.debug("Post:" + body);
-		String user = resource.getRequest().getHeader("X-User");
-		String pass = resource.getRequest().getHeader("X-Pass");
-		if (logger.isDebugEnabled()) {
-			logger.debug("User:" + user + ":" + pass);
-		}
+	@Consumes(MediaType.APPLICATION_JSON)
+	@POST
+	public Response post(@Context HttpServletRequest req) {
 		try {
+			String body = Util.readString(req.getInputStream(),req.getCharacterEncoding());
+			if (logger.isDebugEnabled())
+				logger.debug("Post:" + body);
+			String user = req.getHeader("X-User");
+			String pass = req.getHeader("X-Pass");
+			if (logger.isDebugEnabled()) {
+				logger.debug("User:" + user + ":" + pass);
+			}
+		
 			sendMessage(body);
+			return Response.status(HttpStatus.SC_ACCEPTED).build();
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
-			try {
-				resource.getResponse().sendError(HttpStatus.SC_INTERNAL_SERVER_ERROR);
-			} catch (IOException e1) {
-				logger.error(e1.getMessage(), e1);
-			}
+			return Response.serverError().build();
 		}
 	}
-
-	public void put(AtmosphereResource resource, String path) {
-		String body = resource.getRequest().body().asString();
-		if (logger.isDebugEnabled())
-			logger.debug("Post:" + body);
-		String user = resource.getRequest().getHeader("X-User");
-		String pass = resource.getRequest().getHeader("X-Pass");
-		if (logger.isDebugEnabled()) {
-			logger.debug("User:" + user + ":" + pass);
-		}
+	@Consumes(MediaType.APPLICATION_JSON)
+	@PUT
+	public Response put(@Context HttpServletRequest req) {
 		try {
+			String body = Util.readString(req.getInputStream(),req.getCharacterEncoding());
+			if (logger.isDebugEnabled())
+				logger.debug("Post:" + body);
+			String user = req.getHeader("X-User");
+			String pass = req.getHeader("X-Pass");
+			if (logger.isDebugEnabled()) {
+				logger.debug("User:" + user + ":" + pass);
+			}
+		
 			sendMessage(body);
+			return Response.status(HttpStatus.SC_ACCEPTED).build();
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
-			try {
-				resource.getResponse().sendError(HttpStatus.SC_INTERNAL_SERVER_ERROR);
-			} catch (IOException e1) {
-				logger.error(e1.getMessage(), e1);
-			}
+			return Response.serverError().build();
 		}
 	}
 	
-	
-
 }

@@ -2,6 +2,7 @@ package nz.co.fortytwo.signalk.artemis.service;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 
 import javax.servlet.http.HttpServletRequest;
@@ -32,10 +33,17 @@ public class StaticService extends BaseApiService {
 	private static java.nio.file.Path staticDir = Paths.get(Config.getConfigProperty(ConfigConstants.STATIC_DIR));
 	
 	@GET
-	@Path( "{file:[^?]+?}")
+	public Response get(@Context HttpServletRequest req) {
+		return getResponse("/index.html",req);
+	}
+	@GET
+	@Path( "{file:[^?]*}")
 	public Response getResource(@Context HttpServletRequest req) {
-		try {
 			String targetPath = req.getPathInfo();
+			return getResponse(targetPath,req);
+	}
+	private Response getResponse(String targetPath,HttpServletRequest req){
+		try {
 			if(StringUtils.isBlank(targetPath)|| targetPath.equals("/")){
 				targetPath="/index.html";
 			}
@@ -51,7 +59,11 @@ public class StaticService extends BaseApiService {
 						.type(Files.probeContentType(target))
 						.build();
 			
-		} catch (IOException e) {
+		}catch(NoSuchFileException nsf){
+			logger.warn(nsf.getMessage());
+			return Response.status(HttpStatus.SC_NOT_FOUND).build();
+		}
+		catch (IOException e) {
 			logger.error(e,e);
 			return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).build();
 		}
