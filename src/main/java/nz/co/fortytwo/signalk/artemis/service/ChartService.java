@@ -51,14 +51,14 @@ import nz.co.fortytwo.signalk.artemis.util.ZipUtils;
 
 
 @Path("/signalk/v1/upload")
-public class SignalkManagedChartService extends BaseApiService {
+public class ChartService extends BaseApiService {
 
-	private static Logger logger = LogManager.getLogger(SignalkManagedChartService.class);
+	private static Logger logger = LogManager.getLogger(ChartService.class);
 	//private static boolean reloaded = false;
 	protected static TDBService influx = new InfluxDbService();
 
-	public SignalkManagedChartService() {
-		logger.info("Startup SignalkManagedChartService");
+	public ChartService() {
+		logger.info("Startup ChartService");
 	}
 
 	@POST
@@ -140,7 +140,7 @@ public class SignalkManagedChartService extends BaseApiService {
 					}
 				}
 				if (newChart) {
-					Json chartJson = SignalkManagedChartService.loadChart(chart.getName());
+					Json chartJson = ChartService.loadChart(chart.getName());
 					logger.debug("Reloading: {}= {}", chart.getName(), chartJson);
 					try {
 						Util.sendRawMessage("admin", "admin", chartJson.toString());

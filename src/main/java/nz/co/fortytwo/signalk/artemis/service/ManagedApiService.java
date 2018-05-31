@@ -15,14 +15,14 @@ import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.cpr.AtmosphereResourceFactory;
 
 //@ManagedService(path = "/signalk/v1/api")
-public class SignalkManagedApiService extends SignalkApiService {
+public class ManagedApiService extends SignalkApiService {
 
-	public SignalkManagedApiService() throws Exception {
+	public ManagedApiService() throws Exception {
 		super();
-		logger.debug("SignalkManagedApiService starting..");
+		logger.debug("ManagedApiService starting..");
 	}
 
-	private static Logger logger = LogManager.getLogger(SignalkManagedApiService.class);
+	private static Logger logger = LogManager.getLogger(ManagedApiService.class);
 
 //	@Inject
 //	private AtmosphereResourceFactory resourceFactory;

@@ -15,9 +15,9 @@ import org.apache.logging.log4j.Logger;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 
 @Path("/signalk")
-public class SignalkManagedEndpointService {
+public class SignalkEndpointService {
 
-	private static Logger logger = LogManager.getLogger(SignalkManagedEndpointService.class);
+	private static Logger logger = LogManager.getLogger(SignalkEndpointService.class);
 
 
 	@GET

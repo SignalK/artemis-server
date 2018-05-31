@@ -59,8 +59,8 @@ import org.jboss.netty.handler.codec.http.multipart.HttpPostMultipartRequestDeco
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Log4J2LoggerFactory;
 import mjson.Json;
-import nz.co.fortytwo.signalk.artemis.service.SignalkManagedApiService;
-import nz.co.fortytwo.signalk.artemis.service.SignalkManagedChartService;
+import nz.co.fortytwo.signalk.artemis.service.ManagedApiService;
+import nz.co.fortytwo.signalk.artemis.service.ChartService;
 import nz.co.fortytwo.signalk.artemis.service.SignalkManagedStreamService;
 import nz.co.fortytwo.signalk.artemis.service.TestService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
@@ -110,28 +110,22 @@ public final class ArtemisServer {
 		// start serial manager
 
 		// start a serial port manager
-//		if (serialPortManager == null) {
-//			serialPortManager = new SerialPortManager();
-//		}
-//		new Thread(serialPortManager).start();
+		if (serialPortManager == null) {
+			serialPortManager = new SerialPortManager();
+		}
+		new Thread(serialPortManager).start();
 
 		addShutdownHook(this);
-		
-		//"com.sun.jersey.config.property.packages","nz.co.fortytwo.signalk.artemis.service"
-		//ResourceConfig.PROPERTY_MEDIA_TYPE_MAPPINGS;
 	
 		server = new Nettosphere.Builder().config(
 				new org.atmosphere.nettosphere.Config.Builder()
 						.supportChunking(true)
 						.maxChunkContentLength(1024*1024)
+						.socketKeepAlive(true)
 						//.initParam(ApplicationConfig.PROPERTY_SESSION_SUPPORT, "true")
 						.initParam("jersey.config.server.provider.packages","nz.co.fortytwo.signalk.artemis.service")
 						.initParam("jersey.config.server.provider.classnames","org.glassfish.jersey.media.multipart.MultiPartFeature")
 						//.interceptor(new AuthenticationInterceptor(conf) )
-						//.resource(SignalkManagedStreamService.class)
-						//.resource(SignalkManagedApiService.class)
-						//.resource("./signalk-static")
-						.socketKeepAlive(true)
 						.port(8080)
 						.host("0.0.0.0")
 					.build()
@@ -139,20 +133,18 @@ public final class ArtemisServer {
 		
 		server.start();
 
-//		skServer = new NettyServer(null, OUTPUT_TCP);
-//		skServer.setTcpPort(Config.getConfigPropertyInt(TCP_PORT));
-//		skServer.setUdpPort(Config.getConfigPropertyInt(UDP_PORT));
-//		skServer.run();
-//
-//		nmeaServer = new NettyServer(null, OUTPUT_NMEA);
-//		nmeaServer.setTcpPort(Config.getConfigPropertyInt(TCP_NMEA_PORT));
-//		nmeaServer.setUdpPort(Config.getConfigPropertyInt(UDP_NMEA_PORT));
-//		nmeaServer.run();
+		skServer = new NettyServer(null, OUTPUT_TCP);
+		skServer.setTcpPort(Config.getConfigPropertyInt(TCP_PORT));
+		skServer.setUdpPort(Config.getConfigPropertyInt(UDP_PORT));
+		skServer.run();
 
-		// create a new Camel Main so we can easily start Camel
-		//Main main = new Main();
-//		startMdns();
-		SignalkManagedChartService.reloadCharts();
+		nmeaServer = new NettyServer(null, OUTPUT_NMEA);
+		nmeaServer.setTcpPort(Config.getConfigPropertyInt(TCP_NMEA_PORT));
+		nmeaServer.setUdpPort(Config.getConfigPropertyInt(UDP_NMEA_PORT));
+		nmeaServer.run();
+
+		startMdns();
+		ChartService.reloadCharts();
 	}
 
 

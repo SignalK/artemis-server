@@ -20,14 +20,14 @@ import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 
 
 @Path( "/")
-public class SignalkManagedStaticService extends BaseApiService {
+public class StaticService extends BaseApiService {
 
-	public SignalkManagedStaticService() throws Exception {
+	public StaticService() throws Exception {
 		super();
-		logger.debug("SignalkManagedStaticService starting..");
+		logger.debug("StaticService starting..");
 	}
 
-	private static Logger logger = LogManager.getLogger(SignalkManagedStaticService.class);
+	private static Logger logger = LogManager.getLogger(StaticService.class);
 
 	private static java.nio.file.Path staticDir = Paths.get(Config.getConfigProperty(ConfigConstants.STATIC_DIR));
 	

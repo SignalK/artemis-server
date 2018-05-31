@@ -18,13 +18,13 @@ import org.apache.logging.log4j.Logger;
 
 
 @Path( "/signalk/v1/logger/getLogs")
-public class SignalkManagedGetLogService extends BaseApiService {
+public class GetLogService extends BaseApiService {
 
-	public SignalkManagedGetLogService() throws Exception {
+	public GetLogService() throws Exception {
 		super();
 	}
 
-	private static Logger logger = LogManager.getLogger(SignalkManagedGetLogService.class);
+	private static Logger logger = LogManager.getLogger(GetLogService.class);
 
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)

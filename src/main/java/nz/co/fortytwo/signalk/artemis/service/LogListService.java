@@ -22,13 +22,13 @@ import org.atmosphere.cpr.AtmosphereResource;
 import mjson.Json;
 
 @Path("/signalk/v1/logger/listLogs")
-public class SignalkManagedLogListService extends BaseApiService {
+public class LogListService extends BaseApiService {
 
-	public SignalkManagedLogListService() throws Exception {
+	public LogListService() throws Exception {
 		super();
 	}
 
-	private static Logger logger = LogManager.getLogger(SignalkManagedLogListService.class);
+	private static Logger logger = LogManager.getLogger(LogListService.class);
 
 
 	@GET
