@@ -1,34 +1,36 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
-import java.io.IOException;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
+import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.atmosphere.config.service.Get;
-import org.atmosphere.config.service.ManagedService;
-import org.atmosphere.config.service.Ready;
-import org.atmosphere.cpr.AtmosphereResource;
 
 import nz.co.fortytwo.signalk.artemis.util.Config;
 
-@ManagedService(path = "/signalk")
+@Path("/signalk")
 public class SignalkManagedEndpointService {
 
 	private static Logger logger = LogManager.getLogger(SignalkManagedEndpointService.class);
 
-	@Ready
-	public void onReady(final AtmosphereResource r) {
-		if(logger.isDebugEnabled())logger.debug("onReady:"+r);
-	}
 
-	@Get
-	public void onMessage(AtmosphereResource resource) {
-		if(logger.isDebugEnabled())logger.debug("onMessage:"+resource);
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response onGet(@Context HttpServletRequest req) {
 		try {
-			// Here we need to find the suspended AtmosphereResource
-			resource.getResponse().getWriter().write(Config.getDiscoveryMsg(resource.getRequest().getLocalName()).toString());
-		} catch (IOException e) {
-			e.printStackTrace();
+			return Response.status(HttpStatus.SC_OK)
+			.entity(Config.getDiscoveryMsg(req.getLocalName()).toString())
+			.type(MediaType.APPLICATION_JSON).build();
+			
+		} catch (Exception e) {
+			logger.error(e,e);
+			return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).build();
 		}
 	}
 

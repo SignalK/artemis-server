@@ -74,7 +74,7 @@ public class InfluxDbService implements TDBService {
 	@Override
 	public NavigableMap<String, Json> loadResources(NavigableMap<String, Json> map, Map<String, String> query, String db) {
 		//"select * from "+table+" where uuid='"+uuid+"' AND skey=~/"+pattern+"/ group by skey,primary, uuid,sourceRef,owner,grp order by time desc limit 1"
-		String queryStr="select * from resources "+getWhereString(query)+" group by skey,primary, uuid,sourceRef,owner,grp order by time desc limit 1";
+		String queryStr="select * from resources "+getWhereString(query)+" group by skey, primary, uuid,sourceRef,owner,grp order by time desc limit 1";
 		return loadResources(map, queryStr, db);
 	}
 
@@ -182,22 +182,6 @@ public class InfluxDbService implements TDBService {
 				map.put(key,val);
 				map.put(key+"._attr",attr);
 				
-//				if((key.endsWith(".value")||key.contains(".value."))){
-//					String subkey = StringUtils.substringAfterLast(key,".value.");
-//				
-//					key = StringUtils.substringBeforeLast(key,".value");
-//					
-//					//make parent Json
-//					Json parent = getParent(map,key,attr);
-//					
-//					extractValue(parent,s, subkey, val);
-//					
-//					map.put(key,parent);
-//				}else{
-//					map.put(key,val);
-//					map.put(key+"._attr",attr);
-//				}
-
 			});
 		});
 		return map;

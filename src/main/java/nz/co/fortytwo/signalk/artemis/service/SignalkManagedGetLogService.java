@@ -3,17 +3,21 @@ package nz.co.fortytwo.signalk.artemis.service;
 import java.io.File;
 import java.io.IOException;
 
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.atmosphere.config.service.Get;
-import org.atmosphere.config.service.ManagedService;
-import org.atmosphere.config.service.Ready;
-import org.atmosphere.cpr.AtmosphereResource;
 
-@ManagedService(path = "/signalk/v1/logger/getLogs")
+
+@Path( "/signalk/v1/logger/getLogs")
 public class SignalkManagedGetLogService extends BaseApiService {
 
 	public SignalkManagedGetLogService() throws Exception {
@@ -22,45 +26,44 @@ public class SignalkManagedGetLogService extends BaseApiService {
 
 	private static Logger logger = LogManager.getLogger(SignalkManagedGetLogService.class);
 
-	@Ready
-	public void onReady(final AtmosphereResource r) {
-		if(logger.isDebugEnabled())logger.debug("onReady:"+r);
-	}
-
-	@Get
-	public void onMessage(AtmosphereResource resource) {
-		if(logger.isDebugEnabled())logger.debug("onMessage:"+resource);
+	@GET
+	@Produces(MediaType.TEXT_PLAIN)
+	public Response getLog(
+			@QueryParam("logFile")String logFile, 
+			@QueryParam("logDir")String logDir) {
+		
 		try {
-			logger.debug("getLog: request: {}", resource.getRequest());
-			logger.debug("getLog: request: {}", resource.getRequest().getParameterMap());
-			logger.debug("getLog: request: {}", resource.getRequest().getAttributeNames());
-			String[] logFile = resource.getRequest().queryStringsMap().get("logFile");
-			String[] logDir = resource.getRequest().queryStringsMap().get("logDir");
+			
 			//String logFile = resource.getRequest().getParameter("logFile");
-			if(logFile[0].contains("/")){
-				logFile[0]=logFile[0].substring(logFile[0].lastIndexOf("/")+1, logFile[0].length());
+			
+			if(logFile.contains("/")){
+				logFile=StringUtils.substringAfterLast(logFile,"/");
 			}
-			if(StringUtils.isBlank(logFile[0])){
-				resource.getResponse().sendError(HttpStatus.SC_BAD_REQUEST);
+			if(StringUtils.isBlank(logFile)){
+				return Response.status(HttpStatus.SC_BAD_REQUEST).build();
 			}
 			File dir;
-			if(StringUtils.isBlank(logDir[0])){
-				dir = new File("signalk-static/logs/"+logFile[0]);
+			if(StringUtils.isBlank(logDir)){
+				dir = new File("signalk-static/logs/"+logFile);
 			}else{
-				dir = new File("signalk-static/logs/"+logDir+"/"+logFile[0]);
+				dir = new File("signalk-static/logs/"+logDir+"/"+logFile);
 			}
-			if(logFile[0].endsWith(".log")){
-				resource.getResponse().setContentType("text/plain");
-				resource.getResponse().getWriter().write(FileUtils.readFileToString(dir));
+			if(logFile.endsWith(".log")){
+				return Response.status(HttpStatus.SC_OK)
+						.entity(FileUtils.readFileToString(dir))
+						.type(MediaType.TEXT_PLAIN).build();
 			}
-			if(logFile[0].endsWith(".gz")){
-				resource.getResponse().setContentType("application/gzip");
-				resource.getResponse().write(FileUtils.readFileToByteArray(dir));
+			if(logFile.endsWith(".gz")){
+				return Response.status(HttpStatus.SC_OK)
+						.entity(FileUtils.readFileToByteArray(dir))
+						.type("application/gzip").build();
 			}
 			
 		} catch (IOException e) {
 			logger.error(e,e);
+			return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).build();
 		}
+		return Response.status(HttpStatus.SC_NOT_FOUND).build();
 	}
 	
 	

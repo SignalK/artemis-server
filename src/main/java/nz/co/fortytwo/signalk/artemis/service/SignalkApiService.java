@@ -89,6 +89,7 @@ public abstract class SignalkApiService extends BaseApiService {
 			resource.getResponse().write("\""+Config.getConfigProperty(ConfigConstants.UUID)+"\"");
 			return;
 		}
+		resource.suspend(20000);
 		path = path.replace('/', '.');
 
 		// handle /vessels.* etc
@@ -115,7 +116,7 @@ public abstract class SignalkApiService extends BaseApiService {
 				corrHash.remove(correlation);
 			}	
 		});
-		resource.suspend(20000);
+		
 		corrHash.put(correlation,resource);
 		sendMessage(Util.getJsonGetRequest(path).toString(),correlation);
 		

@@ -20,7 +20,7 @@ import org.atmosphere.cpr.HeaderConfig;
 
 import nz.co.fortytwo.signalk.artemis.server.SubscriptionManager;
 
-@ManagedService(path = "/signalk/v1/stream")
+//@ManagedService(path = "/signalk/v1/stream")
 public class SignalkManagedStreamService extends SignalkStreamService {
 
 	private static Logger logger = LogManager.getLogger(SignalkManagedStreamService.class);

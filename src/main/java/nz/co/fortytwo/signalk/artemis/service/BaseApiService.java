@@ -21,14 +21,18 @@ public class BaseApiService {
 	protected ClientConsumer consumer;
 	protected String tempQ = UUID.randomUUID().toString();
 
-	public BaseApiService() throws Exception {
+	public BaseApiService()  {
 		super();
+		try{
 		txSession = Util.getVmSession("admin", "admin");
 		producer = txSession.createProducer();
 
 		txSession.start();
 		txSession.createTemporaryQueue("outgoing.reply." + tempQ, RoutingType.ANYCAST, tempQ);
 		consumer = txSession.createConsumer(tempQ, false);
+		}catch(Exception e){
+			logger.error(e,e);
+		}
 	}
 
 	protected String sendMessage(String body) throws ActiveMQException {

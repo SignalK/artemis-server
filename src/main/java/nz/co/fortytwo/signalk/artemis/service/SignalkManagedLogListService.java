@@ -3,7 +3,15 @@ package nz.co.fortytwo.signalk.artemis.service;
 import java.io.File;
 import java.io.IOException;
 
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.atmosphere.config.service.Get;
@@ -13,7 +21,7 @@ import org.atmosphere.cpr.AtmosphereResource;
 
 import mjson.Json;
 
-@ManagedService(path = "/signalk/v1/logger/listLogs")
+@Path("/signalk/v1/logger/listLogs")
 public class SignalkManagedLogListService extends BaseApiService {
 
 	public SignalkManagedLogListService() throws Exception {
@@ -22,30 +30,27 @@ public class SignalkManagedLogListService extends BaseApiService {
 
 	private static Logger logger = LogManager.getLogger(SignalkManagedLogListService.class);
 
-	@Ready
-	public void onReady(final AtmosphereResource r) {
-		if(logger.isDebugEnabled())logger.debug("onReady:"+r);
-	}
 
-	@Get
-	public void onMessage(AtmosphereResource resource) {
-		if(logger.isDebugEnabled())logger.debug("onMessage:"+resource);
-		if(logger.isDebugEnabled())logger.debug("queryString:"+resource.getRequest().queryStringsMap());
+	@GET
+	public Response onGet(@QueryParam("logDir")String logDir) {
 		
 		try {
 			//send back the log list
-			String[] logDir = resource.getRequest().queryStringsMap().get("logDir");
-			
-			if(StringUtils.isBlank(logDir[0])){
+			if(StringUtils.isBlank(logDir)){
 				File dir = new File("signalk-static/logs");
-				resource.getResponse().getWriter().write(Json.array(dir.list()).toString());
+				return Response.status(HttpStatus.SC_OK)
+						.entity(Json.array(dir.list()).toString())
+						.type(MediaType.APPLICATION_JSON).build();
 			}else{
-				File dir = new File("signalk-static/logs/"+logDir[0]);
-				resource.getResponse().getWriter().write(Json.array(dir.list()).toString());
+				File dir = new File("signalk-static/logs/"+logDir);
+				return Response.status(HttpStatus.SC_OK)
+						.entity(Json.array(dir.list()).toString())
+						.type(MediaType.APPLICATION_JSON).build();
 			}
 			
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			logger.error(e,e);
+			return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).build();
 		}
 	}
 	

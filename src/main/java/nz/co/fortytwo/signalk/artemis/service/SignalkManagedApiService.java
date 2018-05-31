@@ -14,7 +14,7 @@ import org.atmosphere.config.service.Put;
 import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.cpr.AtmosphereResourceFactory;
 
-@ManagedService(path = "/signalk/v1/api")
+//@ManagedService(path = "/signalk/v1/api")
 public class SignalkManagedApiService extends SignalkApiService {
 
 	public SignalkManagedApiService() throws Exception {
