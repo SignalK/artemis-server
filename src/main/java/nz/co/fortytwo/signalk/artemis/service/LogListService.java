@@ -22,7 +22,7 @@ import org.atmosphere.cpr.AtmosphereResource;
 import mjson.Json;
 
 @Path("/signalk/v1/logger/listLogs")
-public class LogListService extends BaseApiService {
+public class LogListService  {
 
 	public LogListService() throws Exception {
 		super();

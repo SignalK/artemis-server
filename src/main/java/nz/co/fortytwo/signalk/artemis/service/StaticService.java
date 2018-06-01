@@ -21,7 +21,7 @@ import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 
 
 @Path( "/")
-public class StaticService extends BaseApiService {
+public class StaticService {
 
 	public StaticService() throws Exception {
 		super();

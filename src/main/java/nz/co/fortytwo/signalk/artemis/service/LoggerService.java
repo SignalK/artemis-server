@@ -18,7 +18,7 @@ import org.apache.logging.log4j.Logger;
 
 
 @Path("/signalk/v1/logger/config")
-public class LoggerService extends BaseApiService {
+public class LoggerService {
 
 	public LoggerService() throws Exception {
 		super();
