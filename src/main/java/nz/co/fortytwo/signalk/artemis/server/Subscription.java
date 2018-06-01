@@ -100,8 +100,10 @@ public class Subscription {
 	private String table;
 	private String uuid;
 	private Map<String, String> map = new HashMap<>();
+	private String correlation;
 	
-	public Subscription(String sessionId, String destination, String user, String password, String path, long period, long minPeriod, String format, String policy) throws Exception {
+	public Subscription(String sessionId, String destination, String user, String password, String path, 
+			long period, long minPeriod, String format, String policy, String correlation) throws Exception {
 		this.sessionId = sessionId;
 
 		this.path = Util.sanitizePath(path);
@@ -115,6 +117,7 @@ public class Subscription {
 		this.format = format;
 		this.policy = policy;
 		this.destination=destination;
+		this.setCorrelation(correlation);
 		map.put("uuid",uuidPattern.toString());
 		map.put("skey",pathPattern.toString());
 		
@@ -142,12 +145,12 @@ public class Subscription {
 					if(SignalKConstants.FORMAT_DELTA.equals(format)){
 						Json json = SignalkMapConvertor.mapToUpdatesDelta(rslt);
 						if(logger.isDebugEnabled())logger.debug("Delta json = "+json);
-						Util.sendReply(rslt.getClass().getSimpleName(),destination,format,json,s);
+						Util.sendReply(rslt.getClass().getSimpleName(),destination,format,correlation,json,s);
 					}
 					if(SignalKConstants.FORMAT_FULL.equals(format)){
 						Json json = SignalkMapConvertor.mapToFull(rslt);
 						if(logger.isDebugEnabled())logger.debug("Full json = "+json);
-						Util.sendReply(rslt.getClass().getSimpleName(),destination,format,json,s);
+						Util.sendReply(rslt.getClass().getSimpleName(),destination,format,correlation,json,s);
 					}
 					s.commit();				
 				} catch (Exception e) {
@@ -380,6 +383,14 @@ public class Subscription {
 
 	public void setDestination(String destination) {
 		this.destination = destination;
+	}
+
+	public String getCorrelation() {
+		return correlation;
+	}
+
+	public void setCorrelation(String correlation) {
+		this.correlation = correlation;
 	}
 
 }

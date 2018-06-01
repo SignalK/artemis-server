@@ -150,12 +150,13 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 
 			String sessionId = message.getStringProperty(Config.AMQ_SESSION_ID);
 			String destination = message.getStringProperty(Config.AMQ_REPLY_Q);
+			String correlation = message.getStringProperty(Config.AMQ_CORR_ID);
 			ServerSession s = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
 
 			if (subscriptions.isArray()) {
 				for (Json subscription : subscriptions.asJsonList()) {
 					Subscription sub = parseSubscribe(sessionId, destination, s.getUsername(), s.getPassword(), ctx,
-							subscription);
+							subscription, correlation);
 					if (logger.isDebugEnabled())
 						logger.debug("Remove subscription; " + sub.toString());
 					SubscriptionManagerFactory.getInstance().removeSubscription(sub);
@@ -174,6 +175,7 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 
 			String sessionId = message.getStringProperty(Config.AMQ_SESSION_ID);
 			String destination = message.getStringProperty(Config.AMQ_REPLY_Q);
+			String correlation = message.getStringProperty(Config.AMQ_CORR_ID);
 			ServerSession s = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
 
 			if (node.has(ConfigConstants.OUTPUT_TYPE)) {
@@ -185,7 +187,7 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 			if (subscriptions.isArray()) {
 				for (Json subscription : subscriptions.asJsonList()) {
 					Subscription sub = parseSubscribe(sessionId, destination, s.getUsername(), s.getPassword(), ctx,
-							subscription);
+							subscription,correlation);
 					if (logger.isDebugEnabled())
 						logger.debug("Created subscription; " + sub.toString());
 					SubscriptionManagerFactory.getInstance().addSubscription(sub);
@@ -210,10 +212,11 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 	 * 
 	 * @param context
 	 * @param subscription
+	 * @param correlation 
 	 * @throws Exception
 	 */
 	private Subscription parseSubscribe(String sessionId, String destination, String user, String password,
-			String context, Json subscription) throws Exception {
+			String context, Json subscription, String correlation) throws Exception {
 		// get values
 		if (logger.isDebugEnabled())
 			logger.debug("Parsing subscribe for : " + user + " : " + password + " : " + destination + " : " + context
@@ -234,7 +237,7 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 			minPeriod = subscription.at(MIN_PERIOD).asInteger();
 
 		Subscription sub = new Subscription(sessionId, destination, user, password, path, period, minPeriod, format,
-				policy);
+				policy, correlation);
 
 		// STOMP, MQTT
 		// if(headers.containsKey(ConfigConstants.DESTINATION)){

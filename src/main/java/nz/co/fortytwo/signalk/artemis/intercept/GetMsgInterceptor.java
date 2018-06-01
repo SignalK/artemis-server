@@ -110,7 +110,7 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 					&& !aton.equals(root)
 					&& !ALL.equals(root)){
 					try{
-						sendReply(String.class.getSimpleName(),destination,FORMAT_FULL,Json.object(),s,correlation);
+						sendReply(String.class.getSimpleName(),destination,FORMAT_FULL,correlation,Json.object(),s);
 						return true;
 					} catch (Exception e) {
 						logger.error(e, e);
@@ -182,7 +182,7 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 					if (StringUtils.isNotBlank(fullPath) && !root.startsWith(CONFIG) && !root.startsWith(ALL))
 						json = Util.findNodeMatch(json, fullPath);
 					
-					sendReply(map.getClass().getSimpleName(),destination,FORMAT_FULL,json,s,correlation);
+					sendReply(map.getClass().getSimpleName(),destination,FORMAT_FULL,correlation,json,s);
 
 					return true;
 				} catch (Exception e) {

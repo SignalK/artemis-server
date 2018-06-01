@@ -54,6 +54,9 @@ public class StaticService {
 				logger.warn("Forbidden request for {} from {}",target,req);
 				return Response.status(HttpStatus.SC_FORBIDDEN).build();
 			}
+			if(Files.isDirectory(target)){
+				target = Paths.get(target.toString(),"/index.html");
+			}
 			return Response.status(HttpStatus.SC_OK)
 						.entity(Files.newInputStream(target))
 						.type(Files.probeContentType(target))

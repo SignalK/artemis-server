@@ -41,8 +41,8 @@ public class BaseInterceptor {
 		Util.sendReply(String.class.getSimpleName(),destination,formatFull,json,s);
 	}
 	
-	protected void sendReply(String simpleName, String destination, String formatFull, Json json, ServerSession s, String correlation) throws Exception {
-		Util.sendReply(String.class.getSimpleName(),destination,formatFull,json,s,correlation);
+	protected void sendReply(String simpleName, String destination, String formatFull, String correlation, Json json, ServerSession s) throws Exception {
+		Util.sendReply(String.class.getSimpleName(),destination,formatFull,correlation,json,s);
 	}
 	
 	protected void saveMap(NavigableMap<String, Json> map) {

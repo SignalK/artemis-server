@@ -204,10 +204,10 @@ public class Util {
 	
 	public static RoutingStatus sendReply(String type, String destination, String format, Json json, ServerSession s)
 			throws Exception {
-		return sendReply(String.class.getSimpleName(),destination,FORMAT_FULL,json,s,null);
+		return sendReply(String.class.getSimpleName(),destination,FORMAT_FULL,null,json,s);
 	}
 
-	public static RoutingStatus sendReply(String type, String destination, String format, Json json, ServerSession s,String correlation)
+	public static RoutingStatus sendReply(String type, String destination, String format, String correlation, Json json, ServerSession s)
 			throws Exception {
 		if(json==null || json.isNull())json=Json.object();
 		ClientMessage txMsg = new ClientMessageImpl((byte) 0, false, 0, System.currentTimeMillis(), (byte) 4, 1024);
@@ -218,6 +218,7 @@ public class Util {
 		txMsg.putBooleanProperty(Config.SK_SEND_TO_ALL, false);
 		txMsg.putStringProperty(SignalKConstants.FORMAT, format);
 		txMsg.putBooleanProperty(SignalKConstants.REPLY, true);
+		txMsg.putStringProperty(Config.AMQ_CORR_ID, correlation);
 		txMsg.setExpiration(System.currentTimeMillis()+5000);
 		txMsg.getBodyBuffer().writeString(json.toString());
 		if (logger.isDebugEnabled())

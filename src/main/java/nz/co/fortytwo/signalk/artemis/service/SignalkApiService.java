@@ -56,22 +56,6 @@ public class SignalkApiService extends BaseApiService {
 					logger.error(e,e);
 				}
 				logger.debug("onMessage = " + recv);
-				//Json json = Json.read(recv);
-
-//				String correlation = message.getStringProperty(Config.AMQ_CORR_ID);
-//				if(correlation==null){
-//					logger.warn("Message received for REST API request with no correlation");
-//					return;
-//				}
-			//	AtmosphereResource res = corrHash.get(correlation);
-//				if (logger.isDebugEnabled()) {
-//					logger.debug("Found response: {}, {}" ,correlation,res);
-//					logger.debug("Equal? {}", resource.equals(res));
-//				}
-//				if(res==null ){
-//					logger.warn("Message received for closed REST API request");
-//					return;
-//				}
 				
 				resource.write(recv == null ? "{}" : recv);
 				resource.resume();

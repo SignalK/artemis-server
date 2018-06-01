@@ -21,7 +21,7 @@ import org.atmosphere.cpr.HeaderConfig;
 import nz.co.fortytwo.signalk.artemis.server.SubscriptionManager;
 
 //@ManagedService(path = "/signalk/v1/stream")
-public class SignalkManagedStreamService extends SignalkStreamService {
+public class SignalkManagedStreamService  {
 
 	private static Logger logger = LogManager.getLogger(SignalkManagedStreamService.class);
 
@@ -38,7 +38,7 @@ public class SignalkManagedStreamService extends SignalkStreamService {
 		if(logger.isDebugEnabled())logger.debug("onReady:"+r);
 		if (!uuids.contains(r.uuid())) {
 
-			super.onOpen(r);
+			//super.onOpen(r);
 
 			uuids.add(r.uuid());
 		}
@@ -50,7 +50,7 @@ public class SignalkManagedStreamService extends SignalkStreamService {
 		AtmosphereRequest request = event.getResource().getRequest();
 		String s = request.getHeader(HeaderConfig.X_ATMOSPHERE_TRANSPORT);
 		if (s != null && s.equalsIgnoreCase(HeaderConfig.DISCONNECT_TRANSPORT_MESSAGE)) {
-			SignalkManagedStreamService.super.onClose(event.getResource());
+		//	SignalkManagedStreamService.super.onClose(event.getResource());
 			uuids.remove(event.getResource().uuid());
 		}
 	}
@@ -58,16 +58,16 @@ public class SignalkManagedStreamService extends SignalkStreamService {
 	@Post
 	public void onMessage(AtmosphereResource resource) {
 		if(logger.isDebugEnabled())logger.debug("onMessage:"+resource);
-		try {
+		//try {
 			// Here we need to find the suspended AtmosphereResource
-			super.onMessage(resourceFactory.find(resource.uuid()), resource.getRequest().getReader().readLine());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+			//super.onMessage(resourceFactory.find(resource.uuid()), resource.getRequest().getReader().readLine());
+		//} catch (IOException e) {
+		//	e.printStackTrace();
+		//}
 	}
 
-	@Override
-	BroadcasterFactory factory() {
-		return factory;
-	}
+//	@Override
+//	BroadcasterFactory factory() {
+//		return factory;
+//	}
 }

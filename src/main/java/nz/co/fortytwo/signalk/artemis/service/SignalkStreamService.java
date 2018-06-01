@@ -1,80 +1,96 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
+import java.io.IOException;
+import java.util.UUID;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+
 import org.apache.activemq.artemis.api.core.ActiveMQException;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.activemq.artemis.api.core.client.ClientMessage;
+import org.apache.activemq.artemis.api.core.client.MessageHandler;
+import org.apache.http.HttpStatus;
+import org.atmosphere.annotation.Suspend;
 import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.cpr.Broadcaster;
 import org.atmosphere.cpr.BroadcasterFactory;
 
-import nz.co.fortytwo.signalk.artemis.server.SubscriptionManager;
+import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.Util;
 
-import javax.servlet.http.HttpSession;
+@Path("/signalk/v1/stream")
+public class SignalkStreamService extends BaseApiService {
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SIGNALK_WS;
+	@Context 
+	private AtmosphereResource resource;
+	
+	@Context
+	BroadcasterFactory broadCasterFactory;
+	
+	public SignalkStreamService() throws Exception{
+		try{
 
-import java.awt.*;
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.Random;
-import java.util.concurrent.atomic.AtomicInteger;
+		consumer.setMessageHandler(new MessageHandler() {
 
-public abstract class SignalkStreamService {
-
-	private static Logger logger = LogManager.getLogger(SignalkStreamService.class);
-
-	protected SignalkStreamBroadcaster signalkStreamBroadcaster;
-
-	public SignalkStreamService() {
+			@Override
+			public void onMessage(ClientMessage message) {
+				String recv = message.getBodyBuffer().readString();
+				try {
+					message.acknowledge();
+				} catch (ActiveMQException e) {
+					logger.error(e,e);
+				}
+				logger.debug("onMessage = " + recv);
+				String correlation = message.getStringProperty(Config.AMQ_CORR_ID);
+				broadCasterFactory.lookup(correlation).broadcast(recv == null ? "{}" : recv);
+				logger.debug(broadCasterFactory.lookup(correlation).getAtmosphereResources());
+			}
+		});
+		}catch(Exception e){
+			logger.error(e,e);
+			throw e;
+		}
 	}
 
-	public void onOpen(AtmosphereResource resource) {
-		if(logger.isDebugEnabled())logger.debug("onOpen:"+resource);
-		try {
-			signalkStreamBroadcaster().onOpen(resource);
+	@GET
+	@Suspend(contentType= MediaType.APPLICATION_JSON)
+	public String getWS() throws Exception {
 		
-			signalkStreamBroadcaster().broadcast(String.format("{'type': 'join','data':[%s]}", resource.toString()));
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if (logger.isDebugEnabled())
+			logger.debug("get : ws for " + resource.getRequest().getRemoteUser());
+		return "";
 		}
-	}
 
-	public void onClose(AtmosphereResource resource) {
-		if(logger.isDebugEnabled())logger.debug("onClose:"+resource);
+	@Suspend(contentType= MediaType.APPLICATION_JSON)
+	@POST
+	public String post() {
 		try {
-			signalkStreamBroadcaster().onClose(resource);
+			String body = Util.readString(resource.getRequest().getInputStream(),resource.getRequest().getCharacterEncoding());
+			if (logger.isDebugEnabled())
+				logger.debug("Post:" + body);
+			String user = resource.getRequest().getHeader("X-User");
+			String pass = resource.getRequest().getHeader("X-Pass");
+			if (logger.isDebugEnabled()) {
+				logger.debug("User:" + user + ":" + pass);
+			}
+			String correlationId = UUID.randomUUID().toString();
+			Broadcaster bCaster = broadCasterFactory.get(correlationId);
+			bCaster.addAtmosphereResource(resource);
+			sendMessage(body, correlationId);
+		
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
+			try {
+				resource.getResponse().sendError(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+			} catch (IOException e1) {
+				logger.error(e.getMessage(), e);
+			}
 		}
-		signalkStreamBroadcaster().broadcast(
-				String.format("{'type': 'leave', 'id': %d}", ((Integer) resource.session().getAttribute("id"))));
+		return "";
 	}
-
-
-	/**
-	 * we receive a message from client
-	 * @param resource
-	 * @param message
-	 */
-	protected void onMessage(AtmosphereResource resource, String message) {
-		if(logger.isDebugEnabled())logger.debug("onMessage:"+message);
-		//send to incoming.input
-		try {
-			signalkStreamBroadcaster().onMessage(message);
-		} catch (ActiveMQException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	SignalkStreamBroadcaster signalkStreamBroadcaster() {
-		if (signalkStreamBroadcaster == null) {
-			signalkStreamBroadcaster = new SignalkStreamBroadcaster(factory().lookup(SIGNALK_WS, true));
-		}
-		return signalkStreamBroadcaster;
-	}
-
-	abstract BroadcasterFactory factory();
+	
+	
 }
