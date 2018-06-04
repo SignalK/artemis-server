@@ -9,16 +9,18 @@ Done:
 	source to srcRef
 	serial input
 	subscriptions
-TODO:
 	REST GET/PUT/POST API
-	websockets
-	
+	charts (upload)
+	UI
+	log conf
+TODO:
+
 	source to srcRef - full format
 	srcRef back to source
+	UDP in-network decision
 	
 	n2k (as signalk)
 	security
-	save config 
 	
 	serial output
 	in serial, add TYPE=SERIAL header, add as type in sendMessage.
@@ -30,7 +32,6 @@ TODO:
 	
 	Alarms
 	Resources
-		charts (upload)
 		tracks
 		routes
 		waypoints
@@ -42,10 +43,6 @@ TODO:
 
 	MQTT
 	STOMP
-	
-	UI
-	log conf
-	
 	
 REST API test
 index.tml

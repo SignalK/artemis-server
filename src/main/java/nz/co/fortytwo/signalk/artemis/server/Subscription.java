@@ -120,7 +120,7 @@ public class Subscription {
 		this.setCorrelation(correlation);
 		map.put("uuid",uuidPattern.toString());
 		map.put("skey",pathPattern.toString());
-		
+		SubscriptionManagerFactory.getInstance().createQueue(destination);
 		task = new TimerTask() {
 			
 			@Override
@@ -129,30 +129,24 @@ public class Subscription {
 					logger.debug("Running for client:"+destination+", "+getPath());
 					logger.debug("Running for session:"+sessionId);
 				}
-				ServerSession s = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
-				if(logger.isDebugEnabled())
-					logger.debug("Running server session:"+(s==null?s:s.getName()));
-				
-				if(s==null)	return;
-				
+
 				try {
 					//get a map of the current subs values
 					NavigableMap<String, Json> rslt = new ConcurrentSkipListMap<String, Json>();
 					//select * from vessels where uuid='urn:mrn:imo:mmsi:209023000' AND skey=~/nav.*cou/ group by skey,uuid,sourceRef,owner,grp order by time desc limit 1
 					influx.loadData(rslt,table, map,"signalk");
 					if(logger.isDebugEnabled())logger.debug("rslt map = "+rslt);
-						
+					Json json = null;
 					if(SignalKConstants.FORMAT_DELTA.equals(format)){
-						Json json = SignalkMapConvertor.mapToUpdatesDelta(rslt);
+						json = SignalkMapConvertor.mapToUpdatesDelta(rslt);
 						if(logger.isDebugEnabled())logger.debug("Delta json = "+json);
-						Util.sendReply(rslt.getClass().getSimpleName(),destination,format,correlation,json,s);
 					}
 					if(SignalKConstants.FORMAT_FULL.equals(format)){
-						Json json = SignalkMapConvertor.mapToFull(rslt);
+						json = SignalkMapConvertor.mapToFull(rslt);
 						if(logger.isDebugEnabled())logger.debug("Full json = "+json);
-						Util.sendReply(rslt.getClass().getSimpleName(),destination,format,correlation,json,s);
 					}
-					s.commit();				
+					SubscriptionManagerFactory.getInstance().send(rslt.getClass().getSimpleName(),destination,format,correlation,json);
+								
 				} catch (Exception e) {
 					logger.error(e.getMessage(),e);
 				
@@ -242,6 +236,7 @@ public class Subscription {
 
 		if(!active && timer!=null){
 			timer.cancel();
+			task.cancel();
 			timer=null;
 		}
 

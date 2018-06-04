@@ -48,6 +48,7 @@ import org.apache.log4j.PropertyConfigurator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
+import org.atmosphere.cpr.ApplicationConfig;
 import org.atmosphere.nettosphere.Nettosphere;
 
 import io.netty.util.internal.logging.InternalLoggerFactory;
@@ -92,7 +93,7 @@ public final class ArtemisServer {
 
 		embedded.setSecurityManager(securityManager);
 		embedded.start();
-
+		
 		
 		// start serial manager
 
@@ -110,8 +111,13 @@ public final class ArtemisServer {
 						.maxChunkContentLength(1024*1024)
 						.socketKeepAlive(true)
 						//.initParam(ApplicationConfig.PROPERTY_SESSION_SUPPORT, "true")
+						.initParam(ApplicationConfig.ANALYTICS, "false")
 						.initParam("jersey.config.server.provider.packages","nz.co.fortytwo.signalk.artemis.service")
 						.initParam("jersey.config.server.provider.classnames","org.glassfish.jersey.media.multipart.MultiPartFeature")
+						.initParam("org.atmosphere.cpr.broadcaster.shareableThreadPool","true")
+						.initParam("org.atmosphere.cpr.broadcaster.maxProcessingThreads", "10")
+						.initParam("org.atmosphere.cpr.broadcaster.maxAsyncWriteThreads", "10")
+						.initParam("org.atmosphere.cpr.broadcasterLifeCyclePolicy","IDLE_RESUME")
 						//.interceptor(new AuthenticationInterceptor(conf) )
 						.port(8080)
 						.host("0.0.0.0")

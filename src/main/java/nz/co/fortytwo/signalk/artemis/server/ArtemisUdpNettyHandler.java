@@ -29,8 +29,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.RoutingType;
-import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.api.core.client.ClientConsumer;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
@@ -51,8 +51,8 @@ import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.util.CharsetUtil;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
-import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
+import nz.co.fortytwo.signalk.artemis.util.Util;
 
 @Sharable
 public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<DatagramPacket> {
@@ -62,6 +62,7 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 	private BiMap<String, ClientSession> sessionList = HashBiMap.create();
 	private Map<String, ChannelHandlerContext> channelList = new HashMap<>();
 	private BiMap<String, ClientProducer> producerList = HashBiMap.create();
+	private BiMap<String, ClientConsumer> consumerList = HashBiMap.create();
 
 	private String outputType;
 	//private ClientConsumer consumer;
@@ -90,14 +91,12 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 		if (logger.isDebugEnabled())
 			logger.debug("Sender " + packet.sender() + " sent request:" + request);
 		String session = packet.sender().getAddress().getHostAddress()+":"+packet.sender().getPort();//ctx.channel().id().asLongText();
+		NioDatagramChannel udpChannel = (NioDatagramChannel) ctx.channel();
+		String localAddress = udpChannel.localAddress().toString();
+		String remoteAddress = packet.sender().getAddress().getHostAddress(); 
 		
 		if (!socketList.inverse().containsKey(packet.sender())) {
 			
-			SimpleString tempQ = new SimpleString(session);
-			NioDatagramChannel udpChannel = (NioDatagramChannel) ctx.channel();
-			String localAddress = udpChannel.localAddress().toString();
-			String remoteAddress = packet.sender().getAddress().getHostAddress(); 
-			SubscriptionManagerFactory.getInstance().add(session, session, outputType, localAddress, remoteAddress);
 			socketList.put(session, packet.sender());
 			if (logger.isDebugEnabled())
 				logger.debug("Added Sender " + packet.sender() + ", session:" + session);
@@ -109,12 +108,12 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 			if(!sessionList.containsKey(session)){
 				ClientSession txSession = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
 						Config.getConfigProperty(Config.ADMIN_PWD));
-				txSession.createTemporaryQueue(new SimpleString("outgoing.reply." + session), RoutingType.ANYCAST, tempQ);
+				txSession.createTemporaryQueue("outgoing.reply." + session, RoutingType.ANYCAST, session);
 				txSession.start();
 				sessionList.put(session, txSession);
 				producerList.put(session, txSession.createProducer());
 				
-				ClientConsumer consumer = txSession.createConsumer(tempQ, false);
+				ClientConsumer consumer = txSession.createConsumer(session, false);
 				consumer.setMessageHandler(new MessageHandler() {
 	
 					@Override
@@ -127,14 +126,14 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 	
 					}
 				});
-				
+				consumerList.put(session,consumer);
 			}
 			if(!channelList.containsKey(session)){
 				channelList.put(session,ctx);
 			}
 		}
 
-		Map<String, Object> headers = getHeaders(socketList.inverse().get(packet.sender()));
+		Map<String, Object> headers = getHeaders(session, remoteAddress, localAddress);
 		ClientMessage ex = sessionList.get(session).createMessage(true);
 		ex.getBodyBuffer().writeString(request);
 		ex.putStringProperty(Config.AMQ_REPLY_Q, session);
@@ -163,33 +162,52 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 		return super.acceptInboundMessage(msg);
 	}
 
-	private Map<String, Object> getHeaders(String wsSession) {
-		String srcIp = socketList.get(wsSession).getHostString();
-		//String localAddress = socketList.get(wsSession).;
+	private Map<String, Object> getHeaders(String wsSession, String srcIp, String localIp) throws Exception {
+		
 		Map<String, Object> headers = new HashMap<>();
 		headers.put(Config.AMQ_SESSION_ID, wsSession);
 		headers.put(Config.MSG_SRC_IP, srcIp);
-		headers.put(Config.MSG_SRC_BUS, "udp." + wsSession.replace('.', '_'));
+		headers.put(Config.MSG_SRC_BUS, "udp." + srcIp.replace('.', '_'));
 		//TODO: fix UDP ip network source
-//		if (logger.isDebugEnabled())
-//			logger.debug("IP: local:" + localAddress + ", remote:" + srcIp);
-//		if (Util.sameNetwork(localAddress, srcIp)) {
-//			headers.put(Config.MSG_TYPE, Config.INTERNAL_IP);
-//		} else {
-//			headers.put(Config.MSG_TYPE, Config.EXTERNAL_IP);
-//		}
+		if (logger.isDebugEnabled())
+			logger.debug("IP: local:" + localIp + ", remote:" + srcIp);
+		if (Util.sameNetwork(localIp, srcIp)) {
+			headers.put(Config.MSG_SRC_TYPE, Config.INTERNAL_IP);
+		} else {
+			headers.put(Config.MSG_SRC_TYPE, Config.EXTERNAL_IP);
+		}
 		headers.put(ConfigConstants.OUTPUT_TYPE, outputType);
 		return headers;
 	}
 
 	@Override
-	protected void finalize() throws Throwable {
+	protected void finalize() throws Throwable{
 		channelList.clear();
 		socketList.clear();
-		for(Entry<String, ClientProducer> entry:producerList.entrySet())
-			entry.getValue().close();
-		for(Entry<String, ClientSession> entry:sessionList.entrySet())
-			entry.getValue().close();
+		for(Entry<String, ClientConsumer> entry:consumerList.entrySet()){
+			try {
+				entry.getValue().close();
+			} catch (ActiveMQException e) {
+				logger.error(e,e);
+			}
+		}
+		consumerList.clear();
+		for(Entry<String, ClientProducer> entry:producerList.entrySet()){
+			try {
+				entry.getValue().close();
+			} catch (ActiveMQException e) {
+				logger.error(e,e);
+			}
+		}
+		producerList.clear();
+		for(Entry<String, ClientSession> entry:sessionList.entrySet()){
+			try {
+				entry.getValue().close();
+			} catch (ActiveMQException e) {
+				logger.error(e,e);
+			}
+		}
+		sessionList.clear();
 	}
 
 	public void process(ClientMessage message) throws Exception {

@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
@@ -167,6 +168,10 @@ public class SerialPortManager implements Runnable {
 		
 	}
 
-
+	@Override
+	protected void finalize() throws Throwable {
+		 stopSerial();
+		super.finalize();
+	}
 
 }

@@ -278,7 +278,7 @@ public class SerialPortReader {
 				logger.error(portName +":"+ e1.getMessage());
 				if (logger.isDebugEnabled())logger.debug(e1);
 			}
-
+			stopSession();
 		}
 
 	}
@@ -362,5 +362,41 @@ public class SerialPortReader {
 			}
 		}
 	}
+
+	@Override
+	protected void finalize() throws Throwable {
+		 stopSession();
+		super.finalize();
+	}
+	
+	private void stopSession(){
+		 if (session != null)
+		   {
+		      try {
+				session.close();
+			} catch (ActiveMQException e) {
+				logger.error(e,e);
+			}
+		   }
+
+		   if (consumer != null)
+		   {
+		      try {
+				consumer.close();
+			} catch (ActiveMQException e) {
+				logger.error(e,e);
+			}
+		   }
+
+		   if(producer != null)
+		   {
+			   try {
+				producer.close();
+			} catch (ActiveMQException e) {
+				logger.error(e,e);
+			}
+		   }
+	}
+	
 
 }

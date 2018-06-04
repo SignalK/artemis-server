@@ -1,11 +1,12 @@
 package nz.co.fortytwo.signalk.artemis.intercept;
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT_FULL;
-
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.apache.activemq.artemis.api.core.ICoreMessage;
+import org.apache.activemq.artemis.api.core.client.ClientMessage;
+import org.apache.activemq.artemis.api.core.client.ClientProducer;
+import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.activemq.artemis.core.protocol.core.Packet;
 import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.MessagePacket;
 import org.apache.activemq.artemis.core.server.ServerSession;
@@ -17,6 +18,7 @@ import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.service.SecurityService;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.service.TDBService;
+import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
@@ -24,6 +26,21 @@ public class BaseInterceptor {
 	private static Logger logger = LogManager.getLogger(BaseInterceptor.class);
 	protected static TDBService influx = new InfluxDbService();
 	protected static SecurityService security = new SecurityService();
+	protected ClientSession txSession;
+	protected ClientProducer producer;
+
+	protected void init() {
+		try{
+			txSession = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
+					Config.getConfigProperty(Config.ADMIN_PWD));
+			producer = txSession.createProducer();
+
+			txSession.start();
+			
+			}catch(Exception e){
+				logger.error(e,e);
+			}
+	}
 
 	protected boolean isDelta(Json node){
 		return Util.isDelta(node);
@@ -37,12 +54,27 @@ public class BaseInterceptor {
 		return Util.isFullFormat(node);
 	}
 	
-	protected void sendReply(String simpleName, String destination, String formatFull, Json json, ServerSession s) throws Exception {
-		Util.sendReply(String.class.getSimpleName(),destination,formatFull,json,s);
+	protected void sendReply(String simpleName, String destination, String format, Json json, ServerSession s) throws Exception {
+		sendReply(String.class.getSimpleName(),destination,format,null,json);
 	}
 	
-	protected void sendReply(String simpleName, String destination, String formatFull, String correlation, Json json, ServerSession s) throws Exception {
-		Util.sendReply(String.class.getSimpleName(),destination,formatFull,correlation,json,s);
+	protected void sendReply(String simpleName, String destination, String format, String correlation, Json json) throws Exception {
+		if(json==null || json.isNull())json=Json.object();
+		ClientMessage txMsg = txSession.createMessage(false);
+		//txMsg.putStringProperty(Config.JAVA_TYPE, type);
+		if(correlation!=null)
+			txMsg.putStringProperty(Config.AMQ_CORR_ID, correlation);
+		txMsg.putStringProperty(Config.AMQ_SUB_DESTINATION, destination);
+		txMsg.putBooleanProperty(Config.SK_SEND_TO_ALL, false);
+		txMsg.putStringProperty(SignalKConstants.FORMAT, format);
+		txMsg.putBooleanProperty(SignalKConstants.REPLY, true);
+		txMsg.putStringProperty(Config.AMQ_CORR_ID, correlation);
+		txMsg.setExpiration(System.currentTimeMillis()+5000);
+		txMsg.getBodyBuffer().writeString(json.toString());
+		if (logger.isDebugEnabled())
+			logger.debug("Msg body = " + json.toString());
+		
+		producer.send("outgoing.reply." +destination,txMsg);
 	}
 	
 	protected void saveMap(NavigableMap<String, Json> map) {

@@ -75,6 +75,9 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 
 	@Override
 	public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException {
+		//if(txSession==null){
+		//	init();
+		//}
 		if(isResponse(packet))return true;
 		
 		if (packet instanceof SessionSendMessage) {
@@ -110,7 +113,7 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 					&& !aton.equals(root)
 					&& !ALL.equals(root)){
 					try{
-						sendReply(String.class.getSimpleName(),destination,FORMAT_FULL,correlation,Json.object(),s);
+						sendReply(String.class.getSimpleName(),destination,FORMAT_FULL,correlation,Json.object());
 						return true;
 					} catch (Exception e) {
 						logger.error(e, e);
@@ -182,7 +185,7 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 					if (StringUtils.isNotBlank(fullPath) && !root.startsWith(CONFIG) && !root.startsWith(ALL))
 						json = Util.findNodeMatch(json, fullPath);
 					
-					sendReply(map.getClass().getSimpleName(),destination,FORMAT_FULL,correlation,json,s);
+					sendReply(map.getClass().getSimpleName(),destination,FORMAT_FULL,correlation,json);
 
 					return true;
 				} catch (Exception e) {

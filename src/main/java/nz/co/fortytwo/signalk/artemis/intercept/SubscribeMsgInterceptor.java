@@ -180,8 +180,8 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 
 			if (node.has(ConfigConstants.OUTPUT_TYPE)) {
 				String outputType = node.at(ConfigConstants.OUTPUT_TYPE).asString();
-				SubscriptionManagerFactory.getInstance().add(sessionId, sessionId, outputType, "127.0.0.1",
-						"127.0.0.1");
+				//SubscriptionManagerFactory.getInstance().add(sessionId, sessionId, outputType, "127.0.0.1",
+				//		"127.0.0.1");
 			}
 
 			if (subscriptions.isArray()) {

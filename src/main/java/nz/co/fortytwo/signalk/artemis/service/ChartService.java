@@ -29,8 +29,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.apache.activemq.artemis.api.core.ActiveMQException;
-import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -51,7 +49,7 @@ import nz.co.fortytwo.signalk.artemis.util.ZipUtils;
 
 
 @Path("/signalk/v1/upload")
-public class ChartService extends BaseApiService {
+public class ChartService  {
 
 	private static Logger logger = LogManager.getLogger(ChartService.class);
 	//private static boolean reloaded = false;
@@ -143,7 +141,8 @@ public class ChartService extends BaseApiService {
 					Json chartJson = ChartService.loadChart(chart.getName());
 					logger.debug("Reloading: {}= {}", chart.getName(), chartJson);
 					try {
-						Util.sendRawMessage("admin", "admin", chartJson.toString());
+						Util.sendRawMessage(Config.getConfigProperty(Config.ADMIN_USER),
+								Config.getConfigProperty(Config.ADMIN_PWD), chartJson.toString());
 					} catch (Exception e) {
 						logger.warn(e.getMessage());
 					}
@@ -246,14 +245,10 @@ public class ChartService extends BaseApiService {
 		return msg;
 	}
 
-	private void sendChartMessage(String body) throws ActiveMQException {
-		ClientMessage message = txSession.createMessage(false);
-		message.getBodyBuffer().writeString(body);
-		// message.putStringProperty(Config.AMQ_REPLY_Q, tempQ);
-
-		// producer = txSession.createProducer();
-		producer.send(Config.INCOMING_RAW, message);
-
+	private void sendChartMessage(String body) throws Exception {
+		Util.sendRawMessage(Config.getConfigProperty(Config.ADMIN_USER),
+				Config.getConfigProperty(Config.ADMIN_PWD), body);
+		
 	}
 
 }

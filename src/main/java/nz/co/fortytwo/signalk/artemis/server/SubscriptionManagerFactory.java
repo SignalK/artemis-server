@@ -27,11 +27,11 @@ package nz.co.fortytwo.signalk.artemis.server;
 
 public class SubscriptionManagerFactory {
 
-	private static SubscriptionManager manager = null;
+	private static SubscriptionManagerService manager = null;
 	
-	public static SubscriptionManager getInstance(){
+	public static SubscriptionManagerService getInstance(){
 		if(manager==null){
-			manager=new SubscriptionManager();
+			manager=new SubscriptionManagerService();
 		}
 		return manager;
 	}

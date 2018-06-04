@@ -88,8 +88,8 @@ public class Config {
 	public static final String MSG_SRC_IP = "MSG_SRC_IP";
 	public static final String MSG_SRC_BUS = "MSG_SRC_BUS";
 	public static final String MSG_SRC_TYPE = "MSG_SRC_TYPE";
-	public static final Object INTERNAL_IP = "INTERNAL_IP";
-	public static final Object EXTERNAL_IP = "EXTERNAL_IP";
+	public static final String INTERNAL_IP = "INTERNAL_IP";
+	public static final String EXTERNAL_IP = "EXTERNAL_IP";
 	public static final String AMQ_SUB_DESTINATION = "AMQ_SUB_DESTINATION";
 
 	public static final String INCOMING_RAW = "incoming.raw";

@@ -25,12 +25,11 @@
 package nz.co.fortytwo.signalk.artemis.server;
 
 import java.net.InetSocketAddress;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.RoutingType;
-import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.api.core.client.ClientConsumer;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
@@ -45,11 +44,10 @@ import com.google.common.collect.HashBiMap;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.util.AttributeKey;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
-import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
+import nz.co.fortytwo.signalk.artemis.util.Util;
 
 @Sharable
 public class ArtemisNettyHandler extends SimpleChannelInboundHandler<String> {
@@ -58,12 +56,9 @@ public class ArtemisNettyHandler extends SimpleChannelInboundHandler<String> {
 	private BiMap<String, ChannelHandlerContext> contextList = HashBiMap.create();
 	private BiMap<String, ClientSession> sessionList = HashBiMap.create();
 	private BiMap<String, ClientProducer> producerList = HashBiMap.create();
+	private BiMap<String, ClientConsumer> consumerList = HashBiMap.create();
 	private String outputType;
 
-	// private ClientSession txSession = null;
-
-	private final AttributeKey<Map<String, Object>> msgHeaders = AttributeKey.valueOf("msgHeaders");
-	// private ClientProducer producer;
 
 	public ArtemisNettyHandler(String outputType) throws Exception {
 
@@ -80,27 +75,19 @@ public class ArtemisNettyHandler extends SimpleChannelInboundHandler<String> {
 		ctx.flush();
 
 		String session = ctx.channel().id().asLongText();
-		SimpleString tempQ = new SimpleString(session);
-		String localAddress = ctx.channel().localAddress().toString();
-		String remoteAddress = ctx.channel().remoteAddress().toString();
-		SubscriptionManagerFactory.getInstance().add(session, session, outputType, localAddress, remoteAddress);
+		
 		contextList.put(session, ctx);
 		ClientSession rxSession = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
 				Config.getConfigProperty(Config.ADMIN_PWD));
 		rxSession.start();
 		sessionList.put(session, rxSession);
-		rxSession.createTemporaryQueue(new SimpleString("outgoing.reply." + session), RoutingType.ANYCAST, tempQ);
-		if (logger.isDebugEnabled())
-			logger.debug("channelActive, setup headers:" + ctx);
-		// make up headers
-		ctx.attr(msgHeaders).set(getHeaders(ctx));
-		// TODO: get user login
+		rxSession.createTemporaryQueue("outgoing.reply." + session, RoutingType.ANYCAST, session);
 
 		ClientProducer producer = rxSession.createProducer();
 		producerList.put(session, producer);
 
 		// setup consumer
-		ClientConsumer consumer = rxSession.createConsumer(tempQ, false);
+		ClientConsumer consumer = rxSession.createConsumer(session, false);
 		consumer.setMessageHandler(new MessageHandler() {
 
 			@Override
@@ -113,6 +100,7 @@ public class ArtemisNettyHandler extends SimpleChannelInboundHandler<String> {
 
 			}
 		});
+		consumerList.put(session,consumer);
 		if (logger.isDebugEnabled())
 			logger.debug("channelActive, ready:" + ctx);
 	}
@@ -122,10 +110,9 @@ public class ArtemisNettyHandler extends SimpleChannelInboundHandler<String> {
 		// unsubscribe all
 		String session = contextList.inverse().get(ctx);
 		// txSession.deleteQueue("outgoing.reply." + session);
-		SubscriptionManagerFactory.getInstance().removeSessionId(session);
+		consumerList.get(session).close();
 		producerList.get(session).close();
-		sessionList.get(session).close();
-
+		sessionList.get(session).close();		
 		super.channelInactive(ctx);
 	}
 
@@ -135,35 +122,33 @@ public class ArtemisNettyHandler extends SimpleChannelInboundHandler<String> {
 			logger.debug("Request:" + request);
 		String session = contextList.inverse().get(ctx);
 		ClientProducer producer = producerList.get(session);
-		ClientMessage ex = sessionList.get(session).createMessage(false);
-		ex.getBodyBuffer().writeString(request);
-		for (String hdr : ctx.attr(msgHeaders).get().keySet()) {
-			ex.putStringProperty(hdr, ctx.attr(msgHeaders).get().get(hdr).toString());
-		}
+		ClientMessage msg = sessionList.get(session).createMessage(false);
+		msg.getBodyBuffer().writeString(request);
+		getHeaders(ctx, msg);
 		String tempQ = contextList.inverse().get(ctx);
 
-		ex.putStringProperty(Config.AMQ_REPLY_Q, tempQ);
-		producer.send(Config.INCOMING_RAW, ex);
+		msg.putStringProperty(Config.AMQ_REPLY_Q, tempQ);
+		producer.send(Config.INCOMING_RAW, msg);
 	}
 
-	private Map<String, Object> getHeaders(ChannelHandlerContext ctx) throws Exception {
-		Map<String, Object> headers = new HashMap<>();
-		headers.put(Config.AMQ_SESSION_ID, contextList.inverse().get(ctx));
+	private ClientMessage getHeaders(ChannelHandlerContext ctx, ClientMessage ex) throws Exception {
+
+		ex.putStringProperty(Config.AMQ_SESSION_ID, contextList.inverse().get(ctx));
 		String remoteAddress = ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress().getHostAddress();
 		// remoteAddress=remoteAddress.replace("/","");
-		headers.put(Config.MSG_SRC_IP, remoteAddress);
-		headers.put(Config.MSG_SRC_BUS, "tcp." + remoteAddress.replace('.', '_'));
-		headers.put(ConfigConstants.OUTPUT_TYPE, outputType);
+		ex.putStringProperty(Config.MSG_SRC_IP, remoteAddress);
+		ex.putStringProperty(Config.MSG_SRC_BUS, "tcp." + remoteAddress.replace('.', '_'));
+		ex.putStringProperty(ConfigConstants.OUTPUT_TYPE, outputType);
 		String localAddress = ((InetSocketAddress) ctx.channel().localAddress()).getAddress().getHostAddress();
 		// localAddress=localAddress.replace("/","");
 		if (logger.isDebugEnabled())
 			logger.debug("IP: local:" + localAddress + ", remote:" + remoteAddress);
 		if (Util.sameNetwork(localAddress, remoteAddress)) {
-			headers.put(Config.MSG_SRC_TYPE, Config.INTERNAL_IP);
+			ex.putStringProperty(Config.MSG_SRC_TYPE, Config.INTERNAL_IP);
 		} else {
-			headers.put(Config.MSG_SRC_TYPE, Config.EXTERNAL_IP);
+			ex.putStringProperty(Config.MSG_SRC_TYPE, Config.EXTERNAL_IP);
 		}
-		return headers;
+		return ex;
 	}
 
 	@Override
@@ -193,17 +178,32 @@ public class ArtemisNettyHandler extends SimpleChannelInboundHandler<String> {
 	}
 
 	@Override
-	protected void finalize() throws Throwable {
-		for (Entry<String, ClientProducer> sess : producerList.entrySet()) {
-			sess.getValue().close();
+	protected void finalize() throws Throwable{
+		for(Entry<String, ClientConsumer> entry:consumerList.entrySet()){
+			try {
+				entry.getValue().close();
+			} catch (ActiveMQException e) {
+				logger.error(e,e);
+			}
 		}
-		for (Entry<String, ClientSession> sess : sessionList.entrySet()) {
-			sess.getValue().close();
+		consumerList.clear();
+		for(Entry<String, ClientProducer> entry:producerList.entrySet()){
+			try {
+				entry.getValue().close();
+			} catch (ActiveMQException e) {
+				logger.error(e,e);
+			}
 		}
-		
-		
+		producerList.clear();
+		for(Entry<String, ClientSession> entry:sessionList.entrySet()){
+			try {
+				entry.getValue().close();
+			} catch (ActiveMQException e) {
+				logger.error(e,e);
+			}
+		}
+		sessionList.clear();
 	}
-
 	public void process(ClientMessage message) throws Exception {
 
 		String msg = Util.readBodyBufferToString(message);

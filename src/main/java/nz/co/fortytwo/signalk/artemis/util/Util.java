@@ -74,8 +74,7 @@ import mjson.Json;
 public class Util {
 
 	static Logger logger = LogManager.getLogger(Util.class);
-	// private static Pattern selfMatch = Pattern.compile("\\.self\\.");
-	// private static Pattern selfEndMatch = Pattern.compile("\\.self$");
+	
 	public static final String SIGNALK_MODEL_SAVE_FILE = "./conf/self.json";
 	public static final String SIGNALK_CFG_SAVE_FILE = "./conf/signalk-config.json";
 	public static final String SIGNALK_RESOURCES_SAVE_FILE = "./conf/resources.json";
@@ -90,11 +89,13 @@ public class Util {
 		try {
 			inVmLocator = ActiveMQClient
 					.createServerLocatorWithoutHA(new TransportConfiguration(InVMConnectorFactory.class.getName()))
-					.setMinLargeMessageSize(1024 * 1024);
+					.setMinLargeMessageSize(1024 * 1024)
+					.setConnectionTTL(60000);
 			// .createSessionFactory();
 			Map<String, Object> connectionParams = new HashMap<String, Object>();
 			connectionParams.put(TransportConstants.HOST_PROP_NAME, "localhost");
 			connectionParams.put(TransportConstants.PORT_PROP_NAME, 61617);
+			connectionParams.put(TransportConstants.CONNECTION_TTL,60000);
 			nettyLocator = ActiveMQClient
 					.createServerLocatorWithoutHA(
 							new TransportConfiguration(NettyConnectorFactory.class.getName(), connectionParams))
@@ -201,36 +202,6 @@ public class Util {
 			producer.send(Config.INCOMING_RAW, message);
 		} 
 	}
-	
-	public static RoutingStatus sendReply(String type, String destination, String format, Json json, ServerSession s)
-			throws Exception {
-		return sendReply(String.class.getSimpleName(),destination,FORMAT_FULL,null,json,s);
-	}
-
-	public static RoutingStatus sendReply(String type, String destination, String format, String correlation, Json json, ServerSession s)
-			throws Exception {
-		if(json==null || json.isNull())json=Json.object();
-		ClientMessage txMsg = new ClientMessageImpl((byte) 0, false, 0, System.currentTimeMillis(), (byte) 4, 1024);
-		txMsg.putStringProperty(Config.JAVA_TYPE, type);
-		if(correlation!=null)
-			txMsg.putStringProperty(Config.AMQ_CORR_ID, correlation);
-		txMsg.putStringProperty(Config.AMQ_SUB_DESTINATION, destination);
-		txMsg.putBooleanProperty(Config.SK_SEND_TO_ALL, false);
-		txMsg.putStringProperty(SignalKConstants.FORMAT, format);
-		txMsg.putBooleanProperty(SignalKConstants.REPLY, true);
-		txMsg.putStringProperty(Config.AMQ_CORR_ID, correlation);
-		txMsg.setExpiration(System.currentTimeMillis()+5000);
-		txMsg.getBodyBuffer().writeString(json.toString());
-		if (logger.isDebugEnabled())
-			logger.debug("Msg body = " + json.toString());
-		txMsg.setAddress(new SimpleString("outgoing.reply." + destination));
-		// txMsg.setReplyTo(new SimpleString("outgoing.reply."+destination));
-		RoutingStatus r = s.send(txMsg, true);
-		if (logger.isDebugEnabled())
-			logger.debug("Routing = " + r.name());
-		return r;
-	}
-
 	
 
 	public static Json getJsonGetRequest(String path) {
