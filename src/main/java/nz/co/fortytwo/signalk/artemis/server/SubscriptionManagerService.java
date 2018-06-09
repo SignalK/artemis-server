@@ -52,24 +52,25 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 public class SubscriptionManagerService{
 
 	private static Logger logger = LogManager.getLogger(SubscriptionManagerService.class);
+	
 	protected ClientSession txSession;
 	protected ClientProducer producer;
-	
-	ConcurrentLinkedQueue<Subscription> subscriptions = new ConcurrentLinkedQueue<Subscription>();
-	ConcurrentLinkedQueue<String> heartbeats = new ConcurrentLinkedQueue<String>();
+
+	protected ConcurrentLinkedQueue<Subscription> subscriptions = new ConcurrentLinkedQueue<Subscription>();
+	protected ConcurrentLinkedQueue<String> heartbeats = new ConcurrentLinkedQueue<String>();
 
 	public SubscriptionManagerService() {
 		super();
-		try{
+		try {
 			txSession = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
 					Config.getConfigProperty(Config.ADMIN_PWD));
 			producer = txSession.createProducer();
 
 			txSession.start();
-			
-			}catch(Exception e){
-				logger.error(e,e);
-			}
+
+		} catch (Exception e) {
+			logger.error(e, e);
+		}
 	}
 
 	/**
@@ -81,41 +82,24 @@ public class SubscriptionManagerService{
 	public void addSubscription(Subscription sub) throws Exception {
 		if (!subscriptions.contains(sub)) {
 			if (logger.isDebugEnabled())
-				logger.debug("Adding " + sub);
+				logger.debug("Adding {}",sub);
 			subscriptions.add(sub);
 			// start if we have to.
 			
 			if (!hasExistingRoute(sub)) {
 				sub.setActive(true);
 				if (logger.isDebugEnabled())
-					logger.debug("Started route for " + sub);
+					logger.debug("Started route for {} ",sub);
 				heartbeats.remove(sub.getSessionId());
 			}
 			if (logger.isDebugEnabled())
-				logger.debug("Subs size =" + subscriptions.size());
+				logger.debug("Subs size = {}",subscriptions.size());
 		}
 
 	}
 
-	public void send(String type, String destination, String format, String correlation, Json json) throws ActiveMQException{
-		if(json==null || json.isNull())json=Json.object();
-		ClientMessage txMsg = txSession.createMessage(false);
-		//txMsg.putStringProperty(Config.JAVA_TYPE, type);
-		if(correlation!=null)
-			txMsg.putStringProperty(Config.AMQ_CORR_ID, correlation);
-		txMsg.putStringProperty(Config.AMQ_SUB_DESTINATION, destination);
-		txMsg.putBooleanProperty(Config.SK_SEND_TO_ALL, false);
-		txMsg.putStringProperty(SignalKConstants.FORMAT, format);
-		txMsg.putBooleanProperty(SignalKConstants.REPLY, true);
-		txMsg.putStringProperty(Config.AMQ_CORR_ID, correlation);
-		txMsg.setExpiration(System.currentTimeMillis()+5000);
-		txMsg.getBodyBuffer().writeString(json.toString());
-		if (logger.isDebugEnabled())
-			logger.debug("Msg body = " + json.toString());
-		//txMsg.setAddress("outgoing.reply." + destination);
-		
-		producer.send("outgoing.reply." +destination,txMsg);
-	}
+	
+	
 	/**
 	 * True if another subscription has the same route and is active
 	 * 
@@ -131,7 +115,6 @@ public class SubscriptionManagerService{
 				return true;
 			}
 		}
-		;
 		return false;
 	}
 
@@ -149,6 +132,7 @@ public class SubscriptionManagerService{
 				if (sub.equals(s)){
 					subscriptions.remove(s);
 					sub.setActive(false);
+					s.setActive(false);
 					logger.debug("Stopped route for " + s);
 				}
 			}
@@ -186,16 +170,17 @@ public class SubscriptionManagerService{
 
 	public void removeByTempQ(String tempQ) throws Exception {
 		ConcurrentLinkedQueue<Subscription> subs = getSubscriptionsByTempQ(tempQ);
-		subs.forEach((sub)->{
+		for(Subscription sub:subs){
 			try {
 				sub.setActive(false);
 				logger.debug("Stopped route for " + sub);
 			} catch (Exception e) {
 				logger.error(e,e);
 			}
-		});
+		}
 		subscriptions.removeAll(subs);
-		//heartbeats.remove(sessionId);
+		if (logger.isDebugEnabled())
+			logger.debug("Subs size =" + subscriptions.size());
 
 	}
 
@@ -203,37 +188,70 @@ public class SubscriptionManagerService{
 	public ConcurrentLinkedQueue<String> getHeartbeats() {
 		return heartbeats;
 	}
+	
+	public void send(String type, String destination, String format, String correlation, Json json)
+			throws ActiveMQException {
+		if (json == null || json.isNull())
+			json = Json.object();
+		ClientMessage txMsg = new ClientMessageImpl((byte) 0, false, 0, System.currentTimeMillis(), (byte) 4, 1024);
+		if (correlation != null)
+			txMsg.putStringProperty(Config.AMQ_CORR_ID, correlation);
+		txMsg.putStringProperty(Config.AMQ_SUB_DESTINATION, destination);
+		txMsg.putBooleanProperty(Config.SK_SEND_TO_ALL, false);
+		txMsg.putStringProperty(SignalKConstants.FORMAT, format);
+		txMsg.putBooleanProperty(SignalKConstants.REPLY, true);
+		txMsg.getBodyBuffer().writeString(json.toString());
+		if (logger.isDebugEnabled())
+			logger.debug("Sending to {}, Msg body = {}", destination, json.toString());
 
+		producer.send(new SimpleString("outgoing.reply." + destination), txMsg);
+
+	}
+
+	public void createTempQueue(String destination) {
+		try {
+			txSession.createTemporaryQueue("outgoing.reply." + destination, RoutingType.ANYCAST, destination);
+			logger.debug("created temp queue: {}", destination);
+		} catch (ActiveMQQueueExistsException e) {
+			logger.debug(e);
+		} catch (ActiveMQException e) {
+			logger.error(e, e);
+		}
+	}
+	
 	protected void closeSession() {
-		
-		if(producer!=null){
-			try{
+
+		if (producer != null) {
+			try {
 				producer.close();
 			} catch (ActiveMQException e) {
-				logger.warn(e,e);
+				logger.warn(e, e);
 			}
 		}
-		if(txSession!=null){
-			try{
+		if (txSession != null) {
+			try {
 				txSession.close();
 			} catch (ActiveMQException e) {
-				logger.warn(e,e);
+				logger.warn(e, e);
 			}
 		}
-		
+
 	}
 	@Override
 	protected void finalize() throws Throwable {
+		for(Subscription sub:subscriptions){
+			try {
+				sub.setActive(false);
+				logger.debug("Stopped route for " + sub);
+			} catch (Exception e) {
+				logger.error(e,e);
+			}
+		}
+		subscriptions.clear();
 		closeSession();
+		
 		super.finalize();
 	}
 
-	public void createQueue(String destination) throws ActiveMQException {
-		try{
-			txSession.createTemporaryQueue("outgoing.reply." + destination,RoutingType.ANYCAST, destination);
-		}catch(ActiveMQQueueExistsException e){
-			logger.warn(e);
-		}
-		
-	}
+
 }

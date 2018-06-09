@@ -117,7 +117,7 @@ public final class ArtemisServer {
 						.initParam("org.atmosphere.cpr.broadcaster.shareableThreadPool","true")
 						.initParam("org.atmosphere.cpr.broadcaster.maxProcessingThreads", "10")
 						.initParam("org.atmosphere.cpr.broadcaster.maxAsyncWriteThreads", "10")
-						.initParam("org.atmosphere.cpr.broadcasterLifeCyclePolicy","IDLE_RESUME")
+						//.initParam("org.atmosphere.cpr.broadcasterLifeCyclePolicy","IDLE_RESUME")
 						//.interceptor(new AuthenticationInterceptor(conf) )
 						.port(8080)
 						.host("0.0.0.0")

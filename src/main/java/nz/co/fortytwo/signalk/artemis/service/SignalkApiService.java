@@ -31,10 +31,14 @@ import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.cpr.AtmosphereResourceEvent;
 import org.atmosphere.cpr.AtmosphereResourceEventListenerAdapter;
 import org.atmosphere.cpr.AtmosphereResourceSession;
+import org.atmosphere.cpr.Broadcaster;
 import org.atmosphere.cpr.BroadcasterFactory;
+import org.atmosphere.websocket.WebSocketEventListenerAdapter;
+import org.atmosphere.websocket.WebSocketEventListener.WebSocketEvent;
 import org.jgroups.util.UUID;
 
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.server.SubscriptionManagerFactory;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
@@ -47,39 +51,14 @@ public class SignalkApiService extends BaseApiService {
 	@Context 
 	private AtmosphereResource resource;
 
-	private AtmosphereResourceSession resourceSession;
-	
 	public SignalkApiService() throws Exception{
 	}
 	@Override
-	protected void initSession(String tempQ, AtmosphereResourceSession atmosphereResourceSession) throws Exception {
+	protected void initSession(String tempQ) throws Exception {
 		try{
-			super.initSession(UUID.randomUUID().toString(),atmosphereResourceSession);
-			getConsumer().setMessageHandler(new MessageHandler() {
-
-				@Override
-				public void onMessage(ClientMessage message) {
-					try {
-					String recv = message.getBodyBuffer().readString();
-					message.acknowledge();
-					
-					logger.debug("onMessage = " + recv);
-					
-					resource.write(recv == null ? "{}" : recv);
-					resource.resume();
-					} catch (ActiveMQException e) {
-						logger.error(e,e);
-					}finally {
-						try {
-							resource.close();
-							//closeSession();
-						} catch (IOException e) {
-							logger.debug(e,e);
-						}
-					}
-					
-				}
-			});
+			super.initSession(resource.uuid());
+			super.setConsumer(resource);
+			addCloseListener(resource);
 		}catch(Exception e){
 			logger.error(e,e);
 			throw e;
@@ -125,16 +104,14 @@ public class SignalkApiService extends BaseApiService {
 	}
 	
 	public void get(String path, HttpServletRequest req) throws Exception {
-		resourceSession=resource.getAtmosphereConfig().sessionFactory().getSession(resource,false);
-		if(resourceSession == null){
-			resourceSession=resource.getAtmosphereConfig().sessionFactory().getSession(resource);
-			initSession(resource.uuid(),resourceSession);
-			addCloseListener(resource);
-		}
+		String correlation = java.util.UUID.randomUUID().toString();
+		initSession(correlation);
+
+		resource.resumeOnBroadcast(true);
+		
 		path=StringUtils.defaultIfBlank(path,"*");
 		if (logger.isDebugEnabled())
 			logger.debug("get raw:" + path + " for " + req.getRemoteUser());
-		// handle /self
 		
 		path = StringUtils.removeStart(path,SIGNALK_API);
 		path = StringUtils.removeStart(path,"/");
@@ -145,17 +122,12 @@ public class SignalkApiService extends BaseApiService {
 		if (logger.isDebugEnabled())
 			logger.debug("get path:" + path);
 	
-
 		String user = req.getHeader("X-User");
 		String pass = req.getHeader("X-Pass");
 		if (logger.isDebugEnabled()) {
 			logger.debug("User:" + user + ":" + pass);
 		}
 		
-		//add resource to correlationHash
-		String correlation = java.util.UUID.randomUUID().toString();
-		
-		//corrHash.put(correlation,resource);
 		sendMessage(Util.getJsonGetRequest(path).toString(),correlation);
 		
 	}
@@ -203,4 +175,21 @@ public class SignalkApiService extends BaseApiService {
 		}
 	}
 	
+	protected void addCloseListener(AtmosphereResource resource) {
+		resource.addEventListener( new WebSocketEventListenerAdapter() {
+			@Override
+			public void onResume(AtmosphereResourceEvent event) {
+				logger.debug("onResume: {}",event);
+				super.onResume(event);
+				try {
+					resource.close();
+				} catch (IOException e) {
+					logger.error(e,e);
+				}
+			}
+
+		});
+		super.addCloseListener(resource);
+		
+	}
 }

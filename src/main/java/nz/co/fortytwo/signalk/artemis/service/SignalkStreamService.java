@@ -57,13 +57,11 @@ public class SignalkStreamService extends BaseApiService {
 	public String post() {
 		try {
 			String correlationId = resource.uuid(); // UUID.randomUUID().toString();
-			resourceSession=resource.getAtmosphereConfig().sessionFactory().getSession(resource,false);
-			if(resourceSession == null){
-				logger.debug("Initialising for : {}", correlationId);
-				initSession(resource.uuid(),resource.getAtmosphereConfig().sessionFactory().getSession(resource));
-				addCloseListener(resource);
-			}
 			
+			initSession("stream-"+correlationId);
+			addCloseListener(resource);
+			
+			resource.suspend();
 			String body = Util.readString(resource.getRequest().getInputStream(),
 					resource.getRequest().getCharacterEncoding());
 			if (logger.isDebugEnabled())
@@ -74,15 +72,6 @@ public class SignalkStreamService extends BaseApiService {
 				logger.debug("User:" + user + ":" + pass);
 			}
 			
-			Broadcaster bCaster = broadCasterFactory.lookup(correlationId);
-			if (bCaster == null) {
-				logger.debug("Creating broadcaster for : {}", correlationId);
-				bCaster = broadCasterFactory.get(correlationId);
-			}
-			if (!bCaster.getAtmosphereResources().contains(resource)) {
-				logger.debug("Adding resource to existing broadcaster for : {}", correlationId);
-				bCaster.addAtmosphereResource(resource);
-			}
 			sendMessage(body, correlationId);
 
 		} catch (Exception e) {
@@ -97,42 +86,10 @@ public class SignalkStreamService extends BaseApiService {
 	}
 
 	@Override
-	protected void initSession(String tempQ, AtmosphereResourceSession atmosphereResourceSession) throws Exception {
+	protected void initSession(String tempQ) throws Exception {
 		try {
-			super.initSession(tempQ, atmosphereResourceSession);
-			
-			getConsumer().setMessageHandler(new MessageHandler() {
-
-				@Override
-				public void onMessage(ClientMessage message) {
-					String recv = message.getBodyBuffer().readString();
-					try {
-						message.acknowledge();
-					} catch (ActiveMQException e) {
-						logger.error(e, e);
-					}
-					logger.debug("onMessage = " + recv);
-					String correlation = message.getStringProperty(Config.AMQ_CORR_ID);
-					Broadcaster bc = broadCasterFactory.lookup(correlation);
-					if (bc == null){
-						try {
-							logger.debug("Closing: {}"+resource);
-							resource.close();
-						} catch (IOException e) {
-							logger.error(e,e);
-						}
-						return;
-					}
-						
-					if (bc.getAtmosphereResources().size() == 0) {
-						// kill it
-						broadCasterFactory.remove(correlation);
-						return;
-					}
-					bc.broadcast(recv == null ? "{}" : recv);
-					logger.debug(bc.getAtmosphereResources());
-				}
-			});
+			super.initSession(tempQ);
+			super.setConsumer(resource);
 		} catch (Exception e) {
 			logger.error(e, e);
 			throw e;

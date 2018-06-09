@@ -7,6 +7,7 @@ import org.apache.activemq.artemis.api.core.ICoreMessage;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
+import org.apache.activemq.artemis.core.client.impl.ClientMessageImpl;
 import org.apache.activemq.artemis.core.protocol.core.Packet;
 import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.MessagePacket;
 import org.apache.activemq.artemis.core.server.ServerSession;
@@ -26,8 +27,8 @@ public class BaseInterceptor {
 	private static Logger logger = LogManager.getLogger(BaseInterceptor.class);
 	protected static TDBService influx = new InfluxDbService();
 	protected static SecurityService security = new SecurityService();
-	protected ClientSession txSession;
-	protected ClientProducer producer;
+	protected static ClientSession txSession;
+	protected static ClientProducer producer;
 
 	protected void init() {
 		try{
@@ -58,9 +59,12 @@ public class BaseInterceptor {
 		sendReply(String.class.getSimpleName(),destination,format,null,json);
 	}
 	
-	protected void sendReply(String simpleName, String destination, String format, String correlation, Json json) throws Exception {
+	protected void  sendReply(String simpleName, String destination, String format, String correlation, Json json) throws Exception {
+		if(txSession==null){
+			init();
+		}
 		if(json==null || json.isNull())json=Json.object();
-		ClientMessage txMsg = txSession.createMessage(false);
+		ClientMessage txMsg = new ClientMessageImpl((byte) 0, false, 0, System.currentTimeMillis(), (byte) 4, 1024);
 		//txMsg.putStringProperty(Config.JAVA_TYPE, type);
 		if(correlation!=null)
 			txMsg.putStringProperty(Config.AMQ_CORR_ID, correlation);

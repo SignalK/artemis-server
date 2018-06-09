@@ -65,6 +65,7 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 	
 	private static Logger logger = LogManager.getLogger(GetMsgInterceptor.class);
 	
+	
 	/**
 	 * Reads Delta GET message and returns the result in full format. Does nothing if json
 	 * is not a GET, and returns the original message
@@ -75,9 +76,7 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 
 	@Override
 	public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException {
-		//if(txSession==null){
-		//	init();
-		//}
+		
 		if(isResponse(packet))return true;
 		
 		if (packet instanceof SessionSendMessage) {
@@ -90,9 +89,7 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 		
 			Json node = Util.readBodyBuffer(message);
 			String correlation = message.getStringProperty(Config.AMQ_CORR_ID);
-			String sessionId = message.getStringProperty(Config.AMQ_SESSION_ID);
 			String destination = message.getStringProperty(Config.AMQ_REPLY_Q);
-			ServerSession s = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
 			
 			// deal with diff format
 			if (node.has(CONTEXT) && (node.has(GET))) {
@@ -198,5 +195,7 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 		return true;
 
 	}
+
+	
 
 }

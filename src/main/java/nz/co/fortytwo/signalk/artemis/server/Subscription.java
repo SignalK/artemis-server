@@ -42,6 +42,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.regex.Pattern;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
+import org.apache.activemq.artemis.api.core.ActiveMQQueueExistsException;
 import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.api.core.client.ClientConsumer;
@@ -68,19 +69,20 @@ import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
-
 /**
- * Holds subscription data, wsSessionId, path, period
- * If a subscription is made via REST before the websocket is started then the wsSocket will hold the sessionId.
- * This must be swapped for the wsSessionId when the websocket starts.
- * The subscription will be in an inactive state when submitted by REST if sessionId = sessionId
+ * Holds subscription data, wsSessionId, path, period If a subscription is made
+ * via REST before the websocket is started then the wsSocket will hold the
+ * sessionId. This must be swapped for the wsSessionId when the websocket
+ * starts. The subscription will be in an inactive state when submitted by REST
+ * if sessionId = sessionId
  * 
  * @author robert
  * 
  */
 public class Subscription {
 	private static Logger logger = LogManager.getLogger(Subscription.class);
-	private static TDBService influx=new InfluxDbService();
+	private static TDBService influx = new InfluxDbService();
+
 	String sessionId = null;
 	String path = null;
 	long period = -1;
@@ -101,67 +103,73 @@ public class Subscription {
 	private String uuid;
 	private Map<String, String> map = new HashMap<>();
 	private String correlation;
-	
-	public Subscription(String sessionId, String destination, String user, String password, String path, 
-			long period, long minPeriod, String format, String policy, String correlation) throws Exception {
+
+	public Subscription(String sessionId, String destination, String user, String password, String path, long period,
+			long minPeriod, String format, String policy, String correlation) throws Exception {
 		this.sessionId = sessionId;
 
 		this.path = Util.sanitizePath(path);
 		String context = Util.getContext(path);
-		this.table=StringUtils.substringBefore(context,".");
-		this.uuid=StringUtils.substringAfter(context,".");
-		uuidPattern=Util.regexPath(uuid);
-		pathPattern = Util.regexPath(StringUtils.substring(path,context.length()+1));
+		this.table = StringUtils.substringBefore(context, ".");
+		this.uuid = StringUtils.substringAfter(context, ".");
+		uuidPattern = Util.regexPath(uuid);
+		pathPattern = Util.regexPath(StringUtils.substring(path, context.length() + 1));
 		this.period = period;
 		this.minPeriod = minPeriod;
 		this.format = format;
 		this.policy = policy;
-		this.destination=destination;
+		this.destination = destination;
 		this.setCorrelation(correlation);
-		map.put("uuid",uuidPattern.toString());
-		map.put("skey",pathPattern.toString());
-		SubscriptionManagerFactory.getInstance().createQueue(destination);
+		map.put("uuid", uuidPattern.toString());
+		map.put("skey", pathPattern.toString());
+		
+		SubscriptionManagerFactory.getInstance().createTempQueue(destination);
 		task = new TimerTask() {
-			
+
 			@Override
 			public void run() {
-				if(logger.isDebugEnabled()){
-					logger.debug("Running for client:"+destination+", "+getPath());
-					logger.debug("Running for session:"+sessionId);
+				if (logger.isDebugEnabled()) {
+					logger.debug("Running for client:" + destination + ", " + getPath());
+					logger.debug("Running for session:" + sessionId);
 				}
 
 				try {
-					//get a map of the current subs values
+					if (!active) {
+						cancel();
+						return;
+					}
+					// get a map of the current subs values
 					NavigableMap<String, Json> rslt = new ConcurrentSkipListMap<String, Json>();
-					//select * from vessels where uuid='urn:mrn:imo:mmsi:209023000' AND skey=~/nav.*cou/ group by skey,uuid,sourceRef,owner,grp order by time desc limit 1
-					influx.loadData(rslt,table, map,"signalk");
-					if(logger.isDebugEnabled())logger.debug("rslt map = "+rslt);
+					// select * from vessels where
+					// uuid='urn:mrn:imo:mmsi:209023000' AND skey=~/nav.*cou/
+					// group by skey,uuid,sourceRef,owner,grp order by time desc
+					// limit 1
+					influx.loadData(rslt, table, map, "signalk");
+					if (logger.isDebugEnabled())
+						logger.debug("rslt map = " + rslt);
 					Json json = null;
-					if(SignalKConstants.FORMAT_DELTA.equals(format)){
+					if (SignalKConstants.FORMAT_DELTA.equals(format)) {
 						json = SignalkMapConvertor.mapToUpdatesDelta(rslt);
-						if(logger.isDebugEnabled())logger.debug("Delta json = "+json);
+						if (logger.isDebugEnabled())
+							logger.debug("Delta json = " + json);
 					}
-					if(SignalKConstants.FORMAT_FULL.equals(format)){
+					if (SignalKConstants.FORMAT_FULL.equals(format)) {
 						json = SignalkMapConvertor.mapToFull(rslt);
-						if(logger.isDebugEnabled())logger.debug("Full json = "+json);
+						if (logger.isDebugEnabled())
+							logger.debug("Full json = " + json);
 					}
-					SubscriptionManagerFactory.getInstance().send(rslt.getClass().getSimpleName(),destination,format,correlation,json);
-								
+					SubscriptionManagerFactory.getInstance().send(rslt.getClass().getSimpleName(), destination, format, correlation, json);
+
 				} catch (Exception e) {
-					logger.error(e.getMessage(),e);
-				
+					logger.error(e.getMessage(), e);
+
 				}
-				
+
 			}
 		};
-		
-		//SignalKModelFactory.getInstance().getEventBus().register(this);
-		//for(String p: ImmutableList.copyOf(SignalKModelFactory.getInstance().getKeys())){
-		//	if(isSubscribed(p)){
-		//		subscribedPaths.add(p);
-		//	}
-		//}
+
 	}
+
 
 	@Override
 	public int hashCode() {
@@ -172,6 +180,7 @@ public class Subscription {
 		result = prime * result + ((sessionId == null) ? 0 : sessionId.hashCode());
 		return result;
 	}
+
 
 	@Override
 	public boolean equals(Object obj) {
@@ -223,7 +232,8 @@ public class Subscription {
 
 	@Override
 	public String toString() {
-		return "Subscription [sessionId=" + sessionId + ", path=" + path + ", period=" + period + ", routeId=" + routeId+ ", format=" + format + ", active=" + active + ", destination=" + destination + "]";
+		return "Subscription [sessionId=" + sessionId + ", path=" + path + ", period=" + period + ", routeId=" + routeId
+				+ ", format=" + format + ", active=" + active + ", destination=" + destination + "]";
 	}
 
 	public boolean isActive() {
@@ -232,20 +242,21 @@ public class Subscription {
 
 	public void setActive(boolean active) throws Exception {
 		this.active = active;
-		if(logger.isDebugEnabled())logger.debug("Set active:"+active);
+		if (logger.isDebugEnabled())
+			logger.debug("Set active:{}, {}", active, this);
 
-		if(!active && timer!=null){
+		if (!active && timer != null) {
 			timer.cancel();
-			task.cancel();
-			timer=null;
+			timer = null;
 		}
 
-		if(active && timer==null){
+		if (active && timer == null) {
 			timer = new Timer(sessionId, true);
 			timer.schedule(task, 0, getPeriod());
-			if(logger.isDebugEnabled())logger.debug("Scheduled:"+getPeriod());
+			if (logger.isDebugEnabled())
+				logger.debug("Scheduled:" + getPeriod());
 		}
-		
+
 	}
 
 	public boolean isSameRoute(Subscription sub) {
@@ -255,6 +266,13 @@ public class Subscription {
 			if (sub.sessionId != null)
 				return false;
 		} else if (!sessionId.equals(sub.sessionId))
+			return false;
+		if (path != sub.path)
+			return false;
+		if (path == null) {
+			if (sub.path != null)
+				return false;
+		} else if (!path.equals(sub.path))
 			return false;
 		if (format == null) {
 			if (sub.format != null)
@@ -277,7 +295,7 @@ public class Subscription {
 
 	/**
 	 * Gets the context path, eg vessels.motu, vessel.*, or vessels.2933??
-	 *  
+	 * 
 	 * @param path
 	 * @return
 	 */
@@ -322,18 +340,21 @@ public class Subscription {
 
 	/**
 	 * Returns a list of paths that this subscription is currently providing.
-	 * The list is filtered by the key if it is not null or empty in which case a full list is returned,
+	 * The list is filtered by the key if it is not null or empty in which case
+	 * a full list is returned,
+	 * 
 	 * @param key
 	 * @return
 	 */
 	public List<String> getSubscribed(String key) {
-		if(StringUtils.isBlank(key)){
+		if (StringUtils.isBlank(key)) {
 			return ImmutableList.copyOf(subscribedPaths);
 		}
 		List<String> paths = new ArrayList<String>();
 		for (String p : subscribedPaths) {
 			if (p.startsWith(key)) {
-				if(logger.isDebugEnabled())logger.debug("Adding path:" + p);
+				if (logger.isDebugEnabled())
+					logger.debug("Adding path:" + p);
 				paths.add(p);
 			}
 		}
@@ -341,7 +362,8 @@ public class Subscription {
 	}
 
 	/**
-	 * Listens for node changes in the server and adds them if they match the subscription
+	 * Listens for node changes in the server and adds them if they match the
+	 * subscription
 	 * 
 	 * @param pathEvent
 	 */
@@ -351,21 +373,19 @@ public class Subscription {
 			return;
 		if (pathEvent.getPath() == null)
 			return;
-		if(path.endsWith(dot+source)
-    			&& path.endsWith(dot+timestamp)
-    			&& path.contains(dot+source+dot)
-    			&& path.endsWith(dot+sourceRef)){
-        	return;
-        }
+		if (path.endsWith(dot + source) && path.endsWith(dot + timestamp) && path.contains(dot + source + dot)
+				&& path.endsWith(dot + sourceRef)) {
+			return;
+		}
 		if (logger.isDebugEnabled())
 			logger.debug(this.hashCode() + " received event " + pathEvent.getPath());
-		if(isSubscribed(pathEvent.getPath())){
+		if (isSubscribed(pathEvent.getPath())) {
 			subscribedPaths.add(pathEvent.getPath());
 		}
 	}
 
 	public void setRouteId(String routeId) {
-		this.routeId=routeId;
+		this.routeId = routeId;
 	}
 
 	public String getRouteId() {

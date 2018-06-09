@@ -65,9 +65,7 @@ import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
  */
 
 public class SubscribeMsgInterceptor extends BaseInterceptor implements Interceptor {
-	// private ClientSession session;
-	// private ClientProducer producer;
-
+	
 	private static Logger logger = LogManager.getLogger(SubscribeMsgInterceptor.class);
 
 	/**
@@ -177,12 +175,6 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 			String destination = message.getStringProperty(Config.AMQ_REPLY_Q);
 			String correlation = message.getStringProperty(Config.AMQ_CORR_ID);
 			ServerSession s = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
-
-			if (node.has(ConfigConstants.OUTPUT_TYPE)) {
-				String outputType = node.at(ConfigConstants.OUTPUT_TYPE).asString();
-				//SubscriptionManagerFactory.getInstance().add(sessionId, sessionId, outputType, "127.0.0.1",
-				//		"127.0.0.1");
-			}
 
 			if (subscriptions.isArray()) {
 				for (Json subscription : subscriptions.asJsonList()) {

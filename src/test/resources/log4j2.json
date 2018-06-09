@@ -19,7 +19,7 @@
 			"Console": {
 				"name": "STDOUT",
 				"patternlayout": {
-					"pattern": "%d{HH:mm:ss.SSS} %-5level %c{1.} - %msg%n"
+					"pattern": "%d{HH:mm:ss.SSS} [%t{.20c}] %-5level %c{1.} - %msg%n"
 				}
 			},
 			"RollingFile": {
