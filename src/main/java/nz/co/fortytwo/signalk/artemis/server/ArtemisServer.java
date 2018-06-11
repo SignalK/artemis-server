@@ -90,7 +90,7 @@ public final class ArtemisServer {
 		conf.addRole("admin", "admin");
 
 		ActiveMQSecurityManager securityManager = new ActiveMQSecurityManagerImpl(conf);
-
+		
 		embedded.setSecurityManager(securityManager);
 		embedded.start();
 		
@@ -117,6 +117,8 @@ public final class ArtemisServer {
 						.initParam("org.atmosphere.cpr.broadcaster.shareableThreadPool","true")
 						.initParam("org.atmosphere.cpr.broadcaster.maxProcessingThreads", "10")
 						.initParam("org.atmosphere.cpr.broadcaster.maxAsyncWriteThreads", "10")
+						.initParam("org.atmosphere.websocket.maxIdleTime", "30000")
+						.initParam("org.atmosphere.cpr.Broadcaster.writeTimeout", "10000")
 						//.initParam("org.atmosphere.cpr.broadcasterLifeCyclePolicy","IDLE_RESUME")
 						//.interceptor(new AuthenticationInterceptor(conf) )
 						.port(8080)
@@ -125,7 +127,7 @@ public final class ArtemisServer {
 				).build();
 		
 		server.start();
-
+		
 		skServer = new NettyServer(null, OUTPUT_TCP);
 		skServer.setTcpPort(Config.getConfigPropertyInt(TCP_PORT));
 		skServer.setUdpPort(Config.getConfigPropertyInt(UDP_PORT));

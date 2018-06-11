@@ -58,17 +58,15 @@ public class NettyServer {
 	private final EventLoopGroup group;
 	private final EventLoopGroup workerGroup;
 
-	private static Logger logger = LogManager.getLogger(ArtemisNettyHandler.class);
+	private static Logger logger = LogManager.getLogger(ArtemisTcpNettyHandler.class);
 	private static final StringDecoder DECODER = new StringDecoder();
 	private static final StringEncoder ENCODER = new StringEncoder();
-	private ArtemisNettyHandler forwardingHandler = null;
+	private ArtemisTcpNettyHandler forwardingHandler = null;
 	private ArtemisUdpNettyHandler udpHandler = null;
 	private Channel udpChannel = null;
 	private int tcpPort = Config.getConfigPropertyInt(ConfigConstants.TCP_PORT);
 	private int udpPort = Config.getConfigPropertyInt(ConfigConstants.UDP_PORT);
 	private String outputType;
-	//private ClientSession rxSession;
-	//private ClientConsumer consumer;
 	
 	/**
 	 * @param configDir
@@ -87,13 +85,11 @@ public class NettyServer {
 			}
 		}));
 		
-		//rxSession=Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),Config.getConfigProperty(Config.ADMIN_PWD));
-		//rxSession.start();
 		
 	}
 	
 	public void run() throws Exception{
-		forwardingHandler = new ArtemisNettyHandler(outputType);
+		forwardingHandler = new ArtemisTcpNettyHandler(outputType);
 		// The generic TCP socket server
 		ServerBootstrap skBootstrap = new ServerBootstrap();
 		skBootstrap.group(group, workerGroup).channel(NioServerSocketChannel.class).localAddress(tcpPort)

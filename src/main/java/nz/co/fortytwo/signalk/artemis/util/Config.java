@@ -136,7 +136,11 @@ public class Config {
 					"mqtt://" + hostname + ":" + getConfigPropertyInt(ConfigConstants.MQTT_PORT));
 		Json endpoints = Json.object();
 		endpoints.set("v" + ver.substring(0, 1), version);
-		return Json.object().set("endpoints", endpoints);
+		Json server = Json.object("id","artemis-java-server", "version", ver);
+		
+		Json reply = Json.object().set("endpoints", endpoints);
+		reply.set("server",server);
+		return reply;
 	}
 
 	/**

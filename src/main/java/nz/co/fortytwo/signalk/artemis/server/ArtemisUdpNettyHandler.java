@@ -36,6 +36,7 @@ import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.activemq.artemis.api.core.client.MessageHandler;
+import org.apache.activemq.artemis.core.client.impl.ClientMessageImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -57,16 +58,31 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 @Sharable
 public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
-	private Logger logger = LogManager.getLogger(ArtemisUdpNettyHandler.class);
+	private static Logger logger = LogManager.getLogger(ArtemisUdpNettyHandler.class);
+	
+	private static ClientSession rxSession;
+	private static ClientProducer producer;
+	
 	private BiMap<String, InetSocketAddress> socketList = HashBiMap.create();
-	private BiMap<String, ClientSession> sessionList = HashBiMap.create();
+	//private BiMap<String, ClientSession> sessionList = HashBiMap.create();
 	private Map<String, ChannelHandlerContext> channelList = new HashMap<>();
-	private BiMap<String, ClientProducer> producerList = HashBiMap.create();
+	//private BiMap<String, ClientProducer> producerList = HashBiMap.create();
 	private BiMap<String, ClientConsumer> consumerList = HashBiMap.create();
 
 	private String outputType;
 	//private ClientConsumer consumer;
 
+	static {
+		try {
+			rxSession = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
+					Config.getConfigProperty(Config.ADMIN_PWD));
+			producer = rxSession.createProducer();
+			rxSession.start();
+		} catch (Exception e) {
+			logger.error(e, e);
+		}
+	}
+	
 	public ArtemisUdpNettyHandler(String outputType) throws Exception {
 		this.outputType = outputType;
 	}
@@ -105,15 +121,11 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 							Unpooled.copiedBuffer(Util.getWelcomeMsg().toString() + "\r\n", CharsetUtil.UTF_8),
 							packet.sender()));
 			// setup consumer
-			if(!sessionList.containsKey(session)){
-				ClientSession txSession = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
-						Config.getConfigProperty(Config.ADMIN_PWD));
-				txSession.createTemporaryQueue("outgoing.reply." + session, RoutingType.ANYCAST, session);
-				txSession.start();
-				sessionList.put(session, txSession);
-				producerList.put(session, txSession.createProducer());
+			if(!consumerList.containsKey(session)){
 				
-				ClientConsumer consumer = txSession.createConsumer(session, false);
+				rxSession.createTemporaryQueue("outgoing.reply." + session, RoutingType.ANYCAST, session);
+				
+				ClientConsumer consumer = rxSession.createConsumer(session, false);
 				consumer.setMessageHandler(new MessageHandler() {
 	
 					@Override
@@ -134,14 +146,14 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 		}
 
 		Map<String, Object> headers = getHeaders(session, remoteAddress, localAddress);
-		ClientMessage ex = sessionList.get(session).createMessage(true);
+		ClientMessage ex = new ClientMessageImpl((byte) 0, false, 0, System.currentTimeMillis(), (byte) 4, 1024);
 		ex.getBodyBuffer().writeString(request);
 		ex.putStringProperty(Config.AMQ_REPLY_Q, session);
 		
 		for (String hdr : headers.keySet()) {
 			ex.putStringProperty(hdr, headers.get(hdr).toString());
 		}
-		producerList.get(session).send(Config.INCOMING_RAW, ex);
+		producer.send(Config.INCOMING_RAW, ex);
 	}
 
 	@Override
@@ -192,22 +204,21 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 			}
 		}
 		consumerList.clear();
-		for(Entry<String, ClientProducer> entry:producerList.entrySet()){
+		if (producer != null) {
 			try {
-				entry.getValue().close();
+				producer.close();
 			} catch (ActiveMQException e) {
-				logger.error(e,e);
+				logger.warn(e, e);
 			}
 		}
-		producerList.clear();
-		for(Entry<String, ClientSession> entry:sessionList.entrySet()){
+
+		if (rxSession != null) {
 			try {
-				entry.getValue().close();
+				rxSession.close();
 			} catch (ActiveMQException e) {
-				logger.error(e,e);
+				logger.warn(e, e);
 			}
 		}
-		sessionList.clear();
 	}
 
 	public void process(ClientMessage message) throws Exception {

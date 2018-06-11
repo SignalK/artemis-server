@@ -1,35 +1,29 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
-import java.io.IOException;
-import java.util.UUID;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PERIOD;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SUBSCRIBE;
 
-import javax.inject.Inject;
+import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
-import org.apache.activemq.artemis.api.core.ActiveMQException;
-import org.apache.activemq.artemis.api.core.client.ClientMessage;
-import org.apache.activemq.artemis.api.core.client.MessageHandler;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.atmosphere.annotation.Suspend;
-import org.atmosphere.config.service.Ready;
-import org.atmosphere.cpr.AtmosphereFramework;
 import org.atmosphere.cpr.AtmosphereResource;
-import org.atmosphere.cpr.AtmosphereResourceFactory;
-import org.atmosphere.cpr.AtmosphereResourceSession;
-import org.atmosphere.cpr.AtmosphereResourceSessionFactory;
-import org.atmosphere.cpr.Broadcaster;
-import org.atmosphere.cpr.BroadcasterFactory;
-import org.atmosphere.cpr.BroadcasterLifeCyclePolicy;
-import org.atmosphere.cpr.DefaultAtmosphereResourceSessionFactory;
-import org.atmosphere.inject.AtmosphereResourceSessionFactoryInjectable;
 
-import nz.co.fortytwo.signalk.artemis.util.Config;
+import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.server.Subscription;
+import nz.co.fortytwo.signalk.artemis.server.SubscriptionManagerFactory;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 @Path("/signalk/v1/stream")
@@ -39,9 +33,8 @@ public class SignalkStreamService extends BaseApiService {
 	@Context
 	private AtmosphereResource resource;
 	
-	public SignalkStreamService() throws Exception {
-
-	}
+	private Timer timer = new Timer();
+	
 
 	@GET
 	@Suspend(contentType = MediaType.APPLICATION_JSON)
@@ -60,7 +53,6 @@ public class SignalkStreamService extends BaseApiService {
 			
 			initSession("stream-"+correlationId);
 			addCloseListener(resource);
-			
 			resource.suspend();
 			String body = Util.readString(resource.getRequest().getInputStream(),
 					resource.getRequest().getCharacterEncoding());
@@ -71,6 +63,27 @@ public class SignalkStreamService extends BaseApiService {
 			if (logger.isDebugEnabled()) {
 				logger.debug("User:" + user + ":" + pass);
 			}
+			
+			Json json = Json.read(body);
+			long period = getLongestPeriod(json);
+			TimerTask task = new TimerTask() {
+				
+				@Override
+				public void run() {
+					logger.debug("Checking broadcast");
+					if(System.currentTimeMillis()-lastBroadcast>period){
+						try {
+							logger.debug("Checking broadcast failed, closing...");
+							resource.close();
+							timer.cancel();
+							cancel();
+						} catch (IOException e) {
+							logger.error(e,e);
+						}
+					}
+				}
+			};
+			timer.schedule(task, period, period*5);
 			
 			sendMessage(body, correlationId);
 
@@ -85,6 +98,19 @@ public class SignalkStreamService extends BaseApiService {
 		return "";
 	}
 
+	private long getLongestPeriod(Json json) {
+		long period = 2000;
+		if (json.has(SUBSCRIBE)) {
+			if (json.at(SUBSCRIBE).isArray()) {
+				for (Json subscription : json.at(SUBSCRIBE).asJsonList()) {
+					if (subscription.at(PERIOD) != null)
+						period = Math.max(period,subscription.at(PERIOD).asLong());
+				}
+			}
+		}
+		return period;
+	}
+
 	@Override
 	protected void initSession(String tempQ) throws Exception {
 		try {
@@ -96,5 +122,6 @@ public class SignalkStreamService extends BaseApiService {
 		}
 
 	}
+	
 
 }

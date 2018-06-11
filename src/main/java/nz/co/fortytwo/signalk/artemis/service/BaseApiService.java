@@ -1,6 +1,9 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.core.Context;
 
@@ -16,36 +19,33 @@ import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.activemq.artemis.api.core.client.MessageHandler;
 import org.apache.activemq.artemis.core.client.impl.ClientMessageImpl;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.cpr.AtmosphereResourceEvent;
-import org.atmosphere.cpr.AtmosphereResourceSession;
-import org.atmosphere.cpr.Broadcaster;
 import org.atmosphere.cpr.BroadcasterFactory;
+import org.atmosphere.cpr.BroadcasterListener;
+import org.atmosphere.websocket.WebSocketEventListener.WebSocketEvent;
 import org.atmosphere.websocket.WebSocketEventListenerAdapter;
+import org.atmosphere.websocket.WebSocketHandler;
 
 import nz.co.fortytwo.signalk.artemis.server.SubscriptionManagerFactory;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class BaseApiService {
-	//protected static final String PRODUCER = "producer";
+
 	protected static ClientProducer producer;
 
-	//protected static final String TX_SESSION = "txSession";
-	
 	protected static ClientSession txSession;
 
-	//protected static final String TEMP_Q = "tempQ";
 	protected  String tempQ;
-	//protected static final String CONSUMER = "consumer";
+	
 	protected  ClientConsumer consumer;
 
 	private static Logger logger = LogManager.getLogger(BaseApiService.class);
-
-	//protected AtmosphereResourceSession resourceSession;
+	
+	protected long lastBroadcast = System.currentTimeMillis();
 	
 	@Context
 	protected BroadcasterFactory broadCasterFactory;
@@ -56,9 +56,7 @@ public class BaseApiService {
 	}
 
 	protected void initSession(String tempQ) throws Exception {
-		//	this.resourceSession=resourceSession;
 			if(getTempQ()==null){
-				//resourceSession.setAttribute(TEMP_Q,tempQ);
 				this.tempQ=tempQ;
 			}	
 			getTxSession();
@@ -77,7 +75,6 @@ public class BaseApiService {
 		if(correlation!=null){
 			message.putStringProperty(Config.AMQ_CORR_ID,correlation);
 		}
-		//producer = getTxSession().createProducer();
 		getProducer().send(new SimpleString(Config.INCOMING_RAW), message);
 		return correlation;
 	}
@@ -91,11 +88,16 @@ public class BaseApiService {
 	}
 
 	protected void addCloseListener(AtmosphereResource resource) {
+		
 		resource.addEventListener( new WebSocketEventListenerAdapter() {
 			
 			@Override
 			public void onThrowable(AtmosphereResourceEvent event) {
-				closeSession();
+				try {
+					event.getResource().close();
+				} catch ( IllegalStateException | IOException e) {
+					logger.error(e,e);
+				}
 		       logger.debug("onThrowable: {}",event);
 				
 			}
@@ -105,12 +107,9 @@ public class BaseApiService {
 		    @Override
 		    public void onDisconnect(AtmosphereResourceEvent event) {
 		    	logger.debug("onDisconnect: {}",event);
-		        closeSession();
 		        try {
 					event.getResource().close();
-				} catch ( IllegalStateException e) {
-					logger.error(e,e);
-				}catch (IOException e) {
+				} catch ( IllegalStateException | IOException e) {
 					logger.error(e,e);
 				}
 		        super.onDisconnect(event);
@@ -129,6 +128,18 @@ public class BaseApiService {
 			}
 
 			@Override
+			public void onHeartbeat(AtmosphereResourceEvent event) {
+				logger.debug("onHeartbeat: {}",event);
+				super.onHeartbeat(event);
+			}
+			@Override
+			public void onBroadcast(AtmosphereResourceEvent event) {
+				lastBroadcast=System.currentTimeMillis();
+				logger.debug("onBroadcast: {}",event);
+				super.onBroadcast(event);
+			}
+			
+			@Override
 			public void onClose(WebSocketEvent event) {
 				logger.debug("onWebsocketClose: {}",event);
 				super.onClose(event);
@@ -139,24 +150,44 @@ public class BaseApiService {
 				logger.debug("onWebsocketDisconnect: {}",event);
 				super.onDisconnect(event);
 			}
+			
+			@Override
+			public void onMessage(WebSocketEvent event) {
+				logger.debug("onWebsocketMessage: {}",event);
+				super.onMessage(event);
+			}
+			@Override
+			public void onControl(WebSocketEvent event) {
+				logger.debug("onWebsocketControl: {}",event);
+				super.onControl(event);
+			}
+			
+			
+			@Override
+			public void onConnect(WebSocketEvent event) {
+				logger.debug("onWebsocketConnect: {}",event);
+				
+				super.onConnect(event);
+			}
 
 			
 		});
 		
 	}
 	public void setConsumer(AtmosphereResource resource) throws ActiveMQException {
+		
 		if(getConsumer().getMessageHandler()==null){
 			getConsumer().setMessageHandler(new MessageHandler() {
 
 				@Override
 				public void onMessage(ClientMessage message) {
 					try {
-					String recv = message.getBodyBuffer().readString();
-					message.acknowledge();
-					logger.debug("onMessage = " + recv);
-					resource.getBroadcaster().broadcast(recv == null ? "{}" : recv, resource);
-					logger.debug("Sent to queue: {}",getTempQ());
-					
+						String recv = message.getBodyBuffer().readString();
+						message.acknowledge();
+						logger.debug("onMessage for {}, {}",getTempQ(),recv);
+						resource.getBroadcaster().broadcast(recv == null ? "{}" : recv, resource);
+						logger.debug("Sent to resource: {}",resource);
+
 					} catch (ActiveMQException e) {
 						logger.error(e,e);
 					} 
@@ -172,13 +203,13 @@ public class BaseApiService {
 			try {
 				getConsumer().close();
 				try {
-					if(txSession.queueQuery(new SimpleString(getTempQ())).getConsumerCount()==0)
+					if(txSession.queueQuery(new SimpleString(getTempQ())).getConsumerCount()==0){
+						logger.debug("Delete queue: {}", tempQ);
 						txSession.deleteQueue(getTempQ());
-				} catch (ActiveMQNonExistentQueueException e) {
+					}
+				} catch (ActiveMQNonExistentQueueException | ActiveMQIllegalStateException e) {
 					logger.debug(e.getMessage());
-				} catch (ActiveMQIllegalStateException e){
-					logger.debug(e.getMessage());
-				}
+				} 
 			} catch (ActiveMQException e) {
 				logger.warn(e,e);
 			}

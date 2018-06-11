@@ -29,12 +29,15 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
+import org.apache.activemq.artemis.api.core.ActiveMQIllegalStateException;
+import org.apache.activemq.artemis.api.core.ActiveMQNonExistentQueueException;
 import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.client.ClientConsumer;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.activemq.artemis.api.core.client.MessageHandler;
+import org.apache.activemq.artemis.core.client.impl.ClientMessageImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -50,17 +53,29 @@ import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 @Sharable
-public class ArtemisNettyHandler extends SimpleChannelInboundHandler<String> {
+public class ArtemisTcpNettyHandler extends SimpleChannelInboundHandler<String> {
 
-	private static Logger logger = LogManager.getLogger(ArtemisNettyHandler.class);
+	private static Logger logger = LogManager.getLogger(ArtemisTcpNettyHandler.class);
+
+	private static ClientSession rxSession;
+	private static ClientProducer producer;
 	private BiMap<String, ChannelHandlerContext> contextList = HashBiMap.create();
-	private BiMap<String, ClientSession> sessionList = HashBiMap.create();
-	private BiMap<String, ClientProducer> producerList = HashBiMap.create();
+
 	private BiMap<String, ClientConsumer> consumerList = HashBiMap.create();
 	private String outputType;
 
+	static {
+		try {
+			rxSession = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
+					Config.getConfigProperty(Config.ADMIN_PWD));
+			producer = rxSession.createProducer();
+			rxSession.start();
+		} catch (Exception e) {
+			logger.error(e, e);
+		}
+	}
 
-	public ArtemisNettyHandler(String outputType) throws Exception {
+	public ArtemisTcpNettyHandler(String outputType) throws Exception {
 
 		this.outputType = outputType;
 
@@ -75,16 +90,9 @@ public class ArtemisNettyHandler extends SimpleChannelInboundHandler<String> {
 		ctx.flush();
 
 		String session = ctx.channel().id().asLongText();
-		
-		contextList.put(session, ctx);
-		ClientSession rxSession = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
-				Config.getConfigProperty(Config.ADMIN_PWD));
-		rxSession.start();
-		sessionList.put(session, rxSession);
-		rxSession.createTemporaryQueue("outgoing.reply." + session, RoutingType.ANYCAST, session);
 
-		ClientProducer producer = rxSession.createProducer();
-		producerList.put(session, producer);
+		contextList.put(session, ctx);
+		rxSession.createTemporaryQueue("outgoing.reply." + session, RoutingType.ANYCAST, session);
 
 		// setup consumer
 		ClientConsumer consumer = rxSession.createConsumer(session, false);
@@ -100,7 +108,7 @@ public class ArtemisNettyHandler extends SimpleChannelInboundHandler<String> {
 
 			}
 		});
-		consumerList.put(session,consumer);
+		consumerList.put(session, consumer);
 		if (logger.isDebugEnabled())
 			logger.debug("channelActive, ready:" + ctx);
 	}
@@ -111,8 +119,7 @@ public class ArtemisNettyHandler extends SimpleChannelInboundHandler<String> {
 		String session = contextList.inverse().get(ctx);
 		// txSession.deleteQueue("outgoing.reply." + session);
 		consumerList.get(session).close();
-		producerList.get(session).close();
-		sessionList.get(session).close();		
+		rxSession.deleteQueue(session);
 		super.channelInactive(ctx);
 	}
 
@@ -120,9 +127,8 @@ public class ArtemisNettyHandler extends SimpleChannelInboundHandler<String> {
 	protected void channelRead0(ChannelHandlerContext ctx, String request) throws Exception {
 		if (logger.isDebugEnabled())
 			logger.debug("Request:" + request);
-		String session = contextList.inverse().get(ctx);
-		ClientProducer producer = producerList.get(session);
-		ClientMessage msg = sessionList.get(session).createMessage(false);
+
+		ClientMessage msg = new ClientMessageImpl((byte) 0, false, 0, System.currentTimeMillis(), (byte) 4, 1024);
 		msg.getBodyBuffer().writeString(request);
 		getHeaders(ctx, msg);
 		String tempQ = contextList.inverse().get(ctx);
@@ -178,32 +184,39 @@ public class ArtemisNettyHandler extends SimpleChannelInboundHandler<String> {
 	}
 
 	@Override
-	protected void finalize() throws Throwable{
-		for(Entry<String, ClientConsumer> entry:consumerList.entrySet()){
+	protected void finalize() throws Throwable {
+		for (Entry<String, ClientConsumer> entry : consumerList.entrySet()) {
 			try {
 				entry.getValue().close();
+				try {
+					rxSession.deleteQueue(entry.getKey());
+				} catch (ActiveMQNonExistentQueueException e) {
+					logger.debug(e.getMessage());
+				} catch (ActiveMQIllegalStateException e) {
+					logger.debug(e.getMessage());
+				}
 			} catch (ActiveMQException e) {
-				logger.error(e,e);
+				logger.error(e, e);
 			}
 		}
 		consumerList.clear();
-		for(Entry<String, ClientProducer> entry:producerList.entrySet()){
+		if (producer != null) {
 			try {
-				entry.getValue().close();
+				producer.close();
 			} catch (ActiveMQException e) {
-				logger.error(e,e);
+				logger.warn(e, e);
 			}
 		}
-		producerList.clear();
-		for(Entry<String, ClientSession> entry:sessionList.entrySet()){
+
+		if (rxSession != null) {
 			try {
-				entry.getValue().close();
+				rxSession.close();
 			} catch (ActiveMQException e) {
-				logger.error(e,e);
+				logger.warn(e, e);
 			}
 		}
-		sessionList.clear();
 	}
+
 	public void process(ClientMessage message) throws Exception {
 
 		String msg = Util.readBodyBufferToString(message);
