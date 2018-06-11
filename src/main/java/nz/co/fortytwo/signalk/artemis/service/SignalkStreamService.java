@@ -1,6 +1,5 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PERIOD;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SUBSCRIBE;
 
@@ -14,7 +13,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,8 +20,6 @@ import org.atmosphere.annotation.Suspend;
 import org.atmosphere.cpr.AtmosphereResource;
 
 import mjson.Json;
-import nz.co.fortytwo.signalk.artemis.server.Subscription;
-import nz.co.fortytwo.signalk.artemis.server.SubscriptionManagerFactory;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 @Path("/signalk/v1/stream")

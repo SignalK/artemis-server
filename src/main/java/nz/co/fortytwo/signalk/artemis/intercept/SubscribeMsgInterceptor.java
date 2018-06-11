@@ -146,14 +146,15 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 		if (subscriptions != null) {
 			// MQTT and STOMP wont have created proper session links
 
-			String sessionId = message.getStringProperty(Config.AMQ_SESSION_ID);
+			String sessionId = message.getStringProperty(Config.AMQ_CORR_ID);
 			String destination = message.getStringProperty(Config.AMQ_REPLY_Q);
 			String correlation = message.getStringProperty(Config.AMQ_CORR_ID);
-			ServerSession s = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
+			//ServerSession s = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
 
 			if (subscriptions.isArray()) {
 				for (Json subscription : subscriptions.asJsonList()) {
-					Subscription sub = parseSubscribe(sessionId, destination, s.getUsername(), s.getPassword(), ctx,
+					Subscription sub = parseSubscribe(sessionId, destination, Config.getConfigProperty(Config.ADMIN_USER),
+							Config.getConfigProperty(Config.ADMIN_PWD), ctx,
 							subscription, correlation);
 					if (logger.isDebugEnabled())
 						logger.debug("Remove subscription; " + sub.toString());
@@ -171,14 +172,15 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 		if (subscriptions != null) {
 			// MQTT and STOMP wont have created proper session links
 
-			String sessionId = message.getStringProperty(Config.AMQ_SESSION_ID);
+			String sessionId = message.getStringProperty(Config.AMQ_CORR_ID);
 			String destination = message.getStringProperty(Config.AMQ_REPLY_Q);
 			String correlation = message.getStringProperty(Config.AMQ_CORR_ID);
-			ServerSession s = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
+			//ServerSession s = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
 
 			if (subscriptions.isArray()) {
 				for (Json subscription : subscriptions.asJsonList()) {
-					Subscription sub = parseSubscribe(sessionId, destination, s.getUsername(), s.getPassword(), ctx,
+					Subscription sub = parseSubscribe(sessionId, destination, Config.getConfigProperty(Config.ADMIN_USER),
+							Config.getConfigProperty(Config.ADMIN_PWD), ctx,
 							subscription,correlation);
 					if (logger.isDebugEnabled())
 						logger.debug("Created subscription; " + sub.toString());

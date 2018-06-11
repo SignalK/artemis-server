@@ -1,9 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
 import java.io.IOException;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.core.Context;
 
@@ -24,10 +21,8 @@ import org.apache.logging.log4j.Logger;
 import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.cpr.AtmosphereResourceEvent;
 import org.atmosphere.cpr.BroadcasterFactory;
-import org.atmosphere.cpr.BroadcasterListener;
-import org.atmosphere.websocket.WebSocketEventListener.WebSocketEvent;
 import org.atmosphere.websocket.WebSocketEventListenerAdapter;
-import org.atmosphere.websocket.WebSocketHandler;
+import org.jgroups.util.UUID;
 
 import nz.co.fortytwo.signalk.artemis.server.SubscriptionManagerFactory;
 import nz.co.fortytwo.signalk.artemis.util.Config;
@@ -65,7 +60,7 @@ public class BaseApiService {
 	}
 	
 	protected String sendMessage(String body) throws ActiveMQException {
-		return sendMessage(body,null);
+		return sendMessage(body,UUID.randomUUID().toString());
 	}
 
 	protected String sendMessage(String body, String correlation) throws ActiveMQException {
@@ -177,6 +172,7 @@ public class BaseApiService {
 	public void setConsumer(AtmosphereResource resource) throws ActiveMQException {
 		
 		if(getConsumer().getMessageHandler()==null){
+			resource.setBroadcaster(broadCasterFactory.get());
 			getConsumer().setMessageHandler(new MessageHandler() {
 
 				@Override
@@ -185,6 +181,7 @@ public class BaseApiService {
 						String recv = message.getBodyBuffer().readString();
 						message.acknowledge();
 						logger.debug("onMessage for {}, {}",getTempQ(),recv);
+						
 						resource.getBroadcaster().broadcast(recv == null ? "{}" : recv, resource);
 						logger.debug("Sent to resource: {}",resource);
 
