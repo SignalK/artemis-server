@@ -73,7 +73,7 @@
 			},
 			{
 				"name": "nz.co.fortytwo.signalk.artemis.util.Util",
-				"level": "debug"
+				"level": "warn"
 			},
 			{
 				"name": "nz.co.fortytwo.signalk.artemis.server.SerialPortReader",
@@ -85,11 +85,11 @@
 			},
 			{
 				"name": "nz.co.fortytwo.signalk.artemis.service",
-				"level": "debug"
+				"level": "warn"
 			},
 			{
 				"name": "nz.co.fortytwo.signalk.artemis.service.InfluxDbService",
-				"level": "debug"
+				"level": "warn"
 			},
 			{
 				"name": "nz.co.fortytwo.signalk.artemis.util.JsonSerializer",
@@ -98,17 +98,17 @@
 			
 			{
 				"name": "org.atmosphere.nettosphere.BridgeRuntime",
-				"level": "debug"
+				"level": "warn"
 			},
 			
 			{
 				"name": "org.atmosphere.nettosphere",
-				"level": "debug"
+				"level": "warn"
 			},
 			
 			{
 				"name": "io.netty",
-				"level": "debug"
+				"level": "warn"
 			},
 			
 			{

@@ -106,7 +106,7 @@ public class ChartService  {
 
 	public static void reloadCharts() throws Exception {
 		
-		logger.debug("Reload charts at startup");
+		logger.info("Reload charts at startup");
 		String staticDir = Config.getConfigProperty(STATIC_DIR);
 		if (!staticDir.endsWith("/")) {
 			staticDir = staticDir + "/";
@@ -116,9 +116,10 @@ public class ChartService  {
 		query.put("skey", "charts");
 		// get current charts
 		influx.loadResources(map, query, "signalk");
+		logger.info("Existing charts: Quan:{}", map.size() / 2);
 		logger.debug("Existing charts: Quan:{} : {}", map.size() / 2, map);
 		File mapDir = new File(staticDir + Config.getConfigProperty(MAP_DIR));
-		logger.debug("Reloading charts from: " + mapDir.getAbsolutePath());
+		logger.info("Reloading charts from: " + mapDir.getAbsolutePath());
 		if (mapDir == null || !mapDir.exists() || mapDir.listFiles() == null)
 			return;
 		// TreeMap<String, Object> treeMap = new TreeMap<String,
@@ -133,13 +134,13 @@ public class ChartService  {
 						continue;
 					logger.trace("Checking chart: {} :{}", chart.getName(), e.getValue());
 					if (chart.getName().equals(e.getValue().at("identifier").asString())) {
-						logger.debug("Existing chart: {}", chart.getName());
+						logger.info("Existing chart: {}", chart.getName());
 						newChart = false;
 					}
 				}
 				if (newChart) {
 					Json chartJson = ChartService.loadChart(chart.getName());
-					logger.debug("Reloading: {}= {}", chart.getName(), chartJson);
+					logger.info("Loading new chart: {}= {}", chart.getName(), chartJson);
 					try {
 						Util.sendRawMessage(Config.getConfigProperty(Config.ADMIN_USER),
 								Config.getConfigProperty(Config.ADMIN_PWD), chartJson.toString());
@@ -150,7 +151,7 @@ public class ChartService  {
 
 			}
 		}
-		logger.debug("Chart resources updated");
+		logger.info("Chart resources updated");
 
 	}
 

@@ -715,7 +715,7 @@ public class InfluxDbService implements TDBService {
 	public void loadPrimary(){
 		primaryMap.clear();
 		logger.info("Adding primaryMap");
-		QueryResult result = influxDB.query(new Query("select * from vessels where primary='true' group by skey,primary,uuid,owner,grp,sourceRef,primary order by time desc limit 1",dbName));
+		QueryResult result = influxDB.query(new Query("select * from vessels where primary='true' group by skey,primary,uuid,owner,grp,sourceRef order by time desc limit 1",dbName));
 		if(result==null || result.getResults()==null)return ;
 		result.getResults().forEach((r)-> {
 			if(logger.isTraceEnabled())logger.trace(r);
@@ -727,7 +727,7 @@ public class InfluxDbService implements TDBService {
 					
 					Map<String, String> tagMap = s.getTags();
 					String key = s.getName()+dot+tagMap.get("uuid")+dot+StringUtils.substringBeforeLast(tagMap.get("skey"),dot+value);
-					primaryMap.put(key, tagMap.get("sourceRef"));
+					primaryMap.put(StringUtils.substringBefore(key,dot+values+dot), tagMap.get("sourceRef"));
 					if(logger.isTraceEnabled())logger.trace("Primary map: {}={}",key,tagMap.get("sourceRef"));
 				});
 		});
@@ -737,7 +737,8 @@ public class InfluxDbService implements TDBService {
 	 */
 	@Override
 	public Boolean isPrimary(String key, String sourceRef) {
-		String mapRef = primaryMap.get(key);
+		//truncate the .values. part of the key
+		String mapRef = primaryMap.get(StringUtils.substringBefore(key,dot+values+dot));
 		
 		if(mapRef==null){
 			//no result = primary
@@ -759,7 +760,7 @@ public class InfluxDbService implements TDBService {
 	@Override
 	public Boolean setPrimary(String key, String sourceRef) {
 		logger.debug("setPrimary: {}={}",key,sourceRef);
-		return !StringUtils.equals(sourceRef, primaryMap.put(key,sourceRef));
+		return !StringUtils.equals(sourceRef, primaryMap.put(StringUtils.substringBefore(key,dot+values+dot),sourceRef));
 	}
 
 	private Point addPoint(Builder point, String field, Object value) {
