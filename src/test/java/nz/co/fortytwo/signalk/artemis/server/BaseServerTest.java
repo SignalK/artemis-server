@@ -37,13 +37,14 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class BaseServerTest {
 	ArtemisServer server;
+	public static final String SIGNALK_TEST_DB = "signalk-test";
 	private static Logger logger = LogManager.getLogger(BaseServerTest.class);
 
 	@Before
 	public void startServer() throws Exception {
 		//remove self file so we have clean model
 		FileUtils.writeStringToFile(new File(Util.SIGNALK_MODEL_SAVE_FILE), "{}", StandardCharsets.UTF_8);
-		server = new ArtemisServer();
+		server = new ArtemisServer(SIGNALK_TEST_DB);
 	}
 
 	@After

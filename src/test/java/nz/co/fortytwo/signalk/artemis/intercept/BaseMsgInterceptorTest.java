@@ -6,6 +6,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.easymock.EasyMockSupport;
 
+import nz.co.fortytwo.signalk.artemis.server.BaseServerTest;
+import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.service.SecurityService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
@@ -17,6 +19,7 @@ public class BaseMsgInterceptorTest extends EasyMockSupport {
 	
 	public BaseMsgInterceptorTest() {
 		super();
+		InfluxDbService.setDbName(BaseServerTest.SIGNALK_TEST_DB);
 	}
 
 	protected ClientMessage getClientMessage(String body, String contentType, boolean reply) {

@@ -66,6 +66,7 @@ import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.service.TDBService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
@@ -144,7 +145,7 @@ public class Subscription {
 					// uuid='urn:mrn:imo:mmsi:209023000' AND skey=~/nav.*cou/
 					// group by skey,uuid,sourceRef,owner,grp order by time desc
 					// limit 1
-					influx.loadData(rslt, table, map, "signalk");
+					influx.loadData(rslt, table, map);
 					if (logger.isDebugEnabled())
 						logger.debug("rslt map = " + rslt);
 					Json json = null;

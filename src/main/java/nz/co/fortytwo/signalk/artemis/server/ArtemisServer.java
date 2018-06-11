@@ -54,6 +54,7 @@ import org.atmosphere.nettosphere.Nettosphere;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Log4J2LoggerFactory;
 import nz.co.fortytwo.signalk.artemis.service.ChartService;
+import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 
 
@@ -73,6 +74,15 @@ public final class ArtemisServer {
 	private nz.co.fortytwo.signalk.artemis.server.NettyServer nmeaServer;
 
 	public ArtemisServer() throws Exception {
+		init();
+	}
+	
+	public ArtemisServer(String dbName) throws Exception {
+		InfluxDbService.setDbName(dbName);
+		init();
+	}
+	
+	private void init() throws Exception{
 		Properties props = System.getProperties();
 		props.setProperty("java.net.preferIPv4Stack", "true");
 		props.setProperty("log4j.configurationFile", "./conf/log4j2.json");
@@ -141,6 +151,10 @@ public final class ArtemisServer {
 		startMdns();
 		ChartService.reloadCharts();
 	}
+
+
+
+	
 
 
 

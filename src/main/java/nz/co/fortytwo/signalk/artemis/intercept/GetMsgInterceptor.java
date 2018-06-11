@@ -26,7 +26,7 @@ import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.service.SecurityService;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Config;
-import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
+import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 /*
@@ -134,28 +134,28 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 						if(StringUtils.isBlank(path))queryMap.put("uuid",Util.regexPath(qUuid).toString());
 						switch (root) {
 						case CONFIG:
-							influx.loadConfig(map, queryMap,"signalk");
+							influx.loadConfig(map, queryMap);
 							break;
 						case resources:
-							influx.loadResources(map, queryMap,"signalk");
+							influx.loadResources(map, queryMap);
 							break;
 						case sources:
-						influx.loadSources(map, queryMap,"signalk");
+						influx.loadSources(map, queryMap);
 							break;
 						case vessels:
-							influx.loadData(map, vessels, queryMap,"signalk");
+							influx.loadData(map, vessels, queryMap);
 							break;
 						case aircraft:
-							influx.loadData(map, aircraft, queryMap,"signalk");
+							influx.loadData(map, aircraft, queryMap);
 							break;
 						case sar:
-							influx.loadData(map, sar, queryMap,"signalk");
+							influx.loadData(map, sar, queryMap);
 							break;
 						case aton:
-							influx.loadData(map, aton, queryMap,"signalk");
+							influx.loadData(map, aton, queryMap);
 							break;
 						case ALL:
-							influx.loadData(map, vessels, null,"signalk");
+							influx.loadData(map, vessels, null);
 							//loadAllDataFromInflux(map,aircraft);
 							//loadAllDataFromInflux(map,sar);
 							//loadAllDataFromInflux(map,aton);

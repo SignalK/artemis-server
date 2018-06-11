@@ -44,6 +44,7 @@ import com.sun.jersey.multipart.FormDataMultiPart;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.artemis.util.ZipUtils;
 
@@ -115,7 +116,7 @@ public class ChartService  {
 		Map<String, String> query = new HashMap<>();
 		query.put("skey", "charts");
 		// get current charts
-		influx.loadResources(map, query, "signalk");
+		influx.loadResources(map, query);
 		logger.info("Existing charts: Quan:{}", map.size() / 2);
 		logger.debug("Existing charts: Quan:{} : {}", map.size() / 2, map);
 		File mapDir = new File(staticDir + Config.getConfigProperty(MAP_DIR));

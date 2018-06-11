@@ -26,6 +26,7 @@ package nz.co.fortytwo.signalk.artemis.util;
 public class ConfigConstants {
 
 	public static final String VERSION = "config.server.version";
+	public static final String DB_NAME = "signalk";
 
 	public static final String UUID = "config.server.vessel.uuid";
 	public static final String FLAG = "config.server.vessel.flag";

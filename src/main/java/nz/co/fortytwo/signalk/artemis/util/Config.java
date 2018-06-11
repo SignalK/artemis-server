@@ -225,7 +225,7 @@ public class Config {
 
 	public static NavigableMap<String, Json> loadConfig(NavigableMap<String, Json> model) throws IOException {
 		
-		influx.loadConfig(model,null ,"signalk");
+		influx.loadConfig(model,null );
 		
 		if (map.size()<10) {
 			logger.info("   Saved config not found, creating default");
