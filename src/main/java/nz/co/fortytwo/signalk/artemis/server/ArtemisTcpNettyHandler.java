@@ -57,14 +57,27 @@ public class ArtemisTcpNettyHandler extends SimpleChannelInboundHandler<String> 
 
 	private static Logger logger = LogManager.getLogger(ArtemisTcpNettyHandler.class);
 
-	private static ClientSession rxSession;
-	private static ClientProducer producer;
+	private ClientSession rxSession;
+	private ClientProducer producer;
 	private BiMap<String, ChannelHandlerContext> contextList = HashBiMap.create();
 
 	private BiMap<String, ClientConsumer> consumerList = HashBiMap.create();
 	private String outputType;
 
-	static {
+//	static {
+//		try {
+//			rxSession = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
+//					Config.getConfigProperty(Config.ADMIN_PWD));
+//			producer = rxSession.createProducer();
+//			rxSession.start();
+//		} catch (Exception e) {
+//			logger.error(e, e);
+//		}
+//	}
+
+	public ArtemisTcpNettyHandler(String outputType) throws Exception {
+
+		this.outputType = outputType;
 		try {
 			rxSession = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
 					Config.getConfigProperty(Config.ADMIN_PWD));
@@ -75,12 +88,10 @@ public class ArtemisTcpNettyHandler extends SimpleChannelInboundHandler<String> 
 		}
 	}
 
-	public ArtemisTcpNettyHandler(String outputType) throws Exception {
-
-		this.outputType = outputType;
-
+	private synchronized void send(ClientMessage msg) throws ActiveMQException{
+		producer.send(Config.INCOMING_RAW, msg);
 	}
-
+	
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
 		// Send greeting for a new connection.
@@ -92,10 +103,10 @@ public class ArtemisTcpNettyHandler extends SimpleChannelInboundHandler<String> 
 		String session = ctx.channel().id().asLongText();
 
 		contextList.put(session, ctx);
-		rxSession.createTemporaryQueue("outgoing.reply." + session, RoutingType.ANYCAST, session);
+		createTemporaryQueue("outgoing.reply." + session, RoutingType.ANYCAST, session);
 
 		// setup consumer
-		ClientConsumer consumer = rxSession.createConsumer(session, false);
+		ClientConsumer consumer = createConsumer(session, false);
 		consumer.setMessageHandler(new MessageHandler() {
 
 			@Override
@@ -113,13 +124,21 @@ public class ArtemisTcpNettyHandler extends SimpleChannelInboundHandler<String> 
 			logger.debug("channelActive, ready:" + ctx);
 	}
 
+	private synchronized ClientConsumer createConsumer(String session, boolean browseOnly) throws ActiveMQException {
+		return rxSession.createConsumer(session, browseOnly);
+	}
+
+	private synchronized void createTemporaryQueue(String queue, RoutingType anycast, String session) throws ActiveMQException {
+		rxSession.createTemporaryQueue(queue, anycast, session);
+	}
+
 	@Override
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
 		// unsubscribe all
 		String session = contextList.inverse().get(ctx);
 		// txSession.deleteQueue("outgoing.reply." + session);
 		consumerList.get(session).close();
-		rxSession.deleteQueue(session);
+		deleteQueue(session);
 		super.channelInactive(ctx);
 	}
 
@@ -134,12 +153,13 @@ public class ArtemisTcpNettyHandler extends SimpleChannelInboundHandler<String> 
 		String tempQ = contextList.inverse().get(ctx);
 
 		msg.putStringProperty(Config.AMQ_REPLY_Q, tempQ);
-		producer.send(Config.INCOMING_RAW, msg);
+		send(msg);
 	}
 
 	private ClientMessage getHeaders(ChannelHandlerContext ctx, ClientMessage ex) throws Exception {
 
 		ex.putStringProperty(Config.AMQ_SESSION_ID, contextList.inverse().get(ctx));
+		ex.putStringProperty(Config.AMQ_CORR_ID, contextList.inverse().get(ctx));
 		String remoteAddress = ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress().getHostAddress();
 		// remoteAddress=remoteAddress.replace("/","");
 		ex.putStringProperty(Config.MSG_SRC_IP, remoteAddress);
@@ -189,7 +209,7 @@ public class ArtemisTcpNettyHandler extends SimpleChannelInboundHandler<String> 
 			try {
 				entry.getValue().close();
 				try {
-					rxSession.deleteQueue(entry.getKey());
+					deleteQueue(entry.getKey());
 				} catch (ActiveMQNonExistentQueueException e) {
 					logger.debug(e.getMessage());
 				} catch (ActiveMQIllegalStateException e) {
@@ -215,6 +235,10 @@ public class ArtemisTcpNettyHandler extends SimpleChannelInboundHandler<String> 
 				logger.warn(e, e);
 			}
 		}
+	}
+
+	private synchronized void deleteQueue(String key) throws ActiveMQException {
+		rxSession.deleteQueue(key);
 	}
 
 	public void process(ClientMessage message) throws Exception {

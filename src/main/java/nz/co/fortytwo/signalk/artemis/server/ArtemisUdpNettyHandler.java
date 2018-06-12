@@ -87,6 +87,10 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 		this.outputType = outputType;
 	}
 
+	private synchronized void send(ClientMessage msg) throws ActiveMQException{
+		producer.send(Config.INCOMING_RAW, msg);
+	}
+	
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
 		// Send greeting for a new connection.
@@ -153,7 +157,7 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 		for (String hdr : headers.keySet()) {
 			ex.putStringProperty(hdr, headers.get(hdr).toString());
 		}
-		producer.send(Config.INCOMING_RAW, ex);
+		send(ex);
 	}
 
 	@Override
@@ -178,6 +182,7 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 		
 		Map<String, Object> headers = new HashMap<>();
 		headers.put(Config.AMQ_SESSION_ID, wsSession);
+		headers.put(Config.AMQ_CORR_ID, wsSession);
 		headers.put(Config.MSG_SRC_IP, srcIp);
 		headers.put(Config.MSG_SRC_BUS, "udp." + srcIp.replace('.', '_'));
 		//TODO: fix UDP ip network source

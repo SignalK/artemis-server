@@ -11,6 +11,7 @@ import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.influxdb.dto.Query;
@@ -236,7 +237,12 @@ public class InfluxDbTest {
 		rslt.remove("self._attr");
 		rslt.remove("version");
 		rslt.remove("version._attr");
-		
+		//remove non values entries they are only in output
+		for(String e:map.keySet()){
+			if(StringUtils.contains(e,".value") && !StringUtils.contains(e,".values.")){
+				map.remove(e);
+			}
+		}
 		//are they the same
 		logger.debug("Map size=" + map.size());
 		logger.debug("Rslt size=" + rslt.size());

@@ -62,11 +62,8 @@ public class SubscriptionManagerService{
 	public SubscriptionManagerService() {
 		super();
 		try {
-			txSession = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
-					Config.getConfigProperty(Config.ADMIN_PWD));
-			producer = txSession.createProducer();
-
-			txSession.start();
+			getTxSession();
+			getProducer();
 
 		} catch (Exception e) {
 			logger.error(e, e);
@@ -204,17 +201,21 @@ public class SubscriptionManagerService{
 		if (logger.isDebugEnabled())
 			logger.debug("Sending to {}, Msg body = {}", destination, json.toString());
 
-		producer.send(new SimpleString("outgoing.reply." + destination), txMsg);
+		send(destination, txMsg);
 
+	}
+
+	private synchronized void send(String destination, ClientMessage txMsg) throws ActiveMQException {
+		getProducer().send(new SimpleString(destination), txMsg);
 	}
 
 	public void createTempQueue(String destination) {
 		try {
-			txSession.createTemporaryQueue("outgoing.reply." + destination, RoutingType.ANYCAST, destination);
+			getTxSession().createTemporaryQueue("outgoing.reply." + destination, RoutingType.ANYCAST, destination);
 			logger.debug("created temp queue: {}", destination);
 		} catch (ActiveMQQueueExistsException e) {
 			logger.debug(e);
-		} catch (ActiveMQException e) {
+		} catch (Exception e) {
 			logger.error(e, e);
 		}
 	}
@@ -251,6 +252,26 @@ public class SubscriptionManagerService{
 		closeSession();
 		
 		super.finalize();
+	}
+
+	public ClientSession getTxSession() throws ActiveMQException {
+		if(txSession==null || txSession.isClosed()){
+			try {
+				txSession = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
+						Config.getConfigProperty(Config.ADMIN_PWD));
+			} catch (Exception e) {
+				throw new ActiveMQException(e.getMessage());
+			}
+			txSession.start();
+		}
+		return txSession;
+	}
+
+	public ClientProducer getProducer() throws ActiveMQException {
+		if(producer==null || producer.isClosed()){
+			producer = getTxSession().createProducer();
+		}
+		return producer;
 	}
 
 

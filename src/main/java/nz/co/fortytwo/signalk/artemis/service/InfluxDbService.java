@@ -421,7 +421,9 @@ public class InfluxDbService implements TDBService {
 	@Override
 	public void save(NavigableMap<String, Json> map) {
 		logger.debug("Save map:  {}" ,map);
-		map.forEach((k, v) -> save(k, v, map.get(k+"._attr")));
+		for(Entry<String, Json> e: map.entrySet()){
+			save(e.getKey(), e.getValue(), map.get(e.getKey()+"._attr"));
+		}
 		influxDB.flush();
 	}
 
