@@ -148,6 +148,7 @@ public class BaseApiService {
 			
 			@Override
 			public void onMessage(WebSocketEvent event) {
+				lastBroadcast=System.currentTimeMillis();
 				logger.debug("onWebsocketMessage: {}",event);
 				super.onMessage(event);
 			}
@@ -172,6 +173,7 @@ public class BaseApiService {
 	public void setConsumer(AtmosphereResource resource) throws ActiveMQException {
 		
 		if(getConsumer().getMessageHandler()==null){
+			logger.debug("Adding consumer messageHandler : {}",getTempQ());
 			resource.setBroadcaster(broadCasterFactory.get());
 			getConsumer().setMessageHandler(new MessageHandler() {
 
@@ -218,6 +220,7 @@ public class BaseApiService {
 	public ClientSession getTxSession()  {
 
 		if(txSession==null){
+			logger.debug("Start amq session: {}", getTempQ());
 			try{
 				txSession = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
 						Config.getConfigProperty(Config.ADMIN_PWD));
@@ -231,6 +234,7 @@ public class BaseApiService {
 
 	public ClientProducer getProducer() {
 		if(producer==null && getTxSession()!=null && !getTxSession().isClosed()){
+			logger.debug("Start producer: {}", getTempQ());
 			try {
 				producer=getTxSession().createProducer();
 			} catch (ActiveMQException e) {
@@ -244,6 +248,7 @@ public class BaseApiService {
 	public ClientConsumer getConsumer() {
 		
 		if(consumer==null&& getTxSession()!=null && !getTxSession().isClosed()){
+			logger.debug("Start consumer: {}", getTempQ());
 			try{
 				try{
 					txSession.createTemporaryQueue("outgoing.reply." + getTempQ(), RoutingType.ANYCAST, getTempQ());

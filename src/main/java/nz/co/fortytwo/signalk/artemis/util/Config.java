@@ -1,5 +1,8 @@
 package nz.co.fortytwo.signalk.artemis.util;
 
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.InterfaceAddress;
@@ -19,6 +22,7 @@ import org.apache.activemq.artemis.api.core.client.ClientConsumer;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -115,6 +119,7 @@ public class Config {
 
 		Json version = Json.object();
 		String ver = getConfigProperty(ConfigConstants.VERSION);
+		ver = StringUtils.removeStart(ver,"v");
 		version.set("version", ver);
 		version.set(SignalKConstants.websocketUrl, "ws://" + hostname + ":"
 				+ getConfigPropertyInt(ConfigConstants.WEBSOCKET_PORT) + SignalKConstants.SIGNALK_WS);
@@ -150,7 +155,7 @@ public class Config {
 	 */
 	public static void setDefaults(SortedMap<String, Json> model) {
 		// populate sensible defaults here
-		model.put(ConfigConstants.UUID, Json.make("self"));
+		model.put(ConfigConstants.UUID, Json.make(SignalKConstants.URN_UUID + UUID.randomUUID().toString()));
 		model.put(ConfigConstants.WEBSOCKET_PORT, Json.make(8080));
 		model.put(ConfigConstants.REST_PORT, Json.make(8080));
 		model.put(ConfigConstants.STORAGE_ROOT, Json.make("./storage/"));
@@ -232,11 +237,15 @@ public class Config {
 			Config.setDefaults(model);
 			// write a new one for next time
 			// create a uuid
-			String self = SignalKConstants.URN_UUID + UUID.randomUUID().toString();
-			model.put(ConfigConstants.UUID, Json.make(self));
+			String selfUuid = model.get(ConfigConstants.UUID).asString();
+			//model.put(ConfigConstants.UUID, Json.make(self));
+			model.put(vessels+dot+selfUuid+dot+uuid, Json.make(selfUuid));
 			saveConfig(model);
-
+			
 		} 
+		//String selfUuid = model.get(ConfigConstants.UUID).asString();
+		//model.put(vessels+dot+selfUuid+dot+uuid, Json.make(selfUuid));
+		//saveConfig(model);
 		logger.debug("Config: {}",model);
 		return model;
 	}

@@ -13,6 +13,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,17 +39,21 @@ public class SignalkStreamService extends BaseApiService {
 
 		if (logger.isDebugEnabled())
 			logger.debug("get : ws for " + resource.getRequest().getRemoteUser());
-		return "";
+		return getWebsocket();
 	}
 
 	@Suspend(contentType = MediaType.APPLICATION_JSON)
 	@POST
 	public String post() {
+		return getWebsocket();
+	}
+	
+	private String getWebsocket(){
 		try {
 			String correlationId = resource.uuid(); // UUID.randomUUID().toString();
 			
-			initSession("stream-"+correlationId);
-			addCloseListener(resource);
+			
+			
 			resource.suspend();
 			String body = Util.readString(resource.getRequest().getInputStream(),
 					resource.getRequest().getCharacterEncoding());
@@ -59,17 +64,21 @@ public class SignalkStreamService extends BaseApiService {
 			if (logger.isDebugEnabled()) {
 				logger.debug("User:" + user + ":" + pass);
 			}
+			if(StringUtils.isBlank(body)) return "";
 			
+			initSession("stream-"+correlationId);
+			addCloseListener(resource);
+			setConsumer(resource);
 			Json json = Json.read(body);
 			long period = getLongestPeriod(json);
 			TimerTask task = new TimerTask() {
 				
 				@Override
 				public void run() {
-					logger.debug("Checking broadcast");
+					logger.debug("Checking broadcast age < {}",period );
 					if(System.currentTimeMillis()-lastBroadcast>period){
 						try {
-							logger.debug("Checking broadcast failed, closing...");
+							logger.debug("Checking broadcast failed: {} , closing...",System.currentTimeMillis()-lastBroadcast );
 							resource.close();
 							timer.cancel();
 							cancel();
@@ -106,18 +115,5 @@ public class SignalkStreamService extends BaseApiService {
 		}
 		return period;
 	}
-
-	@Override
-	protected void initSession(String tempQ) throws Exception {
-		try {
-			super.initSession(tempQ);
-			super.setConsumer(resource);
-		} catch (Exception e) {
-			logger.error(e, e);
-			throw e;
-		}
-
-	}
-	
 
 }

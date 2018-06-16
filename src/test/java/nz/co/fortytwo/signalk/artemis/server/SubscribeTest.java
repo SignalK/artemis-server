@@ -32,14 +32,14 @@ public class SubscribeTest extends BaseServerTest{
 				ClientProducer producer = session.createProducer();	
 				){
 			session.start();
-			session.createTemporaryQueue("outgoing.reply." + tempQ, RoutingType.ANYCAST, tempQ);
+			//session.createTemporaryQueue("outgoing.reply." + tempQ, RoutingType.ANYCAST, tempQ);
 			
 			sendSubsribeMsg(session,producer, "vessels." + self, "navigation",tempQ);
 			
 			sendMessage(session, producer, "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78");
 			
-			List<ClientMessage> replies = listen(session, tempQ, 5);
-			
+			List<ClientMessage> replies = listen(session, tempQ, 10);
+			assertTrue(replies.size()>1);
 		} 
 	}
 	

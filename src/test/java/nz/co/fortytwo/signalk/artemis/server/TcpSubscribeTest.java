@@ -45,13 +45,6 @@ public class TcpSubscribeTest extends BaseServerTest{
 		String recv = inFromServer.readLine();
 		logger.debug("rcvd message = " + recv);
 		
-		//String sentence = inFromUser.readLine();
-
-		//outToServer.writeBytes(sentence + '\n');
-
-		//String modifiedSentence = inFromServer.readLine();
-
-		//System.out.println("FROM SERVER: " + modifiedSentence);
 		try {
 
 			Json msg = getSubscriptionJson("vessels." + SignalKConstants.self, "navigation", 1000, 0, FORMAT_DELTA, POLICY_FIXED);

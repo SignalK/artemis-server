@@ -24,6 +24,7 @@
  */
 package nz.co.fortytwo.signalk.artemis.server;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
@@ -112,8 +113,8 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 			logger.debug("Sender " + packet.sender() + " sent request:" + request);
 		String session = packet.sender().getAddress().getHostAddress()+":"+packet.sender().getPort();//ctx.channel().id().asLongText();
 		NioDatagramChannel udpChannel = (NioDatagramChannel) ctx.channel();
-		String localAddress = udpChannel.localAddress().toString();
-		String remoteAddress = packet.sender().getAddress().getHostAddress(); 
+		String localAddress = udpChannel.localAddress().getAddress().getHostAddress();
+		InetAddress remoteAddress = packet.sender().getAddress(); 
 		
 		if (!socketList.inverse().containsKey(packet.sender())) {
 			
@@ -178,17 +179,18 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 		return super.acceptInboundMessage(msg);
 	}
 
-	private Map<String, Object> getHeaders(String wsSession, String srcIp, String localIp) throws Exception {
+	private Map<String, Object> getHeaders(String wsSession, InetAddress remoteAddress, String localIp) throws Exception {
 		
 		Map<String, Object> headers = new HashMap<>();
 		headers.put(Config.AMQ_SESSION_ID, wsSession);
 		headers.put(Config.AMQ_CORR_ID, wsSession);
-		headers.put(Config.MSG_SRC_IP, srcIp);
-		headers.put(Config.MSG_SRC_BUS, "udp." + srcIp.replace('.', '_'));
+		headers.put(Config.MSG_SRC_IP, remoteAddress.getHostAddress());
+		headers.put(Config.MSG_SRC_BUS, "udp." + remoteAddress.getHostAddress().replace('.', '_'));
 		//TODO: fix UDP ip network source
 		if (logger.isDebugEnabled())
-			logger.debug("IP: local:" + localIp + ", remote:" + srcIp);
-		if (Util.sameNetwork(localIp, srcIp)) {
+			logger.debug("IP: local:" + localIp + ", remote:" + remoteAddress.getHostAddress());
+		if (remoteAddress.isLoopbackAddress()|| remoteAddress.isAnyLocalAddress()) {
+				//Util.sameNetwork(localIp, remoteAddress)
 			headers.put(Config.MSG_SRC_TYPE, Config.INTERNAL_IP);
 		} else {
 			headers.put(Config.MSG_SRC_TYPE, Config.EXTERNAL_IP);

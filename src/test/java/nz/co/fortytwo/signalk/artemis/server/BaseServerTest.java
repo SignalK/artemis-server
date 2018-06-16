@@ -25,7 +25,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
@@ -36,19 +38,18 @@ import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class BaseServerTest {
-	ArtemisServer server;
+	static ArtemisServer server;
 	public static final String SIGNALK_TEST_DB = "signalk-test";
 	private static Logger logger = LogManager.getLogger(BaseServerTest.class);
 
-	@Before
-	public void startServer() throws Exception {
+	@BeforeClass
+	public static void startServer() throws Exception {
 		//remove self file so we have clean model
-		FileUtils.writeStringToFile(new File(Util.SIGNALK_MODEL_SAVE_FILE), "{}", StandardCharsets.UTF_8);
 		server = new ArtemisServer(SIGNALK_TEST_DB);
 	}
 
-	@After
-	public void stopServer() throws Exception {
+	@AfterClass
+	public static void stopServer() throws Exception {
 		if(server!=null)server.stop();
 	}
 
@@ -96,24 +97,33 @@ public class BaseServerTest {
 	}
 	
 	protected List<ClientMessage> listen( ClientSession session, String tempQ, long timeout) throws ActiveMQException, InterruptedException {
-		logger.debug("Receive started");
+		logger.debug("Receive starting for {}", tempQ);
 		List<ClientMessage> replies = new ArrayList<>();
-		try(ClientConsumer consumer = session.createConsumer(tempQ,false);){
+		CountDownLatch latch = new CountDownLatch(2);
 		
-			consumer.setMessageHandler(new MessageHandler() {
-				
-				@Override
-				public void onMessage(ClientMessage message) {
-					String recv = message.getBodyBuffer().readString();
-					logger.debug("onMessage = " + recv);
+		ClientConsumer consumer = session.createConsumer(tempQ);
+		
+		consumer.setMessageHandler(new MessageHandler() {
+			
+			@Override
+			public void onMessage(ClientMessage message) {
+				try{
+					
+					String recv = Util.readBodyBufferToString(message);
+					message.acknowledge();
+					logger.debug("onMessage = {}",recv);
 					assertNotNull(recv);
 					replies.add(message);
-				}
-			});
-			CountDownLatch latch = new CountDownLatch(1);
-			latch.await(timeout, TimeUnit.SECONDS);
-		}
+					latch.countDown();
+				} catch (ActiveMQException e) {
+					logger.error(e,e);
+				} 
+			}
+		});
 		
+		latch.await(timeout, TimeUnit.SECONDS);
+		logger.debug("Receive complete for {}", tempQ);
+	
 		
 		assertTrue(replies.size()>1);
 		return replies;
@@ -128,6 +138,9 @@ public class BaseServerTest {
 
 	protected void sendSubsribeMsg(ClientSession session,  ClientProducer producer, String ctx, String path, String tempQ) throws ActiveMQException{
 		ClientMessage message = session.createMessage(true);
+		
+		message.putStringProperty(Config.AMQ_SESSION_ID, tempQ);
+		message.putStringProperty(Config.AMQ_CORR_ID, tempQ);
 		Json msg = getSubscriptionJson(ctx, path, 1000, 0, FORMAT_DELTA, POLICY_FIXED);
 		message.getBodyBuffer().writeString(msg.toString());
 		message.putStringProperty(Config.AMQ_REPLY_Q, tempQ);

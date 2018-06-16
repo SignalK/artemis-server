@@ -34,8 +34,6 @@ public class InfluxDbTest {
 	public void setUpInfluxDb() {
 		logger.debug("Start influxdb client");
 		influx = new InfluxDbService(BaseServerTest.SIGNALK_TEST_DB);
-		
-		//ser.setPretty(2);
 	}
 
 	@After
