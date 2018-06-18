@@ -224,7 +224,6 @@ public class BaseApiService {
 			try{
 				txSession = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
 						Config.getConfigProperty(Config.ADMIN_PWD));
-				txSession.start();
 			}catch(Exception e){
 				logger.error(e,e);
 			}
@@ -256,6 +255,7 @@ public class BaseApiService {
 					logger.debug(e.getMessage());
 				}
 				consumer=getTxSession().createConsumer(getTempQ());
+				txSession.start();
 			} catch (ActiveMQException e) {
 				logger.error(e,e);
 			}

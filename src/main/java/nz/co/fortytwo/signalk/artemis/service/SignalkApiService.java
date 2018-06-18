@@ -41,7 +41,7 @@ public class SignalkApiService extends BaseApiService {
 	@Override
 	protected void initSession(String tempQ) throws Exception {
 		try{
-			super.initSession(resource.uuid());
+			super.initSession(tempQ);
 			super.setConsumer(resource);
 			addCloseListener(resource);
 		}catch(Exception e){

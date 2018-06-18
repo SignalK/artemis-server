@@ -39,7 +39,8 @@ public class SignalkStreamService extends BaseApiService {
 
 		if (logger.isDebugEnabled())
 			logger.debug("get : ws for " + resource.getRequest().getRemoteUser());
-		return getWebsocket();
+		//return getWebsocket();
+		return "";
 	}
 
 	@Suspend(contentType = MediaType.APPLICATION_JSON)
@@ -50,11 +51,10 @@ public class SignalkStreamService extends BaseApiService {
 	
 	private String getWebsocket(){
 		try {
-			String correlationId = resource.uuid(); // UUID.randomUUID().toString();
+			String correlationId = "stream-"+resource.uuid(); // UUID.randomUUID().toString();
 			
+			//resource.suspend();
 			
-			
-			resource.suspend();
 			String body = Util.readString(resource.getRequest().getInputStream(),
 					resource.getRequest().getCharacterEncoding());
 			if (logger.isDebugEnabled())
@@ -64,31 +64,32 @@ public class SignalkStreamService extends BaseApiService {
 			if (logger.isDebugEnabled()) {
 				logger.debug("User:" + user + ":" + pass);
 			}
-			if(StringUtils.isBlank(body)) return "";
+			//if(StringUtils.isBlank(body)) return "";
 			
-			initSession("stream-"+correlationId);
-			addCloseListener(resource);
+			initSession(correlationId);
 			setConsumer(resource);
+			addCloseListener(resource);
+			
 			Json json = Json.read(body);
 			long period = getLongestPeriod(json);
-			TimerTask task = new TimerTask() {
-				
-				@Override
-				public void run() {
-					logger.debug("Checking broadcast age < {}",period );
-					if(System.currentTimeMillis()-lastBroadcast>period){
-						try {
-							logger.debug("Checking broadcast failed: {} , closing...",System.currentTimeMillis()-lastBroadcast );
-							resource.close();
-							timer.cancel();
-							cancel();
-						} catch (IOException e) {
-							logger.error(e,e);
-						}
-					}
-				}
-			};
-			timer.schedule(task, period, period*5);
+//			TimerTask task = new TimerTask() {
+//				
+//				@Override
+//				public void run() {
+//					logger.debug("Checking broadcast age < {}",period );
+//					if(System.currentTimeMillis()-lastBroadcast>period){
+//						try {
+//							logger.debug("Checking broadcast failed: {} , closing...",System.currentTimeMillis()-lastBroadcast );
+//							resource.close();
+//							timer.cancel();
+//							cancel();
+//						} catch (IOException e) {
+//							logger.error(e,e);
+//						}
+//					}
+//				}
+//			};
+//			timer.schedule(task, period, period);
 			
 			sendMessage(body, correlationId);
 
@@ -104,7 +105,7 @@ public class SignalkStreamService extends BaseApiService {
 	}
 
 	private long getLongestPeriod(Json json) {
-		long period = 2000;
+		long period = 5000;
 		if (json.has(SUBSCRIBE)) {
 			if (json.at(SUBSCRIBE).isArray()) {
 				for (Json subscription : json.at(SUBSCRIBE).asJsonList()) {

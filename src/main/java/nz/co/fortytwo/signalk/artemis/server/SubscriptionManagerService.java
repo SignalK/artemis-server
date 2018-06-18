@@ -190,7 +190,8 @@ public class SubscriptionManagerService{
 			throws ActiveMQException {
 		if (json == null || json.isNull())
 			json = Json.object();
-		ClientMessage txMsg = new ClientMessageImpl((byte) 0, false, 0, System.currentTimeMillis(), (byte) 4, 1024);
+		//ClientMessage txMsg = new ClientMessageImpl((byte) 0, false, 5000, System.currentTimeMillis(), (byte) 4, 1024);
+		ClientMessage txMsg = getTxSession().createMessage(false);
 		if (correlation != null)
 			txMsg.putStringProperty(Config.AMQ_CORR_ID, correlation);
 		txMsg.putStringProperty(Config.AMQ_SUB_DESTINATION, destination);
@@ -206,7 +207,8 @@ public class SubscriptionManagerService{
 	}
 
 	private synchronized void send(String destination, ClientMessage txMsg) throws ActiveMQException {
-		getProducer().send(new SimpleString(destination), txMsg);
+		getProducer().send(new SimpleString("outgoing.reply." +destination), txMsg);
+		
 	}
 
 	public void createTempQueue(String destination) {

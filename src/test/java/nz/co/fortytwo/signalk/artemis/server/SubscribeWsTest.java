@@ -65,6 +65,7 @@ import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
+
 public class SubscribeWsTest extends BaseServerTest {
 
 	private static Logger logger = LogManager.getLogger(SubscribeWsTest.class);
@@ -297,7 +298,7 @@ public class SubscribeWsTest extends BaseServerTest {
 		try (final AsyncHttpClient c = new AsyncHttpClient();) {
 
 			String restUrl = "ws://localhost:" + restPort + SIGNALK_WS;
-			logger.debug("Open websocket at: " + restUrl);
+			logger.debug("Open websocket at: " + restUrl);		   
 			WebSocket websocket = c.prepareGet(restUrl).setHeader("Authorization", "Basic YWRtaW46YWRtaW4=")
 					.execute(new WebSocketUpgradeHandler.Builder().build()).get();
 
@@ -319,18 +320,6 @@ public class SubscribeWsTest extends BaseServerTest {
 					logger.error(t);
 				}
 
-				@Override
-				public void onPing(byte[] message) {
-					logger.debug("Ping");
-					websocket.sendPong("test".getBytes());
-					super.onPing(message);
-				}
-
-				@Override
-				public void onPong(byte[] message) {
-					logger.debug("Pong");
-					super.onPong(message);
-				}
 
 			});
 			// subscribe
@@ -338,10 +327,12 @@ public class SubscribeWsTest extends BaseServerTest {
 			websocket.sendMessage(subscribeMsg);
 			
 			logger.debug("Sent subscribe = " + subscribeMsg);
-
-			latch.await(10, TimeUnit.SECONDS);
+	
+			latch.await(5, TimeUnit.SECONDS);
 			logger.debug("Completed recieve ");
+
 			websocket.close();
+			
 			assertTrue(received.size() > 1);
 			// assertTrue(latch3.await(15, TimeUnit.SECONDS));
 			String fullMsg = null;

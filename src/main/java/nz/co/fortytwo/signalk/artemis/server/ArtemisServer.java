@@ -120,7 +120,7 @@ public final class ArtemisServer {
 						.supportChunking(true)
 						.maxChunkContentLength(1024*1024)
 						.socketKeepAlive(true)
-						.initParam(ApplicationConfig.PROPERTY_SESSION_SUPPORT, "true")
+						//.initParam(ApplicationConfig.PROPERTY_SESSION_SUPPORT, "true")
 						.initParam(ApplicationConfig.ANALYTICS, "false")
 						.initParam("jersey.config.server.provider.packages","nz.co.fortytwo.signalk.artemis.service")
 						.initParam("jersey.config.server.provider.classnames","org.glassfish.jersey.media.multipart.MultiPartFeature")
