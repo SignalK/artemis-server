@@ -77,6 +77,10 @@ public class SerialPortManager implements Runnable {
 				//String portStr ="[\"/dev/ttyUSB0\",\"/dev/ttyUSB1\",\"/dev/ttyUSB2\"]";
 				Json ports = Config.getConfigJsonArray(ConfigConstants.SERIAL_PORTS);
 				if(ports==null)ports = Json.array();
+				if(!ports.isArray()){
+					logger.error("Ports configuration is not a json list, check config: {}",ports);
+					ports = Json.array();
+				}
 				for (Json port:ports.asJsonList()) {
 					boolean portOk = false;
 					String portStr = port.asString();
