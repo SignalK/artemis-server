@@ -30,9 +30,9 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class BaseApiService {
 
-	protected static ClientProducer producer;
+	protected  ClientProducer producer;
 
-	protected static ClientSession txSession;
+	protected  ClientSession txSession;
 
 	protected  String tempQ;
 	
@@ -64,17 +64,27 @@ public class BaseApiService {
 	}
 
 	protected String sendMessage(String body, String correlation) throws ActiveMQException {
-		ClientMessage message = new ClientMessageImpl((byte) 0, false, 0, System.currentTimeMillis(), (byte) 4, 1024);
+		ClientMessage message = null;
+		synchronized (txSession) {
+			message=txSession.createMessage(false);
+		}
 		message.getBodyBuffer().writeString(body);
 		message.putStringProperty(Config.AMQ_REPLY_Q, getTempQ());
 		if(correlation!=null){
 			message.putStringProperty(Config.AMQ_CORR_ID,correlation);
 		}
-		getProducer().send(new SimpleString(Config.INCOMING_RAW), message);
+		send(new SimpleString(Config.INCOMING_RAW), message);
 		return correlation;
 	}
 
 	
+
+	private synchronized void send(SimpleString queue, ClientMessage message) throws ActiveMQException {
+		synchronized (txSession) {
+			getProducer().send(queue, message);
+		}
+		
+	}
 
 	@Override
 	protected void finalize() throws Throwable {
@@ -180,7 +190,8 @@ public class BaseApiService {
 				@Override
 				public void onMessage(ClientMessage message) {
 					try {
-						String recv = message.getBodyBuffer().readString();
+						logger.debug("onMessage {}",message);
+						String recv = Util.readBodyBufferToString(message);
 						message.acknowledge();
 						logger.debug("onMessage for {}, {}",getTempQ(),recv);
 						
@@ -202,9 +213,11 @@ public class BaseApiService {
 			try {
 				getConsumer().close();
 				try {
-					if(txSession.queueQuery(new SimpleString(getTempQ())).getConsumerCount()==0){
-						logger.debug("Delete queue: {}", tempQ);
-						txSession.deleteQueue(getTempQ());
+					synchronized (txSession) {
+						if(txSession!=null && !txSession.isClosed() && txSession.queueQuery(new SimpleString(getTempQ())).getConsumerCount()==0){
+							logger.debug("Delete queue: {}", tempQ);
+							txSession.deleteQueue(getTempQ());
+						}
 					}
 				} catch (ActiveMQNonExistentQueueException | ActiveMQIllegalStateException e) {
 					logger.debug(e.getMessage());
@@ -250,12 +263,12 @@ public class BaseApiService {
 			logger.debug("Start consumer: {}", getTempQ());
 			try{
 				try{
-					txSession.createTemporaryQueue("outgoing.reply." + getTempQ(), RoutingType.ANYCAST, getTempQ());
+					getTxSession().createTemporaryQueue("outgoing.reply." + getTempQ(), RoutingType.ANYCAST, getTempQ());
 				} catch (ActiveMQQueueExistsException e) {
 					logger.debug(e.getMessage());
 				}
 				consumer=getTxSession().createConsumer(getTempQ());
-				txSession.start();
+				getTxSession().start();
 			} catch (ActiveMQException e) {
 				logger.error(e,e);
 			}

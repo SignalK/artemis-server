@@ -107,10 +107,10 @@ public class InfluxDbTest {
 		//save and flush
 		influx.save(map);
 		//reload from db
-		NavigableMap<String, Json> rslt = loadFromDb("urn:mrn:signalk:uuid:705f5f1a-efaf-44aa-9cb8-a0fd6305567c");
+		NavigableMap<String, Json> rslt = loadFromDb("urn:mrn:signalk:uuid:c0d79334-4e25-4245-8892-54e8ccc8021d");
 		compareMaps(map,rslt);
 		//now run again with variation
-		map.put("vessels.urn:mrn:signalk:uuid:705f5f1a-efaf-44aa-9cb8-a0fd6305567c.navigation.headingMagnetic.value",Json.make(6.55));
+		map.put("vessels.urn:mrn:signalk:uuid:c0d79334-4e25-4245-8892-54e8ccc8021d.navigation.headingMagnetic.value",Json.make(6.55));
 		secure.addAttributes(map);
 		//save and flush
 		influx.save(map);

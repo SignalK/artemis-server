@@ -27,10 +27,12 @@ package nz.co.fortytwo.signalk.artemis.server;
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.RejectedExecutionException;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ActiveMQIllegalStateException;
 import org.apache.activemq.artemis.api.core.ActiveMQNonExistentQueueException;
+import org.apache.activemq.artemis.api.core.ActiveMQQueueExistsException;
 import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.client.ClientConsumer;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
@@ -90,6 +92,7 @@ public class ArtemisTcpNettyHandler extends SimpleChannelInboundHandler<String> 
 
 	private synchronized void send(ClientMessage msg) throws ActiveMQException{
 		producer.send(Config.INCOMING_RAW, msg);
+		logger.debug("producer.send: {}", msg);
 	}
 	
 	@Override
@@ -100,45 +103,55 @@ public class ArtemisTcpNettyHandler extends SimpleChannelInboundHandler<String> 
 		ctx.write(Util.getWelcomeMsg().toString() + "\r\n");
 		ctx.flush();
 
-		String session = ctx.channel().id().asLongText();
+		String sessionId = ctx.channel().id().asLongText();
 
-		contextList.put(session, ctx);
-		createTemporaryQueue("outgoing.reply." + session, RoutingType.ANYCAST, session);
+		contextList.put(sessionId, ctx);
+		createTemporaryQueue("outgoing.reply." + sessionId, RoutingType.ANYCAST, sessionId);
 
 		// setup consumer
-		ClientConsumer consumer = createConsumer(session, false);
+		ClientConsumer consumer = createConsumer(sessionId, false);
 		consumer.setMessageHandler(new MessageHandler() {
 
 			@Override
 			public void onMessage(ClientMessage message) {
 				try {
+					message.acknowledge();
 					process(message);
-				} catch (Exception e) {
-					logger.error(e.getMessage(), e);
+					
+				}catch (Exception e){
+					logger.error(e,e);
 				}
 
 			}
 		});
-		consumerList.put(session, consumer);
+		consumerList.put(sessionId, consumer);
 		if (logger.isDebugEnabled())
 			logger.debug("channelActive, ready:" + ctx);
 	}
 
-	private synchronized ClientConsumer createConsumer(String session, boolean browseOnly) throws ActiveMQException {
-		return rxSession.createConsumer(session, browseOnly);
+	private ClientConsumer createConsumer(String sessionId, boolean browseOnly) throws ActiveMQException {
+		synchronized (rxSession) {
+			return rxSession.createConsumer(sessionId, browseOnly);
+		}
 	}
 
-	private synchronized void createTemporaryQueue(String queue, RoutingType anycast, String session) throws ActiveMQException {
-		rxSession.createTemporaryQueue(queue, anycast, session);
+	private void createTemporaryQueue(String queue, RoutingType anycast, String session) throws ActiveMQException {
+		try{
+			synchronized (rxSession) {
+				rxSession.createTemporaryQueue(queue, anycast, session);
+			}
+		}catch (ActiveMQQueueExistsException e) {
+			logger.debug(e);
+		} 
 	}
 
 	@Override
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
 		// unsubscribe all
-		String session = contextList.inverse().get(ctx);
+		String sessionId = contextList.inverse().get(ctx);
 		// txSession.deleteQueue("outgoing.reply." + session);
-		consumerList.get(session).close();
-		deleteQueue(session);
+		consumerList.get(sessionId).close();
+		deleteQueue(sessionId);
 		super.channelInactive(ctx);
 	}
 
@@ -147,7 +160,10 @@ public class ArtemisTcpNettyHandler extends SimpleChannelInboundHandler<String> 
 		if (logger.isDebugEnabled())
 			logger.debug("Request:" + request);
 
-		ClientMessage msg = new ClientMessageImpl((byte) 0, false, 0, System.currentTimeMillis(), (byte) 4, 1024);
+		ClientMessage msg = null;
+		synchronized (rxSession) {
+			msg=rxSession.createMessage(false);
+		}
 		msg.getBodyBuffer().writeString(request);
 		getHeaders(ctx, msg);
 		String tempQ = contextList.inverse().get(ctx);
@@ -237,8 +253,10 @@ public class ArtemisTcpNettyHandler extends SimpleChannelInboundHandler<String> 
 		}
 	}
 
-	private synchronized void deleteQueue(String key) throws ActiveMQException {
-		rxSession.deleteQueue(key);
+	private void deleteQueue(String key) throws ActiveMQException {
+		synchronized (rxSession) {
+			rxSession.deleteQueue(key);
+		}
 	}
 
 	public void process(ClientMessage message) throws Exception {
@@ -255,7 +273,7 @@ public class ArtemisTcpNettyHandler extends SimpleChannelInboundHandler<String> 
 				// tcp
 				for (String key : contextList.keySet()) {
 					ChannelHandlerContext ctx = getChannel(key);
-					if (ctx != null && ctx.channel().isWritable())
+					if (ctx != null )
 						ctx.pipeline().writeAndFlush(msg + "\r\n");
 				}
 			} else {
@@ -263,7 +281,23 @@ public class ArtemisTcpNettyHandler extends SimpleChannelInboundHandler<String> 
 				ChannelHandlerContext ctx = contextList.get(session);
 				if (logger.isDebugEnabled())
 					logger.debug("TCP send to :" + ctx);
-				if (ctx != null && ctx.channel().isWritable())
+				if(ctx == null || !ctx.channel().isWritable()){
+					//cant send, kill it
+					try {
+						consumerList.get(session).close();
+					} catch (ActiveMQException e) {
+						logger.error(e.getMessage(), e);
+					}
+					try {
+						SubscriptionManagerFactory.getInstance().removeByTempQ(session);
+					} catch (Exception e) {
+						logger.error(e.getMessage(), e);
+					}
+					consumerList.remove(session);
+					return;
+				}
+				
+				if (ctx != null )
 					ctx.pipeline().writeAndFlush(msg + "\r\n");
 			}
 		}

@@ -108,10 +108,10 @@ public final class ArtemisServer {
 		// start serial manager
 
 		// start a serial port manager
-		if (serialPortManager == null) {
-			serialPortManager = new SerialPortManager();
-		}
-		new Thread(serialPortManager).start();
+//		if (serialPortManager == null) {
+//			serialPortManager = new SerialPortManager();
+//		}
+//		new Thread(serialPortManager).start();
 
 		addShutdownHook(this);
 	
@@ -128,7 +128,7 @@ public final class ArtemisServer {
 						.initParam("org.atmosphere.cpr.broadcaster.maxProcessingThreads", "10")
 						.initParam("org.atmosphere.cpr.broadcaster.maxAsyncWriteThreads", "10")
 						.initParam("org.atmosphere.websocket.maxIdleTime", "30000")
-						.initParam("org.atmosphere.cpr.Broadcaster.writeTimeout", "10000")
+						.initParam("org.atmosphere.cpr.Broadcaster.writeTimeout", "30000")
 						//.initParam("org.atmosphere.cpr.broadcasterLifeCyclePolicy","IDLE_RESUME")
 						//.interceptor(new AuthenticationInterceptor(conf) )
 						.port(8080)
@@ -143,13 +143,13 @@ public final class ArtemisServer {
 		skServer.setUdpPort(Config.getConfigPropertyInt(UDP_PORT));
 		skServer.run();
 
-		nmeaServer = new NettyServer(null, OUTPUT_NMEA);
-		nmeaServer.setTcpPort(Config.getConfigPropertyInt(TCP_NMEA_PORT));
-		nmeaServer.setUdpPort(Config.getConfigPropertyInt(UDP_NMEA_PORT));
-		nmeaServer.run();
-
-		startMdns();
-		ChartService.reloadCharts();
+//		nmeaServer = new NettyServer(null, OUTPUT_NMEA);
+//		nmeaServer.setTcpPort(Config.getConfigPropertyInt(TCP_NMEA_PORT));
+//		nmeaServer.setUdpPort(Config.getConfigPropertyInt(UDP_NMEA_PORT));
+//		nmeaServer.run();
+//
+//		startMdns();
+//		ChartService.reloadCharts();
 	}
 
 

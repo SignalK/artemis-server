@@ -31,10 +31,12 @@ import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ActiveMQQueueExistsException;
 import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.SimpleString;
+import org.apache.activemq.artemis.api.core.client.ActiveMQClient;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.activemq.artemis.core.client.impl.ClientMessageImpl;
+import org.apache.activemq.artemis.core.postoffice.BindingsFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -190,8 +192,11 @@ public class SubscriptionManagerService{
 			throws ActiveMQException {
 		if (json == null || json.isNull())
 			json = Json.object();
-		//ClientMessage txMsg = new ClientMessageImpl((byte) 0, false, 5000, System.currentTimeMillis(), (byte) 4, 1024);
-		ClientMessage txMsg = getTxSession().createMessage(false);
+		//ClientMessage txMsg = new ClientMessageImpl((byte) 0, false, 5000, System.currentTimeMillis(), (byte) 4, ActiveMQClient.DEFAULT_INITIAL_MESSAGE_PACKET_SIZE);
+		ClientMessage txMsg = null;
+		synchronized (txSession) {
+			txMsg = getTxSession().createMessage(false);
+		}
 		if (correlation != null)
 			txMsg.putStringProperty(Config.AMQ_CORR_ID, correlation);
 		txMsg.putStringProperty(Config.AMQ_SUB_DESTINATION, destination);
@@ -202,18 +207,17 @@ public class SubscriptionManagerService{
 		if (logger.isDebugEnabled())
 			logger.debug("Sending to {}, Msg body = {}", destination, json.toString());
 
-		send(destination, txMsg);
+		synchronized (txSession) {
+			getProducer().send(new SimpleString("outgoing.reply." +destination), txMsg);
+		}
 
-	}
-
-	private synchronized void send(String destination, ClientMessage txMsg) throws ActiveMQException {
-		getProducer().send(new SimpleString("outgoing.reply." +destination), txMsg);
-		
 	}
 
 	public void createTempQueue(String destination) {
 		try {
-			getTxSession().createTemporaryQueue("outgoing.reply." + destination, RoutingType.ANYCAST, destination);
+			synchronized (txSession) {
+				getTxSession().createTemporaryQueue("outgoing.reply." + destination, RoutingType.ANYCAST, destination);
+			}
 			logger.debug("created temp queue: {}", destination);
 		} catch (ActiveMQQueueExistsException e) {
 			logger.debug(e);

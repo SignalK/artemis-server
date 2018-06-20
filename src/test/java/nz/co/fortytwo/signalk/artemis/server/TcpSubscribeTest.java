@@ -26,18 +26,21 @@ import org.junit.Test;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 
 public class TcpSubscribeTest extends BaseServerTest{
 	
 	private static Logger logger = LogManager.getLogger(TcpSubscribeTest.class);
-
+	private int port = Config.getConfigPropertyInt(ConfigConstants.TCP_PORT);
+	
 	@Test
 	public void checkSelfSubscribe() throws Exception {
 
-		Socket clientSocket = new Socket("127.0.0.1", 55555);
-
+		Socket clientSocket = new Socket("127.0.0.1", port);
+		clientSocket.setSoTimeout(30000);
+		
 		DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
 
 		BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -71,11 +74,13 @@ public class TcpSubscribeTest extends BaseServerTest{
 	@Test
 	public void checkMultiClientSubscribe() throws Exception {
 
-		Socket clientSocket1 = new Socket("127.0.0.1", 55555);
+		Socket clientSocket1 = new Socket("127.0.0.1", port);
+		clientSocket1.setSoTimeout(30000);
 		DataOutputStream outToServer1 = new DataOutputStream(clientSocket1.getOutputStream());
 		BufferedReader inFromServer1 = new BufferedReader(new InputStreamReader(clientSocket1.getInputStream()));
 		
-		Socket clientSocket2 = new Socket("127.0.0.1", 55555);
+		Socket clientSocket2 = new Socket("127.0.0.1", port);
+		clientSocket2.setSoTimeout(30000);
 		DataOutputStream outToServer2 = new DataOutputStream(clientSocket2.getOutputStream());
 		BufferedReader inFromServer2 = new BufferedReader(new InputStreamReader(clientSocket2.getInputStream()));
 
@@ -92,6 +97,7 @@ public class TcpSubscribeTest extends BaseServerTest{
 			
 			Json msg2 = getSubscriptionJson("vessels." + SignalKConstants.self, "navigation.headingMagnetic", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
 			outToServer2.writeBytes(msg2.toString() + '\n');
+			outToServer2.flush();
 			
 			String line = "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78";
 			outToServer1.writeBytes(line + '\n');
@@ -102,8 +108,8 @@ public class TcpSubscribeTest extends BaseServerTest{
 			int c=0;
 			while(c<5){
 				recv1 = inFromServer1.readLine();
-				recv2 = inFromServer2.readLine();
 				logger.debug("rcvd1 sub message = " + recv1);
+				recv2 = inFromServer2.readLine();
 				logger.debug("rcvd2 sub message = " + recv2);
 				c++;
 			}

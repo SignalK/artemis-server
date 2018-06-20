@@ -230,22 +230,16 @@ public class Config {
 
 	public static NavigableMap<String, Json> loadConfig(NavigableMap<String, Json> model) throws IOException {
 		
+		logger.info("Loading config defaults");
+		Config.setDefaults(model);
+		logger.info("Loading saved config");
 		influx.loadConfig(model,null );
 		
-		if (map.size()<10) {
-			logger.info("   Saved config not found, creating default");
-			Config.setDefaults(model);
-			// write a new one for next time
-			// create a uuid
-			String selfUuid = model.get(ConfigConstants.UUID).asString();
-			//model.put(ConfigConstants.UUID, Json.make(self));
-			model.put(vessels+dot+selfUuid+dot+uuid, Json.make(selfUuid));
-			saveConfig(model);
-			
-		} 
-		//String selfUuid = model.get(ConfigConstants.UUID).asString();
-		//model.put(vessels+dot+selfUuid+dot+uuid, Json.make(selfUuid));
-		//saveConfig(model);
+		// ensure a uuid
+		String selfUuid = model.get(ConfigConstants.UUID).asString();
+		//create a self vessel
+		model.put(vessels+dot+selfUuid+dot+uuid, Json.make(selfUuid));
+		saveConfig(model);
 		logger.debug("Config: {}",model);
 		return model;
 	}

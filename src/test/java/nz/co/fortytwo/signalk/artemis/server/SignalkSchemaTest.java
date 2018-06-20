@@ -10,6 +10,7 @@ import java.net.URL;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -29,6 +30,7 @@ import io.apptik.json.generator.JsonGeneratorConfig;
 import io.apptik.json.schema.Schema;
 import io.apptik.json.schema.SchemaV4;
 
+@Ignore
 public class SignalkSchemaTest {
 	private static Logger logger = LogManager.getLogger(SignalkSchemaTest.class);
 

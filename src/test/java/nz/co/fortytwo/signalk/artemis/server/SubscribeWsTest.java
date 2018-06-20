@@ -328,8 +328,8 @@ public class SubscribeWsTest extends BaseServerTest {
 			
 			logger.debug("Sent subscribe = " + subscribeMsg);
 	
-			latch.await(5, TimeUnit.SECONDS);
-			logger.debug("Completed recieve ");
+			latch.await(10, TimeUnit.SECONDS);
+			logger.debug("Completed receive ");
 
 			websocket.close();
 			

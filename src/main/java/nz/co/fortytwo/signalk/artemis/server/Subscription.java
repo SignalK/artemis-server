@@ -159,7 +159,12 @@ public class Subscription {
 						if (logger.isDebugEnabled())
 							logger.debug("Full json = " + json);
 					}
-					SubscriptionManagerFactory.getInstance().send(rslt.getClass().getSimpleName(), destination, format, correlation, json);
+					try{
+						SubscriptionManagerFactory.getInstance().send(rslt.getClass().getSimpleName(), destination, format, correlation, json);
+					}catch(ActiveMQException amq){
+						logger.error(amq,amq);
+						setActive(false);
+					}
 
 				} catch (Exception e) {
 					logger.error(e.getMessage(), e);

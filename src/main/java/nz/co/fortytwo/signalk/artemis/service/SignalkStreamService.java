@@ -72,24 +72,7 @@ public class SignalkStreamService extends BaseApiService {
 			
 			Json json = Json.read(body);
 			long period = getLongestPeriod(json);
-//			TimerTask task = new TimerTask() {
-//				
-//				@Override
-//				public void run() {
-//					logger.debug("Checking broadcast age < {}",period );
-//					if(System.currentTimeMillis()-lastBroadcast>period){
-//						try {
-//							logger.debug("Checking broadcast failed: {} , closing...",System.currentTimeMillis()-lastBroadcast );
-//							resource.close();
-//							timer.cancel();
-//							cancel();
-//						} catch (IOException e) {
-//							logger.error(e,e);
-//						}
-//					}
-//				}
-//			};
-//			timer.schedule(task, period, period);
+			//setConnectionWatcher(period);
 			
 			sendMessage(body, correlationId);
 
@@ -102,6 +85,28 @@ public class SignalkStreamService extends BaseApiService {
 			}
 		}
 		return "";
+	}
+
+	private void setConnectionWatcher(long period) {
+		TimerTask task = new TimerTask() {
+			
+			@Override
+			public void run() {
+				logger.debug("Checking broadcast age < {}",period );
+				if(System.currentTimeMillis()-lastBroadcast>period){
+					try {
+						logger.debug("Checking broadcast failed: {} , closing...",System.currentTimeMillis()-lastBroadcast );
+						resource.close();
+						timer.cancel();
+						cancel();
+					} catch (IOException e) {
+						logger.error(e,e);
+					}
+				}
+			}
+		};
+		timer.schedule(task, period, period);
+		
 	}
 
 	private long getLongestPeriod(Json json) {

@@ -26,22 +26,23 @@ import org.junit.Test;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 
 public class UdpSubscribeTest extends BaseServerTest{
 	
 	private static Logger logger = LogManager.getLogger(UdpSubscribeTest.class);
-
+	private int port = Config.getConfigPropertyInt(ConfigConstants.UDP_PORT);
 	
 	@Test
 	public void checkSelfSubscribe() throws Exception {
 
 		DatagramSocket clientSocket = new DatagramSocket();
-
+		clientSocket.setSoTimeout(5000);
 		InetAddress host = InetAddress.getByName("localhost");
 		byte[] b = "Hello".getBytes();
-		 DatagramPacket  dp = new DatagramPacket(b , b.length , host , 55554);
+		 DatagramPacket  dp = new DatagramPacket(b , b.length , host , port);
 		 clientSocket.send(dp);
 		 
 		 byte[] buffer = new byte[65536];
@@ -53,14 +54,14 @@ public class UdpSubscribeTest extends BaseServerTest{
 		try {
 
 			byte[] msg = getSubscriptionJson("vessels." + SignalKConstants.self, "navigation", 1000, 0, FORMAT_DELTA, POLICY_FIXED).toString().getBytes();
-			DatagramPacket  dp1 = new DatagramPacket(msg , msg.length , host , 55554);
+			DatagramPacket  dp1 = new DatagramPacket(msg , msg.length , host , port);
 			clientSocket.send(dp1);
 			 
 			byte[] line = "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78".getBytes();
-			DatagramPacket  dp2 = new DatagramPacket(line , line.length , host , 55554);
+			DatagramPacket  dp2 = new DatagramPacket(line , line.length , host , port);
 			clientSocket.send(dp2);
 			
-			CountDownLatch latch = new CountDownLatch(1);
+			CountDownLatch latch = new CountDownLatch(2);
 			latch.await(1, TimeUnit.SECONDS);
 			int c=0;
 			while(c<5){
@@ -68,6 +69,7 @@ public class UdpSubscribeTest extends BaseServerTest{
 				 clientSocket.receive(reply);
 				 recv = new String(reply.getData());
 				logger.debug("rcvd sub message = " + recv);
+				latch.countDown();
 				c++;
 			}
 			// assertEquals("Hello", recv);
@@ -86,7 +88,8 @@ public class UdpSubscribeTest extends BaseServerTest{
 
 		InetAddress host = InetAddress.getByName("localhost");
 		 byte[] b = "Hello".getBytes();
-		 DatagramPacket  dp = new DatagramPacket(b , b.length , host , 55554);
+		 
+		 DatagramPacket  dp = new DatagramPacket(b , b.length , host , port);
 		 clientSocket1.send(dp);
 		 clientSocket2.send(dp);
 		 
@@ -105,15 +108,15 @@ public class UdpSubscribeTest extends BaseServerTest{
 		try {
 
 			byte[] msg1 = getSubscriptionJson("vessels." + SignalKConstants.self, "navigation.position", 1000, 0, FORMAT_DELTA, POLICY_FIXED).toString().getBytes();
-			DatagramPacket  dp1 = new DatagramPacket(msg1 , msg1.length , host , 55554);
+			DatagramPacket  dp1 = new DatagramPacket(msg1 , msg1.length , host , port);
 			clientSocket1.send(dp1);
 			
 			byte[] msg2 = getSubscriptionJson("vessels." + SignalKConstants.self, "navigation.headingMagnetic", 1000, 0, FORMAT_DELTA, POLICY_FIXED).toString().getBytes();
-			DatagramPacket  dp2 = new DatagramPacket(msg2 , msg2.length , host , 55554);
+			DatagramPacket  dp2 = new DatagramPacket(msg2 , msg2.length , host , port);
 			clientSocket2.send(dp2);
 			 
 			byte[] line = "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78".getBytes();
-			DatagramPacket  dp3 = new DatagramPacket(line , line.length , host , 55554);
+			DatagramPacket  dp3 = new DatagramPacket(line , line.length , host , port);
 			clientSocket1.send(dp3);
 			
 			CountDownLatch latch = new CountDownLatch(1);

@@ -64,7 +64,11 @@ public class BaseInterceptor {
 			init();
 		}
 		if(json==null || json.isNull())json=Json.object();
-		ClientMessage txMsg = new ClientMessageImpl((byte) 0, false, 0, System.currentTimeMillis(), (byte) 4, 1024);
+		
+		ClientMessage txMsg = null;
+		synchronized (txSession) {
+			txMsg = txSession.createMessage(false);
+		}
 		//txMsg.putStringProperty(Config.JAVA_TYPE, type);
 		if(correlation!=null)
 			txMsg.putStringProperty(Config.AMQ_CORR_ID, correlation);
@@ -77,8 +81,9 @@ public class BaseInterceptor {
 		txMsg.getBodyBuffer().writeString(json.toString());
 		if (logger.isDebugEnabled())
 			logger.debug("Msg body = " + json.toString());
-		
-		producer.send("outgoing.reply." +destination,txMsg);
+		synchronized (txSession) {
+			producer.send("outgoing.reply." +destination,txMsg);
+		}
 	}
 	
 	protected void saveMap(NavigableMap<String, Json> map) {

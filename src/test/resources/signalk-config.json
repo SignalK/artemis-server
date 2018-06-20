@@ -3,14 +3,14 @@
       "hawtio": {
          "authenticationEnabled": false,
          "context": "/hawtio",
-         "port": 8000,
+         "port": 8000.0,
          "start": false,
          "war": "./hawtio/hawtio-default-offline-1.4.48.war"
       },
       "jolokia": {
          "authenticationEnabled": false,
          "context": "/jolokia",
-         "port": 8001,
+         "port": 8001.0,
          "war": "./hawtio/jolokia-war-1.3.3.war"
       },
       "server": {
@@ -63,40 +63,46 @@
          },
          "security": {
             "config": {
-               "ip": ["127.0.0.1/8"]
+               "ip": ["10.1.1.40/8","127.0.0.1/8"]
+            },
+            "deny": {
+               "ip": []
+            },
+            "white": {
+               "ip": []
             }
          },
          "serial": {
-            "baud": 38400,
+            "baud": 38400.0,
             "enable": true,
-            "ports": ["/dev/ttyUSB0","/dev/ttyUSB1","/dev/ttyUSB2","/dev/ttyACM0","/dev/ttyACM1","/dev/ttyACM2"]
+            "ports": ["/dev/ttyUSB2","/dev/ttyACM0","/dev/ttyUSB0","/dev/ttyUSB1","/dev/ttyACM1","/dev/ttyACM2","/dev/ttyACM3"]
          },
          "server": {
             "mqtt": {
-               "port": 1883,
+               "port": 1883.0,
                "start": true
             },
             "nmea": {
                "generate0183": true
             },
             "rest": {
-               "port": 8080
+               "port": 8080.0
             },
             "stomp": {
-               "port": 61613,
+               "port": 61613.0,
                "start": true
             },
             "tcp": {
                "nmea": {
-                  "port": 55557
+                  "port": 55557.0
                },
-               "port": 55555
+               "port": 55555.0
             },
             "udp": {
                "nmea": {
-                  "port": 55556
+                  "port": 55556.0
                },
-               "port": 55554
+               "port": 55554.0
             },
             "websocket": {
                "port": 8080.0
@@ -105,7 +111,7 @@
                "auto": true
             }
          },
-         "version": "v1.0.0",
+         "version": "1.0.0",
          "vessel": {
             "flag": "NZ",
             "mmsi": "",

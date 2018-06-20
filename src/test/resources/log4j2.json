@@ -19,7 +19,7 @@
 			"Console": {
 				"name": "STDOUT",
 				"patternlayout": {
-					"pattern": "%d{HH:mm:ss.SSS} [%t{.20c}] %-5level %c{1.} - %msg%n"
+					"pattern": "%d{HH:mm:ss.SSS} %-5level %c{1.} - %msg%n"
 				}
 			},
 			"RollingFile": {
@@ -93,6 +93,10 @@
 				"level": "debug"
 			},
 			{
+				"name": "nz.co.fortytwo.signalk.artemis.server.ArtemisTcpNettyHandler",
+				"level": "debug"
+			},
+			{
          		"name": "nz.co.fortytwo.signalk.artemis.server.Subscription",
          		"level": "debug",
          		"additivity": true,
@@ -130,6 +134,15 @@
 			},
 			
 			{
+				"name": "nz.co.fortytwo.signalk.artemis.server.UdpSubscribeTest",
+				"level": "debug"
+			},
+			{
+				"name": "nz.co.fortytwo.signalk.artemis.server.TcpSubscribeTest",
+				"level": "debug"
+			},
+			
+			{
 				"name": "org.atmosphere.nettosphere.BridgeRuntime",
 				"level": "warn"
 			},
@@ -146,8 +159,13 @@
 			
 			{
 				"name": "org.apache.activemq.artemis",
-				"level": "w"
+				"level": "debug"
 			},
+			{
+				"name": "org.apache.activemq.artemis.core.protocol.core.impl.ChannelImpl",
+				"level": "warn"
+			},
+			
 			{
 				"name": "mjson",
 				"level": "error"
