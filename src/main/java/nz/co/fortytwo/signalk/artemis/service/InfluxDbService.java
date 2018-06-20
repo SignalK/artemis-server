@@ -120,7 +120,7 @@ public class InfluxDbService implements TDBService {
 		if (result == null || result.getResults() == null)
 			return map;
 		result.getResults().forEach((r) -> {
-			if (r.getSeries() == null ||r.getSeries()==null)
+			if (r == null ||r.getSeries()==null)
 				return;
 			r.getSeries().forEach((s) -> {
 				logger.debug(s);
@@ -209,9 +209,10 @@ public class InfluxDbService implements TDBService {
 				String key = s.getName() + dot + tagMap.get("skey");
 				Json attr = getAttrJson(tagMap);
 				Json val = getJsonValue(s,0);
+				
 				map.put(key,val);
 				map.put(key+"._attr",attr);
-
+				
 			});
 		});
 		return map;
@@ -398,9 +399,10 @@ public class InfluxDbService implements TDBService {
 			if (obj.equals("false")) {
 				return Json.make(false);
 			}
-			if (obj.toString().startsWith("[") && obj.toString().endsWith("]")) {
+			if (obj.toString().trim().startsWith("[") && obj.toString().endsWith("]")) {
 				return Json.read(obj.toString());
 			}
+			
 			return Json.make(obj);
 
 		}
@@ -464,7 +466,7 @@ public class InfluxDbService implements TDBService {
 		if (v.isArray()) {
 			
 			logger.debug("Save array: {}={}", k , v);
-			saveData(k, srcRef, tStamp, v.toString(),attr);
+			saveData(k, srcRef, tStamp, v,attr);
 			return;
 		}
 		if (v.has(sentence)) {
@@ -770,19 +772,22 @@ public class InfluxDbService implements TDBService {
 		return !StringUtils.equals(sourceRef, primaryMap.put(StringUtils.substringBefore(key,dot+values+dot),sourceRef));
 	}
 
-	private Point addPoint(Builder point, String field, Object value) {
-		logger.debug("addPoint: {} : {}",field,value);
-		if(value==null)return point.addField(field,true).build();
-		if(value instanceof Json){
-			if(((Json)value).isString()){
-				value=((Json)value).asString();
-			}else if(((Json)value).isNull()){
+	private Point addPoint(Builder point, String field, Object jsonValue) {
+		Object value = null;
+		logger.debug("addPoint: {} : {}",field,jsonValue);
+		if(jsonValue==null)return point.addField(field,true).build();
+		if(jsonValue instanceof Json){
+			if(((Json)jsonValue).isString()){
+				value=((Json)jsonValue).asString();
+			}else if(((Json)jsonValue).isNull()){
 				value=true;
-			}else if(((Json)value).isArray()){
-				value=((Json)value).toString();
+			}else if(((Json)jsonValue).isArray()){
+				value=((Json)jsonValue).toString();
 			}else{
-				value=((Json)value).getValue();
+				value=((Json)jsonValue).getValue();
 			}
+		}else{
+			value=jsonValue;
 		}
 		if(value instanceof Boolean)return point.addField(field,((Boolean)value).toString()).build();
 		if(value instanceof Double)return point.addField(field,(Double)value).build();
