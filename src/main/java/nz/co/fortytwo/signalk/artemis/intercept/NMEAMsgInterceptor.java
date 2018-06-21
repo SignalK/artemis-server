@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -93,8 +94,9 @@ public class NMEAMsgInterceptor extends BaseInterceptor implements Interceptor {
 		// Injection of __NASHORN_POLYFILL_TIMER__ in ScriptContext
 		engine.getContext().setAttribute("__NASHORN_POLYFILL_TIMER__", globalScheduledThreadPool,
 				ScriptContext.ENGINE_SCOPE);
-
-		String resourceDir = getClass().getClassLoader().getResource("signalk-parser-nmea0183/index-es5.js").getPath();
+		URL resource = getClass().getClassLoader().getResource("signalk-parser-nmea0183/index-es5.js");
+		logger.debug("Resource : {}", resource);
+		String resourceDir = getClass().getClassLoader().getResource("signalk-parser-nmea0183/index-es5.js").toString();
 		resourceDir=StringUtils.substringBefore(resourceDir,"index-es5.js" );
 
 		logger.debug("Javascript jsRoot: {}", resourceDir);
