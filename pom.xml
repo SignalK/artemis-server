@@ -301,28 +301,15 @@
 					<target>1.8</target>
 				</configuration>
 			</plugin>
-			<!-- <plugin> -->
-			<!-- <groupId>org.apache.activemq</groupId> -->
-			<!-- <artifactId>artemis-maven-plugin</artifactId> -->
-			<!-- <executions> -->
-			<!-- <execution> -->
-			<!-- <id>runClient</id> -->
-			<!-- <goals> -->
-			<!-- <goal>runClient</goal> -->
-			<!-- </goals> -->
-			<!-- <configuration> -->
-			<!-- <clientClass>org.apache.activemq.artemis.jms.example.EmbeddedExample</clientClass> -->
-			<!-- </configuration> -->
-			<!-- </execution> -->
-			<!-- </executions> -->
-			<!-- <dependencies> -->
-			<!-- <dependency> -->
-			<!-- <groupId>org.apache.activemq.examples.broker</groupId> -->
-			<!-- <artifactId>embedded</artifactId> -->
-			<!-- <version>${project.version}</version> -->
-			<!-- </dependency> -->
-			<!-- </dependencies> -->
-			<!-- </plugin> -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+                <version>1.5.0</version>
+				<configuration>
+					<mainClass>nz.co.fortytwo.signalk.artemis.server.ArtemisServer</mainClass>
+					<includePluginDependencies>false</includePluginDependencies>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 </project>
