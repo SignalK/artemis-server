@@ -1,7 +1,19 @@
 Artemis Server
 ==============
 
-Assumes influx db is running on localhost:8086
+This is the replacement for the signalk-java-server which began before signalk and has been forced into too many compromising refactorings over the years.
+
+The artemis server uses a time-series database as the core storage for all data. This means all data is persistent, and it can recover the vessels entire signalk data at any point backwards through time. 
+
+The intention is to provide a platform to implement a signalk history api that allows analysis over time, and against historic data.
+
+Its a drop in replacement for the signalk-java-server, missing functionality is a bug.
+
+It assumes influx db is running on localhost:8086
+
+Installation
+============
+
 
 
 NMEA

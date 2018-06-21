@@ -14,7 +14,7 @@ Done:
 	UI
 	log conf
 TODO:
-	more efficient subs
+	more efficient subscriptions
 	source to srcRef - full format
 	srcRef back to source
 	
