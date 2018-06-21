@@ -1,7 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.server;
 
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;

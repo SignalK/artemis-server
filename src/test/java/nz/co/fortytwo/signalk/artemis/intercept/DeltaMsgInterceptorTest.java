@@ -1,5 +1,7 @@
 package nz.co.fortytwo.signalk.artemis.intercept;
 
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.values;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -21,7 +23,6 @@ import org.junit.Test;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Config;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 
 public class DeltaMsgInterceptorTest  extends BaseMsgInterceptorTest {
 

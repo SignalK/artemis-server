@@ -1,5 +1,21 @@
 package nz.co.fortytwo.signalk.artemis.intercept;
 
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
+import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_DELTA;
+import static nz.co.fortytwo.signalk.artemis.util.Config._0183;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PATH;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_depth_belowTransducer;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_courseOverGroundTrue;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_speedOverGround;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self_str;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.source;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.timestamp;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.values;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -21,8 +37,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import mjson.Json;
-import static nz.co.fortytwo.signalk.artemis.util.Config.*;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class NMEAMsgInterceptorTest extends BaseMsgInterceptorTest {

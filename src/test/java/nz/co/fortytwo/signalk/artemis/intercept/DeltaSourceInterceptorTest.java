@@ -2,15 +2,17 @@ package nz.co.fortytwo.signalk.artemis.intercept;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
 import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_DELTA;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONFIG;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PUT;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.source;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sourceRef;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ICoreMessage;
@@ -27,7 +29,6 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import mjson.Json;
-import static  nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class DeltaSourceInterceptorTest extends BaseMsgInterceptorTest {

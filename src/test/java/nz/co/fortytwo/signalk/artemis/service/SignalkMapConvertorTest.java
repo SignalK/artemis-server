@@ -1,5 +1,9 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.GET;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PUT;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -14,7 +18,6 @@ import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 
 import mjson.Json;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class SignalkMapConvertorTest {
