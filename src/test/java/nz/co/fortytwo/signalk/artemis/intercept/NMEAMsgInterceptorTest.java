@@ -44,7 +44,7 @@ public class NMEAMsgInterceptorTest extends BaseMsgInterceptorTest {
 	
     private NMEAMsgInterceptor interceptor ;// 1
 
-    public NMEAMsgInterceptorTest() {
+    public NMEAMsgInterceptorTest() throws Exception {
     	try {
 			interceptor  = new NMEAMsgInterceptor();
 		} catch (FileNotFoundException | NoSuchMethodException | ScriptException e) {
