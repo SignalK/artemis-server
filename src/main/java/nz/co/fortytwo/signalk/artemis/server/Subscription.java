@@ -87,7 +87,7 @@ public class Subscription {
 	private String destination;
 
 	private TimerTask task;
-	private Timer timer;
+	
 	private String table;
 	private String uuid;
 	private Map<String, String> map = new HashMap<>();
@@ -239,14 +239,8 @@ public class Subscription {
 		if (logger.isDebugEnabled())
 			logger.debug("Set active:{}, {}", active, this);
 
-		if (!active && timer != null) {
-			timer.cancel();
-			timer = null;
-		}
-
-		if (active && timer == null) {
-			timer = new Timer(sessionId, true);
-			timer.schedule(task, 0, getPeriod());
+		if (active) {
+			SubscriptionManagerFactory.getInstance().schedule(task, getPeriod());
 			if (logger.isDebugEnabled())
 				logger.debug("Scheduled:" + getPeriod());
 		}

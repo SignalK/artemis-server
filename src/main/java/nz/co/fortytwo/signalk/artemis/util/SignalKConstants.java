@@ -181,7 +181,15 @@ public class SignalKConstants {
 	public static final String env_time_utc = "environment.time.utc";
 	public static final String env_timezone = "environment.time.timezone";
 
+	public static final String resources="resources";
+	public static final String sources="sources";
+	public static final String electrical="electrical";
+	public static final String flag="flag";
+	public static final String mmsi="mmsi";
+	public static final String name="name";
+	public static final String nav="navigation";
 	//generated
+	/*
 	public static final String resources="resources";
 	public static final String resources_charts="resources.charts";
 	public static final String resources_charts_id_bounds="resources.charts.*.bounds";
@@ -364,9 +372,9 @@ public class SignalKConstants {
 	public static final String env_current_drift="environment.current.drift";
 	public static final String env_current_setMagnetic="environment.current.setMagnetic";
 	public static final String env_current_setTrue="environment.current.setTrue";
+	*/
 	public static final String env_depth="environment.depth";
 	public static final String env_depth_belowKeel="environment.depth.belowKeel";
-
 	public static final String env_depth_belowSurface="environment.depth.belowSurface";
 	public static final String env_depth_belowTransducer="environment.depth.belowTransducer";
 	public static final String env_depth_surfaceToTransducer="environment.depth.surfaceToTransducer";
@@ -374,6 +382,7 @@ public class SignalKConstants {
 	public static final String env_depth_alarmMethod = "environment.depth.belowSurface.meta.alarmMethod";
 	public static final String env_depth_warnMethod = "environment.depth.belowSurface.meta.warnMethod";
 	public static final String env_depth_meta_userUnit = "environment.depth.meta.userUnit";
+	/*
 	public static final String env_heave="environment.heave";
 	public static final String env_inside="environment.inside";
 	public static final String env_inside_engineRoom="environment.inside.engineRoom";
@@ -466,7 +475,9 @@ public class SignalKConstants {
 	public static final String nav_courseGreatCircle_previousPoint_position_latitude="navigation.courseGreatCircle.previousPoint.position.latitude";
 	public static final String nav_courseGreatCircle_previousPoint_position_longitude="navigation.courseGreatCircle.previousPoint.position.longitude";
 	public static final String nav_courseOverGroundMagnetic="navigation.courseOverGroundMagnetic";
+	*/
 	public static final String nav_courseOverGroundTrue="navigation.courseOverGroundTrue";
+	/*
 	public static final String nav_courseRhumbline="navigation.courseRhumbline";
 	public static final String nav_courseRhumbline_activeRoute="navigation.courseRhumbline.activeRoute";
 	public static final String nav_courseRhumbline_activeRoute_estimatedTimeOfArrival="navigation.courseRhumbline.activeRoute.estimatedTimeOfArrival";
@@ -528,8 +539,9 @@ public class SignalKConstants {
 	public static final String nav_racing_timeStbdUp="navigation.racing.timeStbdUp";
 	public static final String nav_racing_timeToStart="navigation.racing.timeToStart";
 	public static final String nav_rateOfTurn="navigation.rateOfTurn";
+	*/
 	public static final String nav_speedOverGround="navigation.speedOverGround";
-	public static final String nav_sogDisplayUnit="navigation.speedOverGround.meta.unit";
+	/*public static final String nav_sogDisplayUnit="navigation.speedOverGround.meta.unit";
 	public static final String nav_speedThroughWater="navigation.speedThroughWater";
 	public static final String nav_speedThroughWaterLongitudinal="navigation.speedThroughWaterLongitudinal";
 	public static final String nav_speedThroughWaterTransverse="navigation.speedThroughWaterTransverse";
@@ -650,7 +662,9 @@ public class SignalKConstants {
 	public static final String steering_autopilot_target_windAngleApparent="steering.autopilot.target.windAngleApparent";
 	public static final String steering_rudderAngle="steering.rudderAngle";
 	public static final String steering_rudderAngleTarget="steering.rudderAngleTarget";
+	*/
 	public static final String tanks="tanks";
+	/*
 	public static final String tanks_blackWater="tanks.blackWater";
 	public static final String tanks_blackWater_id_capacity="tanks.blackWater.*.capacity";
 	public static final String tanks_blackWater_id_currentLevel="tanks.blackWater.*.currentLevel";
@@ -688,7 +702,7 @@ public class SignalKConstants {
 	public static final String tanks_wasteWater_id_name="tanks.wasteWater.*.name";
 	public static final String tanks_wasteWater_id_type="tanks.wasteWater.*.type";
 
-
+*/
 	public SignalKConstants() {
 		super();
 	}

@@ -16,9 +16,14 @@ package nz.co.fortytwo.signalk.artemis.server;
  * limitations under the License.
  */
 
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.ENABLE_SERIAL;
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.GENERATE_NMEA0183;
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.OUTPUT_NMEA;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.OUTPUT_TCP;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.REST_PORT;
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.TCP_NMEA_PORT;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.TCP_PORT;
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.UDP_NMEA_PORT;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.UDP_PORT;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.UUID;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.VERSION;
@@ -50,6 +55,7 @@ import org.atmosphere.nettosphere.Nettosphere;
 
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Log4J2LoggerFactory;
+import nz.co.fortytwo.signalk.artemis.service.ChartService;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 
@@ -100,15 +106,15 @@ public final class ArtemisServer {
 		embedded.setSecurityManager(securityManager);
 		embedded.start();
 		
+		// start serial?
+		if(Config.getConfigPropertyBoolean(ENABLE_SERIAL)){
+			// start a serial port manager
+			if (serialPortManager == null) {
+				serialPortManager = new SerialPortManager();
+			}
+			new Thread(serialPortManager).start();
+		}
 		
-		// start serial manager
-
-		// start a serial port manager
-//		if (serialPortManager == null) {
-//			serialPortManager = new SerialPortManager();
-//		}
-//		new Thread(serialPortManager).start();
-
 		addShutdownHook(this);
 	
 		server = new Nettosphere.Builder().config(
@@ -139,19 +145,16 @@ public final class ArtemisServer {
 		skServer.setUdpPort(Config.getConfigPropertyInt(UDP_PORT));
 		skServer.run();
 
-//		nmeaServer = new NettyServer(null, OUTPUT_NMEA);
-//		nmeaServer.setTcpPort(Config.getConfigPropertyInt(TCP_NMEA_PORT));
-//		nmeaServer.setUdpPort(Config.getConfigPropertyInt(UDP_NMEA_PORT));
-//		nmeaServer.run();
-//
-//		startMdns();
-//		ChartService.reloadCharts();
+		if(Config.getConfigPropertyBoolean(GENERATE_NMEA0183)){
+			nmeaServer = new NettyServer(null, OUTPUT_NMEA);
+			nmeaServer.setTcpPort(Config.getConfigPropertyInt(TCP_NMEA_PORT));
+			nmeaServer.setUdpPort(Config.getConfigPropertyInt(UDP_NMEA_PORT));
+			nmeaServer.run();
+		}
+
+		startMdns();
+		ChartService.reloadCharts();
 	}
-
-
-
-	
-
 
 
 	private static void addShutdownHook(final ArtemisServer server) {

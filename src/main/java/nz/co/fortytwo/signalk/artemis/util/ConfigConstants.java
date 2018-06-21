@@ -91,9 +91,12 @@ public class ConfigConstants {
 	public static final String REST_PORT = "config.server.server.rest.port";
 	public static final String TCP_PORT = "config.server.server.tcp.port";
 	public static final String UDP_PORT = "config.server.server.udp.port";
+	
+	//NMEA output
 	public static final String TCP_NMEA_PORT = "config.server.server.tcp.nmea.port";
 	public static final String UDP_NMEA_PORT = "config.server.server.udp.nmea.port";
 	public static final String GENERATE_NMEA0183 = "config.server.server.nmea.generate0183";
+	
 	public static final String ZEROCONF_AUTO = "config.server.server.zeroconf.auto";
 	// STOMP
 	public static final String STOMP_PORT = "config.server.server.stomp.port";

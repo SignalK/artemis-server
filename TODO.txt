@@ -14,10 +14,10 @@ Done:
 	UI
 	log conf
 TODO:
-
+	more efficient subs
 	source to srcRef - full format
 	srcRef back to source
-	UDP in-network decision
+	
 	
 	n2k (as signalk)
 	security

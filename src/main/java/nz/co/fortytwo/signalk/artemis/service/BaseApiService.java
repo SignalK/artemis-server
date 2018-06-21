@@ -29,9 +29,9 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class BaseApiService {
 
-	protected  ClientProducer producer;
+	protected  static ClientProducer producer;
 
-	protected  ClientSession txSession;
+	protected  static ClientSession txSession;
 
 	protected  String tempQ;
 	
@@ -132,27 +132,10 @@ public class BaseApiService {
 			}
 
 			@Override
-			public void onHeartbeat(AtmosphereResourceEvent event) {
-				logger.debug("onHeartbeat: {}",event);
-				super.onHeartbeat(event);
-			}
-			@Override
 			public void onBroadcast(AtmosphereResourceEvent event) {
 				lastBroadcast=System.currentTimeMillis();
 				logger.debug("onBroadcast: {}",event);
 				super.onBroadcast(event);
-			}
-			
-			@Override
-			public void onClose(WebSocketEvent event) {
-				logger.debug("onWebsocketClose: {}",event);
-				super.onClose(event);
-			}
-
-			@Override
-			public void onDisconnect(WebSocketEvent event) {
-				logger.debug("onWebsocketDisconnect: {}",event);
-				super.onDisconnect(event);
 			}
 			
 			@Override
@@ -161,20 +144,6 @@ public class BaseApiService {
 				logger.debug("onWebsocketMessage: {}",event);
 				super.onMessage(event);
 			}
-			@Override
-			public void onControl(WebSocketEvent event) {
-				logger.debug("onWebsocketControl: {}",event);
-				super.onControl(event);
-			}
-			
-			
-			@Override
-			public void onConnect(WebSocketEvent event) {
-				logger.debug("onWebsocketConnect: {}",event);
-				
-				super.onConnect(event);
-			}
-
 			
 		});
 		

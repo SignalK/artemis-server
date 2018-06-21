@@ -25,6 +25,8 @@
  */
 package nz.co.fortytwo.signalk.artemis.server;
 
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
@@ -54,12 +56,13 @@ public class SubscriptionManagerService{
 	
 	protected ClientSession txSession;
 	protected ClientProducer producer;
-
+	private Timer timer;
 	protected ConcurrentLinkedQueue<Subscription> subscriptions = new ConcurrentLinkedQueue<Subscription>();
 	protected ConcurrentLinkedQueue<String> heartbeats = new ConcurrentLinkedQueue<String>();
 
 	public SubscriptionManagerService() {
 		super();
+		timer = new Timer( true);
 		try {
 			getTxSession();
 			getProducer();
@@ -275,6 +278,11 @@ public class SubscriptionManagerService{
 			producer = getTxSession().createProducer();
 		}
 		return producer;
+	}
+
+	public void schedule(TimerTask task, long period) {
+		timer.schedule(task, 10, period);
+		
 	}
 
 
