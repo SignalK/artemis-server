@@ -23,43 +23,22 @@
  */
 package nz.co.fortytwo.signalk.artemis.intercept;
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.label;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.resources;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.source;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sourceRef;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sources;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.timestamp;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.type;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
-
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ICoreMessage;
 import org.apache.activemq.artemis.api.core.Interceptor;
-import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.core.protocol.core.Packet;
 import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendMessage;
-import org.apache.activemq.artemis.core.server.ServerSession;
 import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import io.netty.buffer.ByteBuf;
 import mjson.Json;
-import nz.co.fortytwo.signalk.artemis.server.ArtemisServer;
-import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
-import nz.co.fortytwo.signalk.artemis.service.SecurityService;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
-import nz.co.fortytwo.signalk.artemis.util.JsonSerializer;
-import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 
 
 /**

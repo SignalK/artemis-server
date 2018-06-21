@@ -24,10 +24,10 @@
  */
 package nz.co.fortytwo.signalk.artemis.server;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.RejectedExecutionException;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ActiveMQIllegalStateException;
@@ -39,7 +39,6 @@ import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.activemq.artemis.api.core.client.MessageHandler;
-import org.apache.activemq.artemis.core.client.impl.ClientMessageImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -176,16 +175,16 @@ public class ArtemisTcpNettyHandler extends SimpleChannelInboundHandler<String> 
 
 		ex.putStringProperty(Config.AMQ_SESSION_ID, contextList.inverse().get(ctx));
 		ex.putStringProperty(Config.AMQ_CORR_ID, contextList.inverse().get(ctx));
-		String remoteAddress = ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress().getHostAddress();
+		 InetAddress remoteAddress = ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress();
 		// remoteAddress=remoteAddress.replace("/","");
-		ex.putStringProperty(Config.MSG_SRC_IP, remoteAddress);
-		ex.putStringProperty(Config.MSG_SRC_BUS, "tcp." + remoteAddress.replace('.', '_'));
+		ex.putStringProperty(Config.MSG_SRC_IP, remoteAddress.getHostAddress());
+		ex.putStringProperty(Config.MSG_SRC_BUS, "tcp." + remoteAddress.getHostAddress().replace('.', '_'));
 		ex.putStringProperty(ConfigConstants.OUTPUT_TYPE, outputType);
 		String localAddress = ((InetSocketAddress) ctx.channel().localAddress()).getAddress().getHostAddress();
 		// localAddress=localAddress.replace("/","");
 		if (logger.isDebugEnabled())
 			logger.debug("IP: local:" + localAddress + ", remote:" + remoteAddress);
-		if (Util.sameNetwork(localAddress, remoteAddress)) {
+		if (remoteAddress.isLoopbackAddress()|| remoteAddress.isAnyLocalAddress())  {
 			ex.putStringProperty(Config.MSG_SRC_TYPE, Config.INTERNAL_IP);
 		} else {
 			ex.putStringProperty(Config.MSG_SRC_TYPE, Config.EXTERNAL_IP);

@@ -1,33 +1,33 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONFIG;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.GET;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PATH;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PUT;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UNKNOWN;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.attr;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.label;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.source;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self_str;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sentence;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sourceRef;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sources;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.timestamp;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.type;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.values;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.version;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.io.IOException;
-import java.util.Map.Entry;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
-import org.apache.activemq.artemis.api.core.ActiveMQException;
-import org.apache.activemq.artemis.api.core.ActiveMQPropertyConversionException;
-import org.apache.activemq.artemis.api.core.client.ClientConsumer;
-import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,7 +35,6 @@ import org.apache.logging.log4j.Logger;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
-import nz.co.fortytwo.signalk.artemis.util.JsonSerializer;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class SignalkMapConvertor {

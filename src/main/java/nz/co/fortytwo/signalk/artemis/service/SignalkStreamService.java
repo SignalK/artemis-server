@@ -13,7 +13,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -72,7 +71,7 @@ public class SignalkStreamService extends BaseApiService {
 			
 			Json json = Json.read(body);
 			long period = getLongestPeriod(json);
-			//setConnectionWatcher(period);
+			setConnectionWatcher(period);
 			
 			sendMessage(body, correlationId);
 

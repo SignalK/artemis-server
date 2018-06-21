@@ -1,6 +1,21 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONFIG;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.aircraft;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.aton;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.meta;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.resources;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sar;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self_str;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sentence;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sourceRef;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sources;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.timestamp;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.values;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.version;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -27,7 +42,6 @@ import org.joda.time.format.ISODateTimeFormat;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
-import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class InfluxDbService implements TDBService {

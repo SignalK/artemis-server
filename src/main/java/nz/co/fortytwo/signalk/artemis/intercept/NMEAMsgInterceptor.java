@@ -73,7 +73,7 @@ public class NMEAMsgInterceptor extends BaseInterceptor implements Interceptor {
 	@SuppressWarnings("restriction")
 	private NashornScriptEngine engine;
 	private Invocable inv;
-	private boolean rmcClock = false;
+	//private boolean rmcClock = false;
 	
 	private static ScheduledExecutorService globalScheduledThreadPool = Executors.newScheduledThreadPool(20);
 

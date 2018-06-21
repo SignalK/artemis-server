@@ -12,7 +12,6 @@ import org.apache.logging.log4j.Logger;
 
 import nz.co.fortytwo.signalk.artemis.server.ArtemisServer;
 import nz.co.fortytwo.signalk.artemis.util.Config;
-import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 
 /**
  * A way to acquire the session in a message

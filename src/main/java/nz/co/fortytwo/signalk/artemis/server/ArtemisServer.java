@@ -16,12 +16,9 @@ package nz.co.fortytwo.signalk.artemis.server;
  * limitations under the License.
  */
 
-import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.OUTPUT_NMEA;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.OUTPUT_TCP;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.REST_PORT;
-import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.TCP_NMEA_PORT;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.TCP_PORT;
-import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.UDP_NMEA_PORT;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.UDP_PORT;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.UUID;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.VERSION;
@@ -53,7 +50,6 @@ import org.atmosphere.nettosphere.Nettosphere;
 
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Log4J2LoggerFactory;
-import nz.co.fortytwo.signalk.artemis.service.ChartService;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 

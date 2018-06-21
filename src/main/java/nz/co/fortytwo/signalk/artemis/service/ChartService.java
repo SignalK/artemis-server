@@ -44,7 +44,6 @@ import com.sun.jersey.multipart.FormDataMultiPart;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
-import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.artemis.util.ZipUtils;
 
