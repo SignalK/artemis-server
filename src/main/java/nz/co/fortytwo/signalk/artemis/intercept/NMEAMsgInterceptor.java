@@ -88,7 +88,7 @@ public class NMEAMsgInterceptor extends BaseInterceptor implements Interceptor {
 
 		NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
 		// console.error
-		engine = (NashornScriptEngine) factory.getScriptEngine(new String[] { "--language=es6" }, getClass().getClassLoader());
+		engine = (NashornScriptEngine) factory.getScriptEngine(new String[] { "--language=es6" });
 
 		// Injection of __NASHORN_POLYFILL_TIMER__ in ScriptContext
 		engine.getContext().setAttribute("__NASHORN_POLYFILL_TIMER__", globalScheduledThreadPool,
@@ -128,15 +128,6 @@ public class NMEAMsgInterceptor extends BaseInterceptor implements Interceptor {
 
 	private InputStream getIOStream(String path) {
 
-		try {
-			File f = new File(path);
-			if (f.exists()) {
-				logger.debug("Return file {}",f);
-				return new FileInputStream(f);
-			}
-		} catch (Exception e) {
-			logger.debug(e,e);
-		}
 		logger.debug("Return resource {}",path);
 		return getClass().getClassLoader().getResourceAsStream(path);
 
