@@ -1,20 +1,10 @@
+
 require('core-js')
-require('nashorn-polyfill/lib/timer-polyfill.js')
+
 var Buffer = require('buffer/').Buffer
-var global = this;
-
-var console = {};
-console.debug = print;
-console.warn = print;
-console.log = print;
-console.error = print;
-var process = {"argv":[]};
 var mappings = {}
-
 var getTagBlock = require('./lib-es5/getTagBlock');
-
 var transformSource = require('./lib-es5/transformSource');
-
 
 var loadHook = function(hook){
 	//findHooks
@@ -22,6 +12,7 @@ var loadHook = function(hook){
 	mappings[hook] = subhook
 	print('JS:Loading NMEA sentence:'+hook)
 }
+
 print("JS:Parser instantiated!")
 
 var parse = function(sentence){
@@ -76,8 +67,14 @@ var parse = function(sentence){
 	  	result= JSON.stringify(error)
 	    
 	  })
-
+  
+  
   global.nashornEventLoop.process();
 
   return result
+}
+
+module.exports = {
+		loadHook : loadHook,
+		parse : parse
 }

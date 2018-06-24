@@ -36,6 +36,9 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+import javax.script.Bindings;
+import javax.script.Compilable;
+import javax.script.CompiledScript;
 import javax.script.Invocable;
 import javax.script.ScriptContext;
 import javax.script.ScriptException;
@@ -79,6 +82,7 @@ public class NMEAMsgInterceptor extends BaseInterceptor implements Interceptor {
 	@SuppressWarnings("restriction")
 	private NashornScriptEngine engine;
 	private Invocable inv;
+	private Object parser;
 	// private boolean rmcClock = false;
 
 	private static ScheduledExecutorService globalScheduledThreadPool = Executors.newScheduledThreadPool(20);
@@ -96,27 +100,29 @@ public class NMEAMsgInterceptor extends BaseInterceptor implements Interceptor {
 				ScriptContext.ENGINE_SCOPE);
 		URL resource = getClass().getClassLoader().getResource("signalk-parser-nmea0183/index-es5.js");
 		logger.debug("Resource : {}", resource);
-		String resourceDir = getClass().getClassLoader().getResource("signalk-parser-nmea0183/index-es5.js").toString();
-		resourceDir=StringUtils.substringBefore(resourceDir,"index-es5.js" );
-
+		String resourceDir = getClass().getClassLoader().getResource("signalk-parser-nmea0183/parser.js").toString();
+		resourceDir = StringUtils.substringBefore(resourceDir, "index-es5.js");
+		resourceDir = StringUtils.substringAfter(resourceDir, "file:");
 		logger.debug("Javascript jsRoot: {}", resourceDir);
-		
-		Folder rootFolder = null; 
-		if(new File(resourceDir).exists()){
+
+		Folder rootFolder = null;
+		if (new File(resourceDir).exists()) {
 			rootFolder = FilesystemFolder.create(new File(resourceDir), "UTF-8");
-		}else{
+		} else {
 			rootFolder = ResourceFolder.create(getClass().getClassLoader(), resourceDir, Charsets.UTF_8.name());
 		}
 		Require.enable(engine, rootFolder);
 		logger.debug("Starting nashorn from: {}", rootFolder.getPath());
+		engine.eval(IOUtils.toString(getIOStream("signalk-parser-nmea0183/dist/nashorn-polyfill.js")));
 		
-		logger.debug("Load parser: {}", "parser.js");
-		engine.eval(IOUtils.toString(getIOStream("parser.js")));
+		logger.debug("Load parser: {}", "signalk-parser-nmea0183/dist/bundle.js");
+		engine.eval(IOUtils.toString(getIOStream("signalk-parser-nmea0183/dist/bundle.js")));
 
 		// create an Invocable object by casting the script engine object
 		inv = (Invocable) engine;
 		List<String> files = IOUtils.readLines(getIOStream("signalk-parser-nmea0183/hooks-es5"), Charsets.UTF_8);
-
+		parser = engine.get("parser");
+		logger.debug("Parser: {}",parser);
 		for (String f : files) {
 			if (!f.endsWith(".js"))
 				continue;
@@ -124,13 +130,13 @@ public class NMEAMsgInterceptor extends BaseInterceptor implements Interceptor {
 			if (f.startsWith("ALK"))
 				continue;
 			logger.debug(f);
-			inv.invokeFunction("loadHook", StringUtils.substringBefore(f, "."));
+			inv.invokeMethod(parser, "loadHook", StringUtils.substringBefore(f, "."));
 		}
 	}
 
 	private InputStream getIOStream(String path) {
 
-		logger.debug("Return resource {}",path);
+		logger.debug("Return resource {}", path);
 		return getClass().getClassLoader().getResourceAsStream(path);
 
 	}
@@ -160,10 +166,7 @@ public class NMEAMsgInterceptor extends BaseInterceptor implements Interceptor {
 					if (logger.isDebugEnabled())
 						logger.debug("Processing NMEA:[" + bodyStr + "]");
 
-					// invoke the method named "hello" on the object defined in
-					// the script
-					// with "Script Method!" as the argument
-					Object result = inv.invokeFunction("parse", bodyStr);
+					Object result = inv.invokeMethod(parser,"parse", bodyStr);
 
 					if (logger.isDebugEnabled())
 						logger.debug("Processed NMEA:[" + result + "]");
