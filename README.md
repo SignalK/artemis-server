@@ -1,11 +1,11 @@
 Artemis Server
 ==============
 
-This is the replacement for the signalk-java-server which began before signalk and has been forced into too many compromising refactorings over the years.
+This is the replacement for the signalk-java-server which began long before signalk, and has become too difficult to support.
 
-The artemis server uses a time-series database as the core storage for all data. This means all data is persistent, and it can recover the vessels entire signalk data at any point backwards through time. 
+The artemis server leverages Java8+ async, lambdas, streams, and other new features of Java, resulting in a simpler implementation, better suited to signalk.
 
-The intention is to provide a platform to implement a signalk history api that allows analysis over time, and against historic data.
+It also uses a time-series database as the core storage for all data. This means all data is persistent, and it can recover the vessels entire signalk data at any point backwards through time. The intention is to provide a platform to implement a signalk history api that allows analysis over time, and against historic data.
 
 Its a drop in replacement for the signalk-java-server, missing functionality is a bug.
 
@@ -19,10 +19,32 @@ The artemis server is normally installed as the server part of signalk-java (htt
 The default signalk-java installs the old java server, to get this new version ssh onto the host:
 
 ```
-	cd signalk-java
-	git pull
-	git checkout artemis
-	mvn exec:java
+	$ sudo apt-get update
+	$ sudo apt-get upgrade
+	$ sudo apt install apt-transport-https
+	
+	$ curl -sL https://repos.influxdata.com/influxdb.key | sudo apt-key add -
+	$ lsb_release -a  
+		This gives us the OS version could be wheezy, jessie, 
+		
+	For jessie or Debian 8.0
+		$ echo "deb https://repos.influxdata.com/debian jessie stable" | sudo tee /etc/apt/sources.list.d/influxdb.list
+
+	For wheezy or Debian 7.0
+		$ echo "deb https://repos.influxdata.com/debian wheezy stable" | sudo tee /etc/apt/sources.list.d/influxdb.list
+		
+	Then
+	
+	$ sudo apt update
+	$ sudo apt-get install influxdb
+	
+	You can start it immediately so we can continue setting up the server
+	$ sudo service influxdb start
+	
+	$ cd signalk-java
+	$ git pull
+	$ git checkout artemis
+	$ mvn exec:java
 	
 ```
 
