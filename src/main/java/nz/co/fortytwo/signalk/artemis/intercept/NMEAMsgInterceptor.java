@@ -122,7 +122,10 @@ public class NMEAMsgInterceptor extends BaseInterceptor implements Interceptor {
 		
 		// create an Invocable object by casting the script engine object
 		inv = (Invocable) engine;
-		List<String> files = IOUtils.readLines(getIOStream("signalk-parser-nmea0183/hooks-es5"), Charsets.UTF_8);
+		String hooks = IOUtils.toString(getIOStream("signalk-parser-nmea0183/hooks-es5"), Charsets.UTF_8);
+		logger.debug("Hooks: {}",hooks);
+		
+		String[] files = hooks.split("\n");
 		
 		for (String f : files) {
 			if (!f.endsWith(".js"))
