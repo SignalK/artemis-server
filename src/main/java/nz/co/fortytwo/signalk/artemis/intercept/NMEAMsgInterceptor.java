@@ -117,12 +117,13 @@ public class NMEAMsgInterceptor extends BaseInterceptor implements Interceptor {
 		
 		logger.debug("Load parser: {}", "signalk-parser-nmea0183/dist/bundle.js");
 		engine.eval(IOUtils.toString(getIOStream("signalk-parser-nmea0183/dist/bundle.js")));
-
+		parser = engine.get("parser");
+		logger.debug("Parser: {}",parser);
+		
 		// create an Invocable object by casting the script engine object
 		inv = (Invocable) engine;
 		List<String> files = IOUtils.readLines(getIOStream("signalk-parser-nmea0183/hooks-es5"), Charsets.UTF_8);
-		parser = engine.get("parser");
-		logger.debug("Parser: {}",parser);
+		
 		for (String f : files) {
 			if (!f.endsWith(".js"))
 				continue;
@@ -137,7 +138,7 @@ public class NMEAMsgInterceptor extends BaseInterceptor implements Interceptor {
 	private InputStream getIOStream(String path) {
 
 		logger.debug("Return resource {}", path);
-		return getClass().getClassLoader().getResourceAsStream(path);
+		return Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
 
 	}
 
