@@ -11,6 +11,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
@@ -58,7 +59,7 @@ public class StaticService {
 				target = Paths.get(target.toString(),"/index.html");
 			}
 			return Response.status(HttpStatus.SC_OK)
-						.entity(Files.newInputStream(target))
+						.entity(target.toFile())
 						.type(Files.probeContentType(target))
 						.build();
 			
