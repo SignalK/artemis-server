@@ -2,8 +2,6 @@ package nz.co.fortytwo.signalk.artemis.server;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
@@ -19,15 +17,6 @@ import com.github.fge.jsonschema.core.report.LogLevel;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
-
-import io.apptik.json.JsonElement;
-import io.apptik.json.JsonObject;
-import io.apptik.json.JsonReader;
-import io.apptik.json.exception.JsonException;
-import io.apptik.json.generator.JsonGenerator;
-import io.apptik.json.generator.JsonGeneratorConfig;
-import io.apptik.json.schema.Schema;
-import io.apptik.json.schema.SchemaV4;
 
 @Ignore
 public class SignalkSchemaTest {
@@ -93,24 +82,25 @@ public class SignalkSchemaTest {
 		}
 	}
 	
-	@Test
-	public void shouldCreateSignalkJson() throws JsonException, IOException, URISyntaxException{
+//	@Test
+//	public void shouldCreateSignalkJson() throws JsonException, IOException, URISyntaxException{
 		
-		JsonReader reader = new JsonReader(new InputStreamReader(
-				new URL("https://signalk.org/specification/1.0.0/schemas/groups/navigation.json").openStream()));
-		reader.setLenient(true);
-		
-		 Schema schema = new SchemaV4();
-		 schema.setOrigSrc(new URI("https://signalk.org/specification/1.0.0/schemas/groups/"));
-		 
-		 schema.wrap((JsonObject) JsonElement.readFrom(reader));
-		 JsonGeneratorConfig cfg= new JsonGeneratorConfig();
-		 cfg.globalArrayItemsMax=5;
-		 cfg.globalArrayItemsMin=2;
-		
-		 //cfg.globalObjectPropertiesMin=1;
-		 //cfg.globalUriPaths.add("file:///home/robert/gitrep/specification/schemas/definitions.json");
-		 logger.debug(new JsonGenerator(schema, cfg).generate());
-	}
+//		JsonReader reader = new JsonReader(new InputStreamReader(
+//				new URL("https://signalk.org/specification/1.0.0/schemas/groups/navigation.json").openStream()));
+//		reader.setLenient(true);
+//		
+//		 Schema schema = new SchemaV4();
+//		 schema.setOrigSrc(new URI("https://signalk.org/specification/1.0.0/schemas/groups/"));
+//		 
+//		 schema.wrap((JsonObject) JsonElement.readFrom(reader));
+//		 JsonGeneratorConfig cfg= new JsonGeneratorConfig();
+//		 cfg.globalArrayItemsMax=5;
+//		 cfg.globalArrayItemsMin=2;
+//		
+//		 //cfg.globalObjectPropertiesMin=1;
+//		 //cfg.globalUriPaths.add("file:///home/robert/gitrep/specification/schemas/definitions.json");
+//		 logger.debug(new JsonGenerator(schema, cfg).generate());
+//
+//}
 
 }
