@@ -65,6 +65,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-web</artifactId>
+			<version>${log4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-1.2-api</artifactId>
 			<version>${log4j.version}</version>
 		</dependency>
@@ -310,7 +315,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
-                <version>1.5.0</version>
+				<version>1.5.0</version>
 				<configuration>
 					<mainClass>nz.co.fortytwo.signalk.artemis.server.ArtemisServer</mainClass>
 					<includePluginDependencies>false</includePluginDependencies>
