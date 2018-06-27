@@ -83,12 +83,13 @@ public class SignalkApiService extends BaseApiService {
 	@Produces(MediaType.APPLICATION_JSON)
 	@GET
 	@Path( "{file:[^?]*}")
-	public void get(@Context HttpServletRequest req) throws Exception {
+	public String get(@Context HttpServletRequest req) throws Exception {
 		String path = req.getPathInfo();
 		get(path,req);
+		return "";
 	}
 	
-	public void get(String path, HttpServletRequest req) throws Exception {
+	public String get(String path, HttpServletRequest req) throws Exception {
 		String correlation = java.util.UUID.randomUUID().toString();
 		initSession(correlation);
 
@@ -114,7 +115,7 @@ public class SignalkApiService extends BaseApiService {
 		}
 		
 		sendMessage(Util.getJsonGetRequest(path).toString(),correlation);
-		
+		return "";
 	}
 
 	
