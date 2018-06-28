@@ -93,7 +93,7 @@ public class SignalkApiService extends BaseApiService {
 		String correlation = java.util.UUID.randomUUID().toString();
 		initSession(correlation);
 
-		resource.resumeOnBroadcast(true);
+		//resource.resumeOnBroadcast(true);
 		
 		path=StringUtils.defaultIfBlank(path,"*");
 		if (logger.isDebugEnabled())
