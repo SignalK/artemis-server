@@ -22,6 +22,7 @@ import org.apache.logging.log4j.Logger;
 import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.cpr.AtmosphereResourceEvent;
 import org.atmosphere.cpr.BroadcasterFactory;
+import org.atmosphere.jersey.util.JerseySimpleBroadcaster;
 import org.atmosphere.websocket.WebSocketEventListenerAdapter;
 import org.jgroups.util.UUID;
 
@@ -154,7 +155,11 @@ public class BaseApiService {
 		
 		if(getConsumer().getMessageHandler()==null){
 			logger.debug("Adding consumer messageHandler : {}",getTempQ());
-			resource.setBroadcaster(broadCasterFactory.get());
+			if(resumeAfter){
+				resource.setBroadcaster(broadCasterFactory.get(JerseySimpleBroadcaster.class, UUID.randomUUID().toString()));
+			}else{
+				resource.setBroadcaster(broadCasterFactory.get());
+			}
 			getConsumer().setMessageHandler(new MessageHandler() {
 
 				@Override

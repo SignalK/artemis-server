@@ -169,6 +169,7 @@ public class SignalkApiService extends BaseApiService {
 				logger.debug("onResume: {}",event);
 				super.onResume(event);
 				try {
+					broadCasterFactory.remove(resource.getBroadcaster().getID());
 					resource.close();
 				} catch (IOException e) {
 					logger.error(e,e);
