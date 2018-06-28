@@ -153,10 +153,10 @@ public class NMEAMsgInterceptor extends BaseInterceptor implements Interceptor {
 			// message.getStringProperty(Config.AMQ_SESSION_ID);
 			// ServerSession sess =
 			// ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
-			String bodyStr = Util.readBodyBufferToString(message);
+			String bodyStr = Util.readBodyBufferToString(message).trim();
 			if (logger.isDebugEnabled())
 				logger.debug("NMEA Message: " + bodyStr);
-
+			
 			if (StringUtils.isNotBlank(bodyStr) && bodyStr.startsWith("$")) {
 				try {
 					if (logger.isDebugEnabled())
