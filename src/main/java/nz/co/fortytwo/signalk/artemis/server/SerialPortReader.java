@@ -205,12 +205,14 @@ public class SerialPortReader {
 						logger.info("Reading : {}", new String(newData));
 					if (newData == null)
 						return;
-					lineBuf.append(newData);
-					int x = lineBuf.indexOf("\n");
+					lineBuf.append(new String(newData));
+					int x = lineBuf.indexOf("\r");
+					if (logger.isDebugEnabled())
+						logger.info(lineBuf.toString());
 					while(x>0){
 						sendMsg(lineBuf.substring(0,x+1));
 						lineBuf.delete(0,x+1);
-						x = lineBuf.indexOf("\n");
+						x = lineBuf.indexOf("\r");
 					}
 					//limit overall length to 256K
 					if(lineBuf.length()>1024*256){
