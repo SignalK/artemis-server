@@ -1,6 +1,8 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import javax.ws.rs.core.Context;
 
@@ -148,7 +150,7 @@ public class BaseApiService {
 		});
 		
 	}
-	public void setConsumer(AtmosphereResource resource) throws ActiveMQException {
+	public void setConsumer(AtmosphereResource resource, boolean resumeAfter) throws ActiveMQException {
 		
 		if(getConsumer().getMessageHandler()==null){
 			logger.debug("Adding consumer messageHandler : {}",getTempQ());
@@ -162,11 +164,15 @@ public class BaseApiService {
 						String recv = Util.readBodyBufferToString(message);
 						message.acknowledge();
 						logger.debug("onMessage for {}, {}",getTempQ(),recv);
-						
-						resource.getBroadcaster().broadcast(recv == null ? "{}" : recv, resource);
+						if(resumeAfter){
+							resource.getBroadcaster().broadcast(recv == null ? "{}" : recv, resource).get();
+							resource.resume();
+						}else{
+							resource.getBroadcaster().broadcast(recv == null ? "{}" : recv, resource);
+						}
 						logger.debug("Sent to resource: {}",resource);
-
-					} catch (ActiveMQException e) {
+						
+					} catch (ActiveMQException | InterruptedException | ExecutionException e) {
 						logger.error(e,e);
 					} 
 				}

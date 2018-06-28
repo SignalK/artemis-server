@@ -66,7 +66,7 @@ public class SignalkStreamService extends BaseApiService {
 			//if(StringUtils.isBlank(body)) return "";
 			
 			initSession(correlationId);
-			setConsumer(resource);
+			setConsumer(resource, false);
 			addCloseListener(resource);
 			
 			Json json = Json.read(body);

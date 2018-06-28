@@ -42,7 +42,7 @@ public class SignalkApiService extends BaseApiService {
 	protected void initSession(String tempQ) throws Exception {
 		try{
 			super.initSession(tempQ);
-			super.setConsumer(resource);
+			super.setConsumer(resource, true);
 			addCloseListener(resource);
 		}catch(Exception e){
 			logger.error(e,e);
@@ -163,6 +163,7 @@ public class SignalkApiService extends BaseApiService {
 	
 	protected void addCloseListener(AtmosphereResource resource) {
 		resource.addEventListener( new WebSocketEventListenerAdapter() {
+			
 			@Override
 			public void onResume(AtmosphereResourceEvent event) {
 				logger.debug("onResume: {}",event);
