@@ -5,9 +5,6 @@
 /target/
 /logs/
 /activemq.log
-/signalk-static/freeboard-sk
-/signalk-static/instrumentpanel
-/signalk-static/sailgauge
-/signalk-static/mapcache
-/signalk-static/logs
+/signalk-static
 /.settings/
+

@@ -18,6 +18,7 @@ TODO:
 	source to srcRef - full format
 	srcRef back to source
 	
+	chartservice does scale, but charts dont have it. Work out a better way?
 	
 	n2k (as signalk)
 	security
