@@ -213,18 +213,18 @@ public class SignalkMapConvertor {
 		logger.debug("Map to full: {}",map);
 		root.set(self_str,Json.make(Config.getConfigProperty(ConfigConstants.UUID)));
 		root.set(version,Json.make(Config.getConfigProperty(ConfigConstants.VERSION)));
-		map.entrySet().forEach((entry)->{
-			if(entry.getKey().endsWith(attr))return;
+		for(Entry<String, Json> entry:map.entrySet()){
+			if(entry.getKey().endsWith(attr))continue;
 			
 			Json val = entry.getValue();;
 			String path = StringUtils.substringBefore(entry.getKey(),dot+values+dot);
 			logger.debug("Add key: {}, value: {}",entry.getKey(),val.toString());
 			if(val.isObject() && val.has(sentence)){
 				Util.setJson(root,path+dot+sentence, val.at(sentence).dup());
-				return;
+				continue;
 			}
 			Util.setJson(root,path, val.dup());
-		});
+		}
 		return root;
 	}
 

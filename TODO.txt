@@ -14,6 +14,7 @@ Done:
 	UI
 	log conf
 TODO:
+	large files fail.
 	more efficient subscriptions
 	source to srcRef - full format
 	srcRef back to source
