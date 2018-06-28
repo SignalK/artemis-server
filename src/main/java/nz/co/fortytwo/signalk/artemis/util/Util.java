@@ -73,7 +73,10 @@ public class Util {
 			inVmLocator = ActiveMQClient
 					.createServerLocatorWithoutHA(new TransportConfiguration(InVMConnectorFactory.class.getName()))
 					.setMinLargeMessageSize(1024 * 1024)
-					.setConnectionTTL(60000);
+					.setConnectionTTL(60000)
+					.setBlockOnAcknowledge(false)
+					.setBlockOnDurableSend(false)
+					.setBlockOnNonDurableSend(false);
 			// .createSessionFactory();
 			Map<String, Object> connectionParams = new HashMap<String, Object>();
 			connectionParams.put(TransportConstants.HOST_PROP_NAME, "localhost");
@@ -82,7 +85,11 @@ public class Util {
 			nettyLocator = ActiveMQClient
 					.createServerLocatorWithoutHA(
 							new TransportConfiguration(NettyConnectorFactory.class.getName(), connectionParams))
-					.setMinLargeMessageSize(1024 * 1024);
+					.setMinLargeMessageSize(1024 * 1024)
+					.setConnectionTTL(60000)
+					.setBlockOnAcknowledge(false)
+					.setBlockOnDurableSend(false)
+					.setBlockOnNonDurableSend(false);
 			// .createSessionFactory();
 		} catch (Exception e) {
 			e.printStackTrace();
