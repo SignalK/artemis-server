@@ -28,20 +28,13 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self_str;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-import javax.script.Bindings;
-import javax.script.Compilable;
-import javax.script.CompiledScript;
 import javax.script.Invocable;
 import javax.script.ScriptContext;
-import javax.script.ScriptException;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ActiveMQExceptionType;
@@ -75,11 +68,12 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
  * @author robert
  * 
  */
+@SuppressWarnings("restriction")
 public class NMEAMsgInterceptor extends BaseInterceptor implements Interceptor {
 
 	private static Logger logger = LogManager.getLogger(NMEAMsgInterceptor.class);
 	// private File jsRoot;
-	@SuppressWarnings("restriction")
+	
 	private NashornScriptEngine engine;
 	private Invocable inv;
 	private Object parser;
@@ -87,7 +81,7 @@ public class NMEAMsgInterceptor extends BaseInterceptor implements Interceptor {
 
 	private static ScheduledExecutorService globalScheduledThreadPool = Executors.newScheduledThreadPool(20);
 
-	@SuppressWarnings("restriction")
+	
 	public NMEAMsgInterceptor() throws Exception {
 		super();
 

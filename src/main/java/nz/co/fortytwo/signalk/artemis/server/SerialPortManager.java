@@ -37,7 +37,7 @@ import org.apache.logging.log4j.Logger;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
-import purejavacomm.PortInUseException;
+
 
 /**
  * A manager to monitor the USB tty ports. It dynamically adds/removes
@@ -68,6 +68,7 @@ public class SerialPortManager implements Runnable {
 					if (!reader.isRunning()) {
 						if(logger.isDebugEnabled())logger.debug("Comm port " + reader.getPortName() + " finished and marked for removal");
 						tmpPortList.add(reader);
+						reader.setRunning(false);
 					}
 					if(logger.isDebugEnabled())logger.debug("Comm port " + reader.getPortName() + " currently running");
 				}
@@ -125,10 +126,10 @@ public class SerialPortManager implements Runnable {
 						serialPortList.add(serial);
 					} catch (NullPointerException np) {
 						logger.error("Comm port " + portStr + " was null, probably not found, or nothing connected");
-					} catch (purejavacomm.NoSuchPortException nsp) {
-						logger.error("Comm port " + portStr + " not found, or nothing connected");
-					}catch(PortInUseException p){
-						logger.error("Comm port " + portStr + " Port in use exception");
+//					} catch (NoSuchPortException nsp) {
+//						logger.error("Comm port " + portStr + " not found, or nothing connected");
+//					}catch(PortInUseException p){
+//						logger.error("Comm port " + portStr + " Port in use exception");
 					} catch (Exception e) {
 						logger.error("Port " + portStr + " failed", e);
 					}

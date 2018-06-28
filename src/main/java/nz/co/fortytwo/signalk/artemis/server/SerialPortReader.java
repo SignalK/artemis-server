@@ -23,13 +23,8 @@
  */
 package nz.co.fortytwo.signalk.artemis.server;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
@@ -43,31 +38,35 @@ import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.fazecast.jSerialComm.SerialPort;
+import com.fazecast.jSerialComm.SerialPortEvent;
+import com.fazecast.jSerialComm.SerialPortPacketListener;
+
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
-import purejavacomm.CommPortIdentifier;
-import purejavacomm.SerialPort;
-import purejavacomm.SerialPortEvent;
-import purejavacomm.SerialPortEventListener;
+//import purejavacomm.CommPortIdentifier;
+//import purejavacomm.SerialPort;
+//import purejavacomm.SerialPortEvent;
+//import purejavacomm.SerialPortEventListener;
 
 /**
- * Wrapper to read serial port via rxtx, then fire messages into the artemis queue
+ * Wrapper to read serial port via rxtx, then fire messages into the artemis
+ * queue
  * 
  * @author robert
  * 
  */
 public class SerialPortReader {
 
-	
 	private static Logger logger = LogManager.getLogger(SerialPortReader.class);
 	private String portName;
 	private File portFile;
 	private ClientProducer producer;
 	private ClientConsumer consumer;
 	private boolean running = true;
-	private boolean mapped = false;
+	//private boolean mapped = false;
 	private String deviceType = null;
 	private SerialPort serialPort = null;
 
@@ -80,9 +79,9 @@ public class SerialPortReader {
 		queue = new LinkedBlockingQueue<String>(100);
 		session = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
 				Config.getConfigProperty(Config.ADMIN_PWD));
-		producer=session.createProducer();
-		
-		consumer=session.createConsumer(Config.INCOMING_RAW);
+		producer = session.createProducer();
+
+		consumer = session.createConsumer(Config.INCOMING_RAW);
 	}
 
 	/**
@@ -99,185 +98,174 @@ public class SerialPortReader {
 		if (!SystemUtils.IS_OS_WINDOWS) {
 			this.portFile = new File(portName);
 		}
-		CommPortIdentifier portid = CommPortIdentifier.getPortIdentifier(portName);
-		
-		serialPort = (SerialPort) portid.open("FreeboardSerialReader", 100);
-		
-		serialPort.setSerialPortParams(baudRate, 8, 1, 0);
+		// CommPortIdentifier portid = SerialPort.getCommPort(portName);
+		SerialPort[] ports = SerialPort.getCommPorts();
+		for (SerialPort p : ports) {
+			logger.debug("Found: {}", p.getSystemPortName());
+			logger.debug("     : {}", p.getPortDescription());
+		}
+		serialPort = SerialPort.getCommPort(portName);
+		logger.debug("Opening {}", serialPort.getPortDescription());
+		serialPort.setBaudRate(baudRate);
+		serialPort.setNumDataBits(8);
+		serialPort.setNumStopBits(1);
+		serialPort.setParity(SerialPort.NO_PARITY);
+		serialPort.setFlowControl(SerialPort.FLOW_CONTROL_DISABLED);
+		// serialPort.setSerialPortParams(baudRate, 8, 1, 0);
 		serialReader = new SerialReader();
-		serialPort.enableReceiveTimeout(1000);
-		serialPort.notifyOnDataAvailable(true);
-		serialPort.addEventListener(serialReader);
+		// serialPort.enableReceiveTimeout(1000);
+		// serialPort.notifyOnDataAvailable(true);
+		serialPort.addDataListener(serialReader);
+		serialPort.openPort();
+		logger.debug("Is open : {}", serialPort.isOpen());
 		// (new Thread(new SerialReader())).start();
-		(new Thread(new SerialWriter())).start();
+		// (new Thread(new SerialWriter())).start();
 
 	}
 
-	public class SerialWriter implements Runnable {
-
-		BufferedOutputStream out;
-
-		public SerialWriter() throws Exception {
-
-			this.out = new BufferedOutputStream(serialPort.getOutputStream());
-
-		}
-
-		public void run() {
-
-			try {
-				while (running) {
-					String msg = queue.poll(5, TimeUnit.SECONDS);
-					if (StringUtils.isNotBlank(msg)) {
-						out.write((msg + "\r\n").getBytes());
-						out.flush();
-					}
-				}
-			} catch (IOException e) {
-
-				logger.error(portName + ":" + e.getMessage());
-				logger.debug(e.getMessage(), e);
-			} catch (InterruptedException e) {
-				// do nothing
-			} finally {
-				// clean up
-				running = false;
-				try {
-					out.close();
-				} catch (Exception e1) {
-					logger.error(portName + ":" + e1.getMessage());
-					// logger.debug(e1.getMessage(),e1);
-				}
-				try {
-					session.close();
-				} catch (ActiveMQException e) {
-					logger.error(portName + ":" + e.getMessage());
-					//logger.error(e.getMessage(),e);
-				}
-				
-			}
-		}
-
-	}
+	// public class SerialWriter implements Runnable {
+	//
+	// BufferedOutputStream out;
+	//
+	// public SerialWriter() throws Exception {
+	//
+	// this.out = new BufferedOutputStream(serialPort.getOutputStream());
+	//
+	// }
+	//
+	// public void run() {
+	//
+	// try {
+	// while (running) {
+	// String msg = queue.poll(5, TimeUnit.SECONDS);
+	// if (StringUtils.isNotBlank(msg)) {
+	// out.write((msg + "\r\n").getBytes());
+	// out.flush();
+	// }
+	// }
+	// } catch (IOException e) {
+	//
+	// logger.error(portName + ":" + e.getMessage());
+	// logger.debug(e.getMessage(), e);
+	// } catch (InterruptedException e) {
+	// // do nothing
+	// } finally {
+	// // clean up
+	// running = false;
+	// try {
+	// out.close();
+	// } catch (Exception e1) {
+	// logger.error(portName + ":" + e1.getMessage());
+	// // logger.debug(e1.getMessage(),e1);
+	// }
+	// try {
+	// session.close();
+	// } catch (ActiveMQException e) {
+	// logger.error(portName + ":" + e.getMessage());
+	// //logger.error(e.getMessage(),e);
+	// }
+	//
+	// }
+	// }
+	//
+	// }
 
 	/** */
-	public class SerialReader implements SerialPortEventListener {
+	public class SerialReader implements SerialPortPacketListener {
 
-		// BufferedReader in;
-
-		private Pattern uid;
-		// List<String> lines = new ArrayList<String>();
-		String line = null;
-		StringBuffer lineBuf = new StringBuffer();
+		StringBuilder lineBuf = new StringBuilder();
 		private boolean enableSerial = true;
-		private boolean complete;
-		protected InputStream in;
-		byte[] buff = new byte[256];
-		int x = 0;
 		
+
 		public SerialReader() throws Exception {
 
-		
-			this.in = new BufferedInputStream(serialPort.getInputStream());
-		
-			uid = Pattern.compile(ConfigConstants.UID + ":");
 			if (logger.isDebugEnabled())
 				logger.info("Setup serialReader on :" + portName);
 			enableSerial = Config.getConfigPropertyBoolean(ConfigConstants.ENABLE_SERIAL);
 		}
 
-		// @Override
+		@Override
+		public int getListeningEvents() {
+			return SerialPort.LISTENING_EVENT_DATA_RECEIVED;
+		}
+
+		@Override
+		public int getPacketSize() {
+			return 20;
+		}
+
+		@Override
 		public void serialEvent(SerialPortEvent event) {
-			// if(logger.isTraceEnabled())logger.trace("SerialEvent:"+event.getEventType());
+
 			try {
-				if (running && event.getEventType() == SerialPortEvent.DATA_AVAILABLE) {
+				if (running && event.getEventType() == SerialPort.LISTENING_EVENT_DATA_RECEIVED) {
 
-					int r = 0;
-
-					while ((r > -1) && in.available() > 0) {
-						if (!running)
-							break;
-						try {
-							r = in.read();
-							buff[x] = (byte) r;
-							x++;
-
-							// 10=LF, 13=CR, lines should end in CR/LF
-							if (r == 10 || x == 256) {
-								if (r == 10) {
-									complete = true;
-								}
-								lineBuf.append(new String(buff));
-								buff = new byte[256];
-								x = 0;
-							}
-
-						} catch (IOException e) {
-							logger.error(portName + ":" + e.getMessage());
-							logger.debug(e.getMessage(), e);
-							return;
-						}
-						// we have a line ending in CR/LF
-						if (complete && StringUtils.isNotBlank(lineBuf)) {
-							line = lineBuf.toString().trim();
-							if (logger.isDebugEnabled())
-								logger.debug(portName + ":Serial Received:" + line);
-							// its not empty!
-							if (line.length() > 0) {
-								// map it if we havent already
-								if (!mapped && uid.matcher(line).matches()) {
-									// add to map
-									logger.debug(portName + ":Serial Received:" + line);
-									String type = StringUtils.substringBetween(line.toString(),
-											ConfigConstants.UID + ":", ",");
-									if (type != null) {
-										logger.debug(portName + ":  device name:" + type);
-										deviceType = type.trim();
-										mapped = true;
-									}
-								}
-								if (enableSerial) {
-									ClientMessage txMsg = session.createMessage(true);
-									txMsg.getBodyBuffer().writeString(line);
-									txMsg.putStringProperty(SignalKConstants.MSG_SRC_BUS, portName);
-									txMsg.putStringProperty(Config.MSG_SRC_TYPE, Config.SERIAL);
-									producer.send(new SimpleString(Config.INCOMING_RAW), txMsg);
-									if (logger.isDebugEnabled())
-										logger.debug("json = " + line);
-
-								} else {
-									if (logger.isDebugEnabled())
-										logger.debug("enableSerial false:" + line);
-								}
-							}
-							complete = false;
-							line = null;
-							lineBuf = new StringBuffer();
-						}
+					byte[] newData = event.getReceivedData();
+					if (logger.isDebugEnabled())
+						logger.info("Reading : {}", new String(newData));
+					if (newData == null)
+						return;
+					lineBuf.append(newData);
+					int x = lineBuf.indexOf("\n");
+					while(x>0){
+						sendMsg(lineBuf.substring(0,x+1));
+						lineBuf.delete(0,x+1);
+						x = lineBuf.indexOf("\n");
+					}
+					//limit overall length to 256K
+					if(lineBuf.length()>1024*256){
+						sendMsg(lineBuf.toString());
+						lineBuf=new StringBuilder();
 					}
 				}
+
 			} catch (Exception e) {
+				if (logger.isDebugEnabled())
+					logger.debug(e, e);
 				running = false;
 				stopReader();
-				logger.error(portName +":"+ e.getMessage());
-				if (logger.isDebugEnabled())logger.debug(e);
+				logger.error(portName + ":" + e.getMessage());
+
 			}
 
 		}
 
+		private void sendMsg(String buffer) throws ActiveMQException {
+			if (StringUtils.isNotBlank(buffer)) {
+				if (logger.isDebugEnabled())
+					logger.debug(portName + ":Serial Received:" + buffer);
+				// its not empty!
+				if (buffer.length() > 0) {
+					// send it
+					if (enableSerial && session != null && !session.isClosed()) {
+						ClientMessage txMsg = session.createMessage(true);
+						txMsg.getBodyBuffer().writeString(buffer);
+						txMsg.putStringProperty(SignalKConstants.MSG_SRC_BUS, portName);
+						txMsg.putStringProperty(Config.MSG_SRC_TYPE, Config.SERIAL);
+						producer.send(new SimpleString(Config.INCOMING_RAW), txMsg);
+						if (logger.isDebugEnabled())
+							logger.debug("json = " + buffer);
+
+					} else {
+						if (logger.isDebugEnabled())
+							logger.debug("enableSerial false:" + buffer);
+					}
+				}
+				
+			}
+			
+		}
+
 		protected void stopReader() {
 			try {
-			serialPort.removeEventListener();
+				serialPort.removeDataListener();
+				serialPort.closePort();
 			} catch (Exception e1) {
-				logger.error(portName +":"+ e1.getMessage());
-				if (logger.isDebugEnabled())logger.debug(e1);
+				logger.error(portName + ":" + e1.getMessage());
+				if (logger.isDebugEnabled())
+					logger.debug(e1);
 			}
-			try {
-				in.close();
-			} catch (IOException e1) {
-				logger.error(portName +":"+ e1.getMessage());
-				if (logger.isDebugEnabled())logger.debug(e1);
-			}
+
 			stopSession();
 		}
 
@@ -303,17 +291,9 @@ public class SerialPortReader {
 	 * @return
 	 */
 	public boolean isRunning() {
-		// no good on windoze
-		if (!SystemUtils.IS_OS_WINDOWS && !portFile.exists()) {
-
-			try {
-				serialPort.close();
-				serialReader.stopReader();
-			} catch (Exception e) {
-				logger.error("Problem disconnecting port " + portName + ", " + e.getMessage());
-				logger.debug(e.getMessage(), e);
-			}
-			running = false;
+		if(!portFile.exists())return false;
+		if (serialPort != null) {
+			return serialPort.isOpen();
 		}
 		return running;
 	}
@@ -328,7 +308,6 @@ public class SerialPortReader {
 		this.running = running;
 		if (!running) {
 			serialReader.stopReader();
-			serialPort.close();
 		}
 
 	}
@@ -348,6 +327,7 @@ public class SerialPortReader {
 	 */
 	public void process(String message) throws Exception {
 		// send to device
+		//TODO: rework sending to serial
 		logger.debug(portName + ":msg received for device:" + message);
 		if (StringUtils.isNotBlank(message)) {
 			// check its valid for this device
@@ -365,38 +345,34 @@ public class SerialPortReader {
 
 	@Override
 	protected void finalize() throws Throwable {
-		 stopSession();
+		stopSession();
 		super.finalize();
 	}
-	
-	private void stopSession(){
-		 if (session != null)
-		   {
-		      try {
+
+	private void stopSession() {
+		if (session != null) {
+			try {
 				session.close();
 			} catch (ActiveMQException e) {
-				logger.error(e,e);
+				logger.error(e, e);
 			}
-		   }
+		}
 
-		   if (consumer != null)
-		   {
-		      try {
+		if (consumer != null) {
+			try {
 				consumer.close();
 			} catch (ActiveMQException e) {
-				logger.error(e,e);
+				logger.error(e, e);
 			}
-		   }
+		}
 
-		   if(producer != null)
-		   {
-			   try {
+		if (producer != null) {
+			try {
 				producer.close();
 			} catch (ActiveMQException e) {
-				logger.error(e,e);
+				logger.error(e, e);
 			}
-		   }
+		}
 	}
-	
 
 }

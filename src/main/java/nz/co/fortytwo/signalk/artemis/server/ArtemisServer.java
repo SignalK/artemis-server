@@ -111,8 +111,9 @@ public final class ArtemisServer {
 			// start a serial port manager
 			if (serialPortManager == null) {
 				serialPortManager = new SerialPortManager();
+				new Thread(serialPortManager).start();
 			}
-			new Thread(serialPortManager).start();
+			
 		}
 		
 		addShutdownHook(this);
