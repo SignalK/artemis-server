@@ -1,6 +1,7 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.ExecutionException;
 
 import javax.ws.rs.core.Context;
@@ -17,6 +18,7 @@ import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.activemq.artemis.api.core.client.MessageHandler;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.atmosphere.cpr.AtmosphereResource;
@@ -165,16 +167,21 @@ public class BaseApiService {
 						logger.debug("onMessage {}",message);
 						String recv = Util.readBodyBufferToString(message);
 						message.acknowledge();
+						if(StringUtils.isBlank(recv)) recv="{}";
+						
 						logger.debug("onMessage for {}, {}",getTempQ(),recv);
-						if(resumeAfter){
-							resource.getBroadcaster().broadcast(recv == null ? "{}" : IOUtils.toInputStream(recv), resource).get();
-							resource.resume();
-						}else{
-							resource.getBroadcaster().broadcast(recv == null ? "{}" : IOUtils.toInputStream(recv), resource);
-						}
+						try( InputStream in = IOUtils.toInputStream(recv)){
+							if(resumeAfter){
+								resource.write(recv);
+								//resource.getBroadcaster().broadcast(in, resource).get();
+								resource.resume();
+							}else{
+								resource.getBroadcaster().broadcast(in, resource);
+							}
+						} 
 						logger.debug("Sent to resource: {}",resource);
 						
-					} catch (ActiveMQException | InterruptedException | ExecutionException e) {
+					} catch (ActiveMQException |  IOException e) {
 						logger.error(e,e);
 					} 
 				}
