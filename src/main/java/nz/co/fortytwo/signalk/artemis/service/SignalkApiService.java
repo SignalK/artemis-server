@@ -70,8 +70,9 @@ public class SignalkApiService extends BaseApiService {
 	@Suspend(contentType = MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@GET
-	public void getAll(@Context HttpServletRequest req) throws Exception {
+	public String getAll(@Context HttpServletRequest req) throws Exception {
 		get(null,req);
+		return "";
 	}
 	
 	/**
@@ -89,12 +90,10 @@ public class SignalkApiService extends BaseApiService {
 		return "";
 	}
 	
-	public String get(String path, HttpServletRequest req) throws Exception {
+	private void get(String path, HttpServletRequest req) throws Exception {
 		String correlation = java.util.UUID.randomUUID().toString();
 		initSession(correlation);
 
-		//resource.resumeOnBroadcast(true);
-		
 		path=StringUtils.defaultIfBlank(path,"*");
 		if (logger.isDebugEnabled())
 			logger.debug("get raw:" + path + " for " + req.getRemoteUser());
@@ -115,7 +114,7 @@ public class SignalkApiService extends BaseApiService {
 		}
 		
 		sendMessage(Util.getJsonGetRequest(path).toString(),correlation);
-		return "";
+		
 	}
 
 	

@@ -2,7 +2,6 @@ package nz.co.fortytwo.signalk.artemis.service;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import javax.ws.rs.core.Context;
 
@@ -17,12 +16,12 @@ import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.activemq.artemis.api.core.client.MessageHandler;
+import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.cpr.AtmosphereResourceEvent;
 import org.atmosphere.cpr.BroadcasterFactory;
-import org.atmosphere.jersey.util.JerseySimpleBroadcaster;
 import org.atmosphere.websocket.WebSocketEventListenerAdapter;
 import org.jgroups.util.UUID;
 
@@ -155,11 +154,9 @@ public class BaseApiService {
 		
 		if(getConsumer().getMessageHandler()==null){
 			logger.debug("Adding consumer messageHandler : {}",getTempQ());
-			if(resumeAfter){
-				resource.setBroadcaster(broadCasterFactory.get(JerseySimpleBroadcaster.class, UUID.randomUUID().toString()));
-			}else{
-				resource.setBroadcaster(broadCasterFactory.get());
-			}
+			
+			resource.setBroadcaster(broadCasterFactory.get());
+			
 			getConsumer().setMessageHandler(new MessageHandler() {
 
 				@Override
@@ -170,10 +167,10 @@ public class BaseApiService {
 						message.acknowledge();
 						logger.debug("onMessage for {}, {}",getTempQ(),recv);
 						if(resumeAfter){
-							resource.getBroadcaster().broadcast(recv == null ? "{}" : recv, resource).get();
+							resource.getBroadcaster().broadcast(recv == null ? "{}" : IOUtils.toInputStream(recv), resource).get();
 							resource.resume();
 						}else{
-							resource.getBroadcaster().broadcast(recv == null ? "{}" : recv, resource);
+							resource.getBroadcaster().broadcast(recv == null ? "{}" : IOUtils.toInputStream(recv), resource);
 						}
 						logger.debug("Sent to resource: {}",resource);
 						
