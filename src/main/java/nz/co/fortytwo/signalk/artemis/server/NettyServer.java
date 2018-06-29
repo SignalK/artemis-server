@@ -101,13 +101,13 @@ public class NettyServer {
 						pipeline.addLast(DECODER);
 						pipeline.addLast(ENCODER);
 						pipeline.addLast(forwardingHandler);
-						logger.info("Signal K "+outputType+" Connection over TCP from:" + socketChannel.remoteAddress());
+						logger.info("Signal K {} Connection over TCP from:{}",outputType,socketChannel.remoteAddress());
 						
 					}
 					
 				});
 		final ChannelFuture signalkTcpFuture = skBootstrap.bind().sync();
-		logger.info("Server listening on TCP " + signalkTcpFuture.channel().localAddress());
+		logger.info("Server listening on TCP {}", signalkTcpFuture.channel().localAddress());
 		signalkTcpFuture.channel().closeFuture();
 		
 		if(udpPort>0){
@@ -118,7 +118,7 @@ public class NettyServer {
 				.option(ChannelOption.SO_BROADCAST, true)
 				.handler(udpHandler);
 			udpChannel = udpBootstrap.bind(tcpPort-1).sync().channel();
-			logger.info("Server listening on UDP " + udpChannel.localAddress());
+			logger.info("Server listening on UDP {}", udpChannel.localAddress());
 		}
 	}
 

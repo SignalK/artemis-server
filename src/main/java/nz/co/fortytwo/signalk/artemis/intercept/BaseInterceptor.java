@@ -79,7 +79,7 @@ public class BaseInterceptor {
 		txMsg.setExpiration(System.currentTimeMillis()+5000);
 		txMsg.getBodyBuffer().writeString(json.toString());
 		if (logger.isDebugEnabled())
-			logger.debug("Msg body = " + json.toString());
+			logger.debug("Msg body = {}",json.toString());
 		synchronized (txSession) {
 			producer.send("outgoing.reply." +destination,txMsg);
 		}

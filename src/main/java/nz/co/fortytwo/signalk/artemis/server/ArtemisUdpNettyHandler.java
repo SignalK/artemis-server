@@ -97,12 +97,12 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 		// Send greeting for a new connection.
 		NioDatagramChannel udpChannel = (NioDatagramChannel) ctx.channel();
 		if (logger.isDebugEnabled())
-			logger.debug("channelActive:" + udpChannel.localAddress());
+			logger.debug("channelActive: {}", udpChannel.localAddress());
 		// TODO: associate the ip with a user?
 		// TODO: get user login
 
 		if (logger.isDebugEnabled())
-			logger.debug("channelActive, ready:" + ctx);
+			logger.debug("channelActive, ready: {}", ctx);
 
 	}
 
@@ -110,21 +110,21 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 	protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket packet) throws Exception {
 		String request = packet.content().toString(CharsetUtil.UTF_8);
 		if (logger.isDebugEnabled())
-			logger.debug("Sender " + packet.sender() + " sent request:" + request);
+			logger.debug("Sender {} sent request:{}" , packet.sender() , request);
 		String sessionId = packet.sender().getAddress().getHostAddress()+":"+packet.sender().getPort();//ctx.channel().id().asLongText();
 		NioDatagramChannel udpChannel = (NioDatagramChannel) ctx.channel();
 		String localAddress = udpChannel.localAddress().getAddress().getHostAddress();
 		InetAddress remoteAddress = packet.sender().getAddress(); 
 		if(rxSession==null || rxSession.isClosed()){
 			ctx.close().channel().close();
-			logger.debug("Closed channel for : {}", sessionId);
+			if (logger.isDebugEnabled())logger.debug("Closed channel for : {}", sessionId);
 			return;
 		}
 		if (!socketList.inverse().containsKey(packet.sender())) {
 			
 			socketList.put(sessionId, packet.sender());
 			if (logger.isDebugEnabled())
-				logger.debug("Added Sender " + packet.sender() + ", session:" + sessionId);
+				logger.debug("Added Sender {}, session:{} " , packet.sender(), sessionId);
 			ctx.channel()
 					.writeAndFlush(new DatagramPacket(
 							Unpooled.copiedBuffer(Util.getWelcomeMsg().toString() + "\r\n", CharsetUtil.UTF_8),
@@ -205,7 +205,7 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 		headers.put(Config.MSG_SRC_BUS, "udp." + remoteAddress.getHostAddress().replace('.', '_'));
 		//TODO: fix UDP ip network source
 		if (logger.isDebugEnabled())
-			logger.debug("IP: local:" + localIp + ", remote:" + remoteAddress.getHostAddress());
+			logger.debug("IP: local:{}, remote:{}", localIp, remoteAddress.getHostAddress());
 		if (remoteAddress.isLoopbackAddress()|| remoteAddress.isAnyLocalAddress()) {
 			headers.put(Config.MSG_SRC_TYPE, Config.INTERNAL_IP);
 		} else {
@@ -248,18 +248,18 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 
 		String msg = Util.readBodyBufferToString(message);
 		if (logger.isDebugEnabled())
-			logger.debug("UDP sending msg : " + msg);
+			logger.debug("UDP sending msg : {} ", msg);
 		if (msg != null) {
 			// get the session
 			String sessionId = message.getStringProperty(Config.AMQ_SUB_DESTINATION);
 			if (logger.isDebugEnabled())
-				logger.debug("UDP session id:" + sessionId);
+				logger.debug("UDP session id: {}", sessionId);
 			if (Config.SK_SEND_TO_ALL.equals(sessionId)) {
 				// udp
 				
 					for (InetSocketAddress client : socketList.values()) {
 						if (logger.isDebugEnabled())
-							logger.debug("Sending udp: " + msg);
+							logger.debug("Sending udp: {}", msg);
 						if(channelList.get(sessionId)==null || !channelList.get(sessionId).channel().isWritable()){
 							
 							//cant send, kill it
@@ -281,7 +281,7 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 						((NioDatagramChannel) channelList.get(sessionId).channel()).writeAndFlush(
 								new DatagramPacket(Unpooled.copiedBuffer(msg + "\r\n", CharsetUtil.UTF_8), client));
 						if (logger.isDebugEnabled())
-							logger.debug("Sent udp to " + client);
+							logger.debug("Sent udp to {}", client);
 					}
 				
 				
@@ -291,7 +291,7 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 		
 					final InetSocketAddress client = socketList.get(sessionId);
 					if (logger.isDebugEnabled())
-						logger.debug("Sending udp: " + msg);
+						logger.debug("Sending udp: {}", msg);
 					// udpCtx.pipeline().writeAndFlush(msg+"\r\n");
 					if(channelList.get(sessionId)==null || !channelList.get(sessionId).channel().isWritable()){
 					
@@ -314,7 +314,7 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 					((NioDatagramChannel) channelList.get(sessionId).channel()).writeAndFlush(
 							new DatagramPacket(Unpooled.copiedBuffer(msg + "\r\n", CharsetUtil.UTF_8), client));
 					if (logger.isDebugEnabled())
-						logger.debug("Sent udp for session: " + sessionId);
+						logger.debug("Sent udp for session: {}", sessionId);
 			
 				
 			}

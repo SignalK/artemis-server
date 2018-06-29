@@ -46,17 +46,17 @@ public class SessionInterceptor extends BaseInterceptor implements Interceptor {
 			for (ServerSession s : ArtemisServer.getActiveMQServer().getSessions(connection.getID().toString())) {
 				if (s.getConnectionID().equals(connection.getID())) {
 					if (logger.isDebugEnabled())
-						logger.debug("Session is:" + s.getConnectionID() + ", name:" + s.getName());
+						logger.debug("Session is: {}, name: {}",s.getConnectionID(),s.getName());
 					msg.putStringProperty(Config.AMQ_SESSION_ID, s.getName());
 				} else {
 					if (logger.isDebugEnabled())
-						logger.debug("Session not found for:" + s.getConnectionID() + ", name:" + s.getName());
+						logger.debug("Session not found for: {}, name: {}",s.getConnectionID() ,s.getName());
 				}
 			}
 
 		} else {
 			if (logger.isDebugEnabled())
-				logger.debug("Packet is:" + packet.getClass() + ", contents:" + packet.toString());
+				logger.debug("Packet is:{}, contents:{}",packet.getClass(), packet.toString());
 		}
 		// We return true which means "call next interceptor" (if there is one)
 		// or target.

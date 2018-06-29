@@ -84,14 +84,14 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 				return true;
 
 			if (logger.isTraceEnabled())
-				logger.trace("Processing: " + message);
+				logger.trace("Processing: {}", message);
 			Json node = Util.readBodyBuffer(message);
 
 			// deal with diff format
 			if (isSubscribe(node)) {
 				if (node.has(SUBSCRIBE)) {
 					if (logger.isDebugEnabled())
-						logger.debug("Processing SUBSCRIBE: " + message);
+						logger.debug("Processing SUBSCRIBE: {}", message);
 					String ctx = node.at(CONTEXT).asString();
 					ctx = Util.fixSelfKey(ctx);
 					ctx = StringUtils.removeEnd(ctx, ".");
@@ -106,13 +106,13 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 					}
 
 					if (logger.isDebugEnabled())
-						logger.debug("SubscribeMsg processed subscribe " + node);
+						logger.debug("SubscribeMsg processed subscribe {}", node);
 					return true;
 				}
 
 				if (node.has(UNSUBSCRIBE)) {
 					if (logger.isDebugEnabled())
-						logger.debug("Processing UNSUBSCRIBE: " + message);
+						logger.debug("Processing UNSUBSCRIBE: {}", message);
 					String ctx = node.at(CONTEXT).asString();
 					ctx = Util.fixSelfKey(ctx);
 					ctx = StringUtils.removeEnd(ctx, ".");
@@ -127,7 +127,7 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 					}
 
 					if (logger.isDebugEnabled())
-						logger.debug("SubscribeMsg processed unsubscribe " + node);
+						logger.debug("SubscribeMsg processed unsubscribe {}", node);
 					return true;
 				}
 			}

@@ -126,18 +126,18 @@ public class SubscriptionManagerService{
 	public void removeSubscription(Subscription sub) throws Exception {
 		if (subscriptions.contains(sub)) {
 			if (logger.isDebugEnabled())
-				logger.debug("Removing " + sub);
+				logger.debug("Removing {}", sub);
 			for (Subscription s : getSubscriptions(sub.getSessionId())) {
 				if (sub.equals(s)){
 					subscriptions.remove(s);
 					sub.setActive(false);
 					s.setActive(false);
-					logger.debug("Stopped route for " + s);
+					if (logger.isDebugEnabled())logger.debug("Stopped route for {}", s);
 				}
 			}
 			
 			if (logger.isDebugEnabled())
-				logger.debug("Subs size =" + subscriptions.size());
+				logger.debug("Subs size ={}", subscriptions.size());
 		}
 
 		// if we have no subs, then we should put a sub for empty updates as
@@ -172,14 +172,14 @@ public class SubscriptionManagerService{
 		for(Subscription sub:subs){
 			try {
 				sub.setActive(false);
-				logger.debug("Stopped route for " + sub);
+				if (logger.isDebugEnabled())logger.debug("Stopped route for {}", sub);
 			} catch (Exception e) {
 				logger.error(e,e);
 			}
 		}
 		subscriptions.removeAll(subs);
 		if (logger.isDebugEnabled())
-			logger.debug("Subs size =" + subscriptions.size());
+			logger.debug("Subs size ={}", subscriptions.size());
 
 	}
 
@@ -218,7 +218,7 @@ public class SubscriptionManagerService{
 			synchronized (txSession) {
 				getTxSession().createTemporaryQueue("outgoing.reply." + destination, RoutingType.ANYCAST, destination);
 			}
-			logger.debug("created temp queue: {}", destination);
+			if (logger.isDebugEnabled())logger.debug("created temp queue: {}", destination);
 		} catch (ActiveMQQueueExistsException e) {
 			logger.debug(e);
 		} catch (Exception e) {
@@ -249,7 +249,7 @@ public class SubscriptionManagerService{
 		for(Subscription sub:subscriptions){
 			try {
 				sub.setActive(false);
-				logger.debug("Stopped route for " + sub);
+				if (logger.isDebugEnabled())logger.debug("Stopped route for " + sub);
 			} catch (Exception e) {
 				logger.error(e,e);
 			}

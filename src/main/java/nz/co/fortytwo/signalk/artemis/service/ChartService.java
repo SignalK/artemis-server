@@ -132,7 +132,7 @@ public class ChartService  {
 				for (Entry<String, Json> e : map.entrySet()) {
 					if (e.getKey().endsWith(attr))
 						continue;
-					logger.trace("Checking chart: {} :{}", chart.getName(), e.getValue());
+					if (logger.isTraceEnabled())logger.trace("Checking chart: {} :{}", chart.getName(), e.getValue());
 					if (chart.getName().equals(e.getValue().at("identifier").asString())) {
 						logger.info("Existing chart: {}", chart.getName());
 						newChart = false;
@@ -159,7 +159,7 @@ public class ChartService  {
 		if (!zipFile.getName().endsWith(".zip"))
 			return;
 		// unzip here
-		logger.debug("Unzipping file:" + zipFile);
+		if (logger.isDebugEnabled())logger.debug("Unzipping file:" + zipFile);
 		try {
 			// File zipFile = destination.toFile();
 			String f = zipFile.getName();
@@ -169,7 +169,7 @@ public class ChartService  {
 				destDir.mkdirs();
 			}
 			ZipUtils.unzip(destDir, zipFile);
-			logger.debug("Unzipped file:" + destDir);
+			if (logger.isDebugEnabled())logger.debug("Unzipped file:" + destDir);
 			// now add a reference in resources
 			sendChartMessage(loadChart(f).toString());
 		} catch (Exception e) {
@@ -242,7 +242,7 @@ public class ChartService  {
 		msg.set(PUT, updates);
 
 		if (logger.isDebugEnabled())
-			logger.debug("Created new chart msg:" + msg);
+			logger.debug("Created new chart msg:{}", msg);
 		return msg;
 	}
 

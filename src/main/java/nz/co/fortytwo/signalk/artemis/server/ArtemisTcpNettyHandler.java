@@ -91,7 +91,7 @@ public class ArtemisTcpNettyHandler extends SimpleChannelInboundHandler<String> 
 
 	private synchronized void send(ClientMessage msg) throws ActiveMQException{
 		producer.send(Config.INCOMING_RAW, msg);
-		logger.debug("producer.send: {}", msg);
+		if(logger.isDebugEnabled())logger.debug("producer.send: {}", msg);
 	}
 	
 	@Override
@@ -157,7 +157,7 @@ public class ArtemisTcpNettyHandler extends SimpleChannelInboundHandler<String> 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, String request) throws Exception {
 		if (logger.isDebugEnabled())
-			logger.debug("Request:" + request);
+			logger.debug("Request: {}",request);
 
 		ClientMessage msg = null;
 		synchronized (rxSession) {
@@ -183,7 +183,7 @@ public class ArtemisTcpNettyHandler extends SimpleChannelInboundHandler<String> 
 		String localAddress = ((InetSocketAddress) ctx.channel().localAddress()).getAddress().getHostAddress();
 		// localAddress=localAddress.replace("/","");
 		if (logger.isDebugEnabled())
-			logger.debug("IP: local:" + localAddress + ", remote:" + remoteAddress);
+			logger.debug("IP: local:{}, remote:{}", localAddress , remoteAddress);
 		if (remoteAddress.isLoopbackAddress()|| remoteAddress.isAnyLocalAddress())  {
 			ex.putStringProperty(Config.MSG_SRC_TYPE, Config.INTERNAL_IP);
 		} else {
@@ -262,12 +262,12 @@ public class ArtemisTcpNettyHandler extends SimpleChannelInboundHandler<String> 
 
 		String msg = Util.readBodyBufferToString(message);
 		if (logger.isDebugEnabled())
-			logger.debug("TCP sending msg : " + msg);
+			logger.debug("TCP sending msg : {} ", msg);
 		if (msg != null) {
 			// get the session
 			String session = message.getStringProperty(Config.AMQ_SUB_DESTINATION);
 			if (logger.isDebugEnabled())
-				logger.debug("TCP session:" + session);
+				logger.debug("TCP session: {}", session);
 			if (Config.SK_SEND_TO_ALL.equals(session)) {
 				// tcp
 				for (String key : contextList.keySet()) {
@@ -279,7 +279,7 @@ public class ArtemisTcpNettyHandler extends SimpleChannelInboundHandler<String> 
 				// tcp
 				ChannelHandlerContext ctx = contextList.get(session);
 				if (logger.isDebugEnabled())
-					logger.debug("TCP send to :" + ctx);
+					logger.debug("TCP send to : {}", ctx);
 				if(ctx == null || !ctx.channel().isWritable()){
 					//cant send, kill it
 					try {

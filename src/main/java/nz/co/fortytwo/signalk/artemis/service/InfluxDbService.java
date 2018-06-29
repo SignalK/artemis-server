@@ -137,7 +137,7 @@ public class InfluxDbService implements TDBService {
 			if (r == null ||r.getSeries()==null)
 				return;
 			r.getSeries().forEach((s) -> {
-				logger.debug(s);
+				if (logger.isDebugEnabled())logger.debug(s);
 				if(s==null)return;
 				
 				Map<String, String> tagMap = s.getTags();
@@ -146,7 +146,7 @@ public class InfluxDbService implements TDBService {
 				Json val = getJsonValue(s,0);
 				if(key.contains(".values.")){
 					//handle values
-					logger.debug("values: {}",val);
+					if (logger.isDebugEnabled())logger.debug("values: {}",val);
 					String parentKey = StringUtils.substringBeforeLast(key,".values.");
 					String valKey = StringUtils.substringAfterLast(key,".values.");
 					String subkey = StringUtils.substringAfterLast(valKey,".value.");
@@ -155,7 +155,7 @@ public class InfluxDbService implements TDBService {
 					Json parent = getParent(map,parentKey,attr);
 						
 					//add attributes
-					logger.debug("Primary value: {}",tagMap.get("primary"));
+					if (logger.isDebugEnabled())logger.debug("Primary value: {}",tagMap.get("primary"));
 					boolean primary = Boolean.valueOf((String)tagMap.get("primary"));
 					if(primary){
 						extractPrimaryValue(parent,s,subkey,val, false);
@@ -178,14 +178,14 @@ public class InfluxDbService implements TDBService {
 					return;
 				}
 				if( (key.endsWith(".value")||key.contains(".value."))){
-					logger.debug("value: {}",val);
+					if (logger.isDebugEnabled())logger.debug("value: {}",val);
 					String subkey = StringUtils.substringAfterLast(key,".value.");
 				
 					key = StringUtils.substringBeforeLast(key,".value");
 					
 					//make parent Json
 					Json parent = getParent(map,key,attr);
-					logger.debug("Primary value: {}",tagMap.get("primary"));
+					if (logger.isDebugEnabled())logger.debug("Primary value: {}",tagMap.get("primary"));
 					boolean primary = Boolean.valueOf((String)tagMap.get("primary"));
 					if(primary){
 						extractPrimaryValue(parent,s,subkey,val, false);
@@ -216,7 +216,7 @@ public class InfluxDbService implements TDBService {
 			if (r.getSeries() == null ||r.getSeries()==null)
 				return;
 			r.getSeries().forEach((s) -> {
-				logger.debug(s);
+				if (logger.isDebugEnabled())logger.debug(s);
 				if(s==null)return;
 				
 				Map<String, String> tagMap = s.getTags();
@@ -234,18 +234,18 @@ public class InfluxDbService implements TDBService {
 
 	
 	public NavigableMap<String, Json> loadData(NavigableMap<String, Json> map, String queryStr){
-		logger.debug("queryStr: {}",queryStr);
+		if (logger.isDebugEnabled())logger.debug("queryStr: {}",queryStr);
 		Query query = new Query(queryStr, dbName);
 		QueryResult result = influxDB.query(query);
 		//NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
-		logger.debug(result);
+		if (logger.isDebugEnabled())logger.debug(result);
 		if(result==null || result.getResults()==null)return map;
 		result.getResults().forEach((r)-> {
-			logger.debug(r);
+			if (logger.isDebugEnabled())logger.debug(r);
 			if(r==null||r.getSeries()==null)return;
 			r.getSeries().forEach(
 				(s)->{
-					logger.debug(s);
+					if (logger.isDebugEnabled())logger.debug(s);
 					if(s==null)return;
 					
 					Map<String, String> tagMap = s.getTags();
@@ -258,7 +258,7 @@ public class InfluxDbService implements TDBService {
 					boolean processed = false;
 					//add timestamp and sourceRef
 					if(key.endsWith(".sentence")){
-						logger.debug("sentence: {}",val);
+						if (logger.isDebugEnabled())logger.debug("sentence: {}",val);
 						//make parent Json
 						String parentKey = StringUtils.substringBeforeLast(key,".");
 						
@@ -271,7 +271,7 @@ public class InfluxDbService implements TDBService {
 					}
 					if(key.contains(".meta.")){
 						//add meta to parent of value
-						logger.debug("meta: {}",val);
+						if (logger.isDebugEnabled())logger.debug("meta: {}",val);
 						String parentKey = StringUtils.substringBeforeLast(key,".meta.");
 						String metaKey = StringUtils.substringAfterLast(key,".meta.");
 						
@@ -285,7 +285,7 @@ public class InfluxDbService implements TDBService {
 					}
 					if(key.contains(".values.")){
 						//handle values
-						logger.debug("values: {}",val);
+						if (logger.isDebugEnabled())logger.debug("values: {}",val);
 						String parentKey = StringUtils.substringBeforeLast(key,".values.");
 						String valKey = StringUtils.substringAfterLast(key,".values.");
 						String subkey = StringUtils.substringAfterLast(valKey,".value.");
@@ -294,7 +294,7 @@ public class InfluxDbService implements TDBService {
 						Json parent = getParent(map,parentKey,attr);
 							
 						//add attributes
-						logger.debug("Primary value: {}",tagMap.get("primary"));
+						if (logger.isDebugEnabled())logger.debug("Primary value: {}",tagMap.get("primary"));
 						boolean primary = Boolean.valueOf((String)tagMap.get("primary"));
 						if(primary){
 							extractPrimaryValue(parent,s,subkey,val,true);
@@ -317,14 +317,14 @@ public class InfluxDbService implements TDBService {
 						processed=true;
 					}
 					if(!processed && (key.endsWith(".value")||key.contains(".value."))){
-						logger.debug("value: {}",val);
+						if (logger.isDebugEnabled())logger.debug("value: {}",val);
 						String subkey = StringUtils.substringAfterLast(key,".value.");
 					
 						key = StringUtils.substringBeforeLast(key,".value");
 						
 						//make parent Json
 						Json parent = getParent(map,key,attr);
-						logger.debug("Primary value: {}",tagMap.get("primary"));
+						if (logger.isDebugEnabled())logger.debug("Primary value: {}",tagMap.get("primary"));
 						boolean primary = Boolean.valueOf((String)tagMap.get("primary"));
 						if(primary){
 							extractPrimaryValue(parent,s,subkey,val,true);
@@ -365,20 +365,20 @@ public class InfluxDbService implements TDBService {
 		QueryResult result = influxDB.query(query);
 		// NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
 		
-		logger.debug(result);
+		if (logger.isDebugEnabled())logger.debug(result);
 		if (result == null || result.getResults() == null)
 			return map;
 		result.getResults().forEach((r) -> {
-			logger.debug(r);
+			if (logger.isDebugEnabled())logger.debug(r);
 			if (r.getSeries() == null)return;
 			r.getSeries().forEach((s) -> {
 				
-				logger.debug("Load source: {}",s);
+				if (logger.isDebugEnabled())logger.debug("Load source: {}",s);
 				if (s == null)return;
 				
 				String key = s.getName() + dot + s.getTags().get("skey");
 				Json attr = getAttrJson(s.getTags());
-				logger.debug("Load source map: {} = {}",()->key,()->getJsonValue(s,0));
+				if (logger.isDebugEnabled())logger.debug("Load source map: {} = {}",()->key,()->getJsonValue(s,0));
 				map.put(key, getJsonValue(s,0));
 				map.put(key+"._attr",attr);
 
@@ -436,7 +436,7 @@ public class InfluxDbService implements TDBService {
 	 */
 	@Override
 	public void save(NavigableMap<String, Json> map) {
-		logger.debug("Save map:  {}" ,map);
+		if (logger.isDebugEnabled())logger.debug("Save map:  {}" ,map);
 		for(Entry<String, Json> e: map.entrySet()){
 			save(e.getKey(), e.getValue(), map.get(e.getKey()+"._attr"));
 		}
@@ -448,7 +448,7 @@ public class InfluxDbService implements TDBService {
 	 */
 	@Override
 	public void save(String k, Json v, Json attr) {
-		logger.debug("Save json:  {}={}" , k , v);
+		if (logger.isDebugEnabled())logger.debug("Save json:  {}={}" , k , v);
 		//avoid _attr
 		if(k.contains("._attr")){
 			return;
@@ -467,19 +467,19 @@ public class InfluxDbService implements TDBService {
 	public void save(String k, Json v, String srcRef ,long tStamp, Json attr) {
 		if (v.isPrimitive()|| v.isBoolean()) {
 			
-			logger.debug("Save primitive:  {}={}", k, v);
+			if (logger.isDebugEnabled())logger.debug("Save primitive:  {}={}", k, v);
 			saveData(k, srcRef, tStamp, v.getValue(),attr);	
 			return;
 		}
 		if (v.isNull()) {
 			
-			logger.debug("Save null: {}={}",k , v);
+			if (logger.isDebugEnabled())logger.debug("Save null: {}={}",k , v);
 			saveData(k, srcRef, tStamp, null,attr);
 			return;
 		}
 		if (v.isArray()) {
 			
-			logger.debug("Save array: {}={}", k , v);
+			if (logger.isDebugEnabled())logger.debug("Save array: {}={}", k , v);
 			saveData(k, srcRef, tStamp, v,attr);
 			return;
 		}
@@ -489,7 +489,7 @@ public class InfluxDbService implements TDBService {
 		if (v.has(meta)) {
 			for (Entry<String, Json> i : v.at(meta).asJsonMap().entrySet()) {
 				
-				logger.debug("Save meta: {}={}",()->i.getKey(), ()->i.getValue());
+				if (logger.isDebugEnabled())logger.debug("Save meta: {}={}",()->i.getKey(), ()->i.getValue());
 				saveData(k + dot + meta + dot + i.getKey(), srcRef, tStamp, i.getValue(),attr);
 			}
 		}
@@ -498,7 +498,7 @@ public class InfluxDbService implements TDBService {
 		
 			for (Entry<String, Json> i : v.at(values).asJsonMap().entrySet()) {
 				
-				logger.debug("Save values: {}={}",()->i.getKey() ,()-> i.getValue());
+				if (logger.isDebugEnabled())logger.debug("Save values: {}={}",()->i.getKey() ,()-> i.getValue());
 				String sRef = StringUtils.substringBefore(i.getKey(),dot+value);
 				Json vs = i.getValue();
 				long ts = (vs.isObject() && vs.has(timestamp) ? Util.getMillisFromIsoTime(vs.at(timestamp).asString())
@@ -511,14 +511,14 @@ public class InfluxDbService implements TDBService {
 		if (v.has(value)&& v.at(value).isObject()) {
 			for (Entry<String, Json> i : v.at(value).asJsonMap().entrySet()) {
 				
-				logger.debug("Save value object: {}={}" , ()->i.getKey(),()->i.getValue());
+				if (logger.isDebugEnabled())logger.debug("Save value object: {}={}" , ()->i.getKey(),()->i.getValue());
 				saveData(k + dot + value + dot + i.getKey(), srcRef, tStamp, i.getValue(),attr);
 			}
 			return;
 		}
 
 		
-		logger.debug("Save value: {} : {}", k, v);
+		if (logger.isDebugEnabled())logger.debug("Save value: {} : {}", k, v);
 		saveData(k + dot + value, srcRef, tStamp, v.at(value),attr);
 
 		return;
@@ -531,7 +531,7 @@ public class InfluxDbService implements TDBService {
 			// add last
 			if (x == (pathArray.length - 1)) {
 				
-				logger.debug("finish: {}",pathArray[x]);
+				if (logger.isDebugEnabled())logger.debug("finish: {}",pathArray[x]);
 				node.set(pathArray[x], val);
 				break;
 			}
@@ -541,7 +541,7 @@ public class InfluxDbService implements TDBService {
 				next = Json.object();
 				node.set(pathArray[x], next);
 				
-				logger.debug("add: {}", pathArray[x]);
+				if (logger.isDebugEnabled())logger.debug("add: {}", pathArray[x]);
 			}
 			node = next;
 		}
@@ -551,7 +551,7 @@ public class InfluxDbService implements TDBService {
 	
 	private void extractPrimaryValue(Json parent, Series s, String subKey, Json val, boolean useValue) {
 		String srcref = s.getTags().get("sourceRef");
-		logger.debug("extractPrimaryValue: {}:{}",s, srcref);
+		if (logger.isDebugEnabled())logger.debug("extractPrimaryValue: {}:{}",s, srcref);
 		
 		Json node = parent;
 		Object ts = getValue("time", s, 0);
@@ -593,12 +593,12 @@ public class InfluxDbService implements TDBService {
 				parent.at(values).set(parent.at(sourceRef).asString(),pValues);
 			}
 		}
-		logger.debug("extractPrimaryValueObj: {}",parent);
+		if (logger.isDebugEnabled())logger.debug("extractPrimaryValueObj: {}",parent);
 	}
 	
 	private void extractValue(Json parent, Series s, String attr, Json val, boolean useValue) {
 		String srcref = s.getTags().get("sourceRef");
-		logger.debug("extractValue: {}:{}",s, srcref);
+		if (logger.isDebugEnabled())logger.debug("extractValue: {}:{}",s, srcref);
 		Json node = parent;
 		
 		if (StringUtils.isNotBlank(srcref)) {
@@ -653,16 +653,16 @@ public class InfluxDbService implements TDBService {
 			}
 		}
 		
-		logger.debug("extractValue: {}",parent);
+		if (logger.isDebugEnabled())logger.debug("extractValue: {}",parent);
 	}
 
 
 	protected void saveData(String key, String sourceRef, long millis, Object val, Json attr) {
 		
 			if(val!=null)
-				logger.debug("save {} : {}",()->val.getClass().getSimpleName(),()->key);
+				if (logger.isDebugEnabled())logger.debug("save {} : {}",()->val.getClass().getSimpleName(),()->key);
 			else{
-				logger.debug("save {} : {}",()->null,()->key);
+				if (logger.isDebugEnabled())logger.debug("save {} : {}",()->null,()->key);
 			}
 			
 			if(self_str.equals(key))return;
@@ -766,14 +766,14 @@ public class InfluxDbService implements TDBService {
 		if(mapRef==null){
 			//no result = primary
 			setPrimary(key, sourceRef);
-			logger.debug("isPrimary: {}={} : {}",key,sourceRef, true);
+			if (logger.isDebugEnabled())logger.debug("isPrimary: {}={} : {}",key,sourceRef, true);
 			return true;
 		}
 		if(StringUtils.equals(sourceRef, mapRef)){
-			logger.debug("isPrimary: {}={} : {}, {}",key,sourceRef, mapRef, true);
+			if (logger.isDebugEnabled())logger.debug("isPrimary: {}={} : {}, {}",key,sourceRef, mapRef, true);
 			return true;
 		}
-		logger.debug("isPrimary: {}={} : {}, {}",key,sourceRef, mapRef, false);
+		if (logger.isDebugEnabled())logger.debug("isPrimary: {}={} : {}, {}",key,sourceRef, mapRef, false);
 		return false;
 	}
 	
@@ -782,13 +782,13 @@ public class InfluxDbService implements TDBService {
 	 */
 	@Override
 	public Boolean setPrimary(String key, String sourceRef) {
-		logger.debug("setPrimary: {}={}",key,sourceRef);
+		if (logger.isDebugEnabled())logger.debug("setPrimary: {}={}",key,sourceRef);
 		return !StringUtils.equals(sourceRef, primaryMap.put(StringUtils.substringBefore(key,dot+values+dot),sourceRef));
 	}
 
 	private Point addPoint(Builder point, String field, Object jsonValue) {
 		Object value = null;
-		logger.debug("addPoint: {} : {}",field,jsonValue);
+		if (logger.isDebugEnabled())logger.debug("addPoint: {} : {}",field,jsonValue);
 		if(jsonValue==null)return point.addField(field,true).build();
 		if(jsonValue instanceof Json){
 			if(((Json)jsonValue).isString()){
@@ -811,17 +811,17 @@ public class InfluxDbService implements TDBService {
 		if(value instanceof Integer)return point.addField(field,((Integer)value).longValue()).build();
 		if(value instanceof BigInteger)return point.addField(field,((BigInteger)value).longValue()).build();
 		if(value instanceof String)return point.addField(field,(String)value).build();
-		logger.debug("addPoint: unknown type: {} : {}",field,value);
+		if (logger.isDebugEnabled())logger.debug("addPoint: unknown type: {} : {}",field,value);
 		return null;
 	}
 
 	private String getFieldType(Object value) {
 		
 		if(value==null){
-			logger.debug("getFieldType: {} : {}",value,value);
+			if (logger.isDebugEnabled())logger.debug("getFieldType: {} : {}",value,value);
 			return NULL_VALUE;
 		}
-		logger.debug("getFieldType: {} : {}",value.getClass().getName(),value);
+		if (logger.isDebugEnabled())logger.debug("getFieldType: {} : {}",value.getClass().getName(),value);
 		if(value instanceof Json){
 			if(((Json)value).isNull())return NULL_VALUE;
 			if(((Json)value).isArray())return STR_VALUE;
@@ -835,7 +835,7 @@ public class InfluxDbService implements TDBService {
 		if(value instanceof String)return STR_VALUE;
 		if(value instanceof Boolean)return STR_VALUE;
 		
-		logger.debug("getFieldType:unknown type: {} : {}",value.getClass().getName(),value);
+		if (logger.isDebugEnabled())logger.debug("getFieldType:unknown type: {} : {}",value.getClass().getName(),value);
 		return null;
 	}
 

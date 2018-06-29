@@ -209,7 +209,7 @@ public class Util {
 		Json sub = Json.object();
 		sub.set("path", StringUtils.defaultIfBlank(path, "*"));
 		json.at("get").add(sub);
-		logger.debug("Created json sub: " + json);
+		if (logger.isDebugEnabled())logger.debug("Created json sub: {}", json);
 		return json;
 	}
 

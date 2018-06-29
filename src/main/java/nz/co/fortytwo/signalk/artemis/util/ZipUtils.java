@@ -76,7 +76,7 @@ public class ZipUtils {
 		// get sub-folder/files list
 		File[] files = fileSource.listFiles();
 
-		logger.debug("Adding directory " + fileSource.getName());
+		if (logger.isDebugEnabled())logger.debug("Adding directory {}", fileSource.getName());
 
 		for (int i = 0; i < files.length; i++) {
 			try {
@@ -93,7 +93,7 @@ public class ZipUtils {
 				 * add it to the zip file
 				 */
 
-				logger.debug("Adding file " + files[i].getName());
+				if (logger.isDebugEnabled())logger.debug("Adding file {}", files[i].getName());
 
 				// create object of FileInputStream
 				FileInputStream fin = new FileInputStream(files[i]);

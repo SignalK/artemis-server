@@ -56,7 +56,7 @@ public class SignalkApiService extends BaseApiService {
 	public Response getSelf(@Context HttpServletRequest req) throws Exception {
 		String path = req.getPathInfo();
 		if (logger.isDebugEnabled())
-			logger.debug("get :" + path + " for " + req.getRemoteUser());
+			logger.debug("get :{} for {}",path, req.getRemoteUser());
 		// handle /self
 			return Response.ok().entity("\""+Config.getConfigProperty(ConfigConstants.UUID)+"\"").build();
 
@@ -96,7 +96,7 @@ public class SignalkApiService extends BaseApiService {
 
 		path=StringUtils.defaultIfBlank(path,"*");
 		if (logger.isDebugEnabled())
-			logger.debug("get raw:" + path + " for " + req.getRemoteUser());
+			logger.debug("get raw: {} for {}",path,req.getRemoteUser());
 		
 		path = StringUtils.removeStart(path,SIGNALK_API);
 		path = StringUtils.removeStart(path,"/");
@@ -105,12 +105,12 @@ public class SignalkApiService extends BaseApiService {
 		// handle /vessels.* etc
 		path = Util.fixSelfKey(path);
 		if (logger.isDebugEnabled())
-			logger.debug("get path:" + path);
+			logger.debug("get path: {}",path);
 	
 		String user = req.getHeader("X-User");
 		String pass = req.getHeader("X-Pass");
 		if (logger.isDebugEnabled()) {
-			logger.debug("User:" + user + ":" + pass);
+			logger.debug("User: {}:{}", user , pass);
 		}
 		
 		sendMessage(Util.getJsonGetRequest(path).toString(),correlation);
@@ -125,11 +125,11 @@ public class SignalkApiService extends BaseApiService {
 		try {
 			String body = Util.readString(req.getInputStream(),req.getCharacterEncoding());
 			if (logger.isDebugEnabled())
-				logger.debug("Post:" + body);
+				logger.debug("Post: {}" , body);
 			String user = req.getHeader("X-User");
 			String pass = req.getHeader("X-Pass");
 			if (logger.isDebugEnabled()) {
-				logger.debug("User:" + user + ":" + pass);
+				logger.debug("User: {}:{}", user , pass);
 			}
 		
 			sendMessage(body);
@@ -149,7 +149,7 @@ public class SignalkApiService extends BaseApiService {
 			String user = req.getHeader("X-User");
 			String pass = req.getHeader("X-Pass");
 			if (logger.isDebugEnabled()) {
-				logger.debug("User:" + user + ":" + pass);
+				logger.debug("User: {}:{}", user , pass);
 			}
 		
 			sendMessage(body);
@@ -165,10 +165,10 @@ public class SignalkApiService extends BaseApiService {
 			
 			@Override
 			public void onResume(AtmosphereResourceEvent event) {
-				logger.debug("onResume: {}",event);
+				if (logger.isDebugEnabled()) 
+					logger.debug("onResume: {}",event);
 				super.onResume(event);
 				try {
-					broadCasterFactory.remove(resource.getBroadcaster().getID());
 					resource.close();
 				} catch (IOException e) {
 					logger.error(e,e);

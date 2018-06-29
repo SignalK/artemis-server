@@ -100,12 +100,14 @@ public class SerialPortReader {
 		}
 		// CommPortIdentifier portid = SerialPort.getCommPort(portName);
 		SerialPort[] ports = SerialPort.getCommPorts();
-		for (SerialPort p : ports) {
-			logger.debug("Found: {}", p.getSystemPortName());
-			logger.debug("     : {}", p.getPortDescription());
+		if(logger.isDebugEnabled()){
+			for (SerialPort p : ports) {
+				logger.debug("Found: {}", p.getSystemPortName());
+				logger.debug("     : {}", p.getPortDescription());
+			}
 		}
 		serialPort = SerialPort.getCommPort(portName);
-		logger.debug("Opening {}", serialPort.getPortDescription());
+		if(logger.isDebugEnabled())logger.debug("Opening {}", serialPort.getPortDescription());
 		serialPort.setBaudRate(baudRate);
 		serialPort.setNumDataBits(8);
 		serialPort.setNumStopBits(1);
@@ -117,7 +119,7 @@ public class SerialPortReader {
 		// serialPort.notifyOnDataAvailable(true);
 		serialPort.addDataListener(serialReader);
 		serialPort.openPort();
-		logger.debug("Is open : {}", serialPort.isOpen());
+		if(logger.isDebugEnabled())logger.debug("Is open : {}", serialPort.isOpen());
 		// (new Thread(new SerialReader())).start();
 		// (new Thread(new SerialWriter())).start();
 
@@ -180,7 +182,7 @@ public class SerialPortReader {
 		public SerialReader() throws Exception {
 
 			if (logger.isDebugEnabled())
-				logger.info("Setup serialReader on :" + portName);
+				logger.info("Setup serialReader on :{}" , portName);
 			enableSerial = Config.getConfigPropertyBoolean(ConfigConstants.ENABLE_SERIAL);
 		}
 
@@ -235,7 +237,7 @@ public class SerialPortReader {
 		private void sendMsg(String buffer) throws ActiveMQException {
 			if (StringUtils.isNotBlank(buffer)) {
 				if (logger.isDebugEnabled())
-					logger.debug(portName + ":Serial Received:" + buffer);
+					logger.debug("{} :Serial Received:{}",portName, buffer);
 				// its not empty!
 				if (buffer.length() > 0) {
 					// send it
@@ -246,11 +248,11 @@ public class SerialPortReader {
 						txMsg.putStringProperty(Config.MSG_SRC_TYPE, Config.SERIAL);
 						producer.send(new SimpleString(Config.INCOMING_RAW), txMsg);
 						if (logger.isDebugEnabled())
-							logger.debug("json = " + buffer);
+							logger.debug("json = {}", buffer);
 
 					} else {
 						if (logger.isDebugEnabled())
-							logger.debug("enableSerial false:" + buffer);
+							logger.debug("enableSerial false: {}", buffer);
 					}
 				}
 				
@@ -263,7 +265,7 @@ public class SerialPortReader {
 				serialPort.removeDataListener();
 				serialPort.closePort();
 			} catch (Exception e1) {
-				logger.error(portName + ":" + e1.getMessage());
+				logger.error("{}:{}" ,portName , e1.getMessage());
 				if (logger.isDebugEnabled())
 					logger.debug(e1);
 			}
@@ -330,16 +332,16 @@ public class SerialPortReader {
 	public void process(String message) throws Exception {
 		// send to device
 		//TODO: rework sending to serial
-		logger.debug(portName + ":msg received for device:" + message);
+		if (logger.isDebugEnabled())logger.debug( "{}:msg received for device:{}" ,portName,message);
 		if (StringUtils.isNotBlank(message)) {
 			// check its valid for this device
 			if (running && deviceType == null || message.contains(ConfigConstants.UID + ":" + deviceType)) {
 				if (logger.isDebugEnabled())
-					logger.debug(portName + ":wrote out to device:" + message);
+					logger.debug("{}:wrote out to device:{}",portName,message);
 				// queue them and write in background
 				if (!queue.offer(message)) {
 					if (logger.isDebugEnabled())
-						logger.debug("Output queue id full for " + portName);
+						logger.debug("Output queue id full for {}", portName);
 				}
 			}
 		}

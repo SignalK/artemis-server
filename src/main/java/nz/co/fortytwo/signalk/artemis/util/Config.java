@@ -230,7 +230,7 @@ public class Config {
 		//create a self vessel
 		model.put(vessels+dot+selfUuid+dot+uuid, Json.make(selfUuid));
 		saveConfig(model);
-		logger.debug("Config: {}",model);
+		if (logger.isDebugEnabled())logger.debug("Config: {}",model);
 		return model;
 	}
 

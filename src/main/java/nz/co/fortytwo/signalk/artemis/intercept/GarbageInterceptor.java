@@ -34,7 +34,7 @@ public class GarbageInterceptor extends BaseInterceptor implements Interceptor {
 			
 			String msgType = getContentType(msg);
 			if (logger.isDebugEnabled())
-				logger.debug("Msg type is:" + msgType);
+				logger.debug("Msg type is: {}", msgType);
 
 			if (msgType != null) {
 				msg.putStringProperty(Config.AMQ_CONTENT_TYPE, msgType);
@@ -49,13 +49,13 @@ public class GarbageInterceptor extends BaseInterceptor implements Interceptor {
 
 	public String getContentType(ICoreMessage message) {
 		if (logger.isDebugEnabled()) {
-			logger.debug("Msg class: " + message.getClass());
+			logger.debug("Msg class: {}", message.getClass());
 		}
 
 		String msg = Util.readBodyBufferToString(message);
 
 		if (logger.isDebugEnabled()) {
-			logger.debug("Msg class: " + message.getClass() + ", body is:" + msg);
+			logger.debug("Msg class: {}, body is:{}", message.getClass(),msg);
 		}
 
 		if (msg != null) {
@@ -84,7 +84,7 @@ public class GarbageInterceptor extends BaseInterceptor implements Interceptor {
 			}
 		}
 		if (logger.isWarnEnabled()) {
-			logger.warn("Msg is garbage: " + msg);
+			logger.warn("Msg is garbage: {}", msg);
 		}
 		return null;
 	}

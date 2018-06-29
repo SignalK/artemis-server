@@ -48,7 +48,7 @@ public class StaticService {
 			if(StringUtils.isBlank(targetPath)|| targetPath.equals("/")){
 				targetPath="/index.html";
 			}
-			logger.debug("serve {}",targetPath);
+			if (logger.isDebugEnabled())logger.debug("serve {}",targetPath);
 			java.nio.file.Path target = Paths.get(Config.getConfigProperty(ConfigConstants.STATIC_DIR),targetPath);
 			
 			if (!target.startsWith(staticDir)) {

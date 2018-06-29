@@ -93,11 +93,11 @@ public class NMEAMsgInterceptor extends BaseInterceptor implements Interceptor {
 		engine.getContext().setAttribute("__NASHORN_POLYFILL_TIMER__", globalScheduledThreadPool,
 				ScriptContext.ENGINE_SCOPE);
 		URL resource = getClass().getClassLoader().getResource("signalk-parser-nmea0183/index-es5.js");
-		logger.debug("Resource : {}", resource);
+		if(logger.isDebugEnabled())logger.debug("Resource : {}", resource);
 		String resourceDir = getClass().getClassLoader().getResource("signalk-parser-nmea0183/parser.js").toString();
 		resourceDir = StringUtils.substringBefore(resourceDir, "index-es5.js");
 		resourceDir = StringUtils.substringAfter(resourceDir, "file:");
-		logger.debug("Javascript jsRoot: {}", resourceDir);
+		if(logger.isDebugEnabled())logger.debug("Javascript jsRoot: {}", resourceDir);
 
 		Folder rootFolder = null;
 		if (new File(resourceDir).exists()) {
@@ -106,18 +106,18 @@ public class NMEAMsgInterceptor extends BaseInterceptor implements Interceptor {
 			rootFolder = ResourceFolder.create(getClass().getClassLoader(), resourceDir, Charsets.UTF_8.name());
 		}
 		Require.enable(engine, rootFolder);
-		logger.debug("Starting nashorn from: {}", rootFolder.getPath());
+		if(logger.isDebugEnabled())logger.debug("Starting nashorn from: {}", rootFolder.getPath());
 		engine.eval(IOUtils.toString(getIOStream("signalk-parser-nmea0183/dist/nashorn-polyfill.js")));
 		
-		logger.debug("Load parser: {}", "signalk-parser-nmea0183/dist/bundle.js");
+		if(logger.isDebugEnabled())logger.debug("Load parser: {}", "signalk-parser-nmea0183/dist/bundle.js");
 		engine.eval(IOUtils.toString(getIOStream("signalk-parser-nmea0183/dist/bundle.js")));
 		parser = engine.get("parser");
-		logger.debug("Parser: {}",parser);
+		if(logger.isDebugEnabled())logger.debug("Parser: {}",parser);
 		
 		// create an Invocable object by casting the script engine object
 		inv = (Invocable) engine;
 		String hooks = IOUtils.toString(getIOStream("signalk-parser-nmea0183/hooks-es5/supported.txt"), Charsets.UTF_8);
-		logger.debug("Hooks: {}",hooks);
+		if(logger.isDebugEnabled())logger.debug("Hooks: {}",hooks);
 		
 		String[] files = hooks.split("\n");
 		
@@ -125,14 +125,14 @@ public class NMEAMsgInterceptor extends BaseInterceptor implements Interceptor {
 			// seatalk breaks
 			if (f.startsWith("ALK"))
 				continue;
-			logger.debug(f);
+			if(logger.isDebugEnabled())logger.debug(f);
 			inv.invokeMethod(parser, "loadHook", f.trim());
 		}
 	}
 
 	private InputStream getIOStream(String path) {
 
-		logger.debug("Return resource {}", path);
+		if(logger.isDebugEnabled())logger.debug("Return resource {}", path);
 		return Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
 
 	}

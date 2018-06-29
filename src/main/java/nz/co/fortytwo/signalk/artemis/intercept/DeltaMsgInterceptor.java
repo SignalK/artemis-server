@@ -78,7 +78,7 @@ public class DeltaMsgInterceptor extends BaseInterceptor implements Interceptor 
 			Json node = Util.readBodyBuffer(message);
 			
 			if (logger.isDebugEnabled())
-				logger.debug("Delta msg: " + node.toString());
+				logger.debug("Delta msg: {}",node.toString());
 
 			// deal with diff format
 			if (isDelta(node) && !node.has(GET)) {
@@ -98,7 +98,7 @@ public class DeltaMsgInterceptor extends BaseInterceptor implements Interceptor 
 	
 	protected NavigableMap<String, Json> processDelta(Json node){
 		if (logger.isDebugEnabled())
-			logger.debug("Saving delta: " + node.toString());
+			logger.debug("Saving delta: {}", node.toString());
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
 		SignalkMapConvertor.parseDelta(node, map);
 		map = security.addAttributes(map);

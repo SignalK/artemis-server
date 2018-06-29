@@ -101,7 +101,7 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 			// deal with diff format
 			if (node.has(CONTEXT) && (node.has(GET))) {
 				if (logger.isDebugEnabled())
-					logger.debug("GET msg: " + node.toString());
+					logger.debug("GET msg: {}", node.toString());
 				String ctx = node.at(CONTEXT).asString();
 				String root = StringUtils.substringBefore(ctx,dot);
 				root = Util.sanitizeRoot(root);

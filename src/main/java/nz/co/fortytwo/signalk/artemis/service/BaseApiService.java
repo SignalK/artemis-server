@@ -106,7 +106,7 @@ public class BaseApiService {
 				} catch ( IllegalStateException | IOException e) {
 					logger.error(e,e);
 				}
-		       logger.debug("onThrowable: {}",event);
+				if (logger.isDebugEnabled())logger.debug("onThrowable: {}",event);
 				
 			}
 		    /**
@@ -114,7 +114,7 @@ public class BaseApiService {
 		     */
 		    @Override
 		    public void onDisconnect(AtmosphereResourceEvent event) {
-		    	logger.debug("onDisconnect: {}",event);
+		    	if (logger.isDebugEnabled())logger.debug("onDisconnect: {}",event);
 		        try {
 					event.getResource().close();
 				} catch ( IllegalStateException | IOException e) {
@@ -125,7 +125,7 @@ public class BaseApiService {
 
 			@Override
 			public void onClose(AtmosphereResourceEvent event) {
-				logger.debug("onClose: {}",event);
+				if (logger.isDebugEnabled())logger.debug("onClose: {}",event);
 				closeSession();
 				try {
 					SubscriptionManagerFactory.getInstance().removeByTempQ(getTempQ());
@@ -138,14 +138,14 @@ public class BaseApiService {
 			@Override
 			public void onBroadcast(AtmosphereResourceEvent event) {
 				lastBroadcast=System.currentTimeMillis();
-				logger.debug("onBroadcast: {}",event);
+				if (logger.isDebugEnabled())logger.debug("onBroadcast: {}",event);
 				super.onBroadcast(event);
 			}
 			
 			@Override
 			public void onMessage(WebSocketEvent event) {
 				lastBroadcast=System.currentTimeMillis();
-				logger.debug("onWebsocketMessage: {}",event);
+				if (logger.isDebugEnabled())logger.debug("onWebsocketMessage: {}",event);
 				super.onMessage(event);
 			}
 			
@@ -155,33 +155,34 @@ public class BaseApiService {
 	public void setConsumer(AtmosphereResource resource, boolean resumeAfter) throws ActiveMQException {
 		
 		if(getConsumer().getMessageHandler()==null){
-			logger.debug("Adding consumer messageHandler : {}",getTempQ());
+			if (logger.isDebugEnabled())logger.debug("Adding consumer messageHandler : {}",getTempQ());
 			
-			resource.setBroadcaster(broadCasterFactory.get());
+			if(!resumeAfter){
+				resource.setBroadcaster(broadCasterFactory.get());
+			}
 			
 			getConsumer().setMessageHandler(new MessageHandler() {
 
 				@Override
 				public void onMessage(ClientMessage message) {
 					try {
-						logger.debug("onMessage {}",message);
+						if (logger.isDebugEnabled())logger.debug("onMessage {}",message);
 						String recv = Util.readBodyBufferToString(message);
 						message.acknowledge();
 						if(StringUtils.isBlank(recv)) recv="{}";
 						
-						logger.debug("onMessage for {}, {}",getTempQ(),recv);
-						try( InputStream in = IOUtils.toInputStream(recv)){
-							if(resumeAfter){
-								resource.write(recv);
-								//resource.getBroadcaster().broadcast(in, resource).get();
-								resource.resume();
-							}else{
-								resource.getBroadcaster().broadcast(in, resource);
-							}
-						} 
-						logger.debug("Sent to resource: {}",resource);
+						if (logger.isDebugEnabled())logger.debug("onMessage for {}, {}",getTempQ(),recv);
 						
-					} catch (ActiveMQException |  IOException e) {
+						if(resumeAfter){
+							resource.write(recv);
+							resource.resume();
+						}else{
+							resource.getBroadcaster().broadcast(recv, resource);
+						}
+						
+						if (logger.isDebugEnabled())logger.debug("Sent to resource: {}",resource);
+						
+					} catch (ActiveMQException e) {
 						logger.error(e,e);
 					} 
 				}
@@ -192,18 +193,18 @@ public class BaseApiService {
 	private void closeSession()  {
 	
 		if(getConsumer()!=null){
-			logger.debug("Close consumer: {}", tempQ);
+			if (logger.isDebugEnabled())logger.debug("Close consumer: {}", tempQ);
 			try {
 				getConsumer().close();
 				try {
 					synchronized (txSession) {
 						if(txSession!=null && !txSession.isClosed() && txSession.queueQuery(new SimpleString(getTempQ())).getConsumerCount()==0){
-							logger.debug("Delete queue: {}", tempQ);
+							if (logger.isDebugEnabled())logger.debug("Delete queue: {}", tempQ);
 							txSession.deleteQueue(getTempQ());
 						}
 					}
 				} catch (ActiveMQNonExistentQueueException | ActiveMQIllegalStateException e) {
-					logger.debug(e.getMessage());
+					if (logger.isDebugEnabled())logger.debug(e.getMessage());
 				} 
 			} catch (ActiveMQException e) {
 				logger.warn(e,e);
@@ -216,7 +217,7 @@ public class BaseApiService {
 	public ClientSession getTxSession()  {
 
 		if(txSession==null){
-			logger.debug("Start amq session: {}", getTempQ());
+			if (logger.isDebugEnabled())logger.debug("Start amq session: {}", getTempQ());
 			try{
 				txSession = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
 						Config.getConfigProperty(Config.ADMIN_PWD));
@@ -229,7 +230,7 @@ public class BaseApiService {
 
 	public ClientProducer getProducer() {
 		if(producer==null && getTxSession()!=null && !getTxSession().isClosed()){
-			logger.debug("Start producer: {}", getTempQ());
+			if (logger.isDebugEnabled())logger.debug("Start producer: {}", getTempQ());
 			try {
 				producer=getTxSession().createProducer();
 			} catch (ActiveMQException e) {
@@ -243,12 +244,12 @@ public class BaseApiService {
 	public ClientConsumer getConsumer() {
 		
 		if(consumer==null&& getTxSession()!=null && !getTxSession().isClosed()){
-			logger.debug("Start consumer: {}", getTempQ());
+			if (logger.isDebugEnabled())logger.debug("Start consumer: {}", getTempQ());
 			try{
 				try{
 					getTxSession().createTemporaryQueue("outgoing.reply." + getTempQ(), RoutingType.ANYCAST, getTempQ());
 				} catch (ActiveMQQueueExistsException e) {
-					logger.debug(e.getMessage());
+					if (logger.isDebugEnabled())logger.debug(e.getMessage());
 				}
 				consumer=getTxSession().createConsumer(getTempQ());
 				getTxSession().start();

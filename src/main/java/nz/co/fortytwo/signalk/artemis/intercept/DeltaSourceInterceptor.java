@@ -78,13 +78,13 @@ public class DeltaSourceInterceptor extends BaseInterceptor implements Intercept
 			Json node = Util.readBodyBuffer(message);
 			
 			if (logger.isDebugEnabled())
-				logger.debug("Delta msg: " + node.toString());
+				logger.debug("Delta msg: {}", node.toString());
 
 			// deal with diff format
 			if (isDelta(node) && !node.has(GET)) {
 				try {
 					if (logger.isDebugEnabled())
-						logger.debug("Converting source in delta: " + node.toString());
+						logger.debug("Converting source in delta: {}", node.toString());
 					if(node.has(UPDATES)){
 						node.at(UPDATES).asJsonList().forEach((j) -> {
 							convertSource(j,srcBus, msgSrcType);

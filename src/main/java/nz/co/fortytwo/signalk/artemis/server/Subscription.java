@@ -117,8 +117,8 @@ public class Subscription {
 			@Override
 			public void run() {
 				if (logger.isDebugEnabled()) {
-					logger.debug("Running for client:" + destination + ", " + getPath());
-					logger.debug("Running for session:" + sessionId);
+					logger.debug("Running for client:{}, {}" , destination, getPath());
+					logger.debug("Running for session:{}" , sessionId);
 				}
 
 				try {
@@ -134,17 +134,17 @@ public class Subscription {
 					// limit 1
 					influx.loadData(rslt, table, map);
 					if (logger.isDebugEnabled())
-						logger.debug("rslt map = " + rslt);
+						logger.debug("rslt map = {}" , rslt);
 					Json json = null;
 					if (SignalKConstants.FORMAT_DELTA.equals(format)) {
 						json = SignalkMapConvertor.mapToUpdatesDelta(rslt);
 						if (logger.isDebugEnabled())
-							logger.debug("Delta json = " + json);
+							logger.debug("Delta json = {}", json);
 					}
 					if (SignalKConstants.FORMAT_FULL.equals(format)) {
 						json = SignalkMapConvertor.mapToFull(rslt);
 						if (logger.isDebugEnabled())
-							logger.debug("Full json = " + json);
+							logger.debug("Full json = {}", json);
 					}
 					try{
 						SubscriptionManagerFactory.getInstance().send(rslt.getClass().getSimpleName(), destination, format, correlation, json);
@@ -241,7 +241,7 @@ public class Subscription {
 		if (active) {
 			SubscriptionManagerFactory.getInstance().schedule(task, getPeriod());
 			if (logger.isDebugEnabled())
-				logger.debug("Scheduled:" + getPeriod());
+				logger.debug("Scheduled:{}" , getPeriod());
 		}
 
 	}
@@ -341,7 +341,7 @@ public class Subscription {
 		for (String p : subscribedPaths) {
 			if (p.startsWith(key)) {
 				if (logger.isDebugEnabled())
-					logger.debug("Adding path:" + p);
+					logger.debug("Adding path:{}", p);
 				paths.add(p);
 			}
 		}
@@ -365,7 +365,7 @@ public class Subscription {
 			return;
 		}
 		if (logger.isDebugEnabled())
-			logger.debug(this.hashCode() + " received event " + pathEvent.getPath());
+			logger.debug("{} received event {}", this.hashCode(),pathEvent.getPath());
 		if (isSubscribed(pathEvent.getPath())) {
 			subscribedPaths.add(pathEvent.getPath());
 		}

@@ -66,11 +66,11 @@ public class SerialPortManager implements Runnable {
 				List<SerialPortReader> tmpPortList = new ArrayList<SerialPortReader>();
 				for (SerialPortReader reader : serialPortList) {
 					if (!reader.isRunning()) {
-						if(logger.isDebugEnabled())logger.debug("Comm port " + reader.getPortName() + " finished and marked for removal");
+						if(logger.isDebugEnabled())logger.debug("Comm port {} finished and marked for removal",reader.getPortName());
 						tmpPortList.add(reader);
 						reader.setRunning(false);
 					}
-					if(logger.isDebugEnabled())logger.debug("Comm port " + reader.getPortName() + " currently running");
+					if(logger.isDebugEnabled())logger.debug("Comm port {} currently running",reader.getPortName());
 				}
 				serialPortList.removeAll(tmpPortList);
 				//json array
@@ -89,7 +89,7 @@ public class SerialPortManager implements Runnable {
 						if(!SystemUtils.IS_OS_WINDOWS){
 							File portFile = new File(portStr);
 							if (!portFile.exists()){
-								if(logger.isDebugEnabled())logger.debug("Comm port "+portStr+" doesnt exist");
+								if(logger.isDebugEnabled())logger.debug("Comm port {} doesnt exist",portStr);
 								continue;
 							}
 						}
@@ -101,7 +101,7 @@ public class SerialPortManager implements Runnable {
 						}
 						// if its running, ignore
 						if (portOk){
-							if(logger.isDebugEnabled())logger.debug("Comm port " + portStr + " found already connected");
+							if(logger.isDebugEnabled())logger.debug("Comm port {} found already connected",portStr);
 							continue;
 						}
 	
@@ -117,19 +117,19 @@ public class SerialPortManager implements Runnable {
 						}
 						if(Config.getConfigPropertyInt(ConfigConstants.SERIAL_PORT_BAUD+"."+portName)!=null){
 							baudRate = Config.getConfigPropertyInt(ConfigConstants.SERIAL_PORT_BAUD+"."+portName);
-							if(logger.isDebugEnabled())logger.debug("Comm port "+portStr+" override baud = "+baudRate);
+							if(logger.isDebugEnabled())logger.debug("Comm port {} override baud = {}",portStr,baudRate);
 						}
 						
-						if(logger.isDebugEnabled())logger.debug("Comm port " + portStr + " found and connecting at "+baudRate+"...");
+						if(logger.isDebugEnabled())logger.debug("Comm port {} found and connecting at {}",portStr,baudRate);
 						serial.connect(portStr, baudRate);
-						if(logger.isDebugEnabled())logger.info("Comm port " + portStr + " found and connected");
+						if(logger.isDebugEnabled())logger.info("Comm port {} found and connected",portStr);
 						serialPortList.add(serial);
 					} catch (NullPointerException np) {
-						logger.error("Comm port " + portStr + " was null, probably not found, or nothing connected");
+						logger.error("Comm port {} was null, probably not found, or nothing connected",portStr);
 //					} catch (NoSuchPortException nsp) {
-//						logger.error("Comm port " + portStr + " not found, or nothing connected");
+//						logger.error("Comm port {} not found, or nothing connected",portStr);
 //					}catch(PortInUseException p){
-//						logger.error("Comm port " + portStr + " Port in use exception");
+//						logger.error("Comm port {} Port in use exception");
 					} catch (Exception e) {
 						logger.error("Port " + portStr + " failed", e);
 					}

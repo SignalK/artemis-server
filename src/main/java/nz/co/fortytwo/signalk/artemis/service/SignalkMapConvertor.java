@@ -210,7 +210,7 @@ public class SignalkMapConvertor {
 		
 		Json root = Json.object();
 		if(map==null)return root;
-		logger.debug("Map to full: {}",map);
+		if (logger.isDebugEnabled())logger.debug("Map to full: {}",map);
 		root.set(self_str,Json.make(Config.getConfigProperty(ConfigConstants.UUID)));
 		root.set(version,Json.make(Config.getConfigProperty(ConfigConstants.VERSION)));
 		for(Entry<String, Json> entry:map.entrySet()){
@@ -218,7 +218,7 @@ public class SignalkMapConvertor {
 			
 			Json val = entry.getValue();;
 			String path = StringUtils.substringBefore(entry.getKey(),dot+values+dot);
-			logger.debug("Add key: {}, value: {}",entry.getKey(),val.toString());
+			if (logger.isDebugEnabled())logger.debug("Add key: {}, value: {}",entry.getKey(),val.toString());
 			if(val.isObject() && val.has(sentence)){
 				Util.setJson(root,path+dot+sentence, val.at(sentence).dup());
 				continue;
@@ -306,7 +306,7 @@ public class SignalkMapConvertor {
 	 * @return
 	 */
 	public static Json generateDelta(Map<String, Map<String, Map<String, Map<String,List<Entry<String,Json>>>>>> msgs, String deltatype) {
-		logger.debug("Delta map: {}",msgs);
+		if (logger.isDebugEnabled())logger.debug("Delta map: {}",msgs);
 		Json delta = Json.object();
 	
 		if (msgs==null || msgs.size() == 0)
@@ -318,10 +318,10 @@ public class SignalkMapConvertor {
 		for (String ctx : msgs.keySet()) {
 
 			for (String ts : msgs.get(ctx).keySet()) {
-				logger.debug("timestamp: {}", ts);
+				if (logger.isDebugEnabled())logger.debug("timestamp: {}", ts);
 				for (String src : msgs.get(ctx).get(ts).keySet()) {
 					// new values object
-					logger.debug("sourceRef: {}", src);
+					if (logger.isDebugEnabled())logger.debug("sourceRef: {}", src);
 					// make wrapper object
 					Json valObj = Json.object();
 					updatesArray.add(valObj);
@@ -333,13 +333,13 @@ public class SignalkMapConvertor {
 
 					// now the values
 					for (Entry<String,List<Entry<String,Json>>> msg : msgs.get(ctx).get(ts).get(src).entrySet()) {
-						logger.debug("item: {}", msg.getKey());
+						if (logger.isDebugEnabled())logger.debug("item: {}", msg.getKey());
 						List<Entry<String,Json>> list = msg.getValue();
 						
 						for( Entry<String,Json> v :list){
 							String vKey = v.getKey();
 							Json vJson = v.getValue();
-							logger.debug("Key: {}, value: {}", vKey,vJson);
+							if (logger.isDebugEnabled())logger.debug("Key: {}, value: {}", vKey,vJson);
 							
 							vKey = StringUtils.substringAfter(vKey,ctx+dot);
 							vKey = StringUtils.substringBefore(vKey,dot + values + dot);
@@ -359,7 +359,7 @@ public class SignalkMapConvertor {
 							}else{
 								val.set(value, vJson);
 							}
-							logger.debug("Added Key: {}, value: {}", vKey,vJson);
+							if (logger.isDebugEnabled())logger.debug("Added Key: {}, value: {}", vKey,vJson);
 							valuesArray.add(val);
 						}
 					}

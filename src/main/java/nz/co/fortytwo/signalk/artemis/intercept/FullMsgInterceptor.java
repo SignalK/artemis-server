@@ -70,7 +70,7 @@ public class FullMsgInterceptor extends BaseInterceptor implements Interceptor {
 			// deal with full format
 			if (isFullFormat(node)) {
 				if (logger.isDebugEnabled())
-					logger.debug("processing full  " + node);
+					logger.debug("processing full {} ", node);
 				try {
 					NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
 					SignalkMapConvertor.parseFull(node,map,"");
@@ -78,8 +78,7 @@ public class FullMsgInterceptor extends BaseInterceptor implements Interceptor {
 					saveMap(map);
 					return true;
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					logger.error(e,e);
 				}
 				return true;
 			}

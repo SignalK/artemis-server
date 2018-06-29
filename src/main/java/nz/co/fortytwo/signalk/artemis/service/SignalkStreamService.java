@@ -37,7 +37,7 @@ public class SignalkStreamService extends BaseApiService {
 	public String getWS() throws Exception {
 
 		if (logger.isDebugEnabled())
-			logger.debug("get : ws for " + resource.getRequest().getRemoteUser());
+			logger.debug("get : ws for {}", resource.getRequest().getRemoteUser());
 		//return getWebsocket();
 		return "";
 	}
@@ -61,7 +61,7 @@ public class SignalkStreamService extends BaseApiService {
 			String user = resource.getRequest().getHeader("X-User");
 			String pass = resource.getRequest().getHeader("X-Pass");
 			if (logger.isDebugEnabled()) {
-				logger.debug("User:" + user + ":" + pass);
+				logger.debug("User:{}:{}", user, pass);
 			}
 			//if(StringUtils.isBlank(body)) return "";
 			
@@ -91,10 +91,10 @@ public class SignalkStreamService extends BaseApiService {
 			
 			@Override
 			public void run() {
-				logger.debug("Checking broadcast age < {}",period );
+				if (logger.isDebugEnabled())logger.debug("Checking broadcast age < {}",period );
 				if(System.currentTimeMillis()-lastBroadcast>period){
 					try {
-						logger.debug("Checking broadcast failed: {} , closing...",System.currentTimeMillis()-lastBroadcast );
+						if (logger.isDebugEnabled())logger.debug("Checking broadcast failed: {} , closing...",System.currentTimeMillis()-lastBroadcast );
 						resource.close();
 						timer.cancel();
 						cancel();
