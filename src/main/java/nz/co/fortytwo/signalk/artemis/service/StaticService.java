@@ -1,5 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
@@ -63,7 +64,7 @@ public class StaticService {
 					.entity(FileUtils.readFileToByteArray(target.toFile()))
 					.build();
 			
-		}catch(NoSuchFileException nsf){
+		}catch(NoSuchFileException | FileNotFoundException nsf){
 			logger.warn(nsf.getMessage());
 			return Response.status(HttpStatus.SC_NOT_FOUND).build();
 		}

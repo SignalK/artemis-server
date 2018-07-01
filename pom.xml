@@ -94,7 +94,12 @@
 			<artifactId>javax.inject</artifactId>
 			<version>1</version>
 		</dependency>
-
+		<!-- jGit -->
+		<dependency>
+			<groupId>org.eclipse.jgit</groupId>
+			<artifactId>org.eclipse.jgit</artifactId>
+			<version>5.0.1.201806211838-r</version>
+		</dependency>
 		<!-- jackson amd jboss needed for logging -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
@@ -194,16 +199,16 @@
 			<version>4.4.0</version>
 		</dependency>
 		<!-- BSD -->
-<!-- 		<dependency> -->
-<!-- 			<groupId>com.github.purejavacomm</groupId> -->
-<!-- 			<artifactId>purejavacomm</artifactId> -->
-<!-- 			<version>1.0.2.RELEASE</version> -->
-<!-- 		</dependency> -->
-<dependency>
-    <groupId>com.fazecast</groupId>
-    <artifactId>jSerialComm</artifactId>
-    <version>2.0.2</version>
-</dependency>
+		<!-- <dependency> -->
+		<!-- <groupId>com.github.purejavacomm</groupId> -->
+		<!-- <artifactId>purejavacomm</artifactId> -->
+		<!-- <version>1.0.2.RELEASE</version> -->
+		<!-- </dependency> -->
+		<dependency>
+			<groupId>com.fazecast</groupId>
+			<artifactId>jSerialComm</artifactId>
+			<version>2.0.2</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
@@ -292,18 +297,18 @@
 			<version>2.2.8</version>
 			<scope>test</scope>
 		</dependency>
-<!-- 		<dependency> -->
-<!-- 			<groupId>io.apptik.json</groupId> -->
-<!-- 			<artifactId>json-generator</artifactId> -->
-<!-- 			<version>1.0.4</version> -->
-<!-- 			<scope>test</scope> -->
-<!-- 		</dependency> -->
-<!-- 		<dependency> -->
-<!-- 			<groupId>io.apptik.json</groupId> -->
-<!-- 			<artifactId>json-schema</artifactId> -->
-<!-- 			<version>1.0.4</version> -->
-<!-- 			<scope>test</scope> -->
-<!-- 		</dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>io.apptik.json</groupId> -->
+		<!-- <artifactId>json-generator</artifactId> -->
+		<!-- <version>1.0.4</version> -->
+		<!-- <scope>test</scope> -->
+		<!-- </dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>io.apptik.json</groupId> -->
+		<!-- <artifactId>json-schema</artifactId> -->
+		<!-- <version>1.0.4</version> -->
+		<!-- <scope>test</scope> -->
+		<!-- </dependency> -->
 	</dependencies>
 	<build>
 		<plugins>

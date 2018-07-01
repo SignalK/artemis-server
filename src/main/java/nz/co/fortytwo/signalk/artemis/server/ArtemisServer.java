@@ -41,11 +41,9 @@ import java.util.Properties;
 import javax.jmdns.JmmDNS;
 import javax.jmdns.ServiceInfo;
 
-import org.apache.activemq.artemis.core.config.impl.SecurityConfiguration;
 import org.apache.activemq.artemis.core.server.ActiveMQServer;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
-import org.apache.activemq.artemis.spi.core.security.ActiveMQSecurityManager;
-import org.apache.activemq.artemis.spi.core.security.ActiveMQSecurityManagerImpl;
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -58,6 +56,7 @@ import io.netty.util.internal.logging.Log4J2LoggerFactory;
 import nz.co.fortytwo.signalk.artemis.service.ChartService;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+
 
 
 
@@ -94,16 +93,6 @@ public final class ArtemisServer {
 		Config.getInstance();
 
 		embedded = new EmbeddedActiveMQ();
-		SecurityConfiguration conf = new SecurityConfiguration();
-		conf.addUser("guest", "guest");
-		conf.addRole("guest", "guest");
-		conf.addUser("admin", "admin");
-		conf.addRole("admin", "guest");
-		conf.addRole("admin", "admin");
-
-		ActiveMQSecurityManager securityManager = new ActiveMQSecurityManagerImpl(conf);
-		
-		embedded.setSecurityManager(securityManager);
 		embedded.start();
 		
 		// start serial?
@@ -259,6 +248,8 @@ public final class ArtemisServer {
 		txtSet.put("vessel_uuid", Config.getConfigProperty(UUID));
 		return txtSet;
 	}
+	
+
 
 	public static void main(String[] args) throws Exception {
 		Properties props = System.getProperties();
@@ -272,7 +263,9 @@ public final class ArtemisServer {
 		InternalLoggerFactory.setDefaultFactory(Log4J2LoggerFactory.INSTANCE);
 		LoggerContext context = (org.apache.logging.log4j.core.LoggerContext) LogManager.getContext(false);
 		File file = new File("./conf/log4j2.json");
-
+		if(!file.exists()){
+			FileUtils.copyFile(new File("./conf/log4j2.json.sample"),file);
+		}
 		// this will force a reconfiguration
 		context.setConfigLocation(file.toURI());
 		new ArtemisServer();

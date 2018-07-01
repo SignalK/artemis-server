@@ -103,7 +103,11 @@ public class InfluxDbService implements TDBService {
 		if(query==null || query.size()==0)return "";
 		String joiner=" where ";
 		for(Entry<String, String> e: query.entrySet()){
-			builder.append(joiner+e.getKey()+"=~/"+e.getValue()+"/");
+			builder.append(joiner)
+				.append(e.getKey())
+				.append("=~/")
+				.append(e.getValue())
+				.append("/");
 			joiner=" and ";
 		}
 		return builder.toString();
@@ -128,6 +132,7 @@ public class InfluxDbService implements TDBService {
 	}
 	
 	public NavigableMap<String, Json> loadResources(NavigableMap<String, Json> map, String queryStr) {
+		if (logger.isDebugEnabled())logger.debug("Query: {}", queryStr);
 		Query query = new Query(queryStr, dbName);
 		QueryResult result = influxDB.query(query);
 		

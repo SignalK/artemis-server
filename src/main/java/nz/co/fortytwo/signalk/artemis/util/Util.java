@@ -429,7 +429,7 @@ public class Util {
 			Json src = input.at(source);
 			Json srcJson = Json.object(sources, Json.object());
 			StringBuffer srcRef = new StringBuffer();
-			if (src.has(type)) {
+			if (src.isObject() && src.has(type)) {
 				srcRef.append(src.at(type).asString());
 			} else {
 				srcRef.append(StringUtils.defaultString(defaultType, "unknown"));

@@ -195,17 +195,17 @@ public class BaseApiService {
 		if(getConsumer()!=null){
 			if (logger.isDebugEnabled())logger.debug("Close consumer: {}", tempQ);
 			try {
-				getConsumer().close();
-				try {
-					synchronized (txSession) {
-						if(txSession!=null && !txSession.isClosed() && txSession.queueQuery(new SimpleString(getTempQ())).getConsumerCount()==0){
-							if (logger.isDebugEnabled())logger.debug("Delete queue: {}", tempQ);
-							txSession.deleteQueue(getTempQ());
-						}
-					}
-				} catch (ActiveMQNonExistentQueueException | ActiveMQIllegalStateException e) {
-					if (logger.isDebugEnabled())logger.debug(e.getMessage());
-				} 
+				synchronized (txSession) {
+					getConsumer().close();
+					try {
+							if(txSession!=null && !txSession.isClosed() && txSession.queueQuery(new SimpleString(getTempQ())).getConsumerCount()==0){
+								if (logger.isDebugEnabled())logger.debug("Delete queue: {}", tempQ);
+								txSession.deleteQueue(getTempQ());
+							}
+					} catch (ActiveMQNonExistentQueueException | ActiveMQIllegalStateException e) {
+						if (logger.isDebugEnabled())logger.debug(e.getMessage());
+					} 
+				}
 			} catch (ActiveMQException e) {
 				logger.warn(e,e);
 			}
@@ -232,7 +232,9 @@ public class BaseApiService {
 		if(producer==null && getTxSession()!=null && !getTxSession().isClosed()){
 			if (logger.isDebugEnabled())logger.debug("Start producer: {}", getTempQ());
 			try {
-				producer=getTxSession().createProducer();
+				synchronized (txSession) {
+					producer=getTxSession().createProducer();
+				}
 			} catch (ActiveMQException e) {
 				logger.error(e,e);
 			}
@@ -247,12 +249,16 @@ public class BaseApiService {
 			if (logger.isDebugEnabled())logger.debug("Start consumer: {}", getTempQ());
 			try{
 				try{
-					getTxSession().createTemporaryQueue("outgoing.reply." + getTempQ(), RoutingType.ANYCAST, getTempQ());
+					synchronized (txSession) {
+						getTxSession().createTemporaryQueue("outgoing.reply." + getTempQ(), RoutingType.ANYCAST, getTempQ());
+					}
 				} catch (ActiveMQQueueExistsException e) {
 					if (logger.isDebugEnabled())logger.debug(e.getMessage());
 				}
-				consumer=getTxSession().createConsumer(getTempQ());
-				getTxSession().start();
+				synchronized (txSession) {
+					consumer=getTxSession().createConsumer(getTempQ());
+					getTxSession().start();
+				}
 			} catch (ActiveMQException e) {
 				logger.error(e,e);
 			}
