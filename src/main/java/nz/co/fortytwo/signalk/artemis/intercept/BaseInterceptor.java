@@ -54,6 +54,10 @@ public class BaseInterceptor {
 		return Util.isFullFormat(node);
 	}
 	
+	protected boolean isN2k(Json node) {
+		return Util.isN2k(node);
+	}
+	
 	protected void sendReply(String simpleName, String destination, String format, Json json, ServerSession s) throws Exception {
 		sendReply(String.class.getSimpleName(),destination,format,null,json);
 	}

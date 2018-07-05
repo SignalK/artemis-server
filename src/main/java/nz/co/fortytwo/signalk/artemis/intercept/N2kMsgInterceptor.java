@@ -29,7 +29,6 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.io.File;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -64,30 +63,28 @@ import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 /**
- * Processes NMEA sentences in the body of a message, firing events to
- * interested listeners Converts the NMEA messages to signalk
+ * Processes N2K messages from canboat or similar. Converts the N2k messages to signalk
  * 
- * @author robert
+ * @author robert 
  * 
  */
 
-public class NMEAMsgInterceptor extends JsBaseInterceptor implements Interceptor {
+public class N2kMsgInterceptor extends JsBaseInterceptor implements Interceptor {
 
-	private static Logger logger = LogManager.getLogger(NMEAMsgInterceptor.class);
+	private static Logger logger = LogManager.getLogger(N2kMsgInterceptor.class);
 	
 	private Invocable inv;
-	private Object parser;
+	private Object n2kMapper;
 	// private boolean rmcClock = false;
 
-	private static ScheduledExecutorService globalScheduledThreadPool = Executors.newScheduledThreadPool(20);
 
 	
 	@SuppressWarnings("restriction")
-	public NMEAMsgInterceptor() throws Exception {
+	public N2kMsgInterceptor() throws Exception {
 		super();
-
-		String resourceDir = getClass().getClassLoader().getResource("signalk-parser-nmea0183/parser.js").toString();
-		resourceDir = StringUtils.substringBefore(resourceDir, "index-es5.js");
+	
+		String resourceDir = getClass().getClassLoader().getResource("n2k-signalk/dist/bundle.js").toString();
+		resourceDir = StringUtils.substringBefore(resourceDir, "dist/bundle.js");
 		resourceDir = StringUtils.substringAfter(resourceDir, "file:");
 		if(logger.isDebugEnabled())logger.debug("Javascript jsRoot: {}", resourceDir);
 
@@ -97,34 +94,24 @@ public class NMEAMsgInterceptor extends JsBaseInterceptor implements Interceptor
 		} else {
 			rootFolder = ResourceFolder.create(getClass().getClassLoader(), resourceDir, Charsets.UTF_8.name());
 		}
-		if(logger.isDebugEnabled())logger.debug("Starting nashorn env from: {}", rootFolder.getPath());
-		ScriptContext nmeaContext = new SimpleScriptContext();
-		nmeaContext.setBindings(engine.createBindings(), ScriptContext.ENGINE_SCOPE);
-		nmeaContext.setBindings(engine.createBindings(), ScriptContext.GLOBAL_SCOPE);
-		Bindings bindings = nmeaContext.getBindings(ScriptContext.GLOBAL_SCOPE);
+		
+		ScriptContext n2kContext = new SimpleScriptContext();
+		n2kContext.setBindings(engine.createBindings(), ScriptContext.ENGINE_SCOPE);
+		n2kContext.setBindings(engine.createBindings(), ScriptContext.GLOBAL_SCOPE);
+		Bindings bindings = n2kContext.getBindings(ScriptContext.ENGINE_SCOPE);
 		Require.enable(engine, rootFolder,bindings);
 		
-		if(logger.isDebugEnabled())logger.debug("Load parser: {}", "signalk-parser-nmea0183/dist/bundle.js");
-		engine.eval(IOUtils.toString(getIOStream("jsext/nashorn-polyfill.js")),nmeaContext);
-		engine.eval(IOUtils.toString(getIOStream("signalk-parser-nmea0183/dist/bundle.js")),nmeaContext);
-
-		parser = nmeaContext.getAttribute("parser");
-		if(logger.isDebugEnabled())logger.debug("Parser: {}",parser);
+		if(logger.isDebugEnabled())logger.debug("Starting nashorn env from: {}", rootFolder.getPath());
+		
+		if(logger.isDebugEnabled())logger.debug("Load parser: {}", "n2k-signalk/dist/bundle.js");
+		engine.eval(IOUtils.toString(getIOStream("jsext/nashorn-polyfill.js")),n2kContext);
+		engine.eval(IOUtils.toString(getIOStream("n2k-signalk/dist/bundle.js")),bindings);
+		n2kMapper = n2kContext.getAttribute("n2kMapper");
+		if(logger.isDebugEnabled())logger.debug("Parser: {}",n2kMapper);
 		
 		// create an Invocable object by casting the script engine object
 		inv = (Invocable) engine;
-		String hooks = IOUtils.toString(getIOStream("signalk-parser-nmea0183/hooks-es5/supported.txt"), Charsets.UTF_8);
-		if(logger.isDebugEnabled())logger.debug("Hooks: {}",hooks);
-		
-		String[] files = hooks.split("\n");
-		
-		for (String f : files) {
-			// seatalk breaks
-			if (f.startsWith("ALK"))
-				continue;
-			if(logger.isDebugEnabled())logger.debug(f);
-			inv.invokeMethod(parser, "loadHook", f.trim());
-		}
+	
 	}
 
 	
@@ -139,28 +126,25 @@ public class NMEAMsgInterceptor extends JsBaseInterceptor implements Interceptor
 
 			ICoreMessage message = realPacket.getMessage();
 
-			if (!Config._0183.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))
+			if (!Config.N2K.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))
 				return true;
-			// String sessionId =
-			// message.getStringProperty(Config.AMQ_SESSION_ID);
-			// ServerSession sess =
-			// ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
+			
 			String bodyStr = Util.readBodyBufferToString(message).trim();
 			if (logger.isDebugEnabled())
-				logger.debug("NMEA Message: " + bodyStr);
+				logger.debug("N2K Message: {}", bodyStr);
 			
-			if (StringUtils.isNotBlank(bodyStr) && bodyStr.startsWith("$")) {
+			if (StringUtils.isNotBlank(bodyStr) ) {
 				try {
 					if (logger.isDebugEnabled())
-						logger.debug("Processing NMEA:[" + bodyStr + "]");
+						logger.debug("Processing N2K: {}",bodyStr);
 
-					Object result = inv.invokeMethod(parser,"parse", bodyStr);
+					Object result = inv.invokeMethod(n2kMapper,"toDelta", bodyStr);
 
 					if (logger.isDebugEnabled())
-						logger.debug("Processed NMEA:[" + result + "]");
+						logger.debug("Processed N2K: {} ",result);
 
 					if (result == null || result.toString().startsWith("Error")) {
-						logger.error(bodyStr + "," + result);
+						logger.error("{},{}", bodyStr, result);
 						return true;
 					}
 					Json json = Json.read(result.toString());
@@ -171,7 +155,7 @@ public class NMEAMsgInterceptor extends JsBaseInterceptor implements Interceptor
 					message.getBodyBuffer().clear();
 					message.getBodyBuffer().writeString(json.toString());
 					if (logger.isDebugEnabled())
-						logger.debug("Converted NMEA msg:" + json.toString());
+						logger.debug("Converted N2K msg: {}", json.toString());
 				} catch (Exception e) {
 					logger.error(e, e);
 					throw new ActiveMQException(ActiveMQExceptionType.INTERNAL_ERROR, e.getMessage(), e);

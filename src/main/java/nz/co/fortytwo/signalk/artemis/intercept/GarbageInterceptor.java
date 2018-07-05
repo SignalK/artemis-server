@@ -73,7 +73,9 @@ public class GarbageInterceptor extends BaseInterceptor implements Interceptor {
 				return Config._0183;
 			} else if (msg.startsWith("{") && msg.endsWith("}")) {
 				Json node = Json.read(msg);
-				
+				if(isN2k(node)) {
+					return Config.N2K;
+				}
 				if (isFullFormat(node))
 					return Config.JSON_FULL;
 				
@@ -88,5 +90,6 @@ public class GarbageInterceptor extends BaseInterceptor implements Interceptor {
 		}
 		return null;
 	}
+
 
 }

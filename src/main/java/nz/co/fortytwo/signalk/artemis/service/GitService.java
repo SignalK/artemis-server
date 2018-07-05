@@ -65,7 +65,7 @@ public class GitService extends BaseApiService {
 	private static Logger logger = LogManager.getLogger(GitService.class);
 	private File staticDir = null;
 
-	private static String github = "https://github.com/SignalK/";
+	private static String github = "https://github.com/";
 
 	public GitService() {
 		super();
@@ -102,7 +102,9 @@ public class GitService extends BaseApiService {
 					try {
 						
 						if (install(project) && npm) {
-							runNpmInstall(getLogOutputFile("output.log"), new File(staticDir, SLASH + project));
+							int p = project.lastIndexOf("/");
+							String name=(p>0)? project.substring(p+1):project;
+							runNpmInstall(getLogOutputFile("output.log"), new File(staticDir, SLASH + name));
 						}
 					} catch (Exception e) {
 						logger.error(e,e);
@@ -147,9 +149,10 @@ public class GitService extends BaseApiService {
 				@Override
 				public void run() {
 					try {
-						
-						if (upgrade(project) && npm) {
-							runNpmInstall(getLogOutputFile("output.log"), new File(staticDir, SLASH + project));
+						int p = project.lastIndexOf("/");
+						String name=(p>0)? project.substring(p+1):project;
+						if (upgrade(name) && npm) {
+							runNpmInstall(getLogOutputFile("output.log"), new File(staticDir, SLASH + name));
 						}
 					} catch (Exception e) {
 						logger.error(e,e);
@@ -174,11 +177,14 @@ public class GitService extends BaseApiService {
 			// make log name
 			String logFile = "output.log";
 			File output = getLogOutputFile(logFile);
-			File destDir = new File(staticDir, SLASH + path);
+			
+			int p = path.lastIndexOf("/");
+			String name=(p>0)? path.substring(p+1):path;
+			File destDir = new File(staticDir, SLASH + name);
 			destDir.mkdirs();
 			String gitPath = github + path + ".git";
 			logger.debug("Cloning from " + gitPath + " to " + destDir.getAbsolutePath());
-			FileUtils.writeStringToFile(output, "Updating from " + gitPath + " to " + destDir.getAbsolutePath() + "\n",
+			FileUtils.writeStringToFile(output, "Cloning from " + gitPath + " to " + destDir.getAbsolutePath() + "\n",
 					false);
 			try {
 				result = Git.cloneRepository().setURI(gitPath).setDirectory(destDir).call();

@@ -463,6 +463,12 @@ public class Util {
 		if (node.has(CONTEXT) && (node.has(SUBSCRIBE) || node.has(UNSUBSCRIBE))) return true;
 		return false;
 	}
+	public static boolean isN2k(Json node) {
+		if(node==null)return false;
+		// '{"timestamp":"2013-10-08-15:47:28.263Z","prio":"2","src":"204","dst":"255","pgn":"127250","description":"Vessel Heading","fields":{"Heading":"129.7","Reference":"Magnetic"}}'
+		if (node.has("prio") && node.has("src")&& node.has("dst")&& node.has("pgn")) return true;
+		return false;
+	}
 	
 	public static boolean isFullFormat(Json node) {
 		if(node==null)return false;
