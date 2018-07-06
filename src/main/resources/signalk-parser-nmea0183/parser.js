@@ -16,7 +16,9 @@ var loadHook = function(hook){
 print("JS:Parser instantiated!")
 
 var parse = function(sentence){
+	//print("JS:Parser:"+sentence);
 	var tags = getTagBlock(sentence);
+	
 	if (tags !== false) {
 	    sentence = tags.sentence;
 	    tags = tags.tags;
@@ -47,8 +49,8 @@ var parse = function(sentence){
   }
   this.session = 0;
   if(mappings[id]==undefined){
-	  print("JS:NMEA: unsupported sentence "+sentence);
-	  return null;
+	 //print("JS:NMEA: unsupported sentence "+sentence);
+	  return "Error:NMEA: unsupported sentence "+sentence;
   }
   var parser = mappings[id](this, {
     id: id,
@@ -63,8 +65,8 @@ var parse = function(sentence){
 	    
 	  })
 	  .catch(function (error) {
-		  print('JS:Error:')
-	  	result= JSON.stringify(error)
+		  //print('JS:Error:')
+	  	result= "Error:NMEA:"+JSON.stringify(error);
 	    
 	  })
   

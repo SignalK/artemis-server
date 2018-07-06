@@ -39,7 +39,7 @@ public class GarbageInterceptor extends BaseInterceptor implements Interceptor {
 			if (msgType != null) {
 				msg.putStringProperty(Config.AMQ_CONTENT_TYPE, msgType);
 			} else {
-				return true;
+				return false;
 			}
 
 			return true;

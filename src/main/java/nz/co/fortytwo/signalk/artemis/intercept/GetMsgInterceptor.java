@@ -191,12 +191,12 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 					
 					sendReply(map.getClass().getSimpleName(),destination,FORMAT_FULL,correlation,json);
 
-					return true;
+					
 				} catch (Exception e) {
 					logger.error(e, e);
 					throw new ActiveMQException(ActiveMQExceptionType.INTERNAL_ERROR, e.getMessage(), e);
 				}
-
+				return false;
 			}
 		}
 		return true;

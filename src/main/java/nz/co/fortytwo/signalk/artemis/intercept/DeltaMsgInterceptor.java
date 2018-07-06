@@ -74,14 +74,16 @@ public class DeltaMsgInterceptor extends BaseInterceptor implements Interceptor 
 			
 			if (!Config.JSON_DELTA.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))
 				return true;
-		
+			
+			
 			Json node = Util.readBodyBuffer(message);
+			if (node.has(GET)) return true;
 			
 			if (logger.isDebugEnabled())
 				logger.debug("Delta msg: {}",node.toString());
 
 			// deal with diff format
-			if (isDelta(node) && !node.has(GET)) {
+			if (isDelta(node)) {
 				try {
 					saveMap(processDelta(node));
 					return true;
@@ -89,8 +91,8 @@ public class DeltaMsgInterceptor extends BaseInterceptor implements Interceptor 
 					logger.error(e, e);
 					throw new ActiveMQException(ActiveMQExceptionType.INTERNAL_ERROR, e.getMessage(), e);
 				}
-
 			}
+			return false;
 		}
 		return true;
 

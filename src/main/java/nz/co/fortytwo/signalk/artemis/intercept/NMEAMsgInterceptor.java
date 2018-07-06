@@ -77,10 +77,8 @@ public class NMEAMsgInterceptor extends JsBaseInterceptor implements Interceptor
 	
 	private Invocable inv;
 	private Object parser;
+	//private ScriptContext nmeaContext = new SimpleScriptContext();
 	// private boolean rmcClock = false;
-
-	private static ScheduledExecutorService globalScheduledThreadPool = Executors.newScheduledThreadPool(20);
-
 	
 	@SuppressWarnings("restriction")
 	public NMEAMsgInterceptor() throws Exception {
@@ -98,24 +96,25 @@ public class NMEAMsgInterceptor extends JsBaseInterceptor implements Interceptor
 			rootFolder = ResourceFolder.create(getClass().getClassLoader(), resourceDir, Charsets.UTF_8.name());
 		}
 		if(logger.isDebugEnabled())logger.debug("Starting nashorn env from: {}", rootFolder.getPath());
-		ScriptContext nmeaContext = new SimpleScriptContext();
-		nmeaContext.setBindings(engine.createBindings(), ScriptContext.ENGINE_SCOPE);
-		nmeaContext.setBindings(engine.createBindings(), ScriptContext.GLOBAL_SCOPE);
-		Bindings bindings = nmeaContext.getBindings(ScriptContext.GLOBAL_SCOPE);
-		Require.enable(engine, rootFolder,bindings);
+		
+
+		//nmeaContext.setBindings(engine.createBindings(), ScriptContext.ENGINE_SCOPE);
+
+		//Bindings bindings = nmeaContext.getBindings(ScriptContext.ENGINE_SCOPE);
+		//Require.enable(engine, rootFolder, bindings);
 		
 		if(logger.isDebugEnabled())logger.debug("Load parser: {}", "signalk-parser-nmea0183/dist/bundle.js");
-		engine.eval(IOUtils.toString(getIOStream("jsext/nashorn-polyfill.js")),nmeaContext);
-		engine.eval(IOUtils.toString(getIOStream("signalk-parser-nmea0183/dist/bundle.js")),nmeaContext);
+		
+		engine.eval(IOUtils.toString(getIOStream("signalk-parser-nmea0183/dist/bundle.js")));
 
-		parser = nmeaContext.getAttribute("parser");
+		parser = engine.get("parser");
 		if(logger.isDebugEnabled())logger.debug("Parser: {}",parser);
 		
 		// create an Invocable object by casting the script engine object
 		inv = (Invocable) engine;
 		String hooks = IOUtils.toString(getIOStream("signalk-parser-nmea0183/hooks-es5/supported.txt"), Charsets.UTF_8);
 		if(logger.isDebugEnabled())logger.debug("Hooks: {}",hooks);
-		
+
 		String[] files = hooks.split("\n");
 		
 		for (String f : files) {
@@ -141,10 +140,7 @@ public class NMEAMsgInterceptor extends JsBaseInterceptor implements Interceptor
 
 			if (!Config._0183.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))
 				return true;
-			// String sessionId =
-			// message.getStringProperty(Config.AMQ_SESSION_ID);
-			// ServerSession sess =
-			// ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
+			
 			String bodyStr = Util.readBodyBufferToString(message).trim();
 			if (logger.isDebugEnabled())
 				logger.debug("NMEA Message: " + bodyStr);
@@ -176,7 +172,7 @@ public class NMEAMsgInterceptor extends JsBaseInterceptor implements Interceptor
 					logger.error(e, e);
 					throw new ActiveMQException(ActiveMQExceptionType.INTERNAL_ERROR, e.getMessage(), e);
 				}
-
+				return true;
 			}
 		}
 		return true;

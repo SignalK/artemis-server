@@ -59,12 +59,12 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
  */
 
 public class SubscribeMsgInterceptor extends BaseInterceptor implements Interceptor {
-	
+
 	private static Logger logger = LogManager.getLogger(SubscribeMsgInterceptor.class);
 
 	/**
-	 * Reads Subscribe format JSON and creates a subscription. Does nothing if
-	 * json is not a subscribe, and returns the original message
+	 * Reads Subscribe format JSON and creates a subscription. Does nothing if json
+	 * is not a subscribe, and returns the original message
 	 * 
 	 * @param node
 	 * @return
@@ -96,18 +96,15 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 					ctx = Util.fixSelfKey(ctx);
 					ctx = StringUtils.removeEnd(ctx, ".");
 					Json subscribe = node.at(SUBSCRIBE);
-					if (subscribe.isNull())
-						return true;
-
-					try {
-						parseSubscribe(node, subscribe, ctx, message);
-					} catch (Exception e) {
-						logger.error(e, e);
+					if (!subscribe.isNull()) {
+						try {
+							parseSubscribe(node, subscribe, ctx, message);
+						} catch (Exception e) {
+							logger.error(e, e);
+						}
+						if (logger.isDebugEnabled())
+							logger.debug("SubscribeMsg processed subscribe {}", node);
 					}
-
-					if (logger.isDebugEnabled())
-						logger.debug("SubscribeMsg processed subscribe {}", node);
-					return true;
 				}
 
 				if (node.has(UNSUBSCRIBE)) {
@@ -117,20 +114,20 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 					ctx = Util.fixSelfKey(ctx);
 					ctx = StringUtils.removeEnd(ctx, ".");
 					Json unsubscribe = node.at(UNSUBSCRIBE);
-					if (unsubscribe == null)
-						return true;
+					if (!unsubscribe.isNull()) {
+						try {
+							parseUnSubscribe(node, unsubscribe, ctx, message);
+						} catch (Exception e) {
+							logger.error(e, e);
+						}
 
-					try {
-						parseUnSubscribe(node, unsubscribe, ctx, message);
-					} catch (Exception e) {
-						logger.error(e, e);
+						if (logger.isDebugEnabled())
+							logger.debug("SubscribeMsg processed unsubscribe {}", node);
 					}
-
-					if (logger.isDebugEnabled())
-						logger.debug("SubscribeMsg processed unsubscribe {}", node);
-					return true;
 				}
+				return false;
 			}
+			
 		}
 		return true;
 
@@ -143,13 +140,14 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 			String sessionId = message.getStringProperty(Config.AMQ_CORR_ID);
 			String destination = message.getStringProperty(Config.AMQ_REPLY_Q);
 			String correlation = message.getStringProperty(Config.AMQ_CORR_ID);
-			//ServerSession s = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
+			// ServerSession s =
+			// ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
 
 			if (subscriptions.isArray()) {
 				for (Json subscription : subscriptions.asJsonList()) {
-					Subscription sub = parseSubscribe(sessionId, destination, Config.getConfigProperty(Config.ADMIN_USER),
-							Config.getConfigProperty(Config.ADMIN_PWD), ctx,
-							subscription, correlation);
+					Subscription sub = parseSubscribe(sessionId, destination,
+							Config.getConfigProperty(Config.ADMIN_USER), Config.getConfigProperty(Config.ADMIN_PWD),
+							ctx, subscription, correlation);
 					if (logger.isDebugEnabled())
 						logger.debug("Remove subscription; " + sub.toString());
 					SubscriptionManagerFactory.getInstance().removeSubscription(sub);
@@ -169,13 +167,14 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 			String sessionId = message.getStringProperty(Config.AMQ_CORR_ID);
 			String destination = message.getStringProperty(Config.AMQ_REPLY_Q);
 			String correlation = message.getStringProperty(Config.AMQ_CORR_ID);
-			//ServerSession s = ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
+			// ServerSession s =
+			// ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
 
 			if (subscriptions.isArray()) {
 				for (Json subscription : subscriptions.asJsonList()) {
-					Subscription sub = parseSubscribe(sessionId, destination, Config.getConfigProperty(Config.ADMIN_USER),
-							Config.getConfigProperty(Config.ADMIN_PWD), ctx,
-							subscription,correlation);
+					Subscription sub = parseSubscribe(sessionId, destination,
+							Config.getConfigProperty(Config.ADMIN_USER), Config.getConfigProperty(Config.ADMIN_PWD),
+							ctx, subscription, correlation);
 					if (logger.isDebugEnabled())
 						logger.debug("Created subscription; " + sub.toString());
 					SubscriptionManagerFactory.getInstance().addSubscription(sub);
@@ -200,7 +199,7 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 	 * 
 	 * @param context
 	 * @param subscription
-	 * @param correlation 
+	 * @param correlation
 	 * @throws Exception
 	 */
 	private Subscription parseSubscribe(String sessionId, String destination, String user, String password,

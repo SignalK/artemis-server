@@ -34,11 +34,11 @@ public class JsBaseInterceptor extends BaseInterceptor {
 		engine.getContext().setAttribute("__NASHORN_POLYFILL_TIMER__", globalScheduledThreadPool,
 				ScriptContext.ENGINE_SCOPE);
 		
-//		try {
-//			engine.eval(IOUtils.toString(getIOStream("jsext/nashorn-polyfill.js")));
-//		} catch (ScriptException | IOException e) {
-//			logger.error(e, e);
-//		}
+		try {
+			engine.eval(IOUtils.toString(getIOStream("jsext/nashorn-polyfill.js")));
+		} catch (ScriptException | IOException e) {
+			logger.error(e, e);
+		}
 	}
 	
 	protected static InputStream getIOStream(String path) {

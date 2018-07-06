@@ -95,18 +95,12 @@ public class N2kMsgInterceptor extends JsBaseInterceptor implements Interceptor 
 			rootFolder = ResourceFolder.create(getClass().getClassLoader(), resourceDir, Charsets.UTF_8.name());
 		}
 		
-		ScriptContext n2kContext = new SimpleScriptContext();
-		n2kContext.setBindings(engine.createBindings(), ScriptContext.ENGINE_SCOPE);
-		n2kContext.setBindings(engine.createBindings(), ScriptContext.GLOBAL_SCOPE);
-		Bindings bindings = n2kContext.getBindings(ScriptContext.ENGINE_SCOPE);
-		Require.enable(engine, rootFolder,bindings);
-		
 		if(logger.isDebugEnabled())logger.debug("Starting nashorn env from: {}", rootFolder.getPath());
 		
 		if(logger.isDebugEnabled())logger.debug("Load parser: {}", "n2k-signalk/dist/bundle.js");
-		engine.eval(IOUtils.toString(getIOStream("jsext/nashorn-polyfill.js")),n2kContext);
-		engine.eval(IOUtils.toString(getIOStream("n2k-signalk/dist/bundle.js")),bindings);
-		n2kMapper = n2kContext.getAttribute("n2kMapper");
+		
+		engine.eval(IOUtils.toString(getIOStream("n2k-signalk/dist/bundle.js")));
+		n2kMapper = engine.get("n2kMapper");
 		if(logger.isDebugEnabled())logger.debug("Parser: {}",n2kMapper);
 		
 		// create an Invocable object by casting the script engine object
@@ -160,7 +154,7 @@ public class N2kMsgInterceptor extends JsBaseInterceptor implements Interceptor 
 					logger.error(e, e);
 					throw new ActiveMQException(ActiveMQExceptionType.INTERNAL_ERROR, e.getMessage(), e);
 				}
-
+				return true;
 			}
 		}
 		return true;
