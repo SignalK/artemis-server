@@ -105,6 +105,7 @@ public class GitService extends BaseApiService {
 							int p = project.lastIndexOf("/");
 							String name=(p>0)? project.substring(p+1):project;
 							runNpmInstall(getLogOutputFile("output.log"), new File(staticDir, SLASH + name));
+							runNpmBuild(getLogOutputFile("output.log"), new File(staticDir, SLASH + name));
 						}
 					} catch (Exception e) {
 						logger.error(e,e);
@@ -153,6 +154,7 @@ public class GitService extends BaseApiService {
 						String name=(p>0)? project.substring(p+1):project;
 						if (upgrade(name) && npm) {
 							runNpmInstall(getLogOutputFile("output.log"), new File(staticDir, SLASH + name));
+							runNpmBuild(getLogOutputFile("output.log"), new File(staticDir, SLASH + name));
 						}
 					} catch (Exception e) {
 						logger.error(e,e);
@@ -219,6 +221,39 @@ public class GitService extends BaseApiService {
 	private void runNpmInstall(final File output, File destDir) throws Exception {
 		FileUtils.writeStringToFile(output, "\nBeginning npm install", true);
 		ProcessBuilder pb = new ProcessBuilder("npm", "install");
+		Map<String, String> env = System.getenv();
+		if (env.containsKey("PATH")) {
+			pb.environment().put("PATH", env.get("PATH"));
+		}
+		if (env.containsKey("Path")) {
+			pb.environment().put("Path", env.get("Path"));
+		}
+		if (env.containsKey("path")) {
+			pb.environment().put("path", env.get("path"));
+		}
+		pb.directory(destDir);
+		pb.redirectErrorStream(true);
+		pb.redirectOutput(Redirect.appendTo(output));
+		final Process p = pb.start();
+
+		try {
+			p.waitFor();
+			FileUtils.writeStringToFile(output, "\nDONE: Npm ended sucessfully", true);
+		} catch (Exception e) {
+			try {
+				logger.error(e);
+				FileUtils.writeStringToFile(output, "\nNpm ended badly:" + e.getMessage(), true);
+				FileUtils.writeStringToFile(output, "\n" + ExceptionUtils.getStackTrace(e), true);
+			} catch (IOException e1) {
+				logger.error(e1);
+			}
+		}
+
+	}
+	
+	private void runNpmBuild(final File output, File destDir) throws Exception {
+		FileUtils.writeStringToFile(output, "\nBeginning npm build", true);
+		ProcessBuilder pb = new ProcessBuilder("npm", "run","build");
 		Map<String, String> env = System.getenv();
 		if (env.containsKey("PATH")) {
 			pb.environment().put("PATH", env.get("PATH"));

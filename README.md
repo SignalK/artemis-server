@@ -16,48 +16,20 @@ Installation
 
 The artemis server is normally installed as the server part of signalk-java (https://github.com/SignalK/signalk-java) project, which includes the supporting web interface and misc config UI etc.
 
-The default signalk-java installs the old java server, to get this new version ssh onto the host:
-
-```
-	$ sudo apt-get update
-	$ sudo apt-get upgrade
-	$ sudo apt install apt-transport-https
-	
-	$ curl -sL https://repos.influxdata.com/influxdb.key | sudo apt-key add -
-	$ lsb_release -a  
-		This gives us the OS version could be wheezy, jessie, 
-		
-	For jessie or Debian 8.0
-		$ echo "deb https://repos.influxdata.com/debian jessie stable" | sudo tee /etc/apt/sources.list.d/influxdb.list
-
-	For wheezy or Debian 7.0
-		$ echo "deb https://repos.influxdata.com/debian wheezy stable" | sudo tee /etc/apt/sources.list.d/influxdb.list
-		
-	Then
-	
-	$ sudo apt update
-	$ sudo apt-get install influxdb
-	
-	You can start it immediately so we can continue setting up the server
-	$ sudo service influxdb start
-	
-	$ cd signalk-java
-	$ git pull
-	$ git checkout artemis
-	$ mvn exec:java
-	
-```
+The default signalk-java installs the old java server, to get this new version see signalk-java README
 
 Development
 ===========
 
-Clone the project from github in the normal way. The project uses maven to build, if you use an IDE like eclipse, netbeans, or intelliJ it should build automatically. 
+Clone this project and signalk-java from github in the normal way. The artemis project uses maven to build, if you use an IDE like eclipse, netbeans, or intelliJ it should build automatically. 
+
+TODO: more needed here about local builds for dev...
 
 
 NMEA
 ====
 
-Uses the signalk-parser-nmea0183 project modified to run under java8 nashorn, and to be useable directly from the java jar file without the full npm install process. This means the src/main/resources/dist/bundle.js file is commited to git, but as its not expected to change often, and greatly simplifies deployment that disadvantage is accepted for now.
+Artemis server uses the signalk-parser-nmea0183 project modified to run under java8 nashorn, and to be useable directly from the java jar file without the full npm install process. This means the src/main/resources/dist/bundle.js file is commited to git, but as its not expected to change often, and greatly simplifies deployment that disadvantage is accepted for now.
 
 To merge future changes from the signalk-parser-nmea0183 project, clone the signalk-parser-nmea0183 project separately, and run the following to create an es5 transpiled version:
 
