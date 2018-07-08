@@ -80,7 +80,7 @@ public class FullMsgInterceptor extends BaseInterceptor implements Interceptor {
 				} catch (Exception e) {
 					logger.error(e,e);
 				}
-				return false;
+				
 			}
 		
 		}

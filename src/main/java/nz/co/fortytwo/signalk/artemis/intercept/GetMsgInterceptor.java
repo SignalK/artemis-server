@@ -196,7 +196,7 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 					logger.error(e, e);
 					throw new ActiveMQException(ActiveMQExceptionType.INTERNAL_ERROR, e.getMessage(), e);
 				}
-				return false;
+
 			}
 		}
 		return true;

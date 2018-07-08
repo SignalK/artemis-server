@@ -125,7 +125,7 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 							logger.debug("SubscribeMsg processed unsubscribe {}", node);
 					}
 				}
-				return false;
+				
 			}
 			
 		}
