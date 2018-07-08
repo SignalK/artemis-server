@@ -155,11 +155,13 @@ public class NMEAMsgInterceptor extends JsBaseInterceptor implements Interceptor
 					if (logger.isDebugEnabled())
 						logger.debug("Processed NMEA:[" + result + "]");
 
-					if (result == null || result.toString().startsWith("Error")) {
+					if (result==null || StringUtils.isBlank(result.toString())|| result.toString().startsWith("Error")) {
 						logger.error(bodyStr + "," + result);
 						return true;
 					}
 					Json json = Json.read(result.toString());
+					if(!json.has("delta"))return false;
+					
 					json = json.at("delta");
 					json.set(SignalKConstants.CONTEXT, vessels + dot + Util.fixSelfKey(self_str));
 					

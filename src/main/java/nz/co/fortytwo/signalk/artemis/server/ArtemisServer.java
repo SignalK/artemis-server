@@ -41,6 +41,11 @@ import java.util.Properties;
 import javax.jmdns.JmmDNS;
 import javax.jmdns.ServiceInfo;
 
+import org.apache.activemq.artemis.api.core.ActiveMQException;
+import org.apache.activemq.artemis.api.core.client.ClientConsumer;
+import org.apache.activemq.artemis.api.core.client.ClientMessage;
+import org.apache.activemq.artemis.api.core.client.ClientSession;
+import org.apache.activemq.artemis.api.core.client.MessageHandler;
 import org.apache.activemq.artemis.core.server.ActiveMQServer;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.commons.io.FileUtils;
@@ -56,6 +61,7 @@ import io.netty.util.internal.logging.Log4J2LoggerFactory;
 import nz.co.fortytwo.signalk.artemis.service.ChartService;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.Util;
 
 
 
@@ -73,6 +79,8 @@ public final class ArtemisServer {
 	private nz.co.fortytwo.signalk.artemis.server.SerialPortManager serialPortManager;
 	private nz.co.fortytwo.signalk.artemis.server.NettyServer skServer;
 	private nz.co.fortytwo.signalk.artemis.server.NettyServer nmeaServer;
+	private ClientSession session;
+	private ClientConsumer consumer;
 
 	public ArtemisServer() throws Exception {
 		init();
@@ -94,6 +102,9 @@ public final class ArtemisServer {
 
 		embedded = new EmbeddedActiveMQ();
 		embedded.start();
+		
+		//start incoming message consumer
+		startIncomingConsumer();
 		
 		// start serial?
 		if(Config.getConfigPropertyBoolean(ENABLE_SERIAL)){
@@ -147,6 +158,27 @@ public final class ArtemisServer {
 	}
 
 
+	private void startIncomingConsumer() throws Exception {
+		
+			session = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),Config.getConfigProperty(Config.ADMIN_PWD));
+			consumer = session.createConsumer(Config.INCOMING_RAW);
+			consumer.setMessageHandler(new MessageHandler() {
+				
+				@Override
+				public void onMessage(ClientMessage message) {
+					try {
+						message.acknowledge();
+					} catch (ActiveMQException e) {
+						logger.error(e, e);
+					}
+					logger.debug("Acknowledge {}", message);
+					
+				}
+			});
+			session.start();
+			
+	}
+
 	private static void addShutdownHook(final ArtemisServer server) {
 		Runtime.getRuntime().addShutdownHook(new Thread("shutdown-hook") {
 			@Override
@@ -158,6 +190,20 @@ public final class ArtemisServer {
 	}
 
 	public void stop() {
+		if(consumer!=null) {
+			try {
+				consumer.close();
+			} catch (ActiveMQException e) {
+				logger.error(e, e);
+			}
+		}
+		if(session!=null) {
+			try {
+				session.close();
+			} catch (ActiveMQException e) {
+				logger.error(e,e);
+			}
+		}
 		if (skServer != null) {
 			skServer.shutdownServer();
 			skServer = null;
