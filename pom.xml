@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>nz.co.fortytwo.signalk</groupId>
@@ -9,7 +10,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<artemis.version>2.3.0</artemis.version>
+		<artemis.version>2.6.2</artemis.version>
 		<!-- <netty.version>4.1.5.Final</netty.version> -->
 		<log4j.version>2.8.2</log4j.version>
 		<slf4j.version>1.7.25</slf4j.version>
@@ -186,24 +187,18 @@
 			<version>${jersey.version}</version>
 			<type>pom</type>
 		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>25.1-jre</version>
+		</dependency>
 		<!-- xml BSD -->
 		<dependency>
 			<groupId>dom4j</groupId>
 			<artifactId>dom4j</artifactId>
 			<version>1.6.1</version>
 		</dependency>
-		<!-- jna LGPL, Apache -->
-		<dependency>
-			<groupId>net.java.dev.jna</groupId>
-			<artifactId>jna</artifactId>
-			<version>4.4.0</version>
-		</dependency>
-		<!-- BSD -->
-		<!-- <dependency> -->
-		<!-- <groupId>com.github.purejavacomm</groupId> -->
-		<!-- <artifactId>purejavacomm</artifactId> -->
-		<!-- <version>1.0.2.RELEASE</version> -->
-		<!-- </dependency> -->
+
 		<dependency>
 			<groupId>com.fazecast</groupId>
 			<artifactId>jSerialComm</artifactId>
@@ -216,12 +211,6 @@
 			<version>4.3.2</version>
 
 		</dependency>
-		<!-- <dependency> -->
-		<!-- <groupId>org.apache.httpcomponents</groupId> -->
-		<!-- <artifactId>httpcore</artifactId> -->
-		<!-- <version>4.3.1</version> -->
-
-		<!-- </dependency> -->
 
 		<!-- zeroconf apache licence -->
 		<dependency>
@@ -247,18 +236,6 @@
 			<version>2.4</version>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/io.netty/netty-codec -->
-		<!-- <dependency> -->
-		<!-- <groupId>io.netty</groupId> -->
-		<!-- <artifactId>netty-codec</artifactId> -->
-		<!-- <version>${netty.version}</version> -->
-		<!-- </dependency> -->
-
-		<!-- <dependency> -->
-		<!-- <groupId>io.netty</groupId> -->
-		<!-- <artifactId>netty-handler</artifactId> -->
-		<!-- <version>${netty.version}</version> -->
-		<!-- </dependency> -->
 		<!-- MIT -->
 		<dependency>
 			<groupId>com.coveo</groupId>
@@ -297,18 +274,7 @@
 			<version>2.2.8</version>
 			<scope>test</scope>
 		</dependency>
-		<!-- <dependency> -->
-		<!-- <groupId>io.apptik.json</groupId> -->
-		<!-- <artifactId>json-generator</artifactId> -->
-		<!-- <version>1.0.4</version> -->
-		<!-- <scope>test</scope> -->
-		<!-- </dependency> -->
-		<!-- <dependency> -->
-		<!-- <groupId>io.apptik.json</groupId> -->
-		<!-- <artifactId>json-schema</artifactId> -->
-		<!-- <version>1.0.4</version> -->
-		<!-- <scope>test</scope> -->
-		<!-- </dependency> -->
+		
 	</dependencies>
 	<build>
 		<plugins>
