@@ -14,7 +14,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
-import nz.co.fortytwo.signalk.artemis.util.Secured;
 
 @Path("/signalk/v1/logger/listLogs")
 public class LogListService  {
@@ -25,7 +24,7 @@ public class LogListService  {
 
 	private static Logger logger = LogManager.getLogger(LogListService.class);
 
-	@Secured
+	
 	@GET
 	public Response onGet(@QueryParam("logDir")String logDir) {
 		

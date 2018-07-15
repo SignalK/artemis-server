@@ -44,7 +44,6 @@ import com.sun.jersey.multipart.FormDataMultiPart;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
-import nz.co.fortytwo.signalk.artemis.util.Secured;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 import nz.co.fortytwo.signalk.artemis.util.ZipUtils;
 
@@ -60,7 +59,7 @@ public class ChartService  {
 		logger.info("Startup ChartService");
 	}
 
-	@Secured
+	
 	@POST
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@Produces("application/json")

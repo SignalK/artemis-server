@@ -16,8 +16,6 @@ import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import nz.co.fortytwo.signalk.artemis.util.Secured;
-
 
 @Path( "/signalk/v1/logger/getLogs")
 public class GetLogService  {
@@ -28,7 +26,7 @@ public class GetLogService  {
 
 	private static Logger logger = LogManager.getLogger(GetLogService.class);
 
-	@Secured
+	
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
 	public Response getLog(
