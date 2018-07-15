@@ -22,7 +22,7 @@ import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.Secured;
 
-@Secured
+
 @Path( "/")
 public class StaticService {
 
@@ -35,12 +35,12 @@ public class StaticService {
 
 	private static java.nio.file.Path staticDir = Paths.get(Config.getConfigProperty(ConfigConstants.STATIC_DIR));
 	
-	@Secured
+	
 	@GET
 	public Response get(@Context HttpServletRequest req) {
 		return getResponse("/index.html",req);
 	}
-	@Secured
+	
 	@GET
 	@Path( "{file:[^?]*}")
 	public Response getResource(@Context HttpServletRequest req) {

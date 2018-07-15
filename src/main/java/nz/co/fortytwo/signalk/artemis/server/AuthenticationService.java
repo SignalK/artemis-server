@@ -14,7 +14,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.impl.crypto.MacProvider;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 
-@Path("/authentication")
+@Path("/authenticate")
 public class AuthenticationService {
 
 	private static SecretKey key = MacProvider.generateKey();

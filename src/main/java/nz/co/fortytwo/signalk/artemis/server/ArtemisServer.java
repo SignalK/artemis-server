@@ -59,6 +59,7 @@ import org.atmosphere.nettosphere.Nettosphere;
 
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Log4J2LoggerFactory;
+import nz.co.fortytwo.signalk.artemis.filter.AuthenticationFilter;
 import nz.co.fortytwo.signalk.artemis.service.ChartService;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 
@@ -126,7 +127,7 @@ public final class ArtemisServer {
 						.maxChunkContentLength(1024*1024)
 						.socketKeepAlive(true)
 						.enablePong(false)
-						//.initParam(ApplicationConfig.PROPERTY_SESSION_SUPPORT, "true")
+						.initParam(ApplicationConfig.PROPERTY_SESSION_SUPPORT, "true")
 						.initParam(ApplicationConfig.ANALYTICS, "false")
 						.initParam("jersey.config.server.provider.packages","nz.co.fortytwo.signalk.artemis")
 						.initParam("jersey.config.server.provider.classnames","org.glassfish.jersey.media.multipart.MultiPartFeature")
@@ -137,7 +138,7 @@ public final class ArtemisServer {
 						.initParam("org.atmosphere.cpr.Broadcaster.writeTimeout", "30000")
 						.initParam("org.atmosphere.cpr.broadcasterLifeCyclePolicy","EMPTY_DESTROY")
 						.initParam("org.atmosphere.websocket.WebSocketProcessor","nz.co.fortytwo.signalk.artemis.service.SignalkWebSocketProcessor")
-						//.initParam("org.atmosphere.interceptor.HeartbeatInterceptor.clientHeartbeatFrequencyInSeconds", "-1")
+						//.resource(AuthenticationFilter.class)
 						.port(8080)
 						.host("0.0.0.0")
 					.build()
