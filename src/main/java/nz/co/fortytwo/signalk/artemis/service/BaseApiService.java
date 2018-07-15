@@ -23,7 +23,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.cpr.AtmosphereResourceEvent;
+import org.atmosphere.cpr.AtmosphereResourceEventListener;
+import org.atmosphere.cpr.AtmosphereResourceEventListenerAdapter;
+import org.atmosphere.cpr.AtmosphereResourceHeartbeatEventListener;
+import org.atmosphere.cpr.AtmosphereResourceImpl;
+import org.atmosphere.cpr.AtmosphereResourceSession;
+import org.atmosphere.cpr.AtmosphereResourceSessionFactory;
 import org.atmosphere.cpr.BroadcasterFactory;
+import org.atmosphere.websocket.WebSocketEventListener.WebSocketEvent;
 import org.atmosphere.websocket.WebSocketEventListenerAdapter;
 import org.jgroups.util.UUID;
 
@@ -97,7 +104,7 @@ public class BaseApiService {
 
 	protected void addCloseListener(AtmosphereResource resource) {
 		
-		resource.addEventListener( new WebSocketEventListenerAdapter() {
+		resource.addEventListener( new AtmosphereResourceEventListenerAdapter() {
 			
 			@Override
 			public void onThrowable(AtmosphereResourceEvent event) {
@@ -106,7 +113,7 @@ public class BaseApiService {
 				} catch ( IllegalStateException | IOException e) {
 					logger.error(e,e);
 				}
-				if (logger.isDebugEnabled())logger.debug("onThrowable: {}",event);
+				if (logger.isDebugEnabled())logger.debug("websocket.onThrowable: {}",event);
 				
 			}
 		    /**
@@ -114,7 +121,7 @@ public class BaseApiService {
 		     */
 		    @Override
 		    public void onDisconnect(AtmosphereResourceEvent event) {
-		    	if (logger.isDebugEnabled())logger.debug("onDisconnect: {}",event);
+		    	if (logger.isDebugEnabled())logger.debug("websocket.onDisconnect: {}",event);
 		        try {
 					event.getResource().close();
 				} catch ( IllegalStateException | IOException e) {
@@ -125,7 +132,7 @@ public class BaseApiService {
 
 			@Override
 			public void onClose(AtmosphereResourceEvent event) {
-				if (logger.isDebugEnabled())logger.debug("onClose: {}",event);
+				if (logger.isDebugEnabled())logger.debug("websocket.onClose: {}",event);
 				closeSession();
 				try {
 					SubscriptionManagerFactory.getInstance().removeByTempQ(getTempQ());
@@ -138,21 +145,22 @@ public class BaseApiService {
 			@Override
 			public void onBroadcast(AtmosphereResourceEvent event) {
 				lastBroadcast=System.currentTimeMillis();
-				if (logger.isDebugEnabled())logger.debug("onBroadcast: {}",event);
+				if (logger.isDebugEnabled())logger.debug("websocket.onBroadcast: {}, {}",resource.uuid(),event);
 				super.onBroadcast(event);
 			}
 			
 			@Override
-			public void onMessage(WebSocketEvent event) {
-				lastBroadcast=System.currentTimeMillis();
-				if (logger.isDebugEnabled())logger.debug("onWebsocketMessage: {}",event);
-				super.onMessage(event);
+			public void onHeartbeat(AtmosphereResourceEvent event) {
+				//lastBroadcast=System.currentTimeMillis();
+				if (logger.isDebugEnabled())logger.debug("websocket.onHeartbeat, {}, {}",resource.uuid(),event);
+				//super.onHeartbeat(event);
 			}
+			
 			
 		});
 		
 	}
-	public void setConsumer(AtmosphereResource resource, boolean resumeAfter) throws ActiveMQException {
+	public boolean setConsumer(AtmosphereResource resource, boolean resumeAfter) throws ActiveMQException {
 		
 		if(getConsumer().getMessageHandler()==null){
 			if (logger.isDebugEnabled())logger.debug("Adding consumer messageHandler : {}",getTempQ());
@@ -166,12 +174,12 @@ public class BaseApiService {
 				@Override
 				public void onMessage(ClientMessage message) {
 					try {
-						if (logger.isDebugEnabled())logger.debug("onMessage {}",message);
+						if (logger.isDebugEnabled())logger.debug("onMessage for client {}",message);
 						String recv = Util.readBodyBufferToString(message);
 						message.acknowledge();
 						if(StringUtils.isBlank(recv)) recv="{}";
 						
-						if (logger.isDebugEnabled())logger.debug("onMessage for {}, {}",getTempQ(),recv);
+						if (logger.isDebugEnabled())logger.debug("onMessage for client at {}, {}",getTempQ(),recv);
 						
 						if(resumeAfter){
 							resource.write(recv);
@@ -187,8 +195,9 @@ public class BaseApiService {
 					} 
 				}
 			});
+			return true;
 		}
-		
+		return false;
 	}
 	private void closeSession()  {
 	

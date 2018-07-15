@@ -53,6 +53,7 @@ import org.apache.log4j.PropertyConfigurator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
+import org.atmosphere.config.FrameworkConfiguration;
 import org.atmosphere.cpr.ApplicationConfig;
 import org.atmosphere.nettosphere.Nettosphere;
 
@@ -60,6 +61,7 @@ import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Log4J2LoggerFactory;
 import nz.co.fortytwo.signalk.artemis.service.ChartService;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
+
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
@@ -123,24 +125,26 @@ public final class ArtemisServer {
 						.supportChunking(true)
 						.maxChunkContentLength(1024*1024)
 						.socketKeepAlive(true)
+						.enablePong(false)
 						//.initParam(ApplicationConfig.PROPERTY_SESSION_SUPPORT, "true")
 						.initParam(ApplicationConfig.ANALYTICS, "false")
-						.initParam("jersey.config.server.provider.packages","nz.co.fortytwo.signalk.artemis.service")
+						.initParam("jersey.config.server.provider.packages","nz.co.fortytwo.signalk.artemis")
 						.initParam("jersey.config.server.provider.classnames","org.glassfish.jersey.media.multipart.MultiPartFeature")
 						.initParam("org.atmosphere.cpr.broadcaster.shareableThreadPool","true")
 						.initParam("org.atmosphere.cpr.broadcaster.maxProcessingThreads", "10")
 						.initParam("org.atmosphere.cpr.broadcaster.maxAsyncWriteThreads", "10")
-						.initParam("org.atmosphere.websocket.maxIdleTime", "30000")
+						.initParam("org.atmosphere.websocket.maxIdleTime", "10000")
 						.initParam("org.atmosphere.cpr.Broadcaster.writeTimeout", "30000")
-						.initParam("org.atmosphere.cpr.broadcasterLifeCyclePolicy","IDLE_RESUME")
-						//.interceptor(new AuthenticationInterceptor(conf) )
+						.initParam("org.atmosphere.cpr.broadcasterLifeCyclePolicy","EMPTY_DESTROY")
+						.initParam("org.atmosphere.websocket.WebSocketProcessor","nz.co.fortytwo.signalk.artemis.service.SignalkWebSocketProcessor")
+						//.initParam("org.atmosphere.interceptor.HeartbeatInterceptor.clientHeartbeatFrequencyInSeconds", "-1")
 						.port(8080)
 						.host("0.0.0.0")
 					.build()
 				).build();
 		
 		server.start();
-		
+	
 		skServer = new NettyServer(null, OUTPUT_TCP);
 		skServer.setTcpPort(Config.getConfigPropertyInt(TCP_PORT));
 		skServer.setUdpPort(Config.getConfigPropertyInt(UDP_PORT));
@@ -295,19 +299,28 @@ public final class ArtemisServer {
 		return txtSet;
 	}
 	
-
-
+	static {
+        System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
+        System.setProperty("java.net.preferIPv4Stack", "true");
+        System.setProperty("log4j.configurationFile", "./conf/log4j2.json");
+        System.setProperty("org.apache.logging.log4j.simplelog.StatusLogger.level","TRACE");
+		
+    }
+	
 	public static void main(String[] args) throws Exception {
-		Properties props = System.getProperties();
-		props.setProperty("java.net.preferIPv4Stack", "true");
-		//props.setProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager");
-		props.setProperty("log4j.configurationFile", "./conf/log4j2.json");
-		props.setProperty("org.apache.logging.log4j.simplelog.StatusLogger.level","TRACE");
-		System.setProperties(props);
+//		Properties props = System.getProperties();
+//		props.setProperty("java.net.preferIPv4Stack", "true");
+//		//props.setProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager");
+//		props.setProperty("log4j.configurationFile", "./conf/log4j2.json");
+//		props.setProperty("org.apache.logging.log4j.simplelog.StatusLogger.level","TRACE");
+//		System.setProperties(props);
 		
 		PropertyConfigurator.configure("./conf/log4j2.json");
 		InternalLoggerFactory.setDefaultFactory(Log4J2LoggerFactory.INSTANCE);
+		
+		
 		LoggerContext context = (org.apache.logging.log4j.core.LoggerContext) LogManager.getContext(false);
+		
 		File file = new File("./conf/log4j2.json");
 		if(!file.exists()){
 			FileUtils.copyFile(new File("./conf/log4j2.json.sample"),file);

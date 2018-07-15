@@ -16,6 +16,8 @@ import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import nz.co.fortytwo.signalk.artemis.util.Secured;
+
 
 @Path("/signalk/v1/logger/config")
 public class LoggerService {
@@ -25,7 +27,7 @@ public class LoggerService {
 	}
 
 	private static Logger logger = LogManager.getLogger(LoggerService.class);
-
+	@Secured
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getData() {
@@ -40,7 +42,7 @@ public class LoggerService {
 			return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).build();
 		}
 	}
-	
+	@Secured
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response postData( String json) {

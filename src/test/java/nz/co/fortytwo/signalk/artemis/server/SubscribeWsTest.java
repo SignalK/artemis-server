@@ -53,13 +53,12 @@ import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Test;
-
-import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.Response;
-import com.ning.http.client.ws.DefaultWebSocketListener;
-import com.ning.http.client.ws.WebSocket;
-import com.ning.http.client.ws.WebSocketUpgradeHandler;
-
+import org.asynchttpclient.AsyncHttpClient;
+import org.asynchttpclient.Response;
+import org.asynchttpclient.ws.WebSocketListener;
+import org.asynchttpclient.ws.WebSocket;
+import org.asynchttpclient.ws.WebSocketUpgradeHandler;
+import static org.asynchttpclient.Dsl.*;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
@@ -90,7 +89,7 @@ public class SubscribeWsTest extends BaseServerTest {
 	@Test
 	public void shouldGetAllData() throws Exception {
 
-		try (final AsyncHttpClient c = new AsyncHttpClient();) {
+		try (final AsyncHttpClient c = asyncHttpClient();) {
 		
 			String resp = getUrlAsString(c,SIGNALK_API,restPort);
 			 Json respJson = Json.read(resp);
@@ -101,7 +100,7 @@ public class SubscribeWsTest extends BaseServerTest {
 	@Test
 	public void shouldGetWsPublicUrls() throws Exception {
 
-		try (final AsyncHttpClient c = new AsyncHttpClient();) {
+		try (final AsyncHttpClient c = asyncHttpClient();) {
 			Json json = getUrlAsJson(c,SIGNALK_DISCOVERY, restPort);
 			logger.debug("shouldGetWsPublicUrls: {}", json);
 			assertEquals("ws://localhost:" + wsPort + SIGNALK_WS,
@@ -195,7 +194,7 @@ public class SubscribeWsTest extends BaseServerTest {
 	@Test
 	public void shouldGetApiData() throws Exception {
 
-		try (final AsyncHttpClient c = new AsyncHttpClient();) {
+		try (final AsyncHttpClient c = asyncHttpClient();) {
 			// get auth
 			Response r2 = c.prepareGet("http://localhost:" + restPort + SIGNALK_API + "/vessels")
 					.setHeader("Authorization", "Basic YWRtaW46YWRtaW4=").execute().get();
@@ -211,7 +210,7 @@ public class SubscribeWsTest extends BaseServerTest {
 	@Test
 	public void shouldGetApiSelfData() throws Exception {
 
-		try (final AsyncHttpClient c = new AsyncHttpClient();) {
+		try (final AsyncHttpClient c = asyncHttpClient();) {
 
 			Response r2 = c.prepareGet("http://localhost:" + restPort + SIGNALK_API + "/self")
 					.setHeader("Authorization", "Basic YWRtaW46YWRtaW4=").execute().get();
@@ -224,7 +223,7 @@ public class SubscribeWsTest extends BaseServerTest {
 	@Test
 	public void shouldGetApiUUIDData() throws Exception {
 
-		try (final AsyncHttpClient c = new AsyncHttpClient();) {
+		try (final AsyncHttpClient c = asyncHttpClient();) {
 
 			Response r2 = c
 					.prepareGet("http://localhost:" + restPort + SIGNALK_API + "/vessels/"+Config.getConfigProperty(ConfigConstants.UUID)+"/uuid")
@@ -238,7 +237,7 @@ public class SubscribeWsTest extends BaseServerTest {
 	@Test
 	public void shouldGetApiSubset() throws Exception {
 
-		try (final AsyncHttpClient c = new AsyncHttpClient();) {
+		try (final AsyncHttpClient c = asyncHttpClient();) {
 
 			// get a sessionid
 			// Response r1 =
@@ -257,7 +256,7 @@ public class SubscribeWsTest extends BaseServerTest {
 	@Test
 	public void shouldGetApiForSelf() throws Exception {
 
-		try (final AsyncHttpClient c = new AsyncHttpClient();) {
+		try (final AsyncHttpClient c = asyncHttpClient();) {
 
 			// get a sessionid
 			// Response r1 =
@@ -278,7 +277,7 @@ public class SubscribeWsTest extends BaseServerTest {
 	@Test
 	public void shouldGetApiForSources() throws Exception {
 
-		try (final AsyncHttpClient c = new AsyncHttpClient();) {
+		try (final AsyncHttpClient c = asyncHttpClient();) {
 
 			Response r2 = c.prepareGet("http://localhost:" + restPort + SIGNALK_API + "/sources")
 					.setHeader("Authorization", "Basic YWRtaW46YWRtaW4=").execute().get();
@@ -295,22 +294,22 @@ public class SubscribeWsTest extends BaseServerTest {
 	public void shouldGetSubscribeWsResponse() throws Exception {
 		final List<String> received = new ArrayList<String>();
 		final CountDownLatch latch = new CountDownLatch(5);
-		try (final AsyncHttpClient c = new AsyncHttpClient();) {
+		try (final AsyncHttpClient c = asyncHttpClient();) {
 
 			String restUrl = "ws://localhost:" + restPort + SIGNALK_WS;
 			logger.debug("Open websocket at: " + restUrl);		   
 			WebSocket websocket = c.prepareGet(restUrl).setHeader("Authorization", "Basic YWRtaW46YWRtaW4=")
 					.execute(new WebSocketUpgradeHandler.Builder().build()).get();
 
-			websocket.addWebSocketListener(new DefaultWebSocketListener() {
+			websocket.addWebSocketListener(new WebSocketListener() {
 
 				@Override
-				public void onMessage(byte[] message) {
+				public void onBinaryFrame(byte[] message, boolean b, int i) {
 					logger.info("received BYTES --> " + String.valueOf(message));
 				}
 
 				@Override
-				public void onMessage(String message) {
+				public void onTextFrame(String message, boolean b, int i) {
 					logger.info("received --> " + message);
 					received.add(message);
 				}
@@ -320,18 +319,30 @@ public class SubscribeWsTest extends BaseServerTest {
 					logger.error(t);
 				}
 
+				@Override
+				public void onOpen(WebSocket websocket) {
+					// TODO Auto-generated method stub
+					
+				}
+
+				@Override
+				public void onClose(WebSocket websocket, int code, String reason) {
+					// TODO Auto-generated method stub
+					
+				}
+
 
 			});
 			// subscribe
 			String subscribeMsg = getSubscriptionJson("vessels.self","navigation",1000,1000,FORMAT_DELTA,POLICY_IDEAL).toString();
-			websocket.sendMessage(subscribeMsg);
+			websocket.sendTextFrame(subscribeMsg, true, 0);
 			
 			logger.debug("Sent subscribe = " + subscribeMsg);
 	
 			latch.await(10, TimeUnit.SECONDS);
 			logger.debug("Completed receive ");
 
-			websocket.close();
+			websocket.sendCloseFrame();
 			
 			assertTrue(received.size() > 1);
 			// assertTrue(latch3.await(15, TimeUnit.SECONDS));

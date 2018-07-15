@@ -160,7 +160,7 @@ public class NMEAMsgInterceptor extends JsBaseInterceptor implements Interceptor
 						return true;
 					}
 					Json json = Json.read(result.toString());
-					if(!json.has("delta"))return false;
+					if(!json.isObject() || !json.has("delta"))return true;
 					
 					json = json.at("delta");
 					json.set(SignalKConstants.CONTEXT, vessels + dot + Util.fixSelfKey(self_str));

@@ -20,12 +20,12 @@ import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.activemq.artemis.api.core.client.MessageHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.asynchttpclient.AsyncHttpClient;
+import org.asynchttpclient.Response;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
-import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.Response;
-import com.ning.http.util.Base64;
+import com.sun.jersey.core.util.Base64;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
@@ -76,7 +76,7 @@ public class BaseServerTest {
 			// get a sessionid
 			Response r2 = null;
 			if(user!=null){
-				String auth = Base64.encode((user+":"+pass).getBytes());
+				String auth = new String(Base64.encode((user+":"+pass).getBytes()));
 				r2 = c.prepareGet("http://localhost:" + restPort + path).setHeader("Authorization", "Basic "+auth).execute().get();
 			}else{
 				r2 = c.prepareGet("http://localhost:" + restPort + path).execute().get();

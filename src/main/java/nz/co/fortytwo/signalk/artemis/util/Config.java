@@ -20,6 +20,9 @@ import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.sun.jersey.core.util.Base64;
+
+import io.jsonwebtoken.impl.crypto.MacProvider;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.service.SecurityService;
@@ -159,6 +162,8 @@ public class Config {
 		if (SystemUtils.IS_OS_WINDOWS) {
 			model.put(ConfigConstants.SERIAL_PORTS, Json.make("[\"COM1\",\"COM2\",\"COM3\",\"COM4\"]"));
 		}
+		//jwt key
+		model.put(ConfigConstants.JWT_SECRET_KEY, Json.make(new String(Base64.encode(MacProvider.generateKey().getEncoded()))));
 		model.put(ConfigConstants.SERIAL_PORT_BAUD, Json.make(38400));
 		model.put(ConfigConstants.ENABLE_SERIAL, Json.make(true));
 		model.put(ConfigConstants.TCP_PORT, Json.make(55555));

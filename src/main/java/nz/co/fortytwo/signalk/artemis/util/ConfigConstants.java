@@ -57,6 +57,9 @@ public class ConfigConstants {
 	// config constants
 	public static final String HOSTNAME = "config.server.hostname";
 
+	//secret key for web tokens
+	public static final String JWT_SECRET_KEY = "config.server.jwt.secret.key";
+	
 	public static final String USBDRIVE = "config.server.files.usb.usbdrive";
 	public static final String CLOCK_source = "config.server.clock.src";
 

@@ -51,6 +51,7 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.Secured;
 
 /*
  * Processes REST requests for Signal K installs from Github
@@ -81,6 +82,7 @@ public class GitService extends BaseApiService {
 	 * @return
 	 * @throws IOException
 	 */
+	@Secured
 	@GET
 	@Path("install")
 	@Produces(MediaType.TEXT_PLAIN)
@@ -131,6 +133,7 @@ public class GitService extends BaseApiService {
 	 * @return
 	 * @throws IOException
 	 */
+	@Secured
 	@GET
 	@Path("upgrade")
 	@Produces(MediaType.TEXT_PLAIN)
