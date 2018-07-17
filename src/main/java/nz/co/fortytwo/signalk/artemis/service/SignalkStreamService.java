@@ -1,6 +1,8 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT_DELTA;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PERIOD;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.POLICY_IDEAL;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SUBSCRIBE;
 
 import java.io.IOException;
@@ -10,6 +12,7 @@ import java.util.TimerTask;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
@@ -35,30 +38,41 @@ public class SignalkStreamService extends BaseApiService {
 
 	private static Timer timer = new Timer();
 
-	@GET
 	@Suspend(contentType = MediaType.APPLICATION_JSON)
-	public String getWS() throws Exception {
+	@GET
+	public String getWS(@QueryParam("subscribe")String subscribe) throws Exception {
 
 		if (logger.isDebugEnabled())
-			logger.debug("get : ws for {}", resource.getRequest().getRemoteUser());
-		// return getWebsocket();
-		return "";
+			logger.debug("get : ws for {}, subscribe={}", resource.getRequest().getRemoteUser(),subscribe);
+		if("all".equals(subscribe)) {
+			return getWebsocket(Util.getSubscriptionJson("vessels.self","*",1000,1000,FORMAT_DELTA,POLICY_IDEAL).toString());
+		}else{
+			return getWebsocket(Util.getSubscriptionJson("vessels.self",subscribe,1000,1000,FORMAT_DELTA,POLICY_IDEAL).toString());
+		}
+		//return "";
 	}
 
 	@Suspend(contentType = MediaType.APPLICATION_JSON)
 	@POST
 	public String post() {
-		return getWebsocket();
+		try {
+			String body = Util.readString(resource.getRequest().getInputStream(),
+					resource.getRequest().getCharacterEncoding());
+			return getWebsocket(body);
+		} catch (IOException e) {
+			logger.error(e,e);
+			return "";
+		}
+		
 	}
 
-	private String getWebsocket() {
+	private String getWebsocket(String body) {
 		try {
 			String correlationId = "stream-" + resource.uuid(); // UUID.randomUUID().toString();
 
 			// resource.suspend();
 
-			String body = Util.readString(resource.getRequest().getInputStream(),
-					resource.getRequest().getCharacterEncoding());
+			
 			if (logger.isDebugEnabled())
 				logger.debug("Correlation: {}, Post: {}", correlationId, body);
 			String user = resource.getRequest().getHeader("X-User");
@@ -66,8 +80,7 @@ public class SignalkStreamService extends BaseApiService {
 			if (logger.isDebugEnabled()) {
 				logger.debug("User:{}:{}", user, pass);
 			}
-			// if(StringUtils.isBlank(body)) return "";
-
+			
 			initSession(correlationId);
 			if(setConsumer(resource, false)) {
 				addCloseListener(resource);

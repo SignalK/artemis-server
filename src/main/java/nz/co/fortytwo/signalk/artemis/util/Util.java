@@ -495,5 +495,18 @@ public class Util {
 		return result.toString(characterEncoding);
 		}
 	}
+	
+	public static Json getSubscriptionJson(String context, String path, int period, int minPeriod, String format, String policy) {
+		Json json = Json.read("{\"context\":\"" + context + "\", \"subscribe\": []}");
+		Json sub = Json.object();
+		sub.set("path", path);
+		sub.set("period", period);
+		sub.set("minPeriod", minPeriod);
+		sub.set("format", format);
+		sub.set("policy", policy);
+		json.at("subscribe").add(sub);
+		logger.debug("Created json sub: " + json);
+		return json;
+	}
 }
 
