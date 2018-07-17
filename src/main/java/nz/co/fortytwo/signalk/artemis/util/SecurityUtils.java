@@ -1,8 +1,13 @@
 package nz.co.fortytwo.signalk.artemis.util;
 
+import java.io.File;
+import java.io.InputStream;
+
 import javax.crypto.SecretKey;
 import javax.ws.rs.core.HttpHeaders;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,6 +21,23 @@ import io.jsonwebtoken.impl.crypto.MacProvider;
 import nz.co.fortytwo.signalk.artemis.server.AuthenticationInterceptor;
 
 public class SecurityUtils {
+	
+	static {
+		//make sure we have a security conf.
+		File secureConf = new File("./conf/security-conf.json");
+		if(!secureConf.exists()) {
+			//make one
+			
+			try(InputStream in = SecurityUtils.class.getResource("security-conf.json.default").openStream()){
+				String defaultSecurity = IOUtils.toString(in);
+				FileUtils.writeStringToFile(secureConf, defaultSecurity);
+			}catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+		}
+		
+	}
 	
 	private static Logger logger = LogManager.getLogger(AuthenticationInterceptor.class);
 

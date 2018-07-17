@@ -1,0 +1,209 @@
+{
+	"users": [
+		{
+			"name": "admin",
+			"password": "admin",
+			"lastPasswordChange": "1969-12-31T23:59:59.999Z",
+			"email": "",
+			"roles": [
+				"admin"
+			]
+		}
+	],
+	"roles": {
+		"skipper": {
+			"allowed": [
+				{
+					"name": "all",
+					"read": true,
+					"write": true
+				}
+			],
+			"denied": []
+		},
+		"crew": {
+			"allowed": [
+				{
+					"name": "all",
+					"read": true,
+					"write": false
+				}
+			],
+			"denied": [
+				{
+					"name": "config",
+					"read": true,
+					"write": true
+				}
+			]
+		},
+		"guests": {
+			"allowed": [
+				{
+					"name": "vessels.self.environment",
+					"read": true,
+					"write": false
+				},
+				{
+					"name": "vessels.self.navigation",
+					"read": true,
+					"write": false
+				},
+				{
+					"name": "vessels.self.communication.email",
+					"read": true,
+					"write": false
+				},
+				{
+					"name": "vessels.self.communication.skipperName",
+					"read": true,
+					"write": false
+				},
+				{
+					"name": "vessels.self.communication.callsignVhf",
+					"read": true,
+					"write": false
+				}
+			],
+			"denied": []
+		},
+		"friend": {
+			"allowed": [
+				{
+					"name": "resources",
+					"read": true,
+					"write": false
+				},
+				{
+					"name": "vessels.self.communication",
+					"read": true,
+					"write": false
+				},
+				{
+					"name": "vessels.self.design",
+					"read": true,
+					"write": false
+				},
+				{
+					"name": "vessels.self.environment",
+					"read": true,
+					"write": false
+				},
+				{
+					"name": "vessels.self.navigation",
+					"read": true,
+					"write": false
+				}
+			],
+			"denied": [
+				{
+					"name": "vessels.self.environment.inside",
+					"read": true,
+					"write": true
+				},
+				{
+					"name": "vessels.self.navigation.gnss",
+					"read": true,
+					"write": true
+				},
+				{
+					"name": "vessels.self.navigation.log",
+					"read": true,
+					"write": true
+				},
+				{
+					"name": "vessels.self.navigation.racing",
+					"read": true,
+					"write": true
+				}
+			]
+		},
+		"official": {
+			"allowed": [
+				{
+					"name": "vessels.self.environment",
+					"read": true,
+					"write": false
+				},
+				{
+					"name": "vessels.self.navigation.position",
+					"read": true,
+					"write": false
+				},
+				{
+					"name": "vessels.self.navigation.courseOverGroundTrue",
+					"read": true,
+					"write": false
+				},
+				{
+					"name": "vessels.self.navigation.destination",
+					"read": true,
+					"write": false
+				},
+				{
+					"name": "vessels.self.navigation.speedOverGround",
+					"read": true,
+					"write": false
+				},
+				{
+					"name": "vessels.self.communication.callsignVhf",
+					"read": true,
+					"write": false
+				},
+				{
+					"name": "vessels.self.communication.callsignHf",
+					"read": true,
+					"write": false
+				},
+				{
+					"name": "vessels.self.communication.skipperName",
+					"read": true,
+					"write": false
+				}
+			],
+			"denied": [
+				{
+					"name": "vessels.self.environment.inside",
+					"read": true,
+					"write": true
+				}
+			]
+		},
+		"public": {
+			"allowed": [
+				{
+					"name": "vessels.self.communication.callsignVhf",
+					"read": true,
+					"write": false
+				},
+				{
+					"name": "vessels.self.navigation.position",
+					"read": true,
+					"write": false
+				},
+				{
+					"name": "vessels.self.navigation.courseOverGroundTrue",
+					"read": true,
+					"write": false
+				},
+				{
+					"name": "vessels.self.navigation.speedOverGround",
+					"read": true,
+					"write": false
+				},
+				{
+					"name": "vessels.self.communication.callsignHf",
+					"read": true,
+					"write": false
+				}
+			],
+			"denied": [
+				{
+					"name": "undefined",
+					"read": true,
+					"write": true
+				}
+			]
+		}
+	}
+}
