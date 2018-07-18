@@ -32,6 +32,7 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dom4j.Document;
@@ -56,13 +57,13 @@ public class ChartService  {
 	protected static TDBService influx = new InfluxDbService();
 
 	public ChartService() {
-		logger.info("Startup ChartService");
+		
 	}
 
 	
 	@POST
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
-	@Produces("application/json")
+	//@Produces("application/json")
 	
 	public Response post(FormDataMultiPart form) throws Exception {
 		if(logger.isDebugEnabled())logger.debug("Uploading file..");
@@ -71,7 +72,9 @@ public class ChartService  {
 		ContentDisposition header =filePart.getContentDisposition();
 		InputStream fileInputStream = filePart.getValueAs(InputStream.class);
 		String fileName = header.getFileName();
-		
+		if(!fileName.endsWith(".zip")) {
+			return Response.status(HttpStatus.SC_BAD_REQUEST).entity(fileName +": Only zip files allowed!").build();
+		}
 		File dest = new File(Config.getConfigProperty(STATIC_DIR) + Config.getConfigProperty(MAP_DIR) + fileName);
 		
 		if(contentRange!=null&& contentRange.get(0)!=null){
@@ -84,12 +87,16 @@ public class ChartService  {
 			
 			java.nio.file.Path destFile=Paths.get(dest.toURI());
 			if(start==0){
-				if(logger.isDebugEnabled())logger.debug("Uploading new file: {}", dest.getAbsoluteFile());
+				if(logger.isDebugEnabled())logger.debug("Uploading new file: {}, size:{}", dest.getAbsoluteFile(),total);
 				FileUtils.deleteQuietly(destFile.toFile());
 				FileUtils.touch(destFile.toFile());
+			}else {
+				if(logger.isDebugEnabled())logger.debug("Uploading continuation: {} : size:{}, this:{}-{}", dest.getAbsoluteFile(),total, start, end);
 			}
 			Files.write(destFile,IOUtils.toByteArray(fileInputStream), StandardOpenOption.APPEND);
-			if(total==end)install(dest);
+			if(total == end+1) {
+				install(dest);
+			}
 		}else{
 			FileUtils.copyInputStreamToFile(fileInputStream, dest);
 			if(logger.isDebugEnabled())logger.debug("Uploading to file: {}", dest.getAbsoluteFile());
