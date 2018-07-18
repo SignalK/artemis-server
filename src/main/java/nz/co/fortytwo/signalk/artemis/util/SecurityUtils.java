@@ -22,22 +22,6 @@ import nz.co.fortytwo.signalk.artemis.server.AuthenticationInterceptor;
 
 public class SecurityUtils {
 	
-	static {
-		//make sure we have a security conf.
-		File secureConf = new File("./conf/security-conf.json");
-		if(!secureConf.exists()) {
-			//make one
-			
-			try(InputStream in = SecurityUtils.class.getResource("security-conf.json.default").openStream()){
-				String defaultSecurity = IOUtils.toString(in);
-				FileUtils.writeStringToFile(secureConf, defaultSecurity);
-			}catch (Exception e) {
-				e.printStackTrace();
-			}
-			
-		}
-		
-	}
 	
 	private static Logger logger = LogManager.getLogger(AuthenticationInterceptor.class);
 

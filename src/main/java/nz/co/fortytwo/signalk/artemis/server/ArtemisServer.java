@@ -34,6 +34,7 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants._SIGNALK_WS_T
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -49,6 +50,7 @@ import org.apache.activemq.artemis.api.core.client.MessageHandler;
 import org.apache.activemq.artemis.core.server.ActiveMQServer;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -61,6 +63,7 @@ import io.netty.util.internal.logging.Log4J2LoggerFactory;
 import nz.co.fortytwo.signalk.artemis.service.ChartService;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 
@@ -315,8 +318,6 @@ public final class ArtemisServer {
 		
 		PropertyConfigurator.configure("./conf/log4j2.json");
 		InternalLoggerFactory.setDefaultFactory(Log4J2LoggerFactory.INSTANCE);
-		
-		
 		LoggerContext context = (org.apache.logging.log4j.core.LoggerContext) LogManager.getContext(false);
 		
 		File file = new File("./conf/log4j2.json");
@@ -325,6 +326,18 @@ public final class ArtemisServer {
 		}
 		// this will force a reconfiguration
 		context.setConfigLocation(file.toURI());
+		
+		File secureConf = new File("./conf/security-conf.json");
+		if(!secureConf.exists()) {
+			try(InputStream in = SecurityUtils.class.getResource("security-conf.json.default").openStream()){
+				String defaultSecurity = IOUtils.toString(in);
+				FileUtils.writeStringToFile(secureConf, defaultSecurity);
+			}catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+		}
+
 		new ArtemisServer();
 
 	}
