@@ -101,6 +101,9 @@ public final class ArtemisServer {
 		props.setProperty("org.apache.logging.log4j.simplelog.StatusLogger.level","TRACE");
 		System.setProperties(props);
 		logger = LogManager.getLogger(ArtemisServer.class);
+		
+		ensureSecurityConf();
+		
 		Config.getInstance();
 
 		embedded = new EmbeddedActiveMQ();
@@ -162,6 +165,19 @@ public final class ArtemisServer {
 		ChartService.reloadCharts();
 	}
 
+
+	private void ensureSecurityConf() {
+		File secureConf = new File("./conf/security-conf.json");
+		if(!secureConf.exists()) {
+			try(InputStream in = getClass().getClassLoader().getResource("security-conf.json.default").openStream()){
+				String defaultSecurity = IOUtils.toString(in);
+				FileUtils.writeStringToFile(secureConf, defaultSecurity);
+			}catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+		}
+	}
 
 	private void startIncomingConsumer() throws Exception {
 		
@@ -325,18 +341,7 @@ public final class ArtemisServer {
 			FileUtils.copyFile(new File("./conf/log4j2.json.sample"),file);
 		}
 		// this will force a reconfiguration
-		context.setConfigLocation(file.toURI());
-		
-		File secureConf = new File("./conf/security-conf.json");
-		if(!secureConf.exists()) {
-			try(InputStream in = SecurityUtils.class.getResource("security-conf.json.default").openStream()){
-				String defaultSecurity = IOUtils.toString(in);
-				FileUtils.writeStringToFile(secureConf, defaultSecurity);
-			}catch (Exception e) {
-				e.printStackTrace();
-			}
-			
-		}
+		context.setConfigLocation(file.toURI());		
 
 		new ArtemisServer();
 
