@@ -23,7 +23,7 @@
  * limitations under the License.
  *
  */
-package nz.co.fortytwo.signalk.artemis.server;
+package nz.co.fortytwo.signalk.artemis.subscription;
 
 public class SubscriptionManagerFactory {
 

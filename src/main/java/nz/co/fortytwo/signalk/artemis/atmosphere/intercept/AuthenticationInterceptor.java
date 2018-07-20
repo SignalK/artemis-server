@@ -1,4 +1,4 @@
-package nz.co.fortytwo.signalk.artemis.server;
+package nz.co.fortytwo.signalk.artemis.atmosphere.intercept;
 
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.AUTHENTICATION_SCHEME;
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.authenticateUser;

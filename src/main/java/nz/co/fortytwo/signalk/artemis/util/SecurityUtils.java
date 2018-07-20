@@ -18,7 +18,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.impl.crypto.MacProvider;
-import nz.co.fortytwo.signalk.artemis.server.AuthenticationInterceptor;
+import nz.co.fortytwo.signalk.artemis.atmosphere.intercept.AuthenticationInterceptor;
 
 public class SecurityUtils {
 	

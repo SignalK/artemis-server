@@ -10,6 +10,17 @@
 			]
 		}
 	],
+	"security": {
+            "config": {
+               "ip": ["10.1.1.40/8","127.0.0.1/8"]
+            },
+            "deny": {
+               "ip": []
+            },
+            "white": {
+               "ip": []
+            }
+         },
 	"roles": {
 		"skipper": {
 			"allowed": [

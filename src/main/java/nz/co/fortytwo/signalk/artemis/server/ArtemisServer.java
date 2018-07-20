@@ -60,6 +60,7 @@ import org.atmosphere.nettosphere.Nettosphere;
 
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Log4J2LoggerFactory;
+import nz.co.fortytwo.signalk.artemis.serial.SerialPortManager;
 import nz.co.fortytwo.signalk.artemis.service.ChartService;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
@@ -79,7 +80,7 @@ public final class ArtemisServer {
 	private static Nettosphere server;
 	private JmmDNS jmdns;
 
-	private nz.co.fortytwo.signalk.artemis.server.SerialPortManager serialPortManager;
+	private nz.co.fortytwo.signalk.artemis.serial.SerialPortManager serialPortManager;
 	private nz.co.fortytwo.signalk.artemis.server.NettyServer skServer;
 	private nz.co.fortytwo.signalk.artemis.server.NettyServer nmeaServer;
 	private ClientSession session;

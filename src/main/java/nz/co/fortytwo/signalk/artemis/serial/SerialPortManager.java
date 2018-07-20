@@ -22,7 +22,7 @@
  *
  */
 
-package nz.co.fortytwo.signalk.artemis.server;
+package nz.co.fortytwo.signalk.artemis.serial;
 
 import java.io.File;
 import java.util.ArrayList;
