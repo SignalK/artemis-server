@@ -60,6 +60,7 @@ import org.atmosphere.nettosphere.Nettosphere;
 
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Log4J2LoggerFactory;
+import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.serial.SerialPortManager;
 import nz.co.fortytwo.signalk.artemis.service.ChartService;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
@@ -141,7 +142,7 @@ public final class ArtemisServer {
 						.initParam("org.atmosphere.websocket.maxIdleTime", "10000")
 						.initParam("org.atmosphere.cpr.Broadcaster.writeTimeout", "30000")
 						.initParam("org.atmosphere.cpr.broadcasterLifeCyclePolicy","EMPTY_DESTROY")
-						.initParam("org.atmosphere.websocket.WebSocketProcessor","nz.co.fortytwo.signalk.artemis.service.SignalkWebSocketProcessor")
+						.initParam("org.atmosphere.websocket.WebSocketProcessor","nz.co.fortytwo.signalk.artemis.server.SignalkWebSocketProcessor")
 						//.resource(AuthenticationFilter.class)
 						.port(8080)
 						.host("0.0.0.0")
@@ -172,11 +173,19 @@ public final class ArtemisServer {
 		if(!secureConf.exists()) {
 			try(InputStream in = getClass().getClassLoader().getResource("security-conf.json.default").openStream()){
 				String defaultSecurity = IOUtils.toString(in);
-				FileUtils.writeStringToFile(secureConf, defaultSecurity);
+				SecurityUtils.save(defaultSecurity);
 			}catch (Exception e) {
-				e.printStackTrace();
+				logger.error(e,e);
 			}
 			
+		}else {
+			//make sure we encrypt all passwords
+			try {
+				Json conf = SecurityUtils.getSecurityConfAsJson();
+				SecurityUtils.save(conf.toString());
+			} catch (IOException e) {
+				logger.error(e,e);
+			}
 		}
 	}
 

@@ -2,9 +2,7 @@ package nz.co.fortytwo.signalk.artemis.service;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
-import java.nio.file.Paths;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -16,13 +14,11 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.atmosphere.annotation.Suspend;
-import org.atmosphere.cpr.AtmosphereResource;
 
+import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 @Path("/signalk/v1/security")
@@ -30,15 +26,13 @@ public class SignalkSecurityApiService {
 
 	private static Logger logger = LogManager.getLogger(SignalkSecurityApiService.class);
 	
-	java.nio.file.Path target = Paths.get("./conf/security-conf.json");
-	@Context 
-	private AtmosphereResource resource;
+	
 
 	public SignalkSecurityApiService() throws Exception{
 	}
 
 	/**
-	 * @param resource
+
 	 * @param path
 	 * @throws Exception
 	 */
@@ -56,7 +50,7 @@ public class SignalkSecurityApiService {
 
 			return Response.status(HttpStatus.SC_OK)
 					.type(MediaType.APPLICATION_JSON)
-					.entity(FileUtils.readFileToByteArray(target.toFile()))
+					.entity(SecurityUtils.getSecurityConfAsBytes())
 					.build();
 			
 		}catch(NoSuchFileException | FileNotFoundException nsf){
@@ -79,7 +73,7 @@ public class SignalkSecurityApiService {
 			if (logger.isDebugEnabled())
 				logger.debug("Post: {}" , body);
 			
-			FileUtils.writeStringToFile(target.toFile(), body);
+			SecurityUtils.save(body);
 			return Response.status(HttpStatus.SC_ACCEPTED).build();
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);

@@ -1,8 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.atmosphere.intercept;
 
-import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.AUTHENTICATION_SCHEME;
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.authenticateUser;
-import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.isTokenBasedAuthentication;
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.setForbidden;
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.setUnauthorised;
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.validateToken;
@@ -10,9 +8,11 @@ import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.validateToken;
 import java.util.Base64;
 import java.util.Map.Entry;
 
+import javax.servlet.http.Cookie;
 import javax.ws.rs.core.HttpHeaders;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.atmosphere.config.service.AtmosphereInterceptorService;
@@ -21,10 +21,14 @@ import org.atmosphere.cpr.AtmosphereInterceptor;
 import org.atmosphere.cpr.AtmosphereInterceptorAdapter;
 import org.atmosphere.cpr.AtmosphereResource;
 
+import mjson.Json;
+import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.*;
+
 
 @AtmosphereInterceptorService
 public class AuthenticationInterceptor extends AtmosphereInterceptorAdapter implements AtmosphereInterceptor {
 
+	
 	private static Logger logger = LogManager.getLogger(AuthenticationInterceptor.class);
 
 	public AuthenticationInterceptor() {
@@ -38,16 +42,41 @@ public class AuthenticationInterceptor extends AtmosphereInterceptorAdapter impl
 				logger.debug("[{}] receive: {}:{}", r.getRequest().getRemoteAddr(), entry.getKey(), entry.getValue());
 			}
 		}
+		
+		//check for secure path
 		if (!(r.getRequest().getPathInfo().startsWith("/signalk/v1/api/config")
 				||r.getRequest().getPathInfo().startsWith("/signalk/v1/logger")
 				||r.getRequest().getPathInfo().startsWith("/config")
 				||r.getRequest().getPathInfo().startsWith("/signalk/v1/security"))) {
 			return Action.CONTINUE;
 		}
-
+		//assume we might have a cookie token
+		for(Cookie c : r.getRequest().getCookies()) {
+			if(AUTH_COOKIE_NAME.equals(c.getName())){
+				String jwtToken = c.getValue();
+				
+				try {
+					// Validate and update the token
+					r.getResponse().addCookie(updateCookie(c, validateToken(jwtToken)));
+					//add the roles to request
+					Json roles = getRoles(jwtToken);
+					r.getRequest().localAttributes().put(ROLES, roles);
+					return Action.CONTINUE;
+				} catch (Exception e) {
+					logger.error(e.getMessage());
+					c.setMaxAge(1);
+					c.setPath("/");
+					r.getResponse().addCookie(c);
+					//r.getResponse().setHeader(HttpHeaders.AUTHORIZATION, "Basic realm=\""+REALM+"\"");
+					r.getResponse().setStatus(HttpStatus.SC_OK, "Unauthorised, try again");;
+					return Action.RESUME;
+				}
+			}
+		}
+		
 		String authorizationHeader = r.getRequest().getHeader(HttpHeaders.AUTHORIZATION);
-
-		if(StringUtils.isBlank(authorizationHeader)) {
+		//no auth, return unauthorised
+		if( StringUtils.isBlank(authorizationHeader)) {
 			setUnauthorised(r);
 			return Action.RESUME;
 		}
@@ -63,7 +92,8 @@ public class AuthenticationInterceptor extends AtmosphereInterceptorAdapter impl
 				String password = StringUtils.substringAfter(auth,":");
 				
 				String token = authenticateUser(user, password);
-				r.getResponse().setHeader(HttpHeaders.AUTHORIZATION, AUTHENTICATION_SCHEME+" "+token);
+				
+				r.getResponse().addCookie(updateCookie(null, token));
 				return Action.CONTINUE;
 			} catch (Exception e) {
 				logger.error(e,e);
@@ -71,23 +101,10 @@ public class AuthenticationInterceptor extends AtmosphereInterceptorAdapter impl
 				return Action.RESUME;
 			}
 		}
-		
-		if (!isTokenBasedAuthentication(authorizationHeader)) {
-			setUnauthorised(r);
-			return Action.RESUME;
-		}
-		
-		// Extract the token from the Authorization header
-		String token = authorizationHeader.substring(AUTHENTICATION_SCHEME.length()).trim();
 
-		try {
-			// Validate and update the token
-			r.getResponse().setHeader(HttpHeaders.AUTHORIZATION, AUTHENTICATION_SCHEME+" "+validateToken(token));
-			return Action.CONTINUE;
-		} catch (Exception e) {
-			setForbidden(r);
-			return Action.RESUME;
-		}
+		setForbidden(r);
+		return Action.RESUME;
+		
 
 	}
 
