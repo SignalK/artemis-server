@@ -194,18 +194,16 @@ public class Util {
 	}
 	
 
-	public static Json getJsonGetRequest(String path) {
+	public static Json getJsonGetRequest(String path, String token) {
 		path=Util.sanitizePath(path);
 		String ctx = Util.getContext(path);
-//		if (StringUtils.isBlank(ctx)) {
-//			ctx = vessels + dot + self_str;
-//		}
-		return getJsonGetRequest(ctx, StringUtils.substringAfter(path, ctx + dot));
+		return getJsonGetRequest(ctx, StringUtils.substringAfter(path, ctx + dot), token);
 
 	}
 
-	public static Json getJsonGetRequest(String context, String path) {
+	public static Json getJsonGetRequest(String context, String path, String token) {
 		Json json = Json.read("{\"context\":\"" + context + "\",\"get\": []}");
+		json.set(SignalKConstants.TOKEN, token);
 		Json sub = Json.object();
 		sub.set("path", StringUtils.defaultIfBlank(path, "*"));
 		json.at("get").add(sub);

@@ -34,6 +34,7 @@ import org.apache.logging.log4j.Logger;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 /*
@@ -103,6 +104,10 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 				if (logger.isDebugEnabled())
 					logger.debug("GET msg: {}", node.toString());
 				String ctx = node.at(CONTEXT).asString();
+				String jwtToken = null;
+				if(node.has(SignalKConstants.TOKEN)&&!node.at(SignalKConstants.TOKEN).isNull()) {
+					jwtToken=node.at(SignalKConstants.TOKEN).asString();
+				}
 				String root = StringUtils.substringBefore(ctx,dot);
 				root = Util.sanitizeRoot(root);
 				
@@ -173,9 +178,9 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 							logger.debug("GET sql : {}", sql);
 					}
 					
-					if (logger.isDebugEnabled())logger.debug("GET map : {}", map);
+					if (logger.isDebugEnabled())logger.debug("GET  token: {}, map : {}",jwtToken, map);
 					
-					Json json = SignalkMapConvertor.mapToFull(map);
+					Json json = SignalkMapConvertor.mapToFull(map,jwtToken);
 					
 					if (logger.isDebugEnabled())logger.debug("GET json : {}", json);
 					

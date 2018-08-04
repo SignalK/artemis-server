@@ -111,7 +111,7 @@ public class FullMsgInterceptorTest  extends BaseMsgInterceptorTest {
 		verifyAll();
 	}
 	@Test
-	public void shouldAvoidContext() throws ActiveMQException, IOException {
+	public void shouldAvoidContext() throws Exception {
 		
 		replayAll();
 		

@@ -122,6 +122,9 @@ public class SignalKConstants {
 	public static final String CONFIG_ACTION_READ = "CONFIG_ACTION_READ";
 	public static final String CONFIG_ACTION_SAVE = "CONFIG_ACTION_SAVE";
 
+	public static final String JWT_TOKEN = "JWT_TOKEN";
+	public static final String TOKEN = "jwtToken";
+	
 	public static final String CONTEXT = "context";
 	public static final String UPDATES = "updates";
 	public static final String SUBSCRIBE = "subscribe";
@@ -664,6 +667,7 @@ public class SignalKConstants {
 	public static final String steering_rudderAngleTarget="steering.rudderAngleTarget";
 	*/
 	public static final String tanks="tanks";
+	
 	/*
 	public static final String tanks_blackWater="tanks.blackWater";
 	public static final String tanks_blackWater_id_capacity="tanks.blackWater.*.capacity";

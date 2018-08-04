@@ -24,7 +24,7 @@ public class SignalkMapConvertorTest {
 
 	private static Logger logger = LogManager.getLogger(SignalkMapConvertorTest.class);
 	@Test
-	public void shouldConvertFull() throws IOException {
+	public void shouldConvertFull() throws Exception {
 		String body = FileUtils.readFileToString(new File("./src/test/resources/samples/full/docs-data_model_multiple_values.json"));
 		Json in = Json.read(body);
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();

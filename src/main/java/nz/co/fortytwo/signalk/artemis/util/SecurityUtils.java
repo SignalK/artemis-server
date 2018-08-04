@@ -2,6 +2,7 @@ package nz.co.fortytwo.signalk.artemis.util;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 
 import javax.crypto.SecretKey;
 import javax.servlet.http.Cookie;
@@ -34,9 +35,11 @@ public final class SecurityUtils {
 	public static final String REALM = "signalk";
 	public static final String AUTHENTICATION_SCHEME = "Bearer";
 	public static final String AUTH_COOKIE_NAME = "SK_TOKEN";
-
+	
 	private static final String HASH = "hash";
 	private static SecretKey key = MacProvider.generateKey();
+
+	private static Json securityConf;
 	
 	
 	
@@ -132,13 +135,17 @@ public final class SecurityUtils {
 			}
 		}
 		FileUtils.writeStringToFile(target.toFile(), conf.toString());
+		securityConf=null;
 	}
 	public static byte[] getSecurityConfAsBytes() throws IOException {
 		return FileUtils.readFileToByteArray(target.toFile());
 	}
 	
 	public static Json getSecurityConfAsJson() throws IOException {
-		return Json.read(FileUtils.readFileToString(target.toFile()));
+		if(securityConf==null) {
+			securityConf=Json.read(FileUtils.readFileToString(target.toFile()));
+		}
+		return securityConf;
 	}
 
 
@@ -151,6 +158,37 @@ public final class SecurityUtils {
 		c.setHttpOnly(true);
 		c.setPath("/");
 		return c;
+	}
+
+	public static ArrayList<String> getDeniedReadPaths(String jwtToken) throws Exception {
+		Json roles = StringUtils.isBlank(jwtToken)?Json.read("[\"public\"]"):getRoles(jwtToken);
+		ArrayList<String> denied = new ArrayList<>();
+		for(Json r : roles.asJsonList()) {
+			for(Json d : getSecurityConfAsJson().at(ROLES).at(r.asString()).at("denied")) {
+				if(d.at("read").asBoolean()) {
+					denied.add(d.at("name").asString());
+				}
+			}
+		}
+		
+		return denied;
+		
+	}
+	
+	public static ArrayList<String> getAllowedReadPaths(String jwtToken) throws Exception {
+		
+		Json roles = StringUtils.isBlank(jwtToken)?Json.read("[\"public\"]"):getRoles(jwtToken);
+		ArrayList<String> allowed = new ArrayList<>();
+		for(Json r : roles.asJsonList()) {
+			for(Json d : getSecurityConfAsJson().at(ROLES).at(r.asString()).at("allowed")) {
+				if(d.at("read").asBoolean()) {
+					allowed.add(d.at("name").asString());
+				}
+			}
+		}
+		
+		return allowed;
+		
 	}
 
 }

@@ -133,7 +133,7 @@ public class DeltaMsgInterceptorTest  extends BaseMsgInterceptorTest {
 		verifyAll();
 	}
 	@Test
-	public void shouldAvoidVessels() throws ActiveMQException, IOException {
+	public void shouldAvoidVessels() throws Exception {
 		
 		replayAll();
 		

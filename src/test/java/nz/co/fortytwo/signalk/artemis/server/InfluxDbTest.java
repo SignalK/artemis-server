@@ -74,7 +74,7 @@ public class InfluxDbTest {
 	}
 	
 	@Test
-	public void shouldSaveFullModelAndReturnLatest() throws IOException {
+	public void shouldSaveFullModelAndReturnLatest() throws Exception {
 		clearDb();
 		// get a sample of signalk
 		Json json = getJson("./src/test/resources/samples/full/docs-data_model.json");
@@ -98,7 +98,7 @@ public class InfluxDbTest {
 	}
 	
 	@Test
-	public void shouldSaveFullModelAndReturnLatestWithEdit() throws IOException {
+	public void shouldSaveFullModelAndReturnLatestWithEdit() throws Exception {
 		clearDb();
 		// get a sample of signalk
 		NavigableMap<String, Json> map = getJsonMap("./src/test/resources/samples/full/docs-data_model.json");

@@ -16,6 +16,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -44,7 +45,7 @@ public class SignalkStreamService extends BaseApiService {
 
 		if (logger.isDebugEnabled())
 			logger.debug("get : ws for {}, subscribe={}", resource.getRequest().getRemoteUser(),subscribe);
-		if("all".equals(subscribe)) {
+		if(StringUtils.isBlank(subscribe)|| "all".equals(subscribe)) {
 			return getWebsocket(Util.getSubscriptionJson("vessels.self","*",1000,1000,FORMAT_DELTA,POLICY_IDEAL).toString());
 		}else{
 			return getWebsocket(Util.getSubscriptionJson("vessels.self",subscribe,1000,1000,FORMAT_DELTA,POLICY_IDEAL).toString());
@@ -75,11 +76,6 @@ public class SignalkStreamService extends BaseApiService {
 			
 			if (logger.isDebugEnabled())
 				logger.debug("Correlation: {}, Post: {}", correlationId, body);
-			String user = resource.getRequest().getHeader("X-User");
-			String pass = resource.getRequest().getHeader("X-Pass");
-			if (logger.isDebugEnabled()) {
-				logger.debug("User:{}:{}", user, pass);
-			}
 			
 			initSession(correlationId);
 			if(setConsumer(resource, false)) {

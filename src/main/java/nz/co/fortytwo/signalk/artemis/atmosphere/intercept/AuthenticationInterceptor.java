@@ -22,6 +22,8 @@ import org.atmosphere.cpr.AtmosphereInterceptorAdapter;
 import org.atmosphere.cpr.AtmosphereResource;
 
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
+
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.*;
 
 
@@ -44,12 +46,12 @@ public class AuthenticationInterceptor extends AtmosphereInterceptorAdapter impl
 		}
 		
 		//check for secure path
-		if (!(r.getRequest().getPathInfo().startsWith("/signalk/v1/api/config")
-				||r.getRequest().getPathInfo().startsWith("/signalk/v1/logger")
-				||r.getRequest().getPathInfo().startsWith("/config")
-				||r.getRequest().getPathInfo().startsWith("/signalk/v1/security"))) {
-			return Action.CONTINUE;
-		}
+//		if (!(r.getRequest().getPathInfo().startsWith("/signalk/v1/api/config")
+//				||r.getRequest().getPathInfo().startsWith("/signalk/v1/logger")
+//				||r.getRequest().getPathInfo().startsWith("/config")
+//				||r.getRequest().getPathInfo().startsWith("/signalk/v1/security"))) {
+//			return Action.CONTINUE;
+//		}
 		//assume we might have a cookie token
 		for(Cookie c : r.getRequest().getCookies()) {
 			if(AUTH_COOKIE_NAME.equals(c.getName())){
@@ -59,8 +61,7 @@ public class AuthenticationInterceptor extends AtmosphereInterceptorAdapter impl
 					// Validate and update the token
 					r.getResponse().addCookie(updateCookie(c, validateToken(jwtToken)));
 					//add the roles to request
-					Json roles = getRoles(jwtToken);
-					r.getRequest().localAttributes().put(ROLES, roles);
+					r.getRequest().localAttributes().put(SignalKConstants.JWT_TOKEN, jwtToken);
 					return Action.CONTINUE;
 				} catch (Exception e) {
 					logger.error(e.getMessage());
@@ -94,6 +95,7 @@ public class AuthenticationInterceptor extends AtmosphereInterceptorAdapter impl
 				String token = authenticateUser(user, password);
 				
 				r.getResponse().addCookie(updateCookie(null, token));
+				r.getRequest().localAttributes().put(SignalKConstants.JWT_TOKEN, token);
 				return Action.CONTINUE;
 			} catch (Exception e) {
 				logger.error(e,e);
