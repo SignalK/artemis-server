@@ -64,7 +64,7 @@ public class GitService extends BaseApiService {
 	private static Logger logger = LogManager.getLogger(GitService.class);
 	private File staticDir = null;
 
-	private static String github = "https://github.com/";
+	//private static String github = "https://github.com/";
 
 	public GitService() {
 		super();
@@ -185,7 +185,7 @@ public class GitService extends BaseApiService {
 			String name=(p>0)? path.substring(p+1):path;
 			File destDir = new File(staticDir, SLASH + name);
 			destDir.mkdirs();
-			String gitPath = github + path + ".git";
+			String gitPath = path + ".git";
 			logger.debug("Cloning from " + gitPath + " to " + destDir.getAbsolutePath());
 			FileUtils.writeStringToFile(output, "Cloning from " + gitPath + " to " + destDir.getAbsolutePath() + "\n",
 					false);
@@ -295,7 +295,7 @@ public class GitService extends BaseApiService {
 			File destDir = new File(staticDir, SLASH + path);
 			destDir.mkdirs();
 
-			String gitPath = github + path + ".git";
+			String gitPath = path + ".git";
 			logger.debug("Updating from " + gitPath + " to " + destDir.getAbsolutePath());
 			FileUtils.writeStringToFile(output, "Updating from " + gitPath + " to " + destDir.getAbsolutePath() + "\n",
 					false);

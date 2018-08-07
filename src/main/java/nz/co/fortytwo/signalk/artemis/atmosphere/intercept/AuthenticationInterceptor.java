@@ -49,6 +49,7 @@ public class AuthenticationInterceptor extends AtmosphereInterceptorAdapter impl
 		if (!(r.getRequest().getPathInfo().startsWith("/signalk/v1/api/config")
 				|| r.getRequest().getPathInfo().startsWith("/signalk/v1/logger")
 				|| r.getRequest().getPathInfo().startsWith("/config")
+				|| r.getRequest().getPathInfo().startsWith("/signalk/apps")
 				|| r.getRequest().getPathInfo().startsWith("/signalk/v1/security"))) {
 			return Action.CONTINUE;
 		}
