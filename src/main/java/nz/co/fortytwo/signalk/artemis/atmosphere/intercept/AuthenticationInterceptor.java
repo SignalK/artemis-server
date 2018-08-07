@@ -5,6 +5,7 @@ import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.setForbidden;
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.setUnauthorised;
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.validateToken;
 
+import java.io.IOException;
 import java.util.Base64;
 import java.util.Map.Entry;
 
@@ -26,11 +27,9 @@ import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.*;
 
-
 @AtmosphereInterceptorService
 public class AuthenticationInterceptor extends AtmosphereInterceptorAdapter implements AtmosphereInterceptor {
 
-	
 	private static Logger logger = LogManager.getLogger(AuthenticationInterceptor.class);
 
 	public AuthenticationInterceptor() {
@@ -40,27 +39,30 @@ public class AuthenticationInterceptor extends AtmosphereInterceptorAdapter impl
 	@Override
 	public Action inspect(AtmosphereResource r) {
 		if (logger.isDebugEnabled()) {
+			logger.debug("URL: {}", r.getRequest().getRequestURL());
 			for (Entry<String, String> entry : r.getRequest().headersMap().entrySet()) {
 				logger.debug("[{}] receive: {}:{}", r.getRequest().getRemoteAddr(), entry.getKey(), entry.getValue());
 			}
 		}
-		
-		//check for secure path
-//		if (!(r.getRequest().getPathInfo().startsWith("/signalk/v1/api/config")
-//				||r.getRequest().getPathInfo().startsWith("/signalk/v1/logger")
-//				||r.getRequest().getPathInfo().startsWith("/config")
-//				||r.getRequest().getPathInfo().startsWith("/signalk/v1/security"))) {
-//			return Action.CONTINUE;
-//		}
-		//assume we might have a cookie token
-		for(Cookie c : r.getRequest().getCookies()) {
-			if(AUTH_COOKIE_NAME.equals(c.getName())){
+
+		// check for secure path
+		if (!(r.getRequest().getPathInfo().startsWith("/signalk/v1/api/config")
+				|| r.getRequest().getPathInfo().startsWith("/signalk/v1/logger")
+				|| r.getRequest().getPathInfo().startsWith("/config")
+				|| r.getRequest().getPathInfo().startsWith("/signalk/v1/security"))) {
+			return Action.CONTINUE;
+		}
+		// assume we might have a cookie token
+		for (Cookie c : r.getRequest().getCookies()) {
+			if (logger.isDebugEnabled())
+				logger.debug("Cookie: {}, {}", c.getName(), c.getValue());
+			if (AUTH_COOKIE_NAME.equals(c.getName())) {
 				String jwtToken = c.getValue();
-				
+
 				try {
 					// Validate and update the token
 					r.getResponse().addCookie(updateCookie(c, validateToken(jwtToken)));
-					//add the roles to request
+					// add the roles to request
 					r.getRequest().localAttributes().put(SignalKConstants.JWT_TOKEN, jwtToken);
 					return Action.CONTINUE;
 				} catch (Exception e) {
@@ -68,47 +70,22 @@ public class AuthenticationInterceptor extends AtmosphereInterceptorAdapter impl
 					c.setMaxAge(1);
 					c.setPath("/");
 					r.getResponse().addCookie(c);
-					//r.getResponse().setHeader(HttpHeaders.AUTHORIZATION, "Basic realm=\""+REALM+"\"");
-					r.getResponse().setStatus(HttpStatus.SC_OK, "Unauthorised, try again");;
-					return Action.RESUME;
+
 				}
 			}
 		}
-		
-		String authorizationHeader = r.getRequest().getHeader(HttpHeaders.AUTHORIZATION);
-		//no auth, return unauthorised
-		if( StringUtils.isBlank(authorizationHeader)) {
-			setUnauthorised(r);
-			return Action.RESUME;
-		}
-		// Validate the Authorization header
-		
-		logger.debug("authHeader: {}",authorizationHeader);
-		
-		if(StringUtils.startsWithIgnoreCase(authorizationHeader,"Basic ")) {
-	
-			try {
-				String auth = new String(Base64.getDecoder().decode(authorizationHeader.substring(6)));
-				String user = StringUtils.substringBefore(auth,":");
-				String password = StringUtils.substringAfter(auth,":");
-				
-				String token = authenticateUser(user, password);
-				
-				r.getResponse().addCookie(updateCookie(null, token));
-				r.getRequest().localAttributes().put(SignalKConstants.JWT_TOKEN, token);
-				return Action.CONTINUE;
-			} catch (Exception e) {
-				logger.error(e,e);
-				setUnauthorised(r);
-				return Action.RESUME;
-			}
-		}
 
-		setForbidden(r);
+		StringBuffer uri = r.getRequest().getRequestURL(); // "/login.html";
+		String url = uri.substring(0, uri.indexOf(r.getRequest().getPathInfo()));
+		url = url + "/login.html?target="+r.getRequest().getPathInfo();
+		if (logger.isDebugEnabled())
+			logger.debug("Unauthenticated, redirect to {}", url);
+
+		r.getResponse().setStatus(HttpStatus.SC_MOVED_TEMPORARILY);
+		r.getResponse().setHeader("Location", url);
+
 		return Action.RESUME;
-		
 
 	}
-
 
 }

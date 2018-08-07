@@ -155,6 +155,7 @@ public final class SecurityUtils {
 			c = new Cookie(AUTH_COOKIE_NAME, token);
 		else
 			c.setValue(token);
+		c.setMaxAge(3600);
 		c.setHttpOnly(true);
 		c.setPath("/");
 		return c;

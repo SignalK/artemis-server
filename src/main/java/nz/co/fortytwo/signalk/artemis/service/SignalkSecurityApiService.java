@@ -17,6 +17,7 @@ import javax.ws.rs.core.Response;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.atmosphere.cpr.AtmosphereResource;
 
 import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 import nz.co.fortytwo.signalk.artemis.util.Util;
@@ -26,7 +27,8 @@ public class SignalkSecurityApiService {
 
 	private static Logger logger = LogManager.getLogger(SignalkSecurityApiService.class);
 	
-	
+	@Context 
+	private AtmosphereResource resource;
 
 	public SignalkSecurityApiService() throws Exception{
 	}
@@ -39,6 +41,7 @@ public class SignalkSecurityApiService {
 
 	@Produces(MediaType.APPLICATION_JSON)
 	@GET
+	@Path("config")
 	public Response getAll(@Context HttpServletRequest req) throws Exception {
 		
 		return getSecurityConf( req);
@@ -67,6 +70,7 @@ public class SignalkSecurityApiService {
 
 	@Consumes(MediaType.APPLICATION_JSON)
 	@POST
+	@Path("config")
 	public Response post(@Context HttpServletRequest req) {
 		try {
 			String body = Util.readString(req.getInputStream(),req.getCharacterEncoding());

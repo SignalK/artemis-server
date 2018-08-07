@@ -126,11 +126,6 @@ public class SignalkApiService extends BaseApiService {
 			String body = Util.readString(req.getInputStream(),req.getCharacterEncoding());
 			if (logger.isDebugEnabled())
 				logger.debug("Post: {}" , body);
-			String user = req.getHeader("X-User");
-			String pass = req.getHeader("X-Pass");
-			if (logger.isDebugEnabled()) {
-				logger.debug("User: {}:{}", user , pass);
-			}
 		
 			sendMessage(body);
 			return Response.status(HttpStatus.SC_ACCEPTED).build();
@@ -146,11 +141,6 @@ public class SignalkApiService extends BaseApiService {
 			String body = Util.readString(req.getInputStream(),req.getCharacterEncoding());
 			if (logger.isDebugEnabled())
 				logger.debug("Post:" + body);
-			String user = req.getHeader("X-User");
-			String pass = req.getHeader("X-Pass");
-			if (logger.isDebugEnabled()) {
-				logger.debug("User: {}:{}", user , pass);
-			}
 		
 			sendMessage(body);
 			return Response.status(HttpStatus.SC_ACCEPTED).build();
