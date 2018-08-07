@@ -26,8 +26,6 @@ import org.atmosphere.websocket.WebSocketEventListenerAdapter;
 
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
-import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
-import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 @Path("/signalk/v1/api")
@@ -104,13 +102,14 @@ public class SignalkApiService extends BaseApiService {
 		path = StringUtils.removeStart(path,"/");
 		path = path.replace('/', '.');
 
+		String jwtToken = getToken(req);
 		// handle /vessels.* etc
 		path = Util.fixSelfKey(path);
 		if (logger.isDebugEnabled())
 			logger.debug("get path: {}",path);
-		String jwtToken = (String) resource.getRequest().getAttribute(SignalKConstants.JWT_TOKEN);
-		if (logger.isDebugEnabled()) {
-			logger.debug("JwtToken: {}", resource.getRequest().getAttribute(SignalKConstants.JWT_TOKEN));
+		//String jwtToken = (String) resource.getRequest().getAttribute(SignalKConstants.JWT_TOKEN);
+		if (logger.isDebugEnabled()) {//
+			logger.debug("JwtToken: {}", jwtToken);
 		}
 		
 		sendMessage(Util.getJsonGetRequest(path,jwtToken).toString(),correlation);

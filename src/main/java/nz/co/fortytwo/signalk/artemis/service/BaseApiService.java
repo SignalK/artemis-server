@@ -1,9 +1,13 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
+import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.AUTH_COOKIE_NAME;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.ExecutionException;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
@@ -67,6 +71,18 @@ public class BaseApiService {
 			getTxSession();
 			getProducer();
 			getConsumer();
+	}
+	
+	protected String getToken(HttpServletRequest req) {
+		// assume we might have a cookie token
+		for (Cookie c : req.getCookies()) {
+			if (logger.isDebugEnabled())
+				logger.debug("Cookie: {}, {}", c.getName(), c.getValue());
+			if (AUTH_COOKIE_NAME.equals(c.getName())) {
+				return c.getValue();
+			}
+		}
+		return null;
 	}
 	
 	protected String sendMessage(String body) throws ActiveMQException {
