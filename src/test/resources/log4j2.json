@@ -128,7 +128,14 @@
 				"name": "nz.co.fortytwo.signalk.artemis.server.SubscribeWsTest",
 				"level": "debug"
 			},
-			
+			{
+				"name": "nz.co.fortytwo.signalk.artemis.server.NMEAParserTest",
+				"level": "debug"
+			},
+			{
+				"name": "nz.co.fortytwo.signalk.artemis.server.SubscribeTest",
+				"level": "debug"
+			},
 			{
 				"name": "nz.co.fortytwo.signalk.artemis.server.UdpSubscribeTest",
 				"level": "debug"
