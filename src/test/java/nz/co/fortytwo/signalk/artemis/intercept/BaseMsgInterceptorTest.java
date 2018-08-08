@@ -8,15 +8,13 @@ import org.easymock.EasyMockSupport;
 
 import nz.co.fortytwo.signalk.artemis.server.BaseServerTest;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
-import nz.co.fortytwo.signalk.artemis.service.SecurityService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 
 public class BaseMsgInterceptorTest extends EasyMockSupport {
 
 	private static Logger logger = LogManager.getLogger(BaseMsgInterceptorTest.class);
-	protected SecurityService security = new SecurityService();
-	
+		
 	public BaseMsgInterceptorTest() {
 		super();
 		InfluxDbService.setDbName(BaseServerTest.SIGNALK_TEST_DB);

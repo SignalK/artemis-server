@@ -90,7 +90,7 @@
 			},
 			{
 				"name": "nz.co.fortytwo.signalk.artemis.server.ArtemisUdpNettyHandler",
-				"level": "debug"
+				"level": "error"
 			},
 			{
 				"name": "nz.co.fortytwo.signalk.artemis.server.ArtemisTcpNettyHandler",
@@ -98,31 +98,27 @@
 			},
 			{
          		"name": "nz.co.fortytwo.signalk.artemis.server.Subscription",
-         		"level": "debug",
+         		"level": "error",
          		"additivity": true,
          		"appender-ref": []
     		},
     		{
 				"name": "nz.co.fortytwo.signalk.artemis.service.SignalkStreamService",
-				"level": "debug"
+				"level": "error"
 			},
 			{
 				"name": "nz.co.fortytwo.signalk.artemis.service.BaseApiService",
-				"level": "debug"
+				"level": "error"
 			},
     		{
      		   	"name": "nz.co.fortytwo.signalk.artemis.server.SubscriptionManagerService",
-     		   	"level": "debug",
+     		   	"level": "error",
       		  	"additivity": true,
       		  	"appender-ref": []
 			},
 			{
 				"name": "nz.co.fortytwo.signalk.artemis.service.InfluxDbService",
 				"level": "warn"
-			},
-			{
-				"name": "nz.co.fortytwo.signalk.artemis.util.JsonSerializer",
-				"level": "error"
 			},
 			{
 				"name": "nz.co.fortytwo.signalk.artemis.server.BaseServerTest",
@@ -159,17 +155,35 @@
 			
 			{
 				"name": "org.apache.activemq.artemis",
-				"level": "debug"
+				"level": "error"
 			},
 			{
-				"name": "org.apache.activemq.artemis.core.protocol.core.impl.ChannelImpl",
-				"level": "warn"
+				"name": "nz.co.fortytwo.signalk.artemis.intercept.BaseInterceptor",
+				"level": "debug"
 			},
 			
 			{
-				"name": "mjson",
-				"level": "error"
-			}]
+				"name": "nz.co.fortytwo.signalk.artemis.intercept.GetMsgInterceptor",
+				"level": "debug"
+			},
+			{
+                    "name": "nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor",
+                    "level": "DEBUG",
+                    "additivity": true,
+                    "appender-ref": []
+                },
+            {
+                    "name": "nz.co.fortytwo.signalk.artemis.util.SecurityUtils",
+                    "level": "DEBUG",
+                    "additivity": true,
+                    "appender-ref": []
+                },
+            {
+                "name": "nz.co.fortytwo.signalk.artemis.server.InfluxDbTest",
+                "level": "DEBUG",
+                "additivity": true,
+                "appender-ref": []
+            }]
 		}
 	}
 }

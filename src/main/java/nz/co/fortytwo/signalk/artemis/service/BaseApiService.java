@@ -38,8 +38,10 @@ import org.atmosphere.websocket.WebSocketEventListener.WebSocketEvent;
 import org.atmosphere.websocket.WebSocketEventListenerAdapter;
 import org.jgroups.util.UUID;
 
+import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.subscription.SubscriptionManagerFactory;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class BaseApiService {
@@ -85,6 +87,14 @@ public class BaseApiService {
 		return null;
 	}
 	
+	protected String addToken(String body, HttpServletRequest req) {
+		String jwtToken = getToken(req);
+		if(StringUtils.isNotBlank(jwtToken)){
+			//add it to the body
+			return Json.read(body).set(SignalKConstants.TOKEN, jwtToken).toString();
+		}
+		return body;
+	}
 	protected String sendMessage(String body) throws ActiveMQException {
 		return sendMessage(body,UUID.randomUUID().toString());
 	}

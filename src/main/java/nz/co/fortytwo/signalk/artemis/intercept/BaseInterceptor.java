@@ -15,7 +15,6 @@ import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
-import nz.co.fortytwo.signalk.artemis.service.SecurityService;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.service.TDBService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
@@ -25,7 +24,6 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 public class BaseInterceptor {
 	private static Logger logger = LogManager.getLogger(BaseInterceptor.class);
 	protected static TDBService influx = new InfluxDbService();
-	protected static SecurityService security = new SecurityService();
 	protected static ClientSession txSession;
 	protected static ClientProducer producer;
 
@@ -97,7 +95,6 @@ public class BaseInterceptor {
 		if(srcJson==null)return;
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
 		SignalkMapConvertor.parseFull(srcJson,map, "");
-		map = security.addAttributes(map);
 		saveMap(map);
 	}
 	

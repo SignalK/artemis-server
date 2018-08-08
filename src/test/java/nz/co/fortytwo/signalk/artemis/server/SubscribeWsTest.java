@@ -149,15 +149,16 @@ public class SubscribeWsTest extends BaseServerTest {
 			respJson = Json.read(resp);
 			assertTrue(resp, respJson.at(nav).has("courseOverGroundTrue"));
 
-			resp = getUrlAsString(c,SIGNALK_API + "/" + sources, restPort);
+			//logger.debug(getUrlAsString(c,SIGNALK_API + "/", "admin","admin",restPort));
+			resp = getUrlAsString(c,SIGNALK_API + "/" + sources, "admin","admin",restPort);
 			respJson = Json.read(resp);
 			assertTrue(resp, respJson.has("NMEA0183"));
 
-			resp = getUrlAsString(c,SIGNALK_API + "/" + sources + "/", restPort);
+			resp = getUrlAsString(c,SIGNALK_API + "/" + sources + "/", "admin","admin",restPort);
 			respJson = Json.read(resp);
 			assertTrue(resp, respJson.has("NMEA0183"));
 
-			resp = getUrlAsString(c,SIGNALK_API + "/sou", restPort);
+			resp = getUrlAsString(c,SIGNALK_API + "/sou","admin","admin", restPort);
 			respJson = Json.read(resp);
 			assertTrue(resp, respJson.at(sources).has("NMEA0183"));
 
@@ -172,22 +173,26 @@ public class SubscribeWsTest extends BaseServerTest {
 			resp = getUrlAsString(c,SIGNALK_API + "/con", "admin", "admin", restPort);
 			respJson = Json.read(resp);
 			assertTrue(resp, respJson.has(CONFIG));
+		}
+			//no login, authenticationInterceptor sends back 301 redirect so no result
+		try (final AsyncHttpClient c = asyncHttpClient();) {	
+			String resp = getUrlAsString(c,SIGNALK_API + "/" + CONFIG, restPort);
+			assertEquals("",resp);
 
-			//TODO: security
-//			resp = getUrlAsString(c,SIGNALK_API + "/" + CONFIG, restPort);
-//			assertEquals("{}",resp);
-//
-//			resp = getUrlAsString(c,SIGNALK_API + "/" + CONFIG + "/", restPort);
-//			assertEquals("{}",resp);
-//			
-//			resp = getUrlAsString(c,SIGNALK_API + "/con", restPort);
-//			assertEquals("{}",resp);
-
+			resp = getUrlAsString(c,SIGNALK_API + "/" + CONFIG + "/", restPort);
+			assertEquals("",resp);
+			
+			resp = getUrlAsString(c,SIGNALK_API + "/con", restPort);
+			Json respJson = Json.read(resp);
+			
+			assertTrue(resp, respJson.has("self"));
+			assertFalse(resp, respJson.has("config"));
 			// special case, we have /vessels/self/, which should be found by
 			// this..
-//			resp = getUrlAsString(c,SIGNALK_API + "/" + vessels + "/urn", restPort);
-//			respJson = Json.read(resp);
-//			 assertTrue(resp, respJson.has("urn:mrn:signalk:uuid:b7590868-1d62-47d9-989c-32321b349fb9"));
+			resp = getUrlAsString(c,SIGNALK_API + "/" + vessels + "/urn", restPort);
+			 respJson = Json.read(resp);
+			logger.debug(resp);
+			assertTrue(resp, respJson.has("urn:mrn:signalk:uuid:5da2f032-fc33-43f0-bc24-935bf55a17d1"));
 		}
 	}
 
@@ -225,10 +230,7 @@ public class SubscribeWsTest extends BaseServerTest {
 
 		try (final AsyncHttpClient c = asyncHttpClient();) {
 
-			Response r2 = c
-					.prepareGet("http://localhost:" + restPort + SIGNALK_API + "/vessels/"+Config.getConfigProperty(ConfigConstants.UUID)+"/uuid")
-					.setHeader("Authorization", "Basic YWRtaW46YWRtaW4=").execute().get();
-			String resp = r2.getResponseBody();
+			String resp = getUrlAsString(c, SIGNALK_API + "/vessels/"+Config.getConfigProperty(ConfigConstants.UUID)+"/uuid","admin","admin",restPort);
 			logger.debug("Endpoint json:" + resp);
 			assertEquals("\""+Config.getConfigProperty(ConfigConstants.UUID)+"\"", resp);
 		}
@@ -263,7 +265,7 @@ public class SubscribeWsTest extends BaseServerTest {
 			// c.prepareGet("http://localhost:"+restPort+SIGNALK_AUTH+"/demo/pass").execute().get();
 			// assertEquals(200, r1.getStatusCode());
 			Response r2 = c.prepareGet("http://localhost:" + restPort + SIGNALK_API + "/vessels/self")
-					.setHeader("Authorization", "Basic YWRtaW46YWRtaW4=").execute().get();
+					.execute().get();
 			Json json = Json.read(r2.getResponseBody());
 			logger.debug("Endpoint json:" + json);
 			assertFalse(json.has("NMEA2000"));
@@ -278,10 +280,9 @@ public class SubscribeWsTest extends BaseServerTest {
 	public void shouldGetApiForSources() throws Exception {
 
 		try (final AsyncHttpClient c = asyncHttpClient();) {
-
-			Response r2 = c.prepareGet("http://localhost:" + restPort + SIGNALK_API + "/sources")
-					.setHeader("Authorization", "Basic YWRtaW46YWRtaW4=").execute().get();
-			Json json = Json.read(r2.getResponseBody());
+			String rslt = getUrlAsString(c, SIGNALK_API + "/sources","admin","admin",restPort);
+			
+			Json json = Json.read(rslt);
 			logger.debug("Endpoint json:" + json);
 			assertTrue(json.has("NMEA0183"));
 			assertFalse(json.has(nav));
@@ -298,7 +299,7 @@ public class SubscribeWsTest extends BaseServerTest {
 
 			String restUrl = "ws://localhost:" + restPort + SIGNALK_WS;
 			logger.debug("Open websocket at: " + restUrl);		   
-			WebSocket websocket = c.prepareGet(restUrl).setHeader("Authorization", "Basic YWRtaW46YWRtaW4=")
+			WebSocket websocket = c.prepareGet(restUrl).setCookies(getCookies("admin", "admin"))
 					.execute(new WebSocketUpgradeHandler.Builder().build()).get();
 
 			websocket.addWebSocketListener(new WebSocketListener() {

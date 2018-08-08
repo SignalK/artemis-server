@@ -367,7 +367,7 @@ public class Util {
 				}
 			}
 		}
-		return null;
+		return Json.object();
 	}
 
 	public static long getMillisFromIsoTime(String iso) {

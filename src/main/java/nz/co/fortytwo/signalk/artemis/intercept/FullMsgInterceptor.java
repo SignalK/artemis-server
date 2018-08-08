@@ -74,7 +74,6 @@ public class FullMsgInterceptor extends BaseInterceptor implements Interceptor {
 				try {
 					NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
 					SignalkMapConvertor.parseFull(node,map,"");
-					map = security.addAttributes(map);
 					saveMap(map);
 					return true;
 				} catch (Exception e) {

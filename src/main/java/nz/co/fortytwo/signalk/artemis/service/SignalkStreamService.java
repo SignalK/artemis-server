@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -27,6 +28,7 @@ import org.atmosphere.cpr.AtmosphereResourceSessionFactory;
 import org.atmosphere.websocket.WebSocket;
 
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 @Path("/signalk/v1/stream")
@@ -41,25 +43,26 @@ public class SignalkStreamService extends BaseApiService {
 
 	@Suspend(contentType = MediaType.APPLICATION_JSON)
 	@GET
-	public String getWS(@QueryParam("subscribe")String subscribe) throws Exception {
-
+	public String getWS(@Context HttpServletRequest req, @QueryParam("subscribe")String subscribe) throws Exception {
+		
 		if (logger.isDebugEnabled())
 			logger.debug("get : ws for {}, subscribe={}", resource.getRequest().getRemoteUser(),subscribe);
 		if(StringUtils.isBlank(subscribe)|| "all".equals(subscribe)) {
-			return getWebsocket(Util.getSubscriptionJson("vessels.self","*",1000,1000,FORMAT_DELTA,POLICY_IDEAL).toString());
+			return getWebsocket(Util.getSubscriptionJson("vessels.self","*",1000,1000,FORMAT_DELTA,POLICY_IDEAL).toString(),req);
 		}else{
-			return getWebsocket(Util.getSubscriptionJson("vessels.self",subscribe,1000,1000,FORMAT_DELTA,POLICY_IDEAL).toString());
+			return getWebsocket(Util.getSubscriptionJson("vessels.self",subscribe,1000,1000,FORMAT_DELTA,POLICY_IDEAL).toString(),req);
 		}
 		//return "";
 	}
 
 	@Suspend(contentType = MediaType.APPLICATION_JSON)
 	@POST
-	public String post() {
+	public String post(@Context HttpServletRequest req) {
 		try {
+			
 			String body = Util.readString(resource.getRequest().getInputStream(),
 					resource.getRequest().getCharacterEncoding());
-			return getWebsocket(body);
+			return getWebsocket(body,req);
 		} catch (IOException e) {
 			logger.error(e,e);
 			return "";
@@ -67,12 +70,12 @@ public class SignalkStreamService extends BaseApiService {
 		
 	}
 
-	private String getWebsocket(String body) {
+	private String getWebsocket(String body, HttpServletRequest req) {
 		try {
 			String correlationId = "stream-" + resource.uuid(); // UUID.randomUUID().toString();
 
 			// resource.suspend();
-
+			
 			
 			if (logger.isDebugEnabled())
 				logger.debug("Correlation: {}, Post: {}", correlationId, body);
@@ -82,7 +85,7 @@ public class SignalkStreamService extends BaseApiService {
 				addCloseListener(resource);
 				setConnectionWatcher(PING_PERIOD);
 			}
-			sendMessage(body, correlationId);
+			sendMessage(addToken(body, req), correlationId);
 
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);

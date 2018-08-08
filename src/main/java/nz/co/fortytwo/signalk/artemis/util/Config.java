@@ -25,7 +25,6 @@ import com.sun.jersey.core.util.Base64;
 import io.jsonwebtoken.impl.crypto.MacProvider;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
-import nz.co.fortytwo.signalk.artemis.service.SecurityService;
 import nz.co.fortytwo.signalk.artemis.service.TDBService;
 
 /**
@@ -44,7 +43,7 @@ public class Config {
 //	private static ConfigListener listener;
 	private static NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
 	private static TDBService influx = new InfluxDbService();
-	private static SecurityService security = new SecurityService();
+	
 	private static Config config = null;
 
 	static {
@@ -246,7 +245,6 @@ public class Config {
 	 * @throws IOException
 	 */
 	public static void saveConfig(NavigableMap<String, Json> config) throws IOException {
-		security.addAttributes(config);
 		influx.save(config);
 	}
 

@@ -102,17 +102,17 @@ public class SignalkApiService extends BaseApiService {
 		path = StringUtils.removeStart(path,"/");
 		path = path.replace('/', '.');
 
-		String jwtToken = getToken(req);
+		
 		// handle /vessels.* etc
 		path = Util.fixSelfKey(path);
 		if (logger.isDebugEnabled())
 			logger.debug("get path: {}",path);
 		//String jwtToken = (String) resource.getRequest().getAttribute(SignalKConstants.JWT_TOKEN);
 		if (logger.isDebugEnabled()) {//
-			logger.debug("JwtToken: {}", jwtToken);
+			logger.debug("JwtToken: {}", getToken(req));
 		}
 		
-		sendMessage(Util.getJsonGetRequest(path,jwtToken).toString(),correlation);
+		sendMessage(Util.getJsonGetRequest(path,getToken(req)).toString(),correlation);
 		
 	}
 
@@ -125,14 +125,15 @@ public class SignalkApiService extends BaseApiService {
 			String body = Util.readString(req.getInputStream(),req.getCharacterEncoding());
 			if (logger.isDebugEnabled())
 				logger.debug("Post: {}" , body);
-		
-			sendMessage(body);
+			
+			sendMessage(addToken(body, req));
 			return Response.status(HttpStatus.SC_ACCEPTED).build();
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			return Response.serverError().build();
 		}
 	}
+	
 	@Consumes(MediaType.APPLICATION_JSON)
 	@PUT
 	public Response put(@Context HttpServletRequest req) {

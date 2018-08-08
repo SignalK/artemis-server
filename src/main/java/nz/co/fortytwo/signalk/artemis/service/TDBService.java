@@ -28,9 +28,9 @@ public interface TDBService {
 
 	public void save(NavigableMap<String, Json> map);
 
-	public void save(String k, Json v, Json attr);
+	public void save(String k, Json v);
 
-	public void save(String k, Json v, String srcRef, long tStamp, Json attr);
+	public void save(String k, Json v, String srcRef, long tStamp);
 
 	public void loadPrimary();
 

@@ -94,7 +94,7 @@ public class InfluxDbService implements TDBService {
 	@Override
 	public NavigableMap<String, Json> loadResources(NavigableMap<String, Json> map, Map<String, String> query) {
 		//"select * from "+table+" where uuid='"+uuid+"' AND skey=~/"+pattern+"/ group by skey,primary, uuid,sourceRef,owner,grp order by time desc limit 1"
-		String queryStr="select * from resources "+getWhereString(query)+" group by skey, primary, uuid,sourceRef,owner,grp order by time desc limit 1";
+		String queryStr="select * from resources "+getWhereString(query)+" group by skey, primary, uuid,sourceRef order by time desc limit 1";
 		return loadResources(map, queryStr);
 	}
 
@@ -115,19 +115,19 @@ public class InfluxDbService implements TDBService {
 
 	@Override
 	public NavigableMap<String, Json> loadConfig(NavigableMap<String, Json> map, Map<String, String> query) {
-		String queryStr="select * from config "+getWhereString(query)+" group by skey,owner,grp order by time desc limit 1";
+		String queryStr="select * from config "+getWhereString(query)+" group by skey order by time desc limit 1";
 		return loadConfig(map, queryStr);
 	}
 
 	@Override
 	public NavigableMap<String, Json> loadData(NavigableMap<String, Json> map, String table, Map<String, String> query) {
-		String queryStr="select * from "+table+getWhereString(query)+" group by skey,primary, uuid,sourceRef,owner,grp order by time desc limit 1";
+		String queryStr="select * from "+table+getWhereString(query)+" group by skey,primary, uuid,sourceRef order by time desc limit 1";
 		return loadData(map, queryStr);
 	}
 
 	@Override
 	public NavigableMap<String, Json> loadSources(NavigableMap<String, Json> map, Map<String, String> query) {
-		String queryStr="select * from sources "+getWhereString(query)+" group by skey,owner,grp order by time desc limit 1";
+		String queryStr="select * from sources "+getWhereString(query)+" group by skey order by time desc limit 1";
 		return loadSources(map, queryStr);
 	}
 	
@@ -147,7 +147,7 @@ public class InfluxDbService implements TDBService {
 				
 				Map<String, String> tagMap = s.getTags();
 				String key = s.getName() + dot + s.getTags().get("skey");
-				Json attr = getAttrJson(tagMap);
+				
 				Json val = getJsonValue(s,0);
 				if(key.contains(".values.")){
 					//handle values
@@ -157,7 +157,7 @@ public class InfluxDbService implements TDBService {
 					String subkey = StringUtils.substringAfterLast(valKey,".value.");
 					
 					//make parent Json
-					Json parent = getParent(map,parentKey,attr);
+					Json parent = getParent(map,parentKey);
 						
 					//add attributes
 					if (logger.isDebugEnabled())logger.debug("Primary value: {}",tagMap.get("primary"));
@@ -189,7 +189,7 @@ public class InfluxDbService implements TDBService {
 					key = StringUtils.substringBeforeLast(key,".value");
 					
 					//make parent Json
-					Json parent = getParent(map,key,attr);
+					Json parent = getParent(map,key);
 					if (logger.isDebugEnabled())logger.debug("Primary value: {}",tagMap.get("primary"));
 					boolean primary = Boolean.valueOf((String)tagMap.get("primary"));
 					if(primary){
@@ -204,7 +204,7 @@ public class InfluxDbService implements TDBService {
 				}
 				
 				map.put(key,val);
-				map.put(key+"._attr",attr);
+				
 				
 			});
 		});
@@ -226,11 +226,11 @@ public class InfluxDbService implements TDBService {
 				
 				Map<String, String> tagMap = s.getTags();
 				String key = s.getName() + dot + tagMap.get("skey");
-				Json attr = getAttrJson(tagMap);
+				
 				Json val = getJsonValue(s,0);
 				
 				map.put(key,val);
-				map.put(key+"._attr",attr);
+				
 				
 			});
 		});
@@ -255,7 +255,6 @@ public class InfluxDbService implements TDBService {
 					
 					Map<String, String> tagMap = s.getTags();
 					String key = s.getName()+dot+tagMap.get("uuid")+dot+tagMap.get("skey");
-					Json attr = getAttrJson(tagMap);
 					
 					Json val = getJsonValue(s,0);
 					
@@ -267,7 +266,7 @@ public class InfluxDbService implements TDBService {
 						//make parent Json
 						String parentKey = StringUtils.substringBeforeLast(key,".");
 						
-						Json parent = getParent(map,parentKey,attr);
+						Json parent = getParent(map,parentKey);
 				
 						parent.set(sentence,val);
 						processed=true;
@@ -281,7 +280,7 @@ public class InfluxDbService implements TDBService {
 						String metaKey = StringUtils.substringAfterLast(key,".meta.");
 						
 						//make parent Json
-						Json parent = getParent(map,parentKey,attr);
+						Json parent = getParent(map,parentKey);
 						
 						//add attributes
 						addAtPath(parent,"meta."+metaKey, val);
@@ -296,7 +295,7 @@ public class InfluxDbService implements TDBService {
 						String subkey = StringUtils.substringAfterLast(valKey,".value.");
 						
 						//make parent Json
-						Json parent = getParent(map,parentKey,attr);
+						Json parent = getParent(map,parentKey);
 							
 						//add attributes
 						if (logger.isDebugEnabled())logger.debug("Primary value: {}",tagMap.get("primary"));
@@ -328,7 +327,7 @@ public class InfluxDbService implements TDBService {
 						key = StringUtils.substringBeforeLast(key,".value");
 						
 						//make parent Json
-						Json parent = getParent(map,key,attr);
+						Json parent = getParent(map,key);
 						if (logger.isDebugEnabled())logger.debug("Primary value: {}",tagMap.get("primary"));
 						boolean primary = Boolean.valueOf((String)tagMap.get("primary"));
 						if(primary){
@@ -343,7 +342,6 @@ public class InfluxDbService implements TDBService {
 					}
 					if(!processed){
 						map.put(key,val);
-						map.put(key+"._attr",attr);
 					}
 					
 				});
@@ -353,14 +351,13 @@ public class InfluxDbService implements TDBService {
 
 	
 
-	private Json getParent(NavigableMap<String, Json> map, String parentKey, Json attr) {
+	private Json getParent(NavigableMap<String, Json> map, String parentKey) {
 		
 		//make parent Json
 		Json parent = map.get(parentKey);
 		if(parent==null){
 			parent = Json.object();
 			map.put(parentKey,parent);
-			map.put(parentKey+"._attr",attr);
 		}
 		return parent;
 	}
@@ -382,10 +379,9 @@ public class InfluxDbService implements TDBService {
 				if (s == null)return;
 				
 				String key = s.getName() + dot + s.getTags().get("skey");
-				Json attr = getAttrJson(s.getTags());
 				if (logger.isDebugEnabled())logger.debug("Load source map: {} = {}",()->key,()->getJsonValue(s,0));
 				map.put(key, getJsonValue(s,0));
-				map.put(key+"._attr",attr);
+				
 
 			});
 		});
@@ -429,12 +425,6 @@ public class InfluxDbService implements TDBService {
 
 	}
 	
-	private Json getAttrJson(Map<String,String> tagMap) {
-		Json attr = Json.object()
-				.set(SecurityService.OWNER, tagMap.get(SecurityService.OWNER))
-				.set(SecurityService.GROUP, tagMap.get(SecurityService.GROUP));
-		return attr;
-	}
 
 	/* (non-Javadoc)
 	 * @see nz.co.fortytwo.signalk.artemis.service.TDBService#save(java.util.NavigableMap)
@@ -443,7 +433,7 @@ public class InfluxDbService implements TDBService {
 	public void save(NavigableMap<String, Json> map) {
 		if (logger.isDebugEnabled())logger.debug("Save map:  {}" ,map);
 		for(Entry<String, Json> e: map.entrySet()){
-			save(e.getKey(), e.getValue(), map.get(e.getKey()+"._attr"));
+			save(e.getKey(), e.getValue());
 		}
 		influxDB.flush();
 	}
@@ -452,7 +442,7 @@ public class InfluxDbService implements TDBService {
 	 * @see nz.co.fortytwo.signalk.artemis.service.TDBService#save(java.lang.String, mjson.Json, mjson.Json)
 	 */
 	@Override
-	public void save(String k, Json v, Json attr) {
+	public void save(String k, Json v) {
 		if (logger.isDebugEnabled())logger.debug("Save json:  {}={}" , k , v);
 		//avoid _attr
 		if(k.contains("._attr")){
@@ -462,40 +452,40 @@ public class InfluxDbService implements TDBService {
 		String srcRef = (v.isObject() && v.has(sourceRef) ? v.at(sourceRef).asString() : "self");
 		long tStamp = (v.isObject() && v.has(timestamp) ? Util.getMillisFromIsoTime(v.at(timestamp).asString())
 				: System.currentTimeMillis());
-		save(k,v,srcRef, tStamp, attr);
+		save(k,v,srcRef, tStamp);
 	}
 	
 	/* (non-Javadoc)
 	 * @see nz.co.fortytwo.signalk.artemis.service.TDBService#save(java.lang.String, mjson.Json, java.lang.String, long, mjson.Json)
 	 */
 	@Override
-	public void save(String k, Json v, String srcRef ,long tStamp, Json attr) {
+	public void save(String k, Json v, String srcRef ,long tStamp) {
 		if (v.isPrimitive()|| v.isBoolean()) {
 			
 			if (logger.isDebugEnabled())logger.debug("Save primitive:  {}={}", k, v);
-			saveData(k, srcRef, tStamp, v.getValue(),attr);	
+			saveData(k, srcRef, tStamp, v.getValue());	
 			return;
 		}
 		if (v.isNull()) {
 			
 			if (logger.isDebugEnabled())logger.debug("Save null: {}={}",k , v);
-			saveData(k, srcRef, tStamp, null,attr);
+			saveData(k, srcRef, tStamp, null);
 			return;
 		}
 		if (v.isArray()) {
 			
 			if (logger.isDebugEnabled())logger.debug("Save array: {}={}", k , v);
-			saveData(k, srcRef, tStamp, v,attr);
+			saveData(k, srcRef, tStamp, v);
 			return;
 		}
 		if (v.has(sentence)) {
-			saveData(k + dot + sentence, srcRef, tStamp, v.at(sentence),attr);
+			saveData(k + dot + sentence, srcRef, tStamp, v.at(sentence));
 		}
 		if (v.has(meta)) {
 			for (Entry<String, Json> i : v.at(meta).asJsonMap().entrySet()) {
 				
 				if (logger.isDebugEnabled())logger.debug("Save meta: {}={}",()->i.getKey(), ()->i.getValue());
-				saveData(k + dot + meta + dot + i.getKey(), srcRef, tStamp, i.getValue(),attr);
+				saveData(k + dot + meta + dot + i.getKey(), srcRef, tStamp, i.getValue());
 			}
 		}
 		
@@ -508,7 +498,7 @@ public class InfluxDbService implements TDBService {
 				Json vs = i.getValue();
 				long ts = (vs.isObject() && vs.has(timestamp) ? Util.getMillisFromIsoTime(vs.at(timestamp).asString())
 						: tStamp);
-				save(k,i.getValue(),sRef, ts, attr);
+				save(k,i.getValue(),sRef, ts);
 				
 			}
 		}
@@ -517,14 +507,14 @@ public class InfluxDbService implements TDBService {
 			for (Entry<String, Json> i : v.at(value).asJsonMap().entrySet()) {
 				
 				if (logger.isDebugEnabled())logger.debug("Save value object: {}={}" , ()->i.getKey(),()->i.getValue());
-				saveData(k + dot + value + dot + i.getKey(), srcRef, tStamp, i.getValue(),attr);
+				saveData(k + dot + value + dot + i.getKey(), srcRef, tStamp, i.getValue());
 			}
 			return;
 		}
 
 		
 		if (logger.isDebugEnabled())logger.debug("Save value: {} : {}", k, v);
-		saveData(k + dot + value, srcRef, tStamp, v.at(value),attr);
+		saveData(k + dot + value, srcRef, tStamp, v.at(value));
 
 		return;
 	}
@@ -662,7 +652,7 @@ public class InfluxDbService implements TDBService {
 	}
 
 
-	protected void saveData(String key, String sourceRef, long millis, Object val, Json attr) {
+	protected void saveData(String key, String sourceRef, long millis, Object val) {
 		
 			if(val!=null)
 				if (logger.isDebugEnabled())logger.debug("save {} : {}",()->val.getClass().getSimpleName(),()->key);
@@ -680,8 +670,6 @@ public class InfluxDbService implements TDBService {
 				point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS)
 						.tag("sourceRef", sourceRef)
 						.tag("uuid", path[1])
-						.tag(SecurityService.OWNER, attr.at(SecurityService.OWNER).asString())
-						.tag(SecurityService.GROUP, attr.at(SecurityService.GROUP).asString())
 						.tag(InfluxDbService.PRIMARY_VALUE, isPrimary(key,sourceRef).toString())
 						.tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)));
 				influxDB.write(addPoint(point, field, val));
@@ -689,15 +677,11 @@ public class InfluxDbService implements TDBService {
 			case sources:
 				point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS)
 						.tag("sourceRef", path[1])
-						.tag(SecurityService.OWNER, attr.at(SecurityService.OWNER).asString())
-						.tag(SecurityService.GROUP, attr.at(SecurityService.GROUP).asString())
 						.tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)));
 				influxDB.write(addPoint(point, field, val));
 				break;
 			case CONFIG:
 				point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS)
-						.tag(SecurityService.OWNER, attr.at(SecurityService.OWNER).asString())
-						.tag(SecurityService.GROUP, attr.at(SecurityService.GROUP).asString())
 						.tag("uuid", path[1])
 						.tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)));
 				influxDB.write(addPoint(point, field, val));
@@ -705,16 +689,16 @@ public class InfluxDbService implements TDBService {
 				Config.setProperty(String.join(".", path), Json.make(val));
 				break;
 			case vessels:
-				writeToInflux(path, millis, key, sourceRef, field, attr,val);
+				writeToInflux(path, millis, key, sourceRef, field, val);
 				break;
 			case aircraft:
-				writeToInflux(path, millis, key, sourceRef, field, attr,val);
+				writeToInflux(path, millis, key, sourceRef, field, val);
 				break;
 			case sar:
-				writeToInflux(path, millis, key, sourceRef, field, attr,val);
+				writeToInflux(path, millis, key, sourceRef, field, val);
 				break;
 			case aton:
-				writeToInflux(path, millis, key, sourceRef, field, attr,val);
+				writeToInflux(path, millis, key, sourceRef, field, val);
 				break;
 			default:
 				break;
@@ -723,13 +707,11 @@ public class InfluxDbService implements TDBService {
 		
 	}
 
-	private void writeToInflux(String[] path, long millis, String key, String sourceRef, String field, Json attr, Object val) {
+	private void writeToInflux(String[] path, long millis, String key, String sourceRef, String field,  Object val) {
 		Boolean primary = isPrimary(key,sourceRef);
 		Builder point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS)
 				.tag("sourceRef", sourceRef)
 				.tag("uuid", path[1])
-				.tag(SecurityService.OWNER, attr.at(SecurityService.OWNER).asString())
-				.tag(SecurityService.GROUP, attr.at(SecurityService.GROUP).asString())
 				.tag(InfluxDbService.PRIMARY_VALUE, primary.toString())
 				.tag("skey", String.join(".", ArrayUtils.subarray(path, 2, path.length)));
 		influxDB.write(addPoint(point, field, val));
@@ -743,7 +725,7 @@ public class InfluxDbService implements TDBService {
 	public void loadPrimary(){
 		primaryMap.clear();
 		logger.info("Adding primaryMap");
-		QueryResult result = influxDB.query(new Query("select * from vessels where primary='true' group by skey,primary,uuid,owner,grp,sourceRef order by time desc limit 1",dbName));
+		QueryResult result = influxDB.query(new Query("select * from vessels where primary='true' group by skey,primary,uuid,sourceRef order by time desc limit 1",dbName));
 		if(result==null || result.getResults()==null)return ;
 		result.getResults().forEach((r)-> {
 			if(logger.isTraceEnabled())logger.trace(r);

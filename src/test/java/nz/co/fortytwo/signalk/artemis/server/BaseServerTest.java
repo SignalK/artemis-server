@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -21,14 +22,19 @@ import org.apache.activemq.artemis.api.core.client.MessageHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.asynchttpclient.AsyncHttpClient;
+import org.asynchttpclient.BoundRequestBuilder;
 import org.asynchttpclient.Response;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
 import com.sun.jersey.core.util.Base64;
 
+import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.cookie.DefaultCookie;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
+import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class BaseServerTest {
@@ -60,24 +66,23 @@ public class BaseServerTest {
 		return json;
 	}
 
-	protected Json getUrlAsJson(AsyncHttpClient c,String path,int restPort) throws InterruptedException, ExecutionException, IOException {
+	protected Json getUrlAsJson(AsyncHttpClient c,String path,int restPort) throws Exception {
 		return Json.read(getUrlAsString(c,path, null, null, restPort));
 	}
-	protected Json getUrlAsJson(AsyncHttpClient c,String path, String user, String pass,int restPort) throws InterruptedException, ExecutionException, IOException {
+	protected Json getUrlAsJson(AsyncHttpClient c,String path, String user, String pass,int restPort) throws Exception {
 		return Json.read(getUrlAsString(c,path, user, pass, restPort));
 	}
 	
-	protected String getUrlAsString(AsyncHttpClient c,String path,int restPort) throws InterruptedException, ExecutionException, IOException {
+	protected String getUrlAsString(AsyncHttpClient c,String path,int restPort) throws Exception {
 		return getUrlAsString(c,path, null,null, restPort);
 	}
-	protected String getUrlAsString(AsyncHttpClient c, String path, String user, String pass, int restPort) throws InterruptedException, ExecutionException, IOException {
+	protected String getUrlAsString(AsyncHttpClient c, String path, String user, String pass, int restPort) throws Exception {
 		//final AsyncHttpClient c = new AsyncHttpClient();
 		//try {
 			// get a sessionid
 			Response r2 = null;
 			if(user!=null){
-				String auth = new String(Base64.encode((user+":"+pass).getBytes()));
-				r2 = c.prepareGet("http://localhost:" + restPort + path).setHeader("Authorization", "Basic "+auth).execute().get();
+				r2 = c.prepareGet("http://localhost:" + restPort + path).setCookies(getCookies(user, pass)).execute().get();
 			}else{
 				r2 = c.prepareGet("http://localhost:" + restPort + path).execute().get();
 			}
@@ -90,6 +95,12 @@ public class BaseServerTest {
 		//}
 	}
 	
+	protected Collection<Cookie> getCookies(String user, String pass) throws Exception {
+		String jwtToken = SecurityUtils.authenticateUser(user, pass);
+		Collection<Cookie> cookies = new ArrayList<>();
+		cookies.add(new DefaultCookie(SecurityUtils.AUTH_COOKIE_NAME, jwtToken));
+		return cookies;
+	}
 	protected List<ClientMessage> listen( ClientSession session, String tempQ, long timeout) throws ActiveMQException, InterruptedException {
 		logger.debug("Receive starting for {}", tempQ);
 		List<ClientMessage> replies = new ArrayList<>();

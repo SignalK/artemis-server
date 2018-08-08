@@ -57,7 +57,7 @@ public class FullMsgInterceptorTest  extends BaseMsgInterceptorTest {
 	public void shouldProcessVessels() throws ActiveMQException {
 		
 		NavigableMap<String, Json> map = SignalkMapConvertor.parseFull(full, new ConcurrentSkipListMap<String,Json>(),"");
-		map = security.addAttributes(map);
+		
 		interceptor.saveMap(map);
 		
 		replayAll();
@@ -73,7 +73,7 @@ public class FullMsgInterceptorTest  extends BaseMsgInterceptorTest {
 	@Test
 	public void shouldProcessConfig() throws ActiveMQException {
 		NavigableMap<String, Json> map = SignalkMapConvertor.parseFull(config, new ConcurrentSkipListMap<String,Json>(),"");
-		map = security.addAttributes(map);
+
 		interceptor.saveMap(map);
 		
 		replayAll();

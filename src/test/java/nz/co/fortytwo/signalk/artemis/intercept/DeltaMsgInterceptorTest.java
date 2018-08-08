@@ -47,7 +47,7 @@ public class DeltaMsgInterceptorTest  extends BaseMsgInterceptorTest {
 	public void shouldProcessUpdate() throws ActiveMQException {
 		
 		NavigableMap<String, Json> map = SignalkMapConvertor.parseDelta(update, new ConcurrentSkipListMap<String,Json>());
-		map = security.addAttributes(map);
+		
 		interceptor.saveMap(map);
 		
 		replayAll();
@@ -80,7 +80,7 @@ public class DeltaMsgInterceptorTest  extends BaseMsgInterceptorTest {
 	public void shouldProcessPut() throws ActiveMQException {
 		
 		NavigableMap<String, Json> map = SignalkMapConvertor.parseDelta(put, new ConcurrentSkipListMap<String,Json>());
-		map = security.addAttributes(map);
+
 		interceptor.saveMap(map);
 		
 		replayAll();
@@ -95,7 +95,7 @@ public class DeltaMsgInterceptorTest  extends BaseMsgInterceptorTest {
 	@Test
 	public void shouldProcessConfig() throws ActiveMQException {
 		NavigableMap<String, Json> map = SignalkMapConvertor.parseDelta(config, new ConcurrentSkipListMap<String,Json>());
-		map = security.addAttributes(map);
+
 		interceptor.saveMap(map);
 		
 		replayAll();

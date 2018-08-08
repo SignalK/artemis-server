@@ -210,15 +210,21 @@ public class SignalkMapConvertor {
 	
 	
 	public static Json mapToFull(NavigableMap<String, Json> map) throws Exception{
-		return mapToFull(map,null);
+		return mapToFull(map,"");
 	}
 	
 	public static Json mapToFull(NavigableMap<String, Json> map, String jwtToken) throws Exception {
+		if(map==null)return Json.object();
+		ArrayList<String> allowed = SecurityUtils.getAllowedReadPaths(jwtToken);
+		return mapToFull(map,allowed);
+	}
+	
+	public static Json mapToFull(NavigableMap<String, Json> map, ArrayList<String> allowed) throws Exception {
 		
 		Json root = Json.object();
 		if(map==null)return root;
 		
-		ArrayList<String> allowed = SecurityUtils.getAllowedReadPaths(jwtToken);
+		
 		NavigableMap<String, Json> allowedMap = new ConcurrentSkipListMap<>();
 		for( String key : allowed) {
 			if(key.equals("all")) {

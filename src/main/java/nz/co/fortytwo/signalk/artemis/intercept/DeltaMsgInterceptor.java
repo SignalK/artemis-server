@@ -103,7 +103,6 @@ public class DeltaMsgInterceptor extends BaseInterceptor implements Interceptor 
 			logger.debug("Saving delta: {}", node.toString());
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
 		SignalkMapConvertor.parseDelta(node, map);
-		map = security.addAttributes(map);
 		return map;
 		
 	}
