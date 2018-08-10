@@ -39,6 +39,7 @@ import org.influxdb.dto.QueryResult;
 import org.influxdb.dto.QueryResult.Series;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
+import org.omg.CORBA.UNKNOWN;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
@@ -80,7 +81,7 @@ public class InfluxDbService implements TDBService {
 			logger.error("FAILED:"+failedPoints);
 			logger.error(throwable);
 		}));
-		loadPrimary();
+		if(primaryMap.size()==0)loadPrimary();
 	}
 
 	/* (non-Javadoc)
@@ -165,13 +166,9 @@ public class InfluxDbService implements TDBService {
 					if(primary){
 						extractPrimaryValue(parent,s,subkey,val, false);
 					}else{
-						
 						valKey=StringUtils.substringBeforeLast(valKey,".");
-						Json valuesJson = parent.at(values);
-						if(valuesJson==null){
-							valuesJson = Json.object();
-							parent.set(values,valuesJson);
-						}
+						Json valuesJson = Util.getJson(parent,values );
+						
 						Json subJson = valuesJson.at(valKey);
 						if(subJson==null){
 							subJson = Json.object();
@@ -258,8 +255,6 @@ public class InfluxDbService implements TDBService {
 					
 					Json val = getJsonValue(s,0);
 					
-					
-					boolean processed = false;
 					//add timestamp and sourceRef
 					if(key.endsWith(".sentence")){
 						if (logger.isDebugEnabled())logger.debug("sentence: {}",val);
@@ -269,7 +264,7 @@ public class InfluxDbService implements TDBService {
 						Json parent = getParent(map,parentKey);
 				
 						parent.set(sentence,val);
-						processed=true;
+						
 						return;
 						
 					}
@@ -284,16 +279,17 @@ public class InfluxDbService implements TDBService {
 						
 						//add attributes
 						addAtPath(parent,"meta."+metaKey, val);
-						processed=true;
+						
 						return;
 					}
 					if(key.contains(".values.")){
 						//handle values
-						if (logger.isDebugEnabled())logger.debug("values: {}",val);
+						if (logger.isDebugEnabled())logger.debug("key: {}, values: {}",key,val);
 						String parentKey = StringUtils.substringBeforeLast(key,".values.");
 						String valKey = StringUtils.substringAfterLast(key,".values.");
 						String subkey = StringUtils.substringAfterLast(valKey,".value.");
 						
+						if (logger.isDebugEnabled())logger.debug("parentKey: {}, valKey: {}, subKey: {}",parentKey,valKey, subkey);
 						//make parent Json
 						Json parent = getParent(map,parentKey);
 							
@@ -305,22 +301,19 @@ public class InfluxDbService implements TDBService {
 						}else{
 							
 							valKey=StringUtils.substringBeforeLast(valKey,".");
-							Json valuesJson = parent.at(values);
-							if(valuesJson==null){
-								valuesJson = Json.object();
-								parent.set(values,valuesJson);
-							}
+							Json valuesJson = Util.getJson(parent,values );
 							Json subJson = valuesJson.at(valKey);
 							if(subJson==null){
 								subJson = Json.object();
 								valuesJson.set(valKey,subJson);
 							}
+							
 							extractValue(subJson,s,subkey, val, true);
 						}
 						
-						processed=true;
+						return;
 					}
-					if(!processed && (key.endsWith(".value")||key.contains(".value."))){
+					if((key.endsWith(".value")||key.contains(".value."))){
 						if (logger.isDebugEnabled())logger.debug("value: {}",val);
 						String subkey = StringUtils.substringAfterLast(key,".value.");
 					
@@ -338,11 +331,11 @@ public class InfluxDbService implements TDBService {
 						//extractValue(parent,s, subkey, val);
 						
 						map.put(key,parent);
-						processed=true;
+						return;
 					}
-					if(!processed){
-						map.put(key,val);
-					}
+					
+					map.put(key,val);
+					
 					
 				});
 			});
@@ -449,7 +442,8 @@ public class InfluxDbService implements TDBService {
 			return;
 		}
 		
-		String srcRef = (v.isObject() && v.has(sourceRef) ? v.at(sourceRef).asString() : "self");
+		String srcRef = (v.isObject() && v.has(sourceRef) ? v.at(sourceRef).asString() : StringUtils.substringAfter(k,dot+values+dot));
+		if(StringUtils.isBlank(srcRef))srcRef="self";
 		long tStamp = (v.isObject() && v.has(timestamp) ? Util.getMillisFromIsoTime(v.at(timestamp).asString())
 				: System.currentTimeMillis());
 		save(k,v,srcRef, tStamp);
@@ -531,14 +525,8 @@ public class InfluxDbService implements TDBService {
 				break;
 			}
 			// get next node
-			Json next = node.at(pathArray[x]);
-			if (next == null) {
-				next = Json.object();
-				node.set(pathArray[x], next);
-				
-				if (logger.isDebugEnabled())logger.debug("add: {}", pathArray[x]);
-			}
-			node = next;
+			Json next = Util.getJson(node,pathArray[x]);
+			
 		}
 
 	}
@@ -569,10 +557,11 @@ public class InfluxDbService implements TDBService {
 				node.set(value, val);
 			}
 			//if we have a 'values' key, and its primary, copy back into value{} 
-			if(parent.has(values)){
-				Json pValues = Json.object(value,parent.at(value).dup(),timestamp,parent.at(timestamp).dup());
-				parent.at(values).set(parent.at(sourceRef).asString(),pValues);
-			}
+			//if(parent.has(values)){
+//			Util.getJson(parent, values);
+//				Json pValues = Json.object(value,parent.at(value).dup(),timestamp,parent.at(timestamp).dup());
+//				parent.at(values).set(parent.at(sourceRef).asString(),pValues);
+			//}
 		}else{
 			// check if its an object value
 			if (StringUtils.isNotBlank(subKey)) {
@@ -581,26 +570,26 @@ public class InfluxDbService implements TDBService {
 				node.set(value, val);
 			}
 			//if we have a 'values' key, and its primary, copy back into value{} 
-			if(parent.has(values)){
-				Json pValues = parent.dup();
-				parent.delAt(values);
-				parent.delAt(sourceRef);
-				parent.at(values).set(parent.at(sourceRef).asString(),pValues);
-			}
+//			if(parent.has(values)){
+//				Json pValues = parent.dup();
+//				parent.delAt(values);
+//				parent.delAt(sourceRef);
+//				parent.at(values).set(parent.at(sourceRef).asString(),pValues);
+//			}
 		}
 		if (logger.isDebugEnabled())logger.debug("extractPrimaryValueObj: {}",parent);
 	}
 	
-	private void extractValue(Json parent, Series s, String attr, Json val, boolean useValue) {
+	private void extractValue(Json parent, Series s, String subkey, Json val, boolean useValue) {
 		String srcref = s.getTags().get("sourceRef");
 		if (logger.isDebugEnabled())logger.debug("extractValue: {}:{}",s, srcref);
 		Json node = parent;
 		
-		if (StringUtils.isNotBlank(srcref)) {
-			node = Util.getJson(parent,values );
-			node.set(srcref,Json.object());
-			node=node.at(srcref);
-		}
+//		if (StringUtils.isNotBlank(srcref)) {
+//			node = Util.getJson(parent,values );
+//			node.set(srcref,Json.object());
+//			node=node.at(srcref);
+//		}
 		Object ts = getValue("time", s, 0);
 		if (ts != null) {
 			// make predictable 3 digit nano ISO format
@@ -608,47 +597,45 @@ public class InfluxDbService implements TDBService {
 			node.set(timestamp, Json.make(ts));
 		}
 			
-		// check if its an object value
+		// true for vessels, eg any node with .values.
 		if(useValue){
-			if (StringUtils.isNotBlank(attr)) {
-				Json valJson = parent.at(value);
-				if (valJson == null) {
-					valJson = Json.object();
-					node.set(value, valJson);
-				}
-				valJson.set(attr, val);
+			if (logger.isDebugEnabled())logger.debug("extractValue: {}:{}",parent.getParentKey(), val);
+			if (StringUtils.isNotBlank(subkey)) {
+				Json valJson = Util.getJson(parent,value );
+				valJson.set(subkey, val);
+				if (logger.isDebugEnabled())logger.debug("extractValue with subkey: {}",node);
 			} else {
 				node.set(value, val);
+				if (logger.isDebugEnabled())logger.debug("extractValue without subkey: {}",node);
 			}
-			if (StringUtils.isNotBlank(srcref)) {
-				//if we have a 'value' copy it into values.srcRef.{} too
-				if(parent.has(value)){
-					Json pValues = Json.object(value,parent.at(value),timestamp,parent.at(timestamp));
-					parent.at(values).set(parent.at(sourceRef).asString(),pValues);
-				}
-			}
+//			if (StringUtils.isNotBlank(srcref)) {
+//				String skey = s.getTags().get("skey");
+//				//if we have a 'value' copy it into values.srcRef.{} too
+//				if (logger.isDebugEnabled())logger.debug("extractValue skey: {}",skey);
+//				if(!skey.contains(dot+values+dot) && parent.has(value)){
+//					Json pValues = Json.object(value,parent.at(value),timestamp,parent.at(timestamp));
+//					Util.getJson(parent,values );
+//					parent.at(values).set(srcref,pValues);
+//				}
+//			}
 		}else{
-			//TODO: what happens here?
-			if (StringUtils.isNotBlank(attr)) {
-				Json valJson = parent.at(value);
-				if (valJson == null) {
-					valJson = Json.object();
-					node.set(value, valJson);
-				}
-				valJson.set(attr, val);
+			//for source
+			if (StringUtils.isNotBlank(subkey)) {
+				Json valJson = Util.getJson(parent,value );
+				valJson.set(subkey, val);
 			} else {
 				node.set(value, val);
 			}
-			if (StringUtils.isNotBlank(srcref)) {
-				//if we have a 'value' copy it into values.srcRef.{} too
-				if(parent.has(value)){
-					Json pValues = Json.object(value,parent.at(value),timestamp,parent.at(timestamp));
-					parent.at(values).set(parent.at(sourceRef).asString(),pValues);
-				}
-			}
+//			if (StringUtils.isNotBlank(srcref)) {
+//				//if we have a 'value' copy it into values.srcRef.{} too
+//				if(parent.has(value)){
+//					Json pValues = Json.object(value,parent.at(value),timestamp,parent.at(timestamp));
+//					parent.at(values).set(parent.at(sourceRef).asString(),pValues);
+//				}
+//			}
 		}
 		
-		if (logger.isDebugEnabled())logger.debug("extractValue: {}",parent);
+		if (logger.isDebugEnabled())logger.debug("extractValue, parent: {}",parent);
 	}
 
 

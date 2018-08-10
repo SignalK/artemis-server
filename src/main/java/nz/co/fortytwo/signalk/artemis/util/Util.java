@@ -430,12 +430,12 @@ public class Util {
 			if (src.isObject() && src.has(type)) {
 				srcRef.append(src.at(type).asString());
 			} else {
-				srcRef.append(StringUtils.defaultString(defaultType, "unknown"));
+				srcRef.append(StringUtils.defaultString(defaultType, SignalKConstants.UNKNOWN));
 			}
 			if (src.has(label)) {
 				srcRef.append(dot + src.at(label).asString());
 			} else {
-				srcRef.append(dot + StringUtils.defaultString(defaultLabel, "unknown"));
+				srcRef.append(dot + StringUtils.defaultString(defaultLabel, SignalKConstants.UNKNOWN));
 			}
 			// replace source with sourceRef
 			input.delAt(source);
@@ -506,5 +506,7 @@ public class Util {
 		logger.debug("Created json sub: " + json);
 		return json;
 	}
+
+	
 }
 

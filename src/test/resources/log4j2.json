@@ -118,7 +118,7 @@
 			},
 			{
 				"name": "nz.co.fortytwo.signalk.artemis.service.InfluxDbService",
-				"level": "warn"
+				"level": "error"
 			},
 			{
 				"name": "nz.co.fortytwo.signalk.artemis.server.BaseServerTest",
@@ -142,6 +142,10 @@
 			},
 			{
 				"name": "nz.co.fortytwo.signalk.artemis.server.TcpSubscribeTest",
+				"level": "debug"
+			},
+			{
+				"name": "nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertorTest",
 				"level": "debug"
 			},
 			

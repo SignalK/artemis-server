@@ -56,6 +56,22 @@ public class BaseInterceptor {
 		return Util.isN2k(node);
 	}
 	
+	public void convertSource(Json j, String srcBus, String msgType) {
+		Json srcJson = Util.convertSourceToRef(j,srcBus,msgType);
+		saveSource(srcJson);
+	}
+	public void convertFullSrcToRef(Json node, String srcBus, String msgSrcType) {
+		if (logger.isDebugEnabled())
+			logger.debug("Converting source in full: {}", node.toString());
+		//recurse keys
+		node.asJsonMap().forEach((k,j) -> {
+				if(j.isObject() && j.has(SignalKConstants.source)) {
+					convertSource(j,srcBus, msgSrcType);
+				}else {
+					convertFullSrcToRef(j, srcBus, msgSrcType);
+				}
+			});
+	}
 	protected void sendReply(String simpleName, String destination, String format, Json json, ServerSession s) throws Exception {
 		sendReply(String.class.getSimpleName(),destination,format,null,json);
 	}

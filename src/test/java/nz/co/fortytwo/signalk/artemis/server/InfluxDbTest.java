@@ -1,5 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.server;
 
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.values;
 import static org.junit.Assert.assertEquals;
@@ -8,6 +9,8 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
@@ -20,7 +23,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import io.netty.util.internal.MathUtil;
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.intercept.BaseInterceptor;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
@@ -44,8 +49,9 @@ public class InfluxDbTest {
 	private void clearDb(){
 		influx.getInfluxDB().query(new Query("drop measurement vessels", BaseServerTest.SIGNALK_TEST_DB));
 		influx.getInfluxDB().query(new Query("drop measurement sources", BaseServerTest.SIGNALK_TEST_DB));
-		//influx.getInfluxDB().query(new Query("drop measurement config", "signalk"));
+		//influx.getInfluxDB().query(new Query("drop measurement config", BaseServerTest.SIGNALK_TEST_DB));
 		influx.getInfluxDB().query(new Query("drop measurement resources", BaseServerTest.SIGNALK_TEST_DB));
+		influx.loadPrimary();
 	}
 	
 	@Test
@@ -62,8 +68,8 @@ public class InfluxDbTest {
 		clearDb();
 		influx.setPrimary("vessels.urn:mrn:signalk:uuid:c0d79334-4e25-4245-8892-54e8ccc8021d.navigation.courseOverGroundTrue","ttyUSB0.GP.sentences.RMC");
 		// get a sample of signalk
-		NavigableMap<String, Json> map = getJsonMap("./src/test/resources/samples/full/docs-data_model_multiple_values.json");
-		
+		Json json = getJson("./src/test/resources/samples/full/docs-data_model_multiple_values.json");
+		NavigableMap<String, Json> map = getJsonMap(json);
 		//save and flush
 		
 		influx.save(map);
@@ -89,12 +95,7 @@ public class InfluxDbTest {
 			if(!k.contains(SignalKConstants.nav))continue;
 			assertTrue(k.contains(dot+values+dot));
 		}
-		ArrayList<String> all = new ArrayList<>();
-		all.add("all");
-		Json jsonRslt = SignalkMapConvertor.mapToFull(rslt,all);
-		logger.debug("Json result: {}",jsonRslt);
-		assertEquals(json,jsonRslt );
-		//compareMaps(map,rslt);
+		compareMaps(map,rslt);
 	}
 	
 	@Test
@@ -117,11 +118,7 @@ public class InfluxDbTest {
 		rslt = influx.loadData(map,"select * from vessels group by skey, primary, uuid,grp order by time desc limit 1");
 		//check for .values.
 		logger.debug("Map: {}", map);
-		for(String k:map.keySet()){
-			logger.debug("Map Key: {}",k);
-			if(!k.contains(SignalKConstants.nav))continue;
-			assertTrue(k.contains(dot+values+dot));
-		}
+		
 		logger.debug(SignalkMapConvertor.mapToFull(map));
 		compareMaps(map,rslt);
 	}
@@ -149,17 +146,31 @@ public class InfluxDbTest {
 	@Test
 	public void shouldSaveDeltaSamples() throws Exception {
 		File dir = new File("./src/test/resources/samples/delta");
+		BaseInterceptor base = new BaseInterceptor();
 		for(File f:dir.listFiles()){
 			if(f.isDirectory())continue;
 			clearDb();
 			logger.debug("Testing sample:"+f.getName());
 			// get a sample of signalk
-			NavigableMap<String, Json> map = getJsonDeltaMap(f.getAbsolutePath());
+			
+			Json input = Json.read(FileUtils.readFileToString(f));
+			for(String key: input.asJsonMap().keySet()) {
+				if(input.at(key).isArray()) {
+					input.at(key).asJsonList().forEach((j) -> {
+						base.convertSource(j,"internal", "signalk");
+					});
+				}
+			}
+			
+			NavigableMap<String, Json> map = getJsonDeltaMap(input);
 		
 			//save and flush
 			influx.save(map);
 			//reload from db
 			NavigableMap<String, Json> rslt = loadFromDb();
+			//compareMaps(map,rslt);
+			ArrayList<String> all = new ArrayList<>();
+			all.add("all");
 			compareMaps(map,rslt);
 		}
 	}
@@ -170,7 +181,10 @@ public class InfluxDbTest {
 		// get a hash of signalk
 		String body = FileUtils.readFileToString(new File("./src/test/resources/samples/full_resources.json"));
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();
-		SignalkMapConvertor.parseFull(Json.read(body), map, "");
+		Json input = Json.read(body);
+		BaseInterceptor base = new BaseInterceptor();
+		base.convertFullSrcToRef(input, "internal", "signalk");
+		SignalkMapConvertor.parseFull(input, map, "");
 		
 		influx.save(map);
 		//reload from db
@@ -183,6 +197,7 @@ public class InfluxDbTest {
 	@Test
 	public void testConfigJson() throws Exception {
 		clearDb();
+		influx.getInfluxDB().query(new Query("drop measurement config", BaseServerTest.SIGNALK_TEST_DB));
 		// get a hash of signalk
 		String body = FileUtils.readFileToString(new File("./src/test/resources/samples/signalk-config.json"));
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();
@@ -192,6 +207,7 @@ public class InfluxDbTest {
 		
 		//reload from db
 		NavigableMap<String, Json> rslt = loadConfigFromDb();
+	
 		compareMaps(map,rslt);
 	}
 	
@@ -220,39 +236,33 @@ public class InfluxDbTest {
 		Json jsonRslt = SignalkMapConvertor.mapToFull(rslt,all);
 		logger.debug("Json source: {}",mapRslt);
 		logger.debug("Json result: {}",jsonRslt);
-		assertEquals(mapRslt,jsonRslt );
+		//remove uuid
+		mapRslt.delAt("self");
+		mapRslt.delAt("version");
+		jsonRslt.delAt("self");
+		jsonRslt.delAt("version");
+		//assertEquals(mapRslt,jsonRslt );
+		assertTrue(compare(mapRslt,jsonRslt));
 		
-		//check we have self and version
-//		map.remove("self");
-//		map.remove("version");
-//		rslt.remove("self");
-//		rslt.remove("version");
-//		//remove non values entries they are only in output
-//		for(String e:map.keySet()){
-//			if(StringUtils.contains(e,".value") && !StringUtils.contains(e,".values.")){
-//				map.remove(e);
-//			}
-//		}
-//		//are they the same
-//		logger.debug("Map size=" + map.size());
-//		logger.debug("Rslt size=" + rslt.size());
-//		
-//		map.forEach((t, u) -> {
-//			//logger.debug("map key:"+t+":"+u+"|"+rslt.get(t));
-//			if(!u.equals(rslt.get(t)))logger.debug("map > rslt entries differ: {}:{}|{}",t ,u, rslt.get(t));
-//		});
-//		rslt.forEach((t, u) -> {
-//			if(!u.equals(map.get(t)))logger.debug("rslt > map entries differ: {}:{}|{}",t ,u, map.get(t));
-//		
-//		});
-//		
-//		assertEquals("Maps differ",map,rslt);
-//		logger.debug("Entries are the same");
-//		
-//		assertEquals("Maps differ in size",map.size(),rslt.size());
 	}
 	
-
+	private boolean compare(Json map, Json rslt) {
+		if(map.isPrimitive()|| map.isArray()) {
+			logger.debug("Matching {} |  {}", map,rslt);
+			if(map.isNumber()) {
+				//logger.debug("Matching: {} - {} = {}",map.asDouble(,)rslt.asDouble()
+				return Math.abs(map.asDouble()-rslt.asDouble())<0.0000001;
+			}
+			return map.equals(rslt);
+		}
+		for(String key:map.asJsonMap().keySet()) {
+			if(!map.at(key).equals(rslt.at(key))) {
+				logger.debug("Bad match {} is not  {}", map.at(key),rslt.at(key));
+				return compare(map.at(key),rslt.at(key));
+			}
+		}
+		return true;
+	}
 	private Json getJson(String file) throws IOException {
 		String body = FileUtils.readFileToString(new File(file));
 		Json json = Json.read(body);
@@ -271,11 +281,11 @@ public class InfluxDbTest {
 		return getJsonMap(json);
 	}
 	
-	private NavigableMap<String, Json> getJsonDeltaMap(String file) throws Exception {
-		String body = FileUtils.readFileToString(new File(file));
+	private NavigableMap<String, Json> getJsonDeltaMap(Json json) throws Exception {
+		
 		//convert to map
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();
-		SignalkMapConvertor.parseDelta(Json.read(body), map);
+		SignalkMapConvertor.parseDelta(json, map);
 		map.forEach((t, u) -> logger.debug(t + "=" + u));
 		return map;
 	}

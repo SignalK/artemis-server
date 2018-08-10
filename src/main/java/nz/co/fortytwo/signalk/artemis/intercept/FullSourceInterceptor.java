@@ -17,6 +17,7 @@ import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 /*
@@ -50,13 +51,14 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
  * 
  */
 
-public class DeltaSourceInterceptor extends BaseInterceptor implements Interceptor {
+public class FullSourceInterceptor extends BaseInterceptor implements Interceptor {
 
-	private static Logger logger = LogManager.getLogger(DeltaSourceInterceptor.class);
+	
+	private static Logger logger = LogManager.getLogger(FullSourceInterceptor.class);
 	
 	/**
-	 * Reads Delta format JSON and inserts in the influxdb. Does nothing if json
-	 * is not an update, and returns the original message
+	 * Reads full format JSON and converts source to $source. Does nothing if json
+	 * is not full format, and returns the original message
 	 * 
 	 * @param node
 	 * @return
@@ -70,7 +72,7 @@ public class DeltaSourceInterceptor extends BaseInterceptor implements Intercept
 
 			ICoreMessage message = realPacket.getMessage();
 			
-			if (!Config.JSON_DELTA.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))
+			if (!Config.JSON_FULL.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))
 				return true;
 			
 			String srcBus = message.getStringProperty(Config.MSG_SRC_BUS);
@@ -80,39 +82,22 @@ public class DeltaSourceInterceptor extends BaseInterceptor implements Intercept
 			if (logger.isDebugEnabled())
 				logger.debug("Delta msg: {}", node.toString());
 
-			// deal with diff format
-			if (isDelta(node) && !node.has(GET)) {
-				try {
-					if (logger.isDebugEnabled())
-						logger.debug("Converting source in delta: {}", node.toString());
-					if(node.has(UPDATES)){
-						node.at(UPDATES).asJsonList().forEach((j) -> {
-							convertSource(j,srcBus, msgSrcType);
-						});
-					}
-					if(node.has(PUT)){
-						node.at(PUT).asJsonList().forEach((j) -> {
-							convertSource(j,srcBus, msgSrcType);
-						});
-					}
-					if(node.has(CONFIG)){
-						node.at(CONFIG).asJsonList().forEach((j) -> {
-							convertSource(j,srcBus, msgSrcType);
-						});
-					}
-					message.getBodyBuffer().clear();
-					message.getBodyBuffer().writeString(node.toString());
-					return true;
-				} catch (Exception e) {
-					logger.error(e, e);
-					throw new ActiveMQException(ActiveMQExceptionType.INTERNAL_ERROR, e.getMessage(), e);
-				}
-
+			// deal with full format
+			try {
+				convertFullSrcToRef(node, srcBus,msgSrcType);
+				message.getBodyBuffer().clear();
+				message.getBodyBuffer().writeString(node.toString());
+				return true;
+			} catch (Exception e) {
+				logger.error(e, e);
+				throw new ActiveMQException(ActiveMQExceptionType.INTERNAL_ERROR, e.getMessage(), e);
 			}
 		}
 		return true;
 
 	}
+
+	
 
 	
 	

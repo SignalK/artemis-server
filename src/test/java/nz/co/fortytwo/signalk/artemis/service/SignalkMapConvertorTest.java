@@ -9,6 +9,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
@@ -29,10 +30,12 @@ public class SignalkMapConvertorTest {
 		Json in = Json.read(body);
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();
 		SignalkMapConvertor.parseFull(in, map, "");
-		Json out = SignalkMapConvertor.mapToFull(map);
+		ArrayList<String> allowed =  new ArrayList<>();
+		allowed.add("all");
+		Json out = SignalkMapConvertor.mapToFull(map,allowed);
 		logger.debug(in);
 		logger.debug(out);
-		assertEquals(in, out);
+		assertTrue(compare(in, out));
 	}
 	
 	@Test
@@ -49,10 +52,30 @@ public class SignalkMapConvertorTest {
 		Json out = SignalkMapConvertor.mapToUpdatesDelta(map);
 		logger.debug(in);
 		logger.debug(out);
-		assertEquals(in, out);
+		in.delAt("self");
+		in.delAt("version");
+		out.delAt("self");
+		out.delAt("version");
+		assertTrue(compare(in, out));
 	}
 
-	
+	private boolean compare(Json map, Json rslt) {
+		if(map.isPrimitive()|| map.isArray()) {
+			logger.debug("Matching {} |  {}", map,rslt);
+			if(map.isNumber()) {
+				//logger.debug("Matching: {} - {} = {}",map.asDouble(,)rslt.asDouble()
+				return Math.abs(map.asDouble()-rslt.asDouble())<0.0000001;
+			}
+			return map.equals(rslt);
+		}
+		for(String key:map.asJsonMap().keySet()) {
+			if(!map.at(key).equals(rslt.at(key))) {
+				logger.debug("Bad match {} is not  {}", map.at(key),rslt.at(key));
+				return compare(map.at(key),rslt.at(key));
+			}
+		}
+		return true;
+	}
 	
 		@Test
 		public void shouldConvertPut() throws IOException {
