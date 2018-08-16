@@ -247,6 +247,9 @@ public class Config {
 	public static void saveConfig(NavigableMap<String, Json> config) throws IOException {
 		influx.save(config);
 	}
+	public static void saveConfig() throws IOException {
+		influx.save(map);
+	}
 
 	public static String getConfigProperty(String prop) {
 		try {

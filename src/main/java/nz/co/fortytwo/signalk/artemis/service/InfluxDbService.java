@@ -17,6 +17,7 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.values;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.version;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Map;
@@ -90,6 +91,11 @@ public class InfluxDbService implements TDBService {
 	@Override
 	public void setWrite(boolean write) {
 		allowWrite=write;
+		try {
+			Config.saveConfig();
+		} catch (IOException e) {
+			logger.error(e,e);
+		}
 	}
 	
 	@Override
@@ -654,7 +660,8 @@ public class InfluxDbService implements TDBService {
 
 	protected void saveData(String key, String sourceRef, long millis, Object val) {
 			if(!allowWrite) {
-				if(Config.getConfigProperty(ConfigConstants.CLOCK_SOURCE).equals("system")) {
+				if(Config.getConfigProperty(ConfigConstants.CLOCK_SOURCE)!=null 
+						&& Config.getConfigProperty(ConfigConstants.CLOCK_SOURCE).equals("system")) {
 					if (logger.isDebugEnabled())logger.debug("write enabled for {} : {}",()->val.getClass().getSimpleName(),()->key);
 					setWrite(true);
 				}else {
