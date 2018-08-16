@@ -84,9 +84,7 @@ public class InfluxDbService implements TDBService {
 			logger.error(throwable);
 		}));
 		if(primaryMap.size()==0)loadPrimary();
-		if(Config.getConfigProperty(ConfigConstants.CLOCK_SOURCE).equals("system")) {
-			allowWrite=true;
-		}
+		
 	}
 
 	@Override

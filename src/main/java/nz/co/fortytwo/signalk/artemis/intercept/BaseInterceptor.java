@@ -18,6 +18,7 @@ import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.service.TDBService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
@@ -35,6 +36,9 @@ public class BaseInterceptor {
 
 			txSession.start();
 			
+			if(Config.getConfigProperty(ConfigConstants.CLOCK_SOURCE).equals("system")) {
+				influx.setWrite(true);
+			}
 			}catch(Exception e){
 				logger.error(e,e);
 			}
