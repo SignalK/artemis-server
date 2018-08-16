@@ -171,7 +171,7 @@ public class Config {
 		model.put(ConfigConstants.UDP_NMEA_PORT, Json.make(55556));
 		model.put(ConfigConstants.STOMP_PORT, Json.make(61613));
 		model.put(ConfigConstants.MQTT_PORT, Json.make(1883));
-		model.put(ConfigConstants.CLOCK_source, Json.make("system"));
+		model.put(ConfigConstants.CLOCK_SOURCE, Json.make("gps"));
 
 		model.put(ConfigConstants.HAWTIO_PORT, Json.make(8000));
 		model.put(ConfigConstants.HAWTIO_AUTHENTICATE, Json.make(false));

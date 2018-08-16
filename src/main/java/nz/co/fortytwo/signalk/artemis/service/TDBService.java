@@ -8,6 +8,10 @@ import mjson.Json;
 public interface TDBService {
 
 	public void setUpTDb();
+	
+	public void setWrite(boolean write);
+	
+	public boolean getWrite();
 
 	public void closeTDb();
 

@@ -503,8 +503,9 @@ public class SignalKConstants {
 	public static final String nav_courseRhumbline_previousPoint_position="navigation.courseRhumbline.previousPoint.position";
 	public static final String nav_courseRhumbline_previousPoint_position_latitude="navigation.courseRhumbline.previousPoint.position.latitude";
 	public static final String nav_courseRhumbline_previousPoint_position_longitude="navigation.courseRhumbline.previousPoint.position.longitude";
-
+*/
 	public static final String nav_datetime="navigation.datetime";
+/*
 	public static final String nav_datetime_gnssTimeSource="navigation.datetime.gnssTimeSource";
 	public static final String nav_destination="navigation.destination";
 	public static final String nav_destination_eta="navigation.destination.eta";

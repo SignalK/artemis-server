@@ -43,6 +43,7 @@ import org.omg.CORBA.UNKNOWN;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class InfluxDbService implements TDBService {
@@ -57,6 +58,7 @@ public class InfluxDbService implements TDBService {
 	
 	public static final String PRIMARY_VALUE = "primary";
 	public static final ConcurrentSkipListMap<String, String> primaryMap = new ConcurrentSkipListMap<>();
+	public static boolean allowWrite=false;
 	
 	public InfluxDbService() {
 		setUpTDb();
@@ -82,8 +84,21 @@ public class InfluxDbService implements TDBService {
 			logger.error(throwable);
 		}));
 		if(primaryMap.size()==0)loadPrimary();
+		if(Config.getConfigProperty(ConfigConstants.CLOCK_SOURCE).equals("system")) {
+			allowWrite=true;
+		}
 	}
 
+	@Override
+	public void setWrite(boolean write) {
+		allowWrite=write;
+	}
+	
+	@Override
+	public boolean getWrite() {
+		return allowWrite;
+	}
+	
 	/* (non-Javadoc)
 	 * @see nz.co.fortytwo.signalk.artemis.service.TDBService#closeInfluxDb()
 	 */
@@ -640,7 +655,10 @@ public class InfluxDbService implements TDBService {
 
 
 	protected void saveData(String key, String sourceRef, long millis, Object val) {
-		
+			if(!allowWrite) {
+				if (logger.isDebugEnabled())logger.debug("write not enabled for {} : {}",()->val.getClass().getSimpleName(),()->key);
+				return;
+			}
 			if(val!=null)
 				if (logger.isDebugEnabled())logger.debug("save {} : {}",()->val.getClass().getSimpleName(),()->key);
 			else{
@@ -832,6 +850,8 @@ public class InfluxDbService implements TDBService {
 	public static void setDbName(String dbName) {
 		InfluxDbService.dbName = dbName;
 	}
+
+	
 
 
 }

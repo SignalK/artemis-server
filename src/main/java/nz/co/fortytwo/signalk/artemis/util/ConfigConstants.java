@@ -61,13 +61,11 @@ public class ConfigConstants {
 	//public static final String JWT_SECRET_KEY = "config.server.jwt.secret.key";
 	
 	public static final String USBDRIVE = "config.server.files.usb.usbdrive";
-	public static final String CLOCK_source = "config.server.clock.src";
+	public static final String CLOCK_SOURCE = "config.server.clock.src";
 
 	// serial ports
 	public static final String SERIAL_PORTS = "config.server.serial.ports";
 	public static final String SERIAL_PORT_BAUD = "config.server.serial.baud";
-
-	// debug flags
 	public static final String ENABLE_SERIAL = "config.server.serial.enable";
 
 	// directories

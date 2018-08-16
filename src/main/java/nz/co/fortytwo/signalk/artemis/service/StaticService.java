@@ -48,9 +48,13 @@ public class StaticService {
 	}
 	private Response getResponse(String targetPath,HttpServletRequest req){
 		try {
-			if(StringUtils.isBlank(targetPath)|| targetPath.equals("/")){
-				targetPath="/index.html";
+			targetPath= StringUtils.defaultIfEmpty(targetPath, "index.html");
+			
+			if(targetPath.endsWith("/")){
+				targetPath=targetPath+"index.html";
 			}
+			targetPath= StringUtils.removeStart(targetPath, "/");
+			
 			if (logger.isDebugEnabled())logger.debug("serve {}",targetPath);
 			java.nio.file.Path target = Paths.get(Config.getConfigProperty(ConfigConstants.STATIC_DIR),targetPath);
 			
@@ -59,7 +63,7 @@ public class StaticService {
 				return Response.status(HttpStatus.SC_FORBIDDEN).build();
 			}
 			if(Files.isDirectory(target)){
-				target = Paths.get(target.toString(),"/index.html");
+				target = Paths.get(target.toString(),"index.html");
 			}
 			return Response.status(HttpStatus.SC_OK)
 					.type(Files.probeContentType(target))

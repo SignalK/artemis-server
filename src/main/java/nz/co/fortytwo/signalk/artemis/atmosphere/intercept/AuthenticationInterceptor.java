@@ -46,7 +46,7 @@ public class AuthenticationInterceptor extends AtmosphereInterceptorAdapter impl
 		}
 
 		// check for secure path
-		if (!(r.getRequest().getPathInfo().startsWith("/signalk/v1/api/config")
+		if (!(r.getRequest().getPathInfo().startsWith("/signalk/v1/api/")
 				|| r.getRequest().getPathInfo().startsWith("/signalk/v1/logger")
 				|| r.getRequest().getPathInfo().startsWith("/config")
 				|| r.getRequest().getPathInfo().startsWith("/signalk/apps")

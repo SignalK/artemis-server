@@ -18,6 +18,7 @@ import org.apache.logging.log4j.Logger;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 /*
@@ -85,7 +86,22 @@ public class DeltaMsgInterceptor extends BaseInterceptor implements Interceptor 
 			// deal with diff format
 			if (isDelta(node)) {
 				try {
-					saveMap(processDelta(node));
+					NavigableMap<String, Json> map = processDelta(node);
+					if(!influx.getWrite()) {
+						//set the time if we can
+						Json time = map.get(vessels_dot_self_dot + nav_datetime);
+						if(time!=null&& !time.isNull()) {
+							//set system time 
+							//sudo date -s 2018-08-11T17:52:51+12:00
+							String cmd = "sudo date -s " + time.asString();
+				            Runtime.getRuntime().exec(cmd.split(" "));
+				            if (logger.isDebugEnabled()) {
+				                logger.debug("Executed date setting command:" + cmd);
+				            }
+				            influx.setWrite(true);
+						}
+					}
+					saveMap(map);
 					return true;
 				} catch (Exception e) {
 					logger.error(e, e);
