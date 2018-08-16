@@ -660,13 +660,13 @@ public class InfluxDbService implements TDBService {
 
 	protected void saveData(String key, String sourceRef, long millis, Object val) {
 			if(!allowWrite) {
-				String clock = "gps";
+				String clock = null;
 				try {
 					clock = Config.getConfigProperty(ConfigConstants.CLOCK_SOURCE);
 				}catch (Exception e) {
 					//ignore
 				}
-				if(clock.equals("system")) {
+				if(clock!=null && clock.equals("system")) {
 					if (logger.isDebugEnabled())logger.debug("write enabled for {} : {}",()->val.getClass().getSimpleName(),()->key);
 					setWrite(true);
 				}else {
