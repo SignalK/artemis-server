@@ -654,8 +654,13 @@ public class InfluxDbService implements TDBService {
 
 	protected void saveData(String key, String sourceRef, long millis, Object val) {
 			if(!allowWrite) {
-				if (logger.isDebugEnabled())logger.debug("write not enabled for {} : {}",()->val.getClass().getSimpleName(),()->key);
-				return;
+				if(Config.getConfigProperty(ConfigConstants.CLOCK_SOURCE).equals("system")) {
+					if (logger.isDebugEnabled())logger.debug("write enabled for {} : {}",()->val.getClass().getSimpleName(),()->key);
+					setWrite(true);
+				}else {
+					if (logger.isDebugEnabled())logger.debug("write not enabled for {} : {}",()->val.getClass().getSimpleName(),()->key);
+					return;
+				}
 			}
 			if(val!=null)
 				if (logger.isDebugEnabled())logger.debug("save {} : {}",()->val.getClass().getSimpleName(),()->key);
