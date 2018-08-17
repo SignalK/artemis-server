@@ -12,12 +12,15 @@ import org.apache.activemq.artemis.api.core.Interceptor;
 import org.apache.activemq.artemis.core.protocol.core.Packet;
 import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendMessage;
 import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
+import org.apache.commons.collections.list.FixedSizeList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
+
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
@@ -91,9 +94,11 @@ public class DeltaMsgInterceptor extends BaseInterceptor implements Interceptor 
 					if (!influx.getWrite()) {
 						// set the time if we can
 						// vessels.urn:mrn:signalk:uuid:80a3bcf0-d1a5-467e-9cd9-35c1760bb2d3.navigation.datetime.values.NMEA0183.SERIAL.value
+						String uuid = Config.getConfigProperty(ConfigConstants.UUID);
+						
 						for (String key : map.keySet()) {
-							logger.info("Check key: {} starts with {}", key, vessels+dot+self+dot + nav_datetime);
-							if (key.startsWith(vessels+dot+self+dot + nav_datetime)) {
+							logger.info("Check key: {} starts with {}", key, vessels+dot+uuid+dot + nav_datetime);
+							if (key.startsWith(vessels+dot+uuid+dot + nav_datetime)||key.startsWith(vessels+dot+self+dot + nav_datetime)) {
 								Json time = map.get(key);
 								if (time != null && !time.isNull()) {
 									// set system time
