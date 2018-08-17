@@ -94,6 +94,7 @@ public class DeltaMsgInterceptor extends BaseInterceptor implements Interceptor 
 							//set system time 
 							//sudo date -s 2018-08-11T17:52:51+12:00
 							String cmd = "sudo date -s " + time.asString();
+							logger.info("Executing date setting command:" + cmd);
 				            Runtime.getRuntime().exec(cmd.split(" "));
 				       
 				            logger.info("Executed date setting command:" + cmd);

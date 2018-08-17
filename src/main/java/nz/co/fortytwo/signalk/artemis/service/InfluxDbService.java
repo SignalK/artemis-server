@@ -40,7 +40,7 @@ import org.influxdb.dto.QueryResult;
 import org.influxdb.dto.QueryResult.Series;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
-import org.omg.CORBA.UNKNOWN;
+
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
@@ -59,7 +59,7 @@ public class InfluxDbService implements TDBService {
 	
 	public static final String PRIMARY_VALUE = "primary";
 	public static final ConcurrentSkipListMap<String, String> primaryMap = new ConcurrentSkipListMap<>();
-	public static boolean allowWrite=false;
+	public static boolean allowWrite=true;
 	
 	public InfluxDbService() {
 		setUpTDb();
@@ -667,10 +667,10 @@ public class InfluxDbService implements TDBService {
 					//ignore
 				}
 				if(clock!=null && clock.equals("system")) {
-					if (logger.isDebugEnabled())logger.debug("write enabled for {} : {}",()->val.getClass().getSimpleName(),()->key);
+					if (logger.isInfoEnabled())logger.info("write enabled for {} : {}",()->val.getClass().getSimpleName(),()->key);
 					setWrite(true);
 				}else {
-					if (logger.isDebugEnabled())logger.debug("write not enabled for {} : {}",()->val.getClass().getSimpleName(),()->key);
+					if (logger.isInfoEnabled())logger.info("write not enabled for {} : {}",()->val.getClass().getSimpleName(),()->key);
 					return;
 				}
 			}
