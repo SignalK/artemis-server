@@ -57,8 +57,8 @@ public class DeltaMsgInterceptor extends BaseInterceptor implements Interceptor 
 	private static Logger logger = LogManager.getLogger(DeltaMsgInterceptor.class);
 
 	/**
-	 * Reads Delta format JSON and inserts in the influxdb. Does nothing if json
-	 * is not an update, and returns the original message
+	 * Reads Delta format JSON and inserts in the influxdb. Does nothing if json is
+	 * not an update, and returns the original message
 	 * 
 	 * @param node
 	 * @return
@@ -66,40 +66,46 @@ public class DeltaMsgInterceptor extends BaseInterceptor implements Interceptor 
 
 	@Override
 	public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException {
-		if(isResponse(packet))return true;
-		
+		if (isResponse(packet))
+			return true;
+
 		if (packet instanceof SessionSendMessage) {
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
 
 			ICoreMessage message = realPacket.getMessage();
-			
+
 			if (!Config.JSON_DELTA.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))
 				return true;
-			
-			
+
 			Json node = Util.readBodyBuffer(message);
-			if (node.has(GET)) return true;
-			
+			if (node.has(GET))
+				return true;
+
 			if (logger.isDebugEnabled())
-				logger.debug("Delta msg: {}",node.toString());
+				logger.debug("Delta msg: {}", node.toString());
 
 			// deal with diff format
 			if (isDelta(node)) {
 				try {
 					NavigableMap<String, Json> map = processDelta(node);
-					if(!influx.getWrite()) {
-						//set the time if we can
-						Json time = map.get(vessels_dot_self_dot + nav_datetime);
-						if(time!=null&& !time.isNull()) {
-							//set system time 
-							//sudo date -s 2018-08-11T17:52:51+12:00
-							String cmd = "sudo date -s " + time.asString();
-							logger.info("Executing date setting command:" + cmd);
-				            Runtime.getRuntime().exec(cmd.split(" "));
-				       
-				            logger.info("Executed date setting command:" + cmd);
-				           
-				            influx.setWrite(true);
+					if (!influx.getWrite()) {
+						// set the time if we can
+						// vessels.urn:mrn:signalk:uuid:80a3bcf0-d1a5-467e-9cd9-35c1760bb2d3.navigation.datetime.values.NMEA0183.SERIAL.value
+						for (String key : map.keySet()) {
+							if (key.startsWith(vessels_dot_self_dot + nav_datetime)) {
+								Json time = map.get(key);
+								if (time != null && !time.isNull()) {
+									// set system time
+									// sudo date -s 2018-08-11T17:52:51+12:00
+									String cmd = "sudo date -s " + time.asString();
+									logger.info("Executing date setting command:" + cmd);
+									Runtime.getRuntime().exec(cmd.split(" "));
+
+									logger.info("Executed date setting command:" + cmd);
+
+									influx.setWrite(true);
+								}
+							}
 						}
 					}
 					saveMap(map);
@@ -109,20 +115,19 @@ public class DeltaMsgInterceptor extends BaseInterceptor implements Interceptor 
 					throw new ActiveMQException(ActiveMQExceptionType.INTERNAL_ERROR, e.getMessage(), e);
 				}
 			}
-			
+
 		}
 		return true;
 
 	}
-	
-	protected NavigableMap<String, Json> processDelta(Json node){
+
+	protected NavigableMap<String, Json> processDelta(Json node) {
 		if (logger.isDebugEnabled())
 			logger.debug("Saving delta: {}", node.toString());
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
 		SignalkMapConvertor.parseDelta(node, map);
 		return map;
-		
+
 	}
-	
 
 }
