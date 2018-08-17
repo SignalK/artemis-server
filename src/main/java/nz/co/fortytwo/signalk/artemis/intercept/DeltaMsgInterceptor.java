@@ -92,16 +92,17 @@ public class DeltaMsgInterceptor extends BaseInterceptor implements Interceptor 
 						// set the time if we can
 						// vessels.urn:mrn:signalk:uuid:80a3bcf0-d1a5-467e-9cd9-35c1760bb2d3.navigation.datetime.values.NMEA0183.SERIAL.value
 						for (String key : map.keySet()) {
-							if (key.startsWith(vessels_dot_self_dot + nav_datetime)) {
+							logger.info("Check key: {} starts with {}", key, vessels+dot+self+dot + nav_datetime);
+							if (key.startsWith(vessels+dot+self+dot + nav_datetime)) {
 								Json time = map.get(key);
 								if (time != null && !time.isNull()) {
 									// set system time
 									// sudo date -s 2018-08-11T17:52:51+12:00
 									String cmd = "sudo date -s " + time.asString();
-									logger.info("Executing date setting command:" + cmd);
+									logger.info("Executing date setting command: {}", cmd);
 									Runtime.getRuntime().exec(cmd.split(" "));
 
-									logger.info("Executed date setting command:" + cmd);
+									logger.info("Executed date setting command: {}", cmd);
 
 									influx.setWrite(true);
 								}
