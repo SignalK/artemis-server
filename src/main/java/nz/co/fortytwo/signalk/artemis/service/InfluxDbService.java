@@ -59,7 +59,7 @@ public class InfluxDbService implements TDBService {
 	
 	public static final String PRIMARY_VALUE = "primary";
 	public static final ConcurrentSkipListMap<String, String> primaryMap = new ConcurrentSkipListMap<>();
-	public static boolean allowWrite=true;
+	public static boolean allowWrite=false;
 	
 	public InfluxDbService() {
 		setUpTDb();
