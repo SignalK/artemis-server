@@ -50,4 +50,6 @@ REST API test
 index.tml
 indexxx.htm
 
+clean up logrotate so it doesnt eat all disk space. 
+   add maxsize 128M
 

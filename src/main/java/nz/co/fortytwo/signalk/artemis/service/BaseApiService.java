@@ -136,6 +136,8 @@ public class BaseApiService {
 			public void onThrowable(AtmosphereResourceEvent event) {
 				try {
 					event.getResource().close();
+				}catch (NullPointerException e) {
+					logger.error("NullPointerException: {}",e.getMessage());
 				} catch ( IllegalStateException | IOException e) {
 					logger.error(e,e);
 				}

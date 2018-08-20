@@ -256,7 +256,8 @@ public class Config {
 			if(config.getMap().containsKey(prop))
 				return (String) config.getMap().get(prop).getValue();
 		} catch (Exception e) {
-			logger.warn(e.getMessage(), e);
+			logger.warn("getConfigProperty {} : {}",prop ,e.getMessage());
+			if (logger.isDebugEnabled())logger.debug(e,e);
 		}
 		return null;
 	}
@@ -271,7 +272,8 @@ public class Config {
 			if(config.getMap().containsKey(prop))
 				return config.getMap().get(prop).asInteger();
 		} catch (Exception e) {
-			logger.warn(e.getMessage(), e);
+			logger.warn("getConfigProperty {} : {}",prop ,e.getMessage());
+			if (logger.isDebugEnabled())logger.debug(e,e);
 		}
 		return null;
 
@@ -283,7 +285,8 @@ public class Config {
 			if(config.getMap().containsKey(prop))
 				return config.getMap().get(prop).asDouble();
 		} catch (Exception e) {
-			logger.warn(e.getMessage(), e);
+			logger.warn("getConfigProperty {} : {}",prop ,e.getMessage());
+			if (logger.isDebugEnabled())logger.debug(e,e);
 		}
 		return null;
 	}
@@ -293,7 +296,8 @@ public class Config {
 			if(config.getMap().containsKey(prop))
 				return config.getMap().get(prop).asBoolean();
 		} catch (Exception e) {
-			logger.warn(e.getMessage(), e);
+			logger.warn("getConfigProperty {} : {}",prop ,e.getMessage());
+			if (logger.isDebugEnabled())logger.debug(e,e);
 		}
 		return null;
 	}

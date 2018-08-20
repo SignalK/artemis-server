@@ -97,7 +97,8 @@ public class DeltaMsgInterceptor extends BaseInterceptor implements Interceptor 
 						String uuid = Config.getConfigProperty(ConfigConstants.UUID);
 						
 						for (String key : map.keySet()) {
-							logger.info("Check key: {} starts with {}", key, vessels+dot+uuid+dot + nav_datetime);
+							if (logger.isDebugEnabled())
+								logger.debug("Check key: {} starts with {}", key, vessels+dot+uuid+dot + nav_datetime);
 							if (key.startsWith(vessels+dot+uuid+dot + nav_datetime)||key.startsWith(vessels+dot+self+dot + nav_datetime)) {
 								Json time = map.get(key);
 								if (time != null && !time.isNull()) {
