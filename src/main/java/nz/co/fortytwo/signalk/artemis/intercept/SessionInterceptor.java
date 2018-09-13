@@ -22,9 +22,9 @@ public class SessionInterceptor extends BaseInterceptor implements Interceptor {
 
 	@Override
 	public boolean intercept(final Packet packet, final RemotingConnection connection) throws ActiveMQException {
-		// System.out.println("SessionInterceptor gets called!");
-		 //System.out.println("Packet: " + packet.getClass().getName());
-		// System.out.println("Packet: " + packet.toString());
+	    System.out.println("SessionInterceptor gets called!");
+		System.out.println("Packet: " + packet.getClass().getName());
+		System.out.println("Packet: " + packet.toString());
 		// System.out.println("RemotingConnection: " +
 		// connection.getRemoteAddress());
 		// System.out.println("TransportConnection: " +
