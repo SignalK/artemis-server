@@ -114,7 +114,7 @@ public class InfluxDbService implements TDBService {
 	@Override
 	public NavigableMap<String, Json> loadResources(NavigableMap<String, Json> map, Map<String, String> query) {
 		//"select * from "+table+" where uuid='"+uuid+"' AND skey=~/"+pattern+"/ group by skey,primary, uuid,sourceRef,owner,grp order by time desc limit 1"
-		String queryStr="select * from resources "+getWhereString(query)+" group by skey, primary, uuid,sourceRef order by time desc limit 1";
+		String queryStr="select * from resources "+getWhereString(query)+" group by skey, primary, uuid, sourceRef order by time desc limit 1";
 		return loadResources(map, queryStr);
 	}
 
