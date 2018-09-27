@@ -28,6 +28,8 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -48,10 +50,14 @@ import org.apache.activemq.artemis.core.remoting.impl.netty.TransportConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.asynchttpclient.AsyncHttpClient;
+import org.asynchttpclient.Response;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
 
+import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.cookie.DefaultCookie;
 import mjson.Json;
 
 public class Util {
@@ -507,6 +513,35 @@ public class Util {
 		return json;
 	}
 
+	public static Json getUrlAsJson(AsyncHttpClient c,String url) throws Exception {
+		return Json.read(getUrlAsString(c,url, null, null));
+	}
+	public static Json getUrlAsJson(AsyncHttpClient c,String url, String user, String pass) throws Exception {
+		return Json.read(getUrlAsString(c,url, user, pass));
+	}
 	
+	public static String getUrlAsString(AsyncHttpClient c,String url) throws Exception {
+		return getUrlAsString(c,url, null,null);
+	}
+	public static String getUrlAsString(AsyncHttpClient c, String url, String user, String pass) throws Exception {
+			// get a sessionid
+			Response r2 = null;
+			if(user!=null){
+				r2 = c.prepareGet(url).setCookies(getCookies(user, pass)).execute().get();
+			}else{
+				r2 = c.prepareGet(url).execute().get();
+			}
+			
+			String response = r2.getResponseBody();
+			logger.debug("Endpoint string:" + response);
+			return response;
+	}
+	
+	public static Collection<Cookie> getCookies(String user, String pass) throws Exception {
+		String jwtToken = SecurityUtils.authenticateUser(user, pass);
+		Collection<Cookie> cookies = new ArrayList<>();
+		cookies.add(new DefaultCookie(SecurityUtils.AUTH_COOKIE_NAME, jwtToken));
+		return cookies;
+	}
 }
 

@@ -1,7 +1,9 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.STATIC_DIR;
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.AUTH_COOKIE_NAME;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.ExecutionException;
@@ -58,12 +60,14 @@ public class BaseApiService {
 	
 	protected long lastBroadcast = System.currentTimeMillis();
 	
+	protected File staticDir = null;
+	
 	@Context
 	protected BroadcasterFactory broadCasterFactory;
 	
 	public BaseApiService()  {
 		super();
-		
+		staticDir = new File(Config.getConfigProperty(STATIC_DIR));
 	}
 
 	protected void initSession(String tempQ) throws Exception {
@@ -73,6 +77,14 @@ public class BaseApiService {
 			getTxSession();
 			getProducer();
 			getConsumer();
+	}
+	
+	protected File getLogOutputFile(String logFile) {
+		File installLogDir = new File(staticDir, "logs");
+		installLogDir.mkdirs();
+		// make log name
+		File output = new File(installLogDir, logFile);
+		return output;
 	}
 	
 	protected String getToken(HttpServletRequest req) {

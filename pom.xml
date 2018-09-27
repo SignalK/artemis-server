@@ -140,6 +140,11 @@
 		</dependency>
 		<!-- apache licence -->
 		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-compress</artifactId>
+			<version>1.18</version>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.activemq</groupId>
 			<artifactId>artemis-server</artifactId>
 			<version>${artemis.version}</version>
@@ -285,7 +290,6 @@
 			<groupId>org.asynchttpclient</groupId>
 			<artifactId>async-http-client</artifactId>
 			<version>2.4.9</version>
-			<scope>test</scope>
 		</dependency>
 
 		<dependency>
