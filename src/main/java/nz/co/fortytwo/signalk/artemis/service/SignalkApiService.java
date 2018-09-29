@@ -24,11 +24,13 @@ import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.cpr.AtmosphereResourceEvent;
 import org.atmosphere.websocket.WebSocketEventListenerAdapter;
 
+import io.swagger.annotations.Api;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 @Path("/signalk/v1/api")
+@Api (value = "/signalk/v1/api")
 public class SignalkApiService extends BaseApiService {
 
 	private static Logger logger = LogManager.getLogger(SignalkApiService.class);

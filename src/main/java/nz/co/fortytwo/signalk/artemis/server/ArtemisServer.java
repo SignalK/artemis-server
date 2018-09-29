@@ -56,10 +56,17 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.atmosphere.cpr.ApplicationConfig;
+import org.atmosphere.cpr.AtmosphereResource;
+import org.atmosphere.nettosphere.Handler;
 import org.atmosphere.nettosphere.Nettosphere;
+import org.glassfish.jersey.server.model.Resource;
+
+import com.sun.jersey.server.impl.container.servlet.ServletAdaptor;
 
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Log4J2LoggerFactory;
+import io.swagger.jaxrs.config.BeanConfig;
+import io.swagger.jersey.config.JerseyJaxrsConfig;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.serial.SerialPortManager;
 import nz.co.fortytwo.signalk.artemis.service.ChartService;
@@ -126,6 +133,10 @@ public final class ArtemisServer {
 		
 		addShutdownHook(this);
 	
+		//swagger
+		buildSwagger();
+		
+		
 		server = new Nettosphere.Builder().config(
 				new org.atmosphere.nettosphere.Config.Builder()
 						.supportChunking(true)
@@ -134,7 +145,7 @@ public final class ArtemisServer {
 						.enablePong(false)
 						.initParam(ApplicationConfig.PROPERTY_SESSION_SUPPORT, "true")
 						.initParam(ApplicationConfig.ANALYTICS, "false")
-						.initParam("jersey.config.server.provider.packages","nz.co.fortytwo.signalk.artemis")
+						.initParam("jersey.config.server.provider.packages","nz.co.fortytwo.signalk.artemis,io.swagger.jaxrs.listing")
 						.initParam("jersey.config.server.provider.classnames","org.glassfish.jersey.media.multipart.MultiPartFeature")
 						.initParam("org.atmosphere.cpr.broadcaster.shareableThreadPool","true")
 						.initParam("org.atmosphere.cpr.broadcaster.maxProcessingThreads", "10")
@@ -326,6 +337,20 @@ public final class ArtemisServer {
 		return txtSet;
 	}
 	
+	private static void buildSwagger()
+    {
+        // This configures Swagger
+        BeanConfig beanConfig = new BeanConfig();
+        beanConfig.setVersion( "1.0.0" );
+        beanConfig.setResourcePackage("nz.co.fortytwo.signalk.artemis.service");
+        
+        beanConfig.setScan( true );
+        beanConfig.setBasePath( "/" );
+        beanConfig.setDescription( "Manages webapp lifecycle in a signalk web server" );
+        beanConfig.setTitle( "Signalk Webapp Management API" );
+       
+    }
+
 	static {
         System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
         System.setProperty("java.net.preferIPv4Stack", "true");
@@ -335,12 +360,7 @@ public final class ArtemisServer {
     }
 	
 	public static void main(String[] args) throws Exception {
-//		Properties props = System.getProperties();
-//		props.setProperty("java.net.preferIPv4Stack", "true");
-//		//props.setProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager");
-//		props.setProperty("log4j.configurationFile", "./conf/log4j2.json");
-//		props.setProperty("org.apache.logging.log4j.simplelog.StatusLogger.level","TRACE");
-//		System.setProperties(props);
+
 		
 		PropertyConfigurator.configure("./conf/log4j2.json");
 		InternalLoggerFactory.setDefaultFactory(Log4J2LoggerFactory.INSTANCE);
@@ -352,7 +372,7 @@ public final class ArtemisServer {
 		}
 		// this will force a reconfiguration
 		context.setConfigLocation(file.toURI());		
-
+		
 		new ArtemisServer();
 
 	}

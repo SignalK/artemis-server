@@ -15,6 +15,9 @@ Done:
 	UI
 	log conf
 TODO:
+    apis:
+		/signalk/v1/access/requests
+		/signalk/v1/auth
 	send date to rpi from browser
 	Add login on main screen
 	more efficient subscriptions

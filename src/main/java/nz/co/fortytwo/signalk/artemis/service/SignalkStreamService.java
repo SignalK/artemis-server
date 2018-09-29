@@ -27,11 +27,13 @@ import org.atmosphere.cpr.AtmosphereResourceSession;
 import org.atmosphere.cpr.AtmosphereResourceSessionFactory;
 import org.atmosphere.websocket.WebSocket;
 
+import io.swagger.annotations.Api;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 @Path("/signalk/v1/stream")
+@Api (value = "/signalk/v1/stream")
 public class SignalkStreamService extends BaseApiService {
 
 	private static final long PING_PERIOD = 5000;

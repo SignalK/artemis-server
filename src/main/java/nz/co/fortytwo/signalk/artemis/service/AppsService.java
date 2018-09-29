@@ -29,10 +29,13 @@ import org.asynchttpclient.AsyncCompletionHandler;
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.HttpResponseBodyPart;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 @Path("/signalk/v1/apps")
+@Api (value = "/signalk/v1/apps")
 public class AppsService extends BaseApiService {
 	
 	private static final int BUFFER_SIZE = 4096;
@@ -46,8 +49,9 @@ public class AppsService extends BaseApiService {
 
 	@GET
 	@Path("list")
+	@ApiOperation(value = "Return a list of installed webapps", notes = "Concatenates the package.json files from the installed apps as a json array ", response = String.class)
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response get() {
+	public Response list() {
 		try {
 			Json list = Json.array();
 			for (File f : staticDir.listFiles()) {
@@ -70,6 +74,7 @@ public class AppsService extends BaseApiService {
 
 	@GET
 	@Path("install")
+	@ApiOperation(value = "Install a webapp@version", notes = "Installs the webapp")
 	public Response install(@QueryParam("appName") String appName, @QueryParam("appVersion") String appVersion) {
 		try {
 			Thread t = new Thread() {
@@ -94,6 +99,7 @@ public class AppsService extends BaseApiService {
 	}
 
 	@GET
+	@ApiOperation(value = "Update a webapp@version", notes = "Removes any current version and install the new webapp@version")
 	@Path("update")
 	public Response update(@QueryParam("appName") String appName, @QueryParam("appVersion") String appVersion) {
 		Response resp = remove(appName);
@@ -104,12 +110,16 @@ public class AppsService extends BaseApiService {
 	}
 
 	@GET
+	@ApiOperation(value = "Removes a webapp", notes = "Removes the webapp")
 	@Path("remove")
 	public Response remove(@QueryParam("appName") String appName) {
 		try {
 			File appDir = new File(staticDir, appName);
 			if(appDir.isFile()) {
 				return Response.status(HttpStatus.SC_BAD_REQUEST).entity("Can only remove signalk web-apps").build();
+			}
+			if(!appDir.exists()) {
+				return Response.status(HttpStatus.SC_BAD_REQUEST).entity("No such web-app: "+appName).build();
 			}
 			if(appDir.delete()) {
 				return Response.status(HttpStatus.SC_OK).entity(appName+" removed").build();
@@ -125,12 +135,13 @@ public class AppsService extends BaseApiService {
 
 	@GET
 	@Path("search")
+	@ApiOperation(value = "Search for a webapp", notes = "Returns a list of avaliable signalk webapps from npmjs.org.")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response search(@QueryParam("keyword") String keyword) {
 		try (final AsyncHttpClient c = asyncHttpClient();) {
 			Json json = Util.getUrlAsJson(c, "https://api.npms.io/v2/search?size=250&q=keywords:signalk-webapp");
 
-			return Response.status(HttpStatus.SC_OK).entity(json.at("results")).build();
+			return Response.status(HttpStatus.SC_OK).entity(json.at("results").toString()).build();
 
 		} catch (Exception e) {
 			logger.error(e, e);
