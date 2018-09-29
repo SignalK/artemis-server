@@ -119,11 +119,8 @@ public class ChartService  {
 		if (!staticDir.endsWith("/")) {
 			staticDir = staticDir + "/";
 		}
-		NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
-		Map<String, String> query = new HashMap<>();
-		query.put("skey", "charts");
-		// get current charts
-		influx.loadResources(map, query);
+		NavigableMap<String, Json> map = getCharts();
+		
 		logger.info("Existing charts: Quan:{}", map.size() / 2);
 		logger.debug("Existing charts: Quan:{} : {}", map.size() / 2, map);
 		File mapDir = new File(staticDir + Config.getConfigProperty(MAP_DIR));
@@ -136,18 +133,8 @@ public class ChartService  {
 
 		for (File chart : mapDir.listFiles()) {
 			if (chart.isDirectory()) {
-				boolean newChart = true;
-				for (Entry<String, Json> e : map.entrySet()) {
-					if (e.getKey().endsWith(attr))
-						continue;
-					if (logger.isTraceEnabled())logger.trace("Checking chart: {} :{}", chart.getName(), e.getValue());
-					if (chart.getName().equals(e.getValue().at("identifier").asString())) {
-						logger.info("Existing chart: {}", chart.getName());
-						newChart = false;
-					}
-				}
-				if (newChart) {
-					Json chartJson = ChartService.loadChart(chart.getName());
+				if (hasChart(map, chart.getName())==null) {
+					Json chartJson = ChartService.loadChart(hasChart(map, chart.getName()),chart.getName());
 					logger.info("Loading new chart: {}= {}", chart.getName(), chartJson);
 					try {
 						Util.sendRawMessage(Config.getConfigProperty(Config.ADMIN_USER),
@@ -162,6 +149,31 @@ public class ChartService  {
 		logger.info("Chart resources updated");
 
 	}
+
+	public static String hasChart(NavigableMap<String, Json> map, String name) {
+		for (Entry<String, Json> e : map.entrySet()) {
+			if (e.getKey().endsWith(attr))
+				continue;
+			if (logger.isDebugEnabled())
+				logger.debug("Checking chart: {} : {} : {}", name, e.getKey(), e.getValue());
+			if (name.equals(e.getValue().at("identifier").asString())) {
+				logger.info("Existing chart: {} = {}", name, e.getKey());
+				return e.getKey();
+			}
+		}
+		return null;
+	}
+
+
+	public static NavigableMap<String, Json> getCharts() {
+		NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
+		Map<String, String> query = new HashMap<>();
+		query.put("skey", "charts");
+		// get current charts
+		influx.loadResources(map, query);
+		return map;
+	}
+
 
 	private void install(File zipFile) throws Exception {
 		if (!zipFile.getName().endsWith(".zip"))
@@ -179,14 +191,14 @@ public class ChartService  {
 			ZipUtils.unzip(destDir, zipFile);
 			if (logger.isDebugEnabled())logger.debug("Unzipped file:" + destDir);
 			// now add a reference in resources
-			sendChartMessage(loadChart(f).toString());
+			sendChartMessage(loadChart(hasChart(getCharts(), f),f).toString());
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			throw e;
 		}
 	}
 
-	public static Json loadChart(String chartName) throws Exception {
+	public static Json loadChart(String key, String chartName) throws Exception {
 		try {
 			File destDir = new File(
 					Config.getConfigProperty(STATIC_DIR) + Config.getConfigProperty(MAP_DIR) + chartName);
@@ -195,9 +207,20 @@ public class ChartService  {
 
 			String title = document.getRootElement().element("Title").getText();
 			String scale = "250000";
+			double[] bounds = {0.0,0.0,0.0,0.0};
 			if (document.getRootElement().element("Metadata") != null) {
 				scale = document.getRootElement().element("Metadata").attribute("scale").getText();
 			}
+			if (document.getRootElement().element("BoundingBox") != null) {
+				//<BoundingBox minx="170.63201130808108" miny="-43.799956482598866" maxx="179.99879176919154" maxy="-32.49905360842772"/>
+				Element box = document.getRootElement().element("BoundingBox");
+				
+				bounds[0]=Double.valueOf(box.attribute("minx").getText());
+				bounds[1]=Double.valueOf(box.attribute("miny").getText());
+				bounds[2]=Double.valueOf(box.attribute("maxx").getText());
+				bounds[3]=Double.valueOf(box.attribute("maxy").getText());
+			}
+			
 			double maxRes = 0.0;
 			double minRes = Double.MAX_VALUE;
 			int maxZoom = 0;
@@ -213,7 +236,8 @@ public class ChartService  {
 				minRes = Math.min(units, minRes);
 			}
 			// now make an entry in resources
-			Json resource = createChartMsg(chartName, title, scale);
+			
+			Json resource = createChartMsg(key, chartName, title, scale, minZoom, maxZoom, bounds);
 			return resource;
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
@@ -221,9 +245,32 @@ public class ChartService  {
 		}
 	}
 
-	private static Json createChartMsg(String f, String title, String scale) {
+	/*
+	 * {
+			"MBTILES_01": {  //artemis uses uri format, since we could get charts from many sources we dont want name collisions
+				"identifier": "MBTILES_01",  
+				"name": "MBTILES_01",
+				"description": "NORTH ALASKA",
+				"bounds": [-202.5, 56.1700229829, -112.5, 75.4971573189],  //need to add
+				"minzoom": 3,  //need to add
+				"maxzoom": 19, //need to add
+				"format": "png", //need to add
+				"type": "tilelayer", // we should reference a std here, there are lots of formats
+				"tilemapUrl": "/signalk/v1/api/resources/charts/MBTILES_01/{z}/{x}/{y}", //artemis returns the dir, not the extension. Probably the extension here makes sense, more control to the chart maker.
+				"scale": "250000"
+			}
+		}
+		*/
+	private static Json createChartMsg(String key, String f, String title, String scale, int minZoom, int maxZoom, double[] bounds) {
 		Json val = Json.object();
-		val.set(PATH, "charts." + "urn:mrn:signalk:uuid:" + java.util.UUID.randomUUID().toString());
+		
+		if(key!=null) {
+			//existing chart
+			val.set(PATH, key);
+		}else {
+			//new chart
+			val.set(PATH, "charts." + "urn:mrn:signalk:uuid:" + java.util.UUID.randomUUID().toString());
+		}
 		Json currentChart = Json.object();
 		val.set(value, currentChart);
 		String time = Util.getIsoTimeString();
@@ -231,17 +278,18 @@ public class ChartService  {
 		currentChart.set("identifier", f);
 		currentChart.set(name, title);
 		currentChart.set("description", title);
-		currentChart.set("tilemapUrl", "/" + Config.getConfigProperty(MAP_DIR) + f);
+		currentChart.set("minzoom", minZoom);
+		currentChart.set("maxzoom", maxZoom);
+		currentChart.set("bounds", bounds);
+		currentChart.set("format", "png");
+		currentChart.set("type","tilelayer");
+		currentChart.set("tilemapUrl", "/" + Config.getConfigProperty(MAP_DIR) + f+"/{z}/{x}/{-y}.png");
 		try {
 			int scaleInt = Integer.valueOf(scale);
 			currentChart.set("scale", scaleInt);
 		} catch (Exception e) {
 			currentChart.set("scale", 0);
 		}
-
-		// Json update = Json.object();
-
-		// update.set(value, val);
 
 		Json updates = Json.array();
 		updates.add(val);

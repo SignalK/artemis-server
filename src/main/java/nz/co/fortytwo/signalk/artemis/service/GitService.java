@@ -1,7 +1,5 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
-import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.STATIC_DIR;
-
 /*
  * 
  * Copyright (C) 2012-2014 R T Huitema. All Rights Reserved.
@@ -49,8 +47,6 @@ import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 
-import nz.co.fortytwo.signalk.artemis.util.Config;
-
 /*
  * Processes REST requests for Signal K installs from Github
  * 
@@ -62,13 +58,13 @@ public class GitService extends BaseApiService {
 
 	private static final String SLASH = "/";
 	private static Logger logger = LogManager.getLogger(GitService.class);
-	private File staticDir = null;
+	
 
 	//private static String github = "https://github.com/";
 
 	public GitService() {
 		super();
-		staticDir = new File(Config.getConfigProperty(STATIC_DIR));
+		
 	}
 
 	/**
@@ -211,13 +207,7 @@ public class GitService extends BaseApiService {
 
 	}
 
-	private File getLogOutputFile(String logFile) {
-		File installLogDir = new File(staticDir, "logs");
-		installLogDir.mkdirs();
-		// make log name
-		File output = new File(installLogDir, logFile);
-		return output;
-	}
+	
 
 	private void runNpmInstall(final File output, File destDir) throws Exception {
 		FileUtils.writeStringToFile(output, "\nBeginning npm install", true);

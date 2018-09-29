@@ -3,6 +3,7 @@ Done:
 	delta
 	full
 	0183
+	N2K
 	AIS
 	TCP
 	UDP
@@ -14,21 +15,18 @@ Done:
 	UI
 	log conf
 TODO:
-	large files fail.
+    apis:
+		/signalk/v1/access/requests
+		/signalk/v1/auth
+	send date to rpi from browser
+	Add login on main screen
 	more efficient subscriptions
-	source to srcRef - full format
 	srcRef back to source
 	
-	chartservice does scale, but charts dont have it. Work out a better way?
-	
-	n2k (as signalk)
 	security
-	
+
 	serial output
 	in serial, add TYPE=SERIAL header, add as type in sendMessage.
-	
-	big messages > 200K
-	REST login/auth
 
 	convert self back to urn on reply
 	
@@ -45,11 +43,10 @@ TODO:
 
 	MQTT
 	STOMP
-	
-REST API test
-index.tml
-indexxx.htm
 
-clean up logrotate so it doesnt eat all disk space. 
-   add maxsize 128M
+Document install 
+	clean up logrotate so it doesnt eat all disk space. 
+	   add maxsize 128M
+	   
+	Add telegraf and setup telegraf.conf
 
