@@ -12,11 +12,10 @@ import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import io.swagger.annotations.Api;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 
 @Path("/signalk")
-@Api (value = "/signalk")
+//@Api(value = "Signalk Root Endpoint")
 public class SignalkEndpointService {
 
 	private static Logger logger = LogManager.getLogger(SignalkEndpointService.class);

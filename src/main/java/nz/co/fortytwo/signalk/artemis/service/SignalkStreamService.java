@@ -1,20 +1,23 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT_DELTA;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PERIOD;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.POLICY_IDEAL;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SUBSCRIBE;
 
 import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -27,13 +30,24 @@ import org.atmosphere.cpr.AtmosphereResourceSession;
 import org.atmosphere.cpr.AtmosphereResourceSessionFactory;
 import org.atmosphere.websocket.WebSocket;
 
-import io.swagger.annotations.Api;
-import mjson.Json;
-import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 @Path("/signalk/v1/stream")
-@Api (value = "/signalk/v1/stream")
+@Tag(name = "Websocket Stream API")
 public class SignalkStreamService extends BaseApiService {
 
 	private static final long PING_PERIOD = 5000;
@@ -43,36 +57,62 @@ public class SignalkStreamService extends BaseApiService {
 
 	private static Timer timer = new Timer();
 
+	
+	@Operation(summary = "Request a websocket stream", description = "Submit a Signalk path and receive a stream of UPDATE messages. Optionally supply startTime and playbackRate to replay history. ",
+			parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN"))
+	@ApiResponses ({
+	    @ApiResponse(responseCode = "101", description = "Switching to websocket", 
+	    		content = @Content(
+                        mediaType = "application/json"                        		
+                        )
+                ),
+	    @ApiResponse(responseCode = "501", description = "History not implemented"),
+	    @ApiResponse(responseCode = "500", description = "Internal server error"),
+	    @ApiResponse(responseCode = "403", description = "No permission")
+	    })
 	@Suspend(contentType = MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
 	@GET
-	public String getWS(@Context HttpServletRequest req, @QueryParam("subscribe")String subscribe) throws Exception {
+	public String getWS(@HeaderParam(HttpHeaders.COOKIE) Cookie cookie, 
+			@Parameter( description = "A signalk path", example="/vessel/self/navigation") @QueryParam("subscribe")String subscribe,
+			@Parameter( description = "An ISO 8601 format date/time string", example="2015-03-07T12:37:10.523Z") @QueryParam("startTime")String startTime,
+			@Parameter( description = "Playback rate multiplier, eg '2' = twice normal speed", example="2") @QueryParam("playbackRate")Double playbackRate) throws Exception {
 		
 		if (logger.isDebugEnabled())
 			logger.debug("get : ws for {}, subscribe={}", resource.getRequest().getRemoteUser(),subscribe);
 		if(StringUtils.isBlank(subscribe)|| "all".equals(subscribe)) {
-			return getWebsocket(Util.getSubscriptionJson("vessels.self","*",1000,1000,FORMAT_DELTA,POLICY_IDEAL).toString(),req);
+			return getWebsocket(Util.getSubscriptionJson("vessels.self","*",1000,1000,FORMAT_DELTA,POLICY_IDEAL).toString(),cookie);
 		}else{
-			return getWebsocket(Util.getSubscriptionJson("vessels.self",subscribe,1000,1000,FORMAT_DELTA,POLICY_IDEAL).toString(),req);
+			return getWebsocket(Util.getSubscriptionJson("vessels.self",subscribe,1000,1000,FORMAT_DELTA,POLICY_IDEAL).toString(),cookie);
 		}
 		//return "";
 	}
 
+	@Operation(summary = "Request a websocket stream", description = "Post a Signalk SUBSCRIBE message and receive a stream of UPDATE messages ",
+			parameters = { @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN"),
+					@Parameter( name="body", description = "A signalk SUBSCRIBE message")
+							})
+	@ApiResponses ({
+	    @ApiResponse(responseCode = "101", description = "Switching to websocket", 
+	    		content = {@Content(mediaType = MediaType.APPLICATION_JSON, 
+	    			examples = @ExampleObject(name="update", value = "{\"test\"}"))
+	    				}),
+	    @ApiResponse(responseCode = "500", description = "Internal server error"),
+	    @ApiResponse(responseCode = "403", description = "No permission")
+	    })
 	@Suspend(contentType = MediaType.APPLICATION_JSON)
+	@Consumes(value = MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
 	@POST
-	public String post(@Context HttpServletRequest req) {
-		try {
-			
-			String body = Util.readString(resource.getRequest().getInputStream(),
-					resource.getRequest().getCharacterEncoding());
-			return getWebsocket(body,req);
-		} catch (IOException e) {
-			logger.error(e,e);
-			return "";
-		}
+	public String post(@HeaderParam(HttpHeaders.COOKIE) Cookie cookie, 
+			 String body) {
+		
+			return getWebsocket(body,cookie);
+		
 		
 	}
 
-	private String getWebsocket(String body, HttpServletRequest req) {
+	private String getWebsocket(String body, Cookie cookie) {
 		try {
 			String correlationId = "stream-" + resource.uuid(); // UUID.randomUUID().toString();
 
@@ -87,7 +127,7 @@ public class SignalkStreamService extends BaseApiService {
 				addCloseListener(resource);
 				setConnectionWatcher(PING_PERIOD);
 			}
-			sendMessage(addToken(body, req), correlationId);
+			sendMessage(addToken(body, cookie), correlationId);
 
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);

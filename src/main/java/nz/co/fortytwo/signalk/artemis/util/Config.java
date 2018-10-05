@@ -20,9 +20,6 @@ import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.sun.jersey.core.util.Base64;
-
-import io.jsonwebtoken.impl.crypto.MacProvider;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.service.TDBService;

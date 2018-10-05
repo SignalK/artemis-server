@@ -58,6 +58,7 @@ import org.joda.time.format.ISODateTimeFormat;
 
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.DefaultCookie;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import mjson.Json;
 
 public class Util {
@@ -103,10 +104,35 @@ public class Util {
 	}
 
 	public static Json getWelcomeMsg() {
+		return getWelcomeMsg(null, null);
+	}
+	public static Json getWelcomeMsg(String startTime, Double playbackRate) {
+		//TODO: add history playbackRate and startTime
+		/*
+		 * {
+			    "name": "foobar marine server",
+			    "version": "1.1.4",
+			    "startTime": "2018-08-24T15:19:09Z",
+			    "playbackRate": 1,
+			    "self": "vessels.urn:mrn:signalk:uuid:c0d79334-4e25-4245-8892-54e8ccc8021d",
+			    "roles": [
+			        "master",
+			        "main"
+			    ]
+			}
+		 */
 		Json msg = Json.object();
+		msg.set("name", "Artemis Signalk Server");
 		msg.set(version, Config.getVersion());
 		msg.set(timestamp, getIsoTimeString());
+		if(startTime!=null) {
+			msg.set("startTime", startTime);
+		}
+		if(playbackRate!=null) {
+			msg.set("playbackRate", playbackRate);
+		}
 		msg.set(self_str, Config.getConfigProperty(ConfigConstants.UUID));
+		msg.set("roles", Json.read("[\"master\",\"main\"]"));
 		return msg;
 	}
 

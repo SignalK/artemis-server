@@ -14,9 +14,9 @@
 		<!-- <netty.version>4.1.5.Final</netty.version> -->
 		<log4j.version>2.8.2</log4j.version>
 		<slf4j.version>1.7.25</slf4j.version>
-		<atmosphere-version>2.4.24</atmosphere-version>
-		<jackson-version>2.6.3</jackson-version>
-		<jersey.version>1.19.4</jersey.version>
+		<atmosphere-version>2.4.30</atmosphere-version>
+		<jackson-version>2.9.6</jackson-version>
+		<jersey.version>2.27</jersey.version>
 		<swagger-version>1.5.21</swagger-version>
 	</properties>
 	<licenses>
@@ -167,9 +167,29 @@
 			<version>${artemis.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-all</artifactId>
+			<version>4.1.30.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>org.atmosphere</groupId>
+			<artifactId>atmosphere-runtime</artifactId>
+			<version>${atmosphere-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.atmosphere</groupId>
+			<artifactId>atmosphere-jersey</artifactId>
+			<version>${atmosphere-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-server</artifactId>
+			<version>1.19.4</version>
+		</dependency>
+		<dependency>
 			<groupId>org.atmosphere</groupId>
 			<artifactId>nettosphere</artifactId>
-			<version>3.0.2</version>
+			<version>3.0.8</version>
 			<!-- <version>2.4.4</version> -->
 			<exclusions>
 				<exclusion>
@@ -179,46 +199,57 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>org.atmosphere</groupId>
-			<artifactId>atmosphere-jersey</artifactId>
-			<version>${atmosphere-version}</version>
-		</dependency>
-
-		<dependency>
 			<groupId>org.influxdb</groupId>
 			<artifactId>influxdb-java</artifactId>
 			<version>2.9</version>
 		</dependency>
-		<!--  swagger -->
-		<dependency>
-			<groupId>io.swagger</groupId>
-			<artifactId>swagger-jersey2-jaxrs</artifactId>
-			<version>${swagger-version}</version>
-		</dependency>
+		<!-- swagger -->
+<!-- https://mvnrepository.com/artifact/io.swagger/swagger-jaxrs -->
+<!-- https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-core -->
+<dependency>
+    <groupId>io.swagger.core.v3</groupId>
+    <artifactId>swagger-core</artifactId>
+    <version>2.0.5</version>
+</dependency>
+<dependency>
+    <groupId>io.swagger.core.v3</groupId>
+    <artifactId>swagger-jaxrs2</artifactId>
+    <version>2.0.5</version>
+</dependency>
+<dependency>
+      <groupId>io.swagger.core.v3</groupId>
+      <artifactId>swagger-jaxrs2-servlet-initializer</artifactId>
+      <version>2.0.5</version>
+    </dependency>
+<!-- 		<dependency> -->
+<!-- 			<groupId>io.swagger</groupId> -->
+<!-- 			<artifactId>swagger-jersey2-jaxrs</artifactId> -->
+<!-- 			<version>${swagger-version}</version> -->
+<!-- 		</dependency> -->
 		<!-- https://mvnrepository.com/artifact/com.sun.jersey/jersey-servlet -->
 		<dependency>
-			<groupId>com.sun.jersey</groupId>
+			<groupId>org.glassfish.jersey.core</groupId>
 			<artifactId>jersey-server</artifactId>
 			<version>${jersey.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.sun.jersey.contribs</groupId>
-			<artifactId>jersey-multipart</artifactId>
+			<groupId>org.glassfish.jersey.media</groupId>
+			<artifactId>jersey-media-multipart</artifactId>
 			<version>${jersey.version}</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/com.sun.jersey/jersey-json -->
 		<dependency>
-			<groupId>com.sun.jersey</groupId>
-			<artifactId>jersey-json</artifactId>
+			<groupId>org.glassfish.jersey.media</groupId>
+			<artifactId>jersey-media-json-jackson</artifactId>
 			<version>${jersey.version}</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/com.sun.jersey.contribs/jersey-contribs -->
-		<dependency>
-			<groupId>com.sun.jersey.contribs</groupId>
-			<artifactId>jersey-contribs</artifactId>
-			<version>${jersey.version}</version>
-			<type>pom</type>
-		</dependency>
+		<!-- <dependency> -->
+		<!-- <groupId>com.sun.jersey.contribs</groupId> -->
+		<!-- <artifactId>jersey-contribs</artifactId> -->
+		<!-- <version>${jersey.version}</version> -->
+		<!-- <type>pom</type> -->
+		<!-- </dependency> -->
 		<dependency>
 			<groupId>javax.ws.rs</groupId>
 			<artifactId>javax.ws.rs-api</artifactId>

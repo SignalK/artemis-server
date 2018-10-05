@@ -25,7 +25,6 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -38,10 +37,9 @@ import org.apache.logging.log4j.Logger;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
-
-import com.sun.jersey.core.header.ContentDisposition;
-import com.sun.jersey.multipart.FormDataBodyPart;
-import com.sun.jersey.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.ContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
@@ -50,6 +48,7 @@ import nz.co.fortytwo.signalk.artemis.util.ZipUtils;
 
 
 @Path("/signalk/v1/upload")
+//@Api( value="Signalk Chart Management API")
 public class ChartService  {
 
 	private static Logger logger = LogManager.getLogger(ChartService.class);
@@ -64,7 +63,7 @@ public class ChartService  {
 	@POST
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	//@Produces("application/json")
-	
+//	@ApiOperation(value = "Upload a  TMS chart", notes = "Accepts a zipfile created by https://github.com/rob42/freeboard-installer ", response = String.class)
 	public Response post(FormDataMultiPart form) throws Exception {
 		if(logger.isDebugEnabled())logger.debug("Uploading file..");
 		List<String> contentRange = form.getHeaders().get("Content-Range");

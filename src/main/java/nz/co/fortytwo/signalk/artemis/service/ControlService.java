@@ -10,6 +10,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 @Path("/signalk/control")
+//@Api(value = "Signalk Server Control")
 public class ControlService {
 
 	public ControlService() throws Exception {

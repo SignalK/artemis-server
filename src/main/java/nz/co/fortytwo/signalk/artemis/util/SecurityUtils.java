@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import javax.crypto.SecretKey;
 import javax.servlet.http.Cookie;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.NewCookie;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -160,6 +161,8 @@ public final class SecurityUtils {
 		c.setPath("/");
 		return c;
 	}
+	
+	
 
 	public static ArrayList<String> getDeniedReadPaths(String jwtToken) throws Exception {
 		Json roles = StringUtils.isBlank(jwtToken)?Json.read("[\"public\"]"):getRoles(jwtToken);

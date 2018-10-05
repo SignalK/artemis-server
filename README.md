@@ -11,6 +11,12 @@ Its a drop in replacement for the signalk-java-server, missing functionality is 
 
 It assumes influx db is running on localhost:8086
 
+REST API docs
+-------------
+
+Swagger REST API docs are now available at http://localhost:8080/docs/
+
+
 Installation
 ============
 

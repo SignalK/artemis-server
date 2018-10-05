@@ -2,15 +2,19 @@ package nz.co.fortytwo.signalk.artemis.service;
 
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.AUTH_COOKIE_NAME;
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.authenticateUser;
+import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.validateToken;
 
 import java.net.URI;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
@@ -20,11 +24,21 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.atmosphere.cpr.AtmosphereResource;
-import org.joda.time.DateTime;
 
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.headers.Header;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 
 @Path("/signalk/authenticate")
+@Tag(name = "Authentication API")
 public class LoginService {
 
 	private static Logger logger = LogManager.getLogger(LoginService.class);
@@ -38,6 +52,7 @@ public class LoginService {
 	//@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@POST
+	@Operation( hidden=true, summary= "Login with redirect to target,return token as Cookie")
 	public Response authenticate( 
 			@Context UriInfo uriInfo, 
 			@FormParam("username") String username, 
@@ -57,14 +72,18 @@ public class LoginService {
 		try {
 			String token = authenticateUser(username, password);
 			resource.getRequest().localAttributes().put(SignalKConstants.JWT_TOKEN, token);
-			
-			//login valid, redirect to initial page.
-			URI uri = uriInfo.getBaseUriBuilder().path(target).build();
-			if(logger.isDebugEnabled())logger.debug("Authenticated, redirect to {}", uri.toString());
-			
 			NewCookie c = new NewCookie(AUTH_COOKIE_NAME,token,"/","","",3600,false);
 			
-			return Response.seeOther(uri)
+			//login valid, redirect to initial page if we have a target.
+			if(StringUtils.isNotBlank(target)) {
+				URI uri = uriInfo.getBaseUriBuilder().path(target).build();
+				if(logger.isDebugEnabled())logger.debug("Authenticated, redirect to {}", uri.toString());
+				
+				return Response.seeOther(uri)
+						.cookie(c)
+						.build();
+			}
+			return Response.ok()
 					.cookie(c)
 					.build();
 		} catch (Exception e) {
@@ -73,11 +92,125 @@ public class LoginService {
 			URI uri = uriInfo.getBaseUriBuilder().path("/login.html").build();
 			if(logger.isDebugEnabled())logger.debug("Unauthenticated, redirect to {}", uri.toString());
 			
-			return Response.temporaryRedirect(uri)
+			return Response.seeOther(uri)
 					.build();
 		}
 		
 	}
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@POST
+	@Operation( summary = "Login (url-encoded)", description = "Login with username and password with form-encoded data, return token as Cookie")
 	
+	@ApiResponses( value = {
+			@ApiResponse(responseCode = "200", description = "OK", headers = @Header(name="Set-Cookie",description  = "The new cookie is returned.")),
+			@ApiResponse(responseCode = "500", description = "Internal server error"),
+		    @ApiResponse(responseCode = "403", description = "No permission")
+		})
+	@Path("login")
+	public Response login( 
+			@Context UriInfo uriInfo, 
+			@FormParam("username") String username, 
+			@FormParam("password") String password) throws Exception {
+		return authenticate(uriInfo, username, password, null);
+		
+	}
+	
+	@Consumes(MediaType.APPLICATION_JSON)
+	@POST
+	@Operation(summary = "Login (json)", description = "Login with username and password as json data, return token as Cookie")
+	@ApiResponses( value = {
+			@ApiResponse(responseCode = "200", description = "OK", headers = @Header(name="Set-Cookie",description  = "The new cookie is returned.")),
+			@ApiResponse(responseCode = "500", description = "Internal server error"),
+		    @ApiResponse(responseCode = "403", description = "No permission")
+		})
+	@Path("login")
+	public Response loginJson( 
+			@Context UriInfo uriInfo, 
+			@Parameter(required=true, example = "\"{\\\"username\\\": \\\"test\\\", \\\"password\\\":\\\"test\\\"}\"") String body) {
+		try {
+			//String body = Util.readString(req.getInputStream(),req.getCharacterEncoding());
+			if (logger.isDebugEnabled())
+				logger.debug("Post: {}" , body);
+			Json json = Json.read(body);
+			String username = json.at("username").asString();
+			String password = json.at("password").asString();
+			
+			return authenticate(uriInfo, username, password, null);
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			return Response.serverError().build();
+		}
+		
+		
+	}
+	
+	
+	@GET
+	@Operation(summary = "Logout", description = "Logout, returns an expired token in a Cookie",
+			parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN", required=true))
+	@ApiResponses( value = {
+			@ApiResponse(responseCode = "200", description = "OK", headers = @Header(name="Set-Cookie",description  = "The cookie is expired and returned.")),
+			@ApiResponse(responseCode = "500", description = "Internal server error"),
+		    @ApiResponse(responseCode = "403", description = "No permission"),
+		    @ApiResponse(responseCode = "400", description = "No token")
+	})
+	@Path("logout")
+	public Response logout( @HeaderParam(HttpHeaders.COOKIE) Cookie cookie) {
+		try {
+			if(cookie==null) {
+				return Response.status(javax.ws.rs.core.Response.Status.BAD_REQUEST).build();
+			}
+			//TODO: should keep and refuse this token
+			NewCookie c = new NewCookie(AUTH_COOKIE_NAME,cookie.getValue(),"/","","",1,false);
+			return Response.ok()
+					.cookie(c)
+					.build();
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			return Response.serverError().build();
+		}
+		
+		
+	}
+	
+	@GET
+	@Operation(summary = "Validate", 
+		description = "Validates the token if provided in a cookie, returning the token or an updated replacement (in a cookie). Returns 400 if no cookie is not provided",
+		parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN", required=true) )
+	@ApiResponses( value = {
+			@ApiResponse(responseCode = "200", description = "OK", headers = @Header(name="Set-Cookie",description  = "The cookie is renewed and returned.")),
+			@ApiResponse(responseCode = "500", description = "Internal server error"),
+		    @ApiResponse(responseCode = "403", description = "No permission", headers = @Header(name="Set-Cookie",description  = "The cookie is expired and returned.")),
+		    @ApiResponse(responseCode = "400", description = "No token")
+		})
+	@Path("validate")
+	public Response validate( @HeaderParam(HttpHeaders.COOKIE) Cookie cookie) {
+		try {
+			if(cookie==null) {
+				return Response.status(javax.ws.rs.core.Response.Status.BAD_REQUEST).build();
+			}
+			if (logger.isDebugEnabled())
+				logger.debug("Cookie: {}, {}", cookie.getName(), cookie.getValue());
+
+			try {
+				// Validate and update the token
+				return Response.ok()
+						.cookie(new NewCookie(AUTH_COOKIE_NAME, validateToken(cookie.getValue()),"/","","",3600,false))
+						.build();
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				return Response.status(javax.ws.rs.core.Response.Status.FORBIDDEN)
+						.cookie(new NewCookie(AUTH_COOKIE_NAME, cookie.getValue(),"/","","",1,false))
+						.build();
+
+			}
+			
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			return Response.serverError().build();
+		}
+		
+		
+	}
 	
 }

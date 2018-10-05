@@ -1,18 +1,13 @@
 package nz.co.fortytwo.signalk.artemis.atmosphere.intercept;
 
-import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.authenticateUser;
-import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.setForbidden;
-import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.setUnauthorised;
+import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.AUTH_COOKIE_NAME;
+import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.updateCookie;
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.validateToken;
 
-import java.io.IOException;
-import java.util.Base64;
 import java.util.Map.Entry;
 
 import javax.servlet.http.Cookie;
-import javax.ws.rs.core.HttpHeaders;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,10 +17,7 @@ import org.atmosphere.cpr.AtmosphereInterceptor;
 import org.atmosphere.cpr.AtmosphereInterceptorAdapter;
 import org.atmosphere.cpr.AtmosphereResource;
 
-import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
-
-import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.*;
 
 @AtmosphereInterceptorService
 public class AuthenticationInterceptor extends AtmosphereInterceptorAdapter implements AtmosphereInterceptor {

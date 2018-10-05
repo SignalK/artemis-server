@@ -21,6 +21,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
@@ -29,13 +30,17 @@ import org.asynchttpclient.AsyncCompletionHandler;
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.HttpResponseBodyPart;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 @Path("/signalk/v1/apps")
-@Api (value = "/signalk/v1/apps")
+@Tag(name = "Webapp management API")
 public class AppsService extends BaseApiService {
 	
 	private static final int BUFFER_SIZE = 4096;
@@ -49,8 +54,17 @@ public class AppsService extends BaseApiService {
 
 	@GET
 	@Path("list")
-	@ApiOperation(value = "Return a list of installed webapps", notes = "Concatenates the package.json files from the installed apps as a json array ", response = String.class)
+	@Operation(summary = "Return a list of installed webapps", 
+		description = "Concatenates the package.json files from the installed apps as a json array ",
+				parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN", required=true)
+	)
+	@ApiResponses ({
+	    @ApiResponse(responseCode = "200", description = "Successful retrieval of apps list"),
+	    @ApiResponse(responseCode = "500", description = "Internal server error"),
+	    @ApiResponse(responseCode = "403", description = "No permission")
+	    })
 	@Produces(MediaType.APPLICATION_JSON)
+	
 	public Response list() {
 		try {
 			Json list = Json.array();
@@ -74,8 +88,15 @@ public class AppsService extends BaseApiService {
 
 	@GET
 	@Path("install")
-	@ApiOperation(value = "Install a webapp@version", notes = "Installs the webapp")
-	public Response install(@QueryParam("appName") String appName, @QueryParam("appVersion") String appVersion) {
+	@Operation(summary = "Install a webapp@version", description = "Installs the webapp",
+			parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN", required=true))
+	@ApiResponses ({
+	    @ApiResponse(responseCode = "200", description = "Successful install of appName@appVersion"),
+	    @ApiResponse(responseCode = "500", description = "Internal server error"),
+	    @ApiResponse(responseCode = "403", description = "No permission")
+	    })
+	public Response install(@Parameter(description = "Name of webapp as found on npmjs.com", example="@signalk/freeboard-sk") @QueryParam("appName") String appName, 
+			@Parameter(description = "Version of webapp as found on npmjs.com", example="0.0.4") @QueryParam("appVersion") String appVersion) {
 		try {
 			Thread t = new Thread() {
 
@@ -99,10 +120,18 @@ public class AppsService extends BaseApiService {
 	}
 
 	@GET
-	@ApiOperation(value = "Update a webapp@version", notes = "Removes any current version and install the new webapp@version")
+	@Operation(summary = "Update a webapp@version", description = "Removes any current version and install the new webapp@version",
+			parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN", required=true))
+	@ApiResponses ({
+	    @ApiResponse(responseCode = "200", description = "Successful update of appName@appVersion"),
+	    @ApiResponse(responseCode = "500", description = "Internal server error"),
+	    @ApiResponse(responseCode = "403", description = "No permission")
+	    })
 	@Path("update")
-	public Response update(@QueryParam("appName") String appName, @QueryParam("appVersion") String appVersion) {
-		Response resp = remove(appName);
+	public Response update(@Parameter(description = "Name of webapp as found on npmjs.com", example="@signalk/freeboard-sk") @QueryParam("appName") String appName, 
+			@Parameter(description = "Version of webapp as found on npmjs.com", example="0.0.4") @QueryParam("appVersion") String appVersion) {
+			String delName = appName.contains("/")?StringUtils.substringAfter(appName, "/"): appName ;
+			Response resp = remove(delName);
 		if(HttpStatus.SC_OK != resp.getStatus()) {
 			return resp;
 		}
@@ -110,9 +139,15 @@ public class AppsService extends BaseApiService {
 	}
 
 	@GET
-	@ApiOperation(value = "Removes a webapp", notes = "Removes the webapp")
+	@Operation(summary = "Removes a webapp", description = "Removes the webapp",
+			parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN", required=true))
+	@ApiResponses ({
+	    @ApiResponse(responseCode = "200", description = "Successful removal of appName"),
+	    @ApiResponse(responseCode = "500", description = "Internal server error"),
+	    @ApiResponse(responseCode = "403", description = "No permission")
+	    })
 	@Path("remove")
-	public Response remove(@QueryParam("appName") String appName) {
+	public Response remove(@Parameter(description = "Name of webapp as without scope (@../)", example="freeboard-sk") @QueryParam("appName") String appName) {
 		try {
 			File appDir = new File(staticDir, appName);
 			if(appDir.isFile()) {
@@ -135,9 +170,15 @@ public class AppsService extends BaseApiService {
 
 	@GET
 	@Path("search")
-	@ApiOperation(value = "Search for a webapp", notes = "Returns a list of avaliable signalk webapps from npmjs.org.")
+	@Operation(summary = "Search for a webapp", description = "Returns a list of avaliable signalk webapps from npmjs.org.",
+			parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN", required=true))
+	@ApiResponses ({
+	    @ApiResponse(responseCode = "200", description = "Successful removal of appName"),
+	    @ApiResponse(responseCode = "500", description = "Internal server error"),
+	    @ApiResponse(responseCode = "403", description = "No permission")
+	    })
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response search(@QueryParam("keyword") String keyword) {
+	public Response search(@Parameter(description = "Npm tag, usually 'signalk-webapp'", example="signalk-webapp")@QueryParam("keyword") String keyword) {
 		try (final AsyncHttpClient c = asyncHttpClient();) {
 			Json json = Util.getUrlAsJson(c, "https://api.npms.io/v2/search?size=250&q=keywords:signalk-webapp");
 

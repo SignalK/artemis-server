@@ -56,17 +56,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.atmosphere.cpr.ApplicationConfig;
-import org.atmosphere.cpr.AtmosphereResource;
-import org.atmosphere.nettosphere.Handler;
 import org.atmosphere.nettosphere.Nettosphere;
-import org.glassfish.jersey.server.model.Resource;
-
-import com.sun.jersey.server.impl.container.servlet.ServletAdaptor;
 
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Log4J2LoggerFactory;
-import io.swagger.jaxrs.config.BeanConfig;
-import io.swagger.jersey.config.JerseyJaxrsConfig;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.serial.SerialPortManager;
 import nz.co.fortytwo.signalk.artemis.service.ChartService;
@@ -154,14 +147,18 @@ public final class ArtemisServer {
 						.initParam("org.atmosphere.cpr.Broadcaster.writeTimeout", "30000")
 						.initParam("org.atmosphere.cpr.broadcasterLifeCyclePolicy","EMPTY_DESTROY")
 						.initParam("org.atmosphere.websocket.WebSocketProcessor","nz.co.fortytwo.signalk.artemis.server.SignalkWebSocketProcessor")
-						//.resource(AuthenticationFilter.class)
+						//.resource("/signalk/*",AtmosphereServlet.class)
+						//.resource("/*",FileSystemResourceServlet.class)
+						//swagger
+						//.initParam("openApi.configuration.resourcePackages", "nz.co.fortytwo.signalk.artemis.service")
+						//.resource("/swagger/*",OpenApiServlet.class)
 						.port(8080)
 						.host("0.0.0.0")
 					.build()
 				).build();
 		
 		server.start();
-	
+		
 		skServer = new NettyServer(null, OUTPUT_TCP);
 		skServer.setTcpPort(Config.getConfigPropertyInt(TCP_PORT));
 		skServer.setUdpPort(Config.getConfigPropertyInt(UDP_PORT));
@@ -340,15 +337,16 @@ public final class ArtemisServer {
 	private static void buildSwagger()
     {
         // This configures Swagger
-        BeanConfig beanConfig = new BeanConfig();
-        beanConfig.setVersion( "1.0.0" );
-        beanConfig.setResourcePackage("nz.co.fortytwo.signalk.artemis.service");
+//        BeanConfig beanConfig = new BeanConfig();
+//        beanConfig.setVersion( "1.0.0" );
+//        beanConfig.setResourcePackage("nz.co.fortytwo.signalk.artemis.service");
+//        
+//        beanConfig.setScan( true );
+//        beanConfig.setBasePath( "/" );
+//        beanConfig.setDescription( "Manages webapp lifecycle in a signalk web server" );
+//        beanConfig.setTitle( "Signalk Webapp Management API" );
         
-        beanConfig.setScan( true );
-        beanConfig.setBasePath( "/" );
-        beanConfig.setDescription( "Manages webapp lifecycle in a signalk web server" );
-        beanConfig.setTitle( "Signalk Webapp Management API" );
-       
+		
     }
 
 	static {
