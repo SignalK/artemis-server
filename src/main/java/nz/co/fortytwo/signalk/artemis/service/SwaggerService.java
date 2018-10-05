@@ -55,7 +55,8 @@ public class SwaggerService {
             				SignalkStreamService.class.getCanonicalName(), 
             				AppsService.class.getCanonicalName(),
             				LoginService.class.getCanonicalName(),
-            				SignalkHistoryService.class.getCanonicalName()
+            				SignalkHistoryService.class.getCanonicalName(),
+            				SignalkApiService.class.getCanonicalName()
             				))
             	.openAPI(new OpenAPI().info(info))
             	.scannerClass(JaxrsApplicationAndAnnotationScanner.class.getName());

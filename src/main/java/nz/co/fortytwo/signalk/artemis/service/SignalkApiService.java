@@ -11,7 +11,9 @@ import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
@@ -27,8 +29,13 @@ import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.cpr.AtmosphereResourceEvent;
 import org.atmosphere.websocket.WebSocketEventListenerAdapter;
 
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
@@ -57,13 +64,28 @@ public class SignalkApiService extends BaseApiService {
 		}
 	}
 
+	@Operation(summary = "Request self uuid", description = "Returns the uuid of this vessel. Optionally supply time to obtain the historic value. ",
+			parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN"))
+	@ApiResponses ({
+	    @ApiResponse(responseCode = "200", description = "OK", 
+	    		content = @Content(
+                        mediaType = MediaType.TEXT_PLAIN, 
+                        examples = @ExampleObject(name = "self", value = "\"urn:mrn:signalk:uuid:c0d79334-4e25-4245-8892-54e8ccc8021d\"")                       		
+                        )
+                ),
+	    @ApiResponse(responseCode = "501", description = "History not implemented if time parameter is understood but not implemented"),
+	    @ApiResponse(responseCode = "500", description = "Internal server error"),
+	    @ApiResponse(responseCode = "403", description = "No permission"),
+	    @ApiResponse(responseCode = "400", description = "Bad request if time parameter is not understood")
+	    })
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
 	@Path("self")
-	public Response getSelf(@Context HttpServletRequest req) throws Exception {
-		String path = req.getPathInfo();
+	public Response getSelf(
+			@Parameter( description = "An ISO 8601 format date/time string", example="2015-03-07T12:37:10.523Z") @QueryParam("time")String time) throws Exception {
+		//String path = req.getPathInfo();
 		if (logger.isDebugEnabled())
-			logger.debug("get :{} for {}",path, req.getRemoteUser());
+			logger.debug("get :{} ","self");
 		// handle /self
 			return Response.ok().entity("\""+Config.getConfigProperty(ConfigConstants.UUID)+"\"").build();
 
@@ -74,10 +96,24 @@ public class SignalkApiService extends BaseApiService {
 	 * @param path
 	 * @throws Exception
 	 */
+	@Operation(summary = "Request all signalk data", description = "Returns the full signalk data tree as json in full format. Optionally supply time to obtain the historic value. ",
+			parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN"))
+	@ApiResponses ({
+	    @ApiResponse(responseCode = "200", description = "OK", 
+	    		content = @Content(
+                        mediaType = "application/json"                        		
+                        )
+                ),
+	    @ApiResponse(responseCode = "501", description = "History not implemented if time parameter is understood but not implemented"),
+	    @ApiResponse(responseCode = "500", description = "Internal server error"),
+	    @ApiResponse(responseCode = "403", description = "No permission"),
+	    @ApiResponse(responseCode = "400", description = "Bad request if time parameter is not understood")
+	    })
 	@Suspend(contentType = MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@GET
-	public String getAll(@HeaderParam(HttpHeaders.COOKIE) Cookie cookie) throws Exception {
+	public String getAll(@HeaderParam(HttpHeaders.COOKIE) Cookie cookie, 
+			@Parameter( description = "An ISO 8601 format date/time string", example="2015-03-07T12:37:10.523Z") @QueryParam("time")String time) throws Exception {
 		getPath(null,cookie);
 		return "";
 	}
@@ -87,12 +123,27 @@ public class SignalkApiService extends BaseApiService {
 	 * @param path
 	 * @throws Exception
 	 */
+	@Operation(summary = "Request signalk data at path", description = "Returns the signalk data tree found at path as json in full format. Optionally supply time to obtain the historic value. ",
+			parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN"))
+	@ApiResponses ({
+	    @ApiResponse(responseCode = "200", description = "OK", 
+	    		content = @Content(
+                        mediaType = "application/json"                        		
+                        )
+                ),
+	    @ApiResponse(responseCode = "501", description = "History not implemented if time parameter is understood but not implemented"),
+	    @ApiResponse(responseCode = "500", description = "Internal server error"),
+	    @ApiResponse(responseCode = "403", description = "No permission"),
+	    @ApiResponse(responseCode = "400", description = "Bad request if time parameter is not understood")
+	    })
 	@Suspend(contentType = MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@GET
-	@Path( "{file:[^?]*}")
-	public String get(@HeaderParam(HttpHeaders.COOKIE) Cookie cookie, @Context HttpServletRequest req) throws Exception {
-		String path = req.getPathInfo();
+	@Path( "{path:[^?]*}")
+	public String get(@HeaderParam(HttpHeaders.COOKIE) Cookie cookie, 
+			@Parameter( description = "A signalk path", example="/vessel/self/navigation") @PathParam(value = "path") String path,
+			@Parameter( description = "An ISO 8601 format date/time string", example="2015-03-07T12:37:10.523Z") @QueryParam("time")String time) throws Exception {
+		//String path = req.getPathInfo();
 		getPath(path,cookie);
 		return "";
 	}
@@ -124,7 +175,19 @@ public class SignalkApiService extends BaseApiService {
 	}
 
 	
-
+	@Operation(summary = "Post a signalk message", description = " Post a signalk message. Has the same result as using non-http transport. This is a 'fire-and-forget' method,"
+			+ " see PUT ",
+			parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN"))
+	@ApiResponses ({
+	    @ApiResponse(responseCode = "200", description = "OK", 
+	    		content = @Content(
+                        mediaType = "application/json"                        		
+                        )
+                ),
+	    @ApiResponse(responseCode = "500", description = "Internal server error"),
+	    @ApiResponse(responseCode = "403", description = "No permission"),
+	    @ApiResponse(responseCode = "400", description = "Bad request if message is not understood")
+	    })
 	@Consumes(MediaType.APPLICATION_JSON)
 	@POST
 	public Response post(@HeaderParam(HttpHeaders.COOKIE) Cookie cookie, String body) {
@@ -141,6 +204,21 @@ public class SignalkApiService extends BaseApiService {
 		}
 	}
 	
+	@Operation(summary = "PUT a signalk message", description = " PUT a signalk message. Processes the message, with request/response semantics, "
+			+ "use this in preference to POST if you require confirmation of the message processing outcome.",
+			parameters = {@Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN"),
+			 			@Parameter( name="body", description = "A signalk message")
+					})
+	@ApiResponses ({
+	    @ApiResponse(responseCode = "200", description = "OK", 
+	    		content = @Content(
+                        mediaType = "application/json"                        		
+                        )
+                ),
+	    @ApiResponse(responseCode = "500", description = "Internal server error"),
+	    @ApiResponse(responseCode = "403", description = "No permission"),
+	    @ApiResponse(responseCode = "400", description = "Bad request if message is not understood")
+	    })
 	@Consumes(MediaType.APPLICATION_JSON)
 	@PUT
 	public Response put(@Context HttpServletRequest req) {
