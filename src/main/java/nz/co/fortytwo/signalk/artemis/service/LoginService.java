@@ -3,18 +3,18 @@ package nz.co.fortytwo.signalk.artemis.service;
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.AUTH_COOKIE_NAME;
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.authenticateUser;
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.validateToken;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SK_TOKEN;
 
 import java.net.URI;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.CookieParam;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
@@ -25,12 +25,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.atmosphere.cpr.AtmosphereResource;
 
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.headers.Header;
-import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -97,32 +98,27 @@ public class LoginService {
 		}
 		
 	}
-	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	@POST
-	@Operation( summary = "Login (url-encoded)", description = "Login with username and password with form-encoded data, return token as Cookie")
+	
+	
+	@Operation(summary = "Login (json)", description = "Login with username and password as json data, return token as Cookie",
+			requestBody = @RequestBody( 
+					content = {@Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED, 
+					
+									examples = @ExampleObject( value = "username",
+										name = "username", summary = "form encoded username&password")),
+								@Content(mediaType = MediaType.APPLICATION_JSON, 
+									examples = @ExampleObject( value = "username",
+										name = "json"))
+						}
+				) )
 	
 	@ApiResponses( value = {
 			@ApiResponse(responseCode = "200", description = "OK", headers = @Header(name="Set-Cookie",description  = "The new cookie is returned.")),
 			@ApiResponse(responseCode = "500", description = "Internal server error"),
 		    @ApiResponse(responseCode = "403", description = "No permission")
 		})
-	@Path("login")
-	public Response login( 
-			@Context UriInfo uriInfo, 
-			@FormParam("username") String username, 
-			@FormParam("password") String password) throws Exception {
-		return authenticate(uriInfo, username, password, null);
-		
-	}
-	
 	@Consumes(MediaType.APPLICATION_JSON)
 	@POST
-	@Operation(summary = "Login (json)", description = "Login with username and password as json data, return token as Cookie")
-	@ApiResponses( value = {
-			@ApiResponse(responseCode = "200", description = "OK", headers = @Header(name="Set-Cookie",description  = "The new cookie is returned.")),
-			@ApiResponse(responseCode = "500", description = "Internal server error"),
-		    @ApiResponse(responseCode = "403", description = "No permission")
-		})
 	@Path("login")
 	public Response loginJson( 
 			@Context UriInfo uriInfo, 
@@ -145,6 +141,26 @@ public class LoginService {
 	}
 	
 	
+	@Operation( summary = "Login (url-encoded)", description = "Login with username and password with form-encoded data, return token as Cookie")
+	
+	@ApiResponses( value = {
+			@ApiResponse(responseCode = "200", description = "OK", headers = @Header(name="Set-Cookie",description  = "The new cookie is returned.")),
+			@ApiResponse(responseCode = "500", description = "Internal server error"),
+		    @ApiResponse(responseCode = "403", description = "No permission")
+		})
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@POST
+	@Path("login")
+	public Response login( 
+			@Context UriInfo uriInfo, 
+			@FormParam("username") String username, 
+			@FormParam("password") String password) throws Exception {
+		return authenticate(uriInfo, username, password, null);
+		
+	}
+	
+	
+	
 	@GET
 	@Operation(summary = "Logout", description = "Logout, returns an expired token in a Cookie",
 			parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN", required=true))
@@ -155,7 +171,7 @@ public class LoginService {
 		    @ApiResponse(responseCode = "400", description = "No token")
 	})
 	@Path("logout")
-	public Response logout( @HeaderParam(HttpHeaders.COOKIE) Cookie cookie) {
+	public Response logout( @Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie) {
 		try {
 			if(cookie==null) {
 				return Response.status(javax.ws.rs.core.Response.Status.BAD_REQUEST).build();
@@ -176,7 +192,7 @@ public class LoginService {
 	@GET
 	@Operation(summary = "Validate", 
 		description = "Validates the token if provided in a cookie, returning the token or an updated replacement (in a cookie). Returns 400 if no cookie is not provided",
-		parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN", required=true) )
+				parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN", required=true))
 	@ApiResponses( value = {
 			@ApiResponse(responseCode = "200", description = "OK", headers = @Header(name="Set-Cookie",description  = "The cookie is renewed and returned.")),
 			@ApiResponse(responseCode = "500", description = "Internal server error"),
@@ -184,7 +200,7 @@ public class LoginService {
 		    @ApiResponse(responseCode = "400", description = "No token")
 		})
 	@Path("validate")
-	public Response validate( @HeaderParam(HttpHeaders.COOKIE) Cookie cookie) {
+	public Response validate(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie) {
 		try {
 			if(cookie==null) {
 				return Response.status(javax.ws.rs.core.Response.Status.BAD_REQUEST).build();

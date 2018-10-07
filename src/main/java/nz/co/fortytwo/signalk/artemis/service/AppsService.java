@@ -1,5 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SK_TOKEN;
 import static org.asynchttpclient.Dsl.asyncHttpClient;
 
 import java.io.BufferedOutputStream;
@@ -10,10 +11,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
 
+import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -55,9 +58,7 @@ public class AppsService extends BaseApiService {
 	@GET
 	@Path("list")
 	@Operation(summary = "Return a list of installed webapps", 
-		description = "Concatenates the package.json files from the installed apps as a json array ",
-				parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN", required=true)
-	)
+		description = "Concatenates the package.json files from the installed apps as a json array ")
 	@ApiResponses ({
 	    @ApiResponse(responseCode = "200", description = "Successful retrieval of apps list"),
 	    @ApiResponse(responseCode = "500", description = "Internal server error"),
@@ -65,7 +66,7 @@ public class AppsService extends BaseApiService {
 	    })
 	@Produces(MediaType.APPLICATION_JSON)
 	
-	public Response list() {
+	public Response list(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie) {
 		try {
 			Json list = Json.array();
 			for (File f : staticDir.listFiles()) {
@@ -88,14 +89,14 @@ public class AppsService extends BaseApiService {
 
 	@GET
 	@Path("install")
-	@Operation(summary = "Install a webapp@version", description = "Installs the webapp",
-			parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN", required=true))
+	@Operation(summary = "Install a webapp@version", description = "Installs the webapp")
 	@ApiResponses ({
 	    @ApiResponse(responseCode = "200", description = "Successful install of appName@appVersion"),
 	    @ApiResponse(responseCode = "500", description = "Internal server error"),
 	    @ApiResponse(responseCode = "403", description = "No permission")
 	    })
-	public Response install(@Parameter(description = "Name of webapp as found on npmjs.com", example="@signalk/freeboard-sk") @QueryParam("appName") String appName, 
+	public Response install(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
+			@Parameter(description = "Name of webapp as found on npmjs.com", example="@signalk/freeboard-sk") @QueryParam("appName") String appName, 
 			@Parameter(description = "Version of webapp as found on npmjs.com", example="0.0.4") @QueryParam("appVersion") String appVersion) {
 		try {
 			Thread t = new Thread() {
@@ -120,34 +121,34 @@ public class AppsService extends BaseApiService {
 	}
 
 	@GET
-	@Operation(summary = "Update a webapp@version", description = "Removes any current version and install the new webapp@version",
-			parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN", required=true))
+	@Operation(summary = "Update a webapp@version", description = "Removes any current version and install the new webapp@version")
 	@ApiResponses ({
 	    @ApiResponse(responseCode = "200", description = "Successful update of appName@appVersion"),
 	    @ApiResponse(responseCode = "500", description = "Internal server error"),
 	    @ApiResponse(responseCode = "403", description = "No permission")
 	    })
 	@Path("update")
-	public Response update(@Parameter(description = "Name of webapp as found on npmjs.com", example="@signalk/freeboard-sk") @QueryParam("appName") String appName, 
+	public Response update(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
+			@Parameter(description = "Name of webapp as found on npmjs.com", example="@signalk/freeboard-sk") @QueryParam("appName") String appName, 
 			@Parameter(description = "Version of webapp as found on npmjs.com", example="0.0.4") @QueryParam("appVersion") String appVersion) {
 			String delName = appName.contains("/")?StringUtils.substringAfter(appName, "/"): appName ;
-			Response resp = remove(delName);
+			Response resp = remove(cookie, delName);
 		if(HttpStatus.SC_OK != resp.getStatus()) {
 			return resp;
 		}
-		return install(appName, appVersion);
+		return install(cookie, appName, appVersion);
 	}
 
 	@GET
-	@Operation(summary = "Removes a webapp", description = "Removes the webapp",
-			parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN", required=true))
+	@Operation(summary = "Removes a webapp", description = "Removes the webapp")
 	@ApiResponses ({
 	    @ApiResponse(responseCode = "200", description = "Successful removal of appName"),
 	    @ApiResponse(responseCode = "500", description = "Internal server error"),
 	    @ApiResponse(responseCode = "403", description = "No permission")
 	    })
 	@Path("remove")
-	public Response remove(@Parameter(description = "Name of webapp as without scope (@../)", example="freeboard-sk") @QueryParam("appName") String appName) {
+	public Response remove(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
+			@Parameter(description = "Name of webapp without scope (@../)", example="freeboard-sk") @QueryParam("appName") String appName) {
 		try {
 			File appDir = new File(staticDir, appName);
 			if(appDir.isFile()) {
@@ -170,15 +171,15 @@ public class AppsService extends BaseApiService {
 
 	@GET
 	@Path("search")
-	@Operation(summary = "Search for a webapp", description = "Returns a list of avaliable signalk webapps from npmjs.org.",
-			parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN", required=true))
+	@Operation(summary = "Search for a webapp", description = "Returns a list of avaliable signalk webapps from npmjs.org.")
 	@ApiResponses ({
 	    @ApiResponse(responseCode = "200", description = "Successful removal of appName"),
 	    @ApiResponse(responseCode = "500", description = "Internal server error"),
 	    @ApiResponse(responseCode = "403", description = "No permission")
 	    })
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response search(@Parameter(description = "Npm tag, usually 'signalk-webapp'", example="signalk-webapp")@QueryParam("keyword") String keyword) {
+	public Response search(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
+			@Parameter(description = "Npm tag, usually 'signalk-webapp'", example="signalk-webapp")@QueryParam("keyword") String keyword) {
 		try (final AsyncHttpClient c = asyncHttpClient();) {
 			Json json = Util.getUrlAsJson(c, "https://api.npms.io/v2/search?size=250&q=keywords:signalk-webapp");
 

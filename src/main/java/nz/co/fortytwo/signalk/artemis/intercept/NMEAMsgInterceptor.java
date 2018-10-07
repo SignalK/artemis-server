@@ -28,15 +28,8 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self_str;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.io.File;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
-import javax.script.Bindings;
 import javax.script.Invocable;
-import javax.script.ScriptContext;
-import javax.script.SimpleScriptContext;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ActiveMQExceptionType;
@@ -53,11 +46,8 @@ import org.apache.logging.log4j.Logger;
 
 import com.coveo.nashorn_modules.FilesystemFolder;
 import com.coveo.nashorn_modules.Folder;
-import com.coveo.nashorn_modules.Require;
 import com.coveo.nashorn_modules.ResourceFolder;
 
-import jdk.nashorn.api.scripting.NashornScriptEngine;
-import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;

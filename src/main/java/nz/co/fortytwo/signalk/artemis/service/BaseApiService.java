@@ -6,8 +6,6 @@ import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.AUTH_COOKIE_NAME
 import java.io.File;
 import java.io.IOException;
 
-
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
 

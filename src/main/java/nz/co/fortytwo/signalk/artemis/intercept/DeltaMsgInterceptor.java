@@ -1,6 +1,11 @@
 package nz.co.fortytwo.signalk.artemis.intercept;
 
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.GET;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_datetime;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -12,7 +17,6 @@ import org.apache.activemq.artemis.api.core.Interceptor;
 import org.apache.activemq.artemis.core.protocol.core.Packet;
 import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendMessage;
 import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
-import org.apache.commons.collections.list.FixedSizeList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -20,8 +24,6 @@ import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
-
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 /*

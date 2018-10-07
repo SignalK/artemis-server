@@ -1,16 +1,19 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SK_TOKEN;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -19,8 +22,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.atmosphere.cpr.AtmosphereResource;
 
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
-import nz.co.fortytwo.signalk.artemis.util.Util;
 
 @Path("/signalk/v1/security")
 public class SignalkSecurityApiService {
@@ -42,13 +46,13 @@ public class SignalkSecurityApiService {
 	@Produces(MediaType.APPLICATION_JSON)
 	@GET
 	@Path("config")
-	public Response getAll(@Context HttpServletRequest req) throws Exception {
+	public Response getAll(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie ) throws Exception {
 		
-		return getSecurityConf( req);
+		return getSecurityConf();
 	}
 	
 	
-	private Response getSecurityConf(HttpServletRequest req){
+	private Response getSecurityConf(){
 		try {
 
 			return Response.status(HttpStatus.SC_OK)
@@ -71,9 +75,10 @@ public class SignalkSecurityApiService {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@POST
 	@Path("config")
-	public Response post(@Context HttpServletRequest req) {
+	public Response post(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
+			@Parameter( name="body", description = "A signalk message") String body
+			) {
 		try {
-			String body = Util.readString(req.getInputStream(),req.getCharacterEncoding());
 			if (logger.isDebugEnabled())
 				logger.debug("Post: {}" , body);
 			

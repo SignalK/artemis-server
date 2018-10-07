@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import javax.crypto.SecretKey;
 import javax.servlet.http.Cookie;
 import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.NewCookie;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -157,7 +156,7 @@ public final class SecurityUtils {
 		else
 			c.setValue(token);
 		c.setMaxAge(3600);
-		c.setHttpOnly(true);
+		c.setHttpOnly(false);
 		c.setPath("/");
 		return c;
 	}

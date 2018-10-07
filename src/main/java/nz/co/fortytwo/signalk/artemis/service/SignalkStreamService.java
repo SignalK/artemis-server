@@ -2,21 +2,21 @@ package nz.co.fortytwo.signalk.artemis.service;
 
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT_DELTA;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.POLICY_IDEAL;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SK_TOKEN;
 
 import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -51,8 +51,7 @@ public class SignalkStreamService extends BaseApiService {
 	private static Timer timer = new Timer();
 
 	
-	@Operation(summary = "Request a websocket stream", description = "Submit a Signalk path and receive a stream of UPDATE messages. Optionally supply startTime and playbackRate to replay history. ",
-			parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN"))
+	@Operation(summary = "Request a websocket stream", description = "Submit a Signalk path and receive a stream of UPDATE messages. Optionally supply startTime and playbackRate to replay history. ")
 	@ApiResponses ({
 	    @ApiResponse(responseCode = "101", description = "Switching to websocket", 
 	    		content = @Content(
@@ -66,7 +65,7 @@ public class SignalkStreamService extends BaseApiService {
 	@Suspend(contentType = MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@GET
-	public String getWS(@HeaderParam(HttpHeaders.COOKIE) Cookie cookie, 
+	public String getWS(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
 			@Parameter( description = "A signalk path", example="/vessel/self/navigation") @QueryParam("subscribe")String subscribe,
 			@Parameter( description = "An ISO 8601 format date/time string", example="2015-03-07T12:37:10.523Z") @QueryParam("startTime")String startTime,
 			@Parameter( description = "Playback rate multiplier, eg '2' = twice normal speed", example="2") @QueryParam("playbackRate")Double playbackRate) throws Exception {
@@ -81,10 +80,7 @@ public class SignalkStreamService extends BaseApiService {
 		//return "";
 	}
 
-	@Operation(summary = "Request a websocket stream", description = "Post a Signalk SUBSCRIBE message and receive a stream of UPDATE messages. Optionally supply startTime and playbackRate to replay history.  ",
-			parameters = { @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN"),
-					@Parameter( name="body", description = "A signalk SUBSCRIBE message")
-							})
+	@Operation(summary = "Request a websocket stream", description = "Post a Signalk SUBSCRIBE message and receive a stream of UPDATE messages. Optionally supply startTime and playbackRate to replay history.  ")
 	@ApiResponses ({
 	    @ApiResponse(responseCode = "101", description = "Switching to websocket", 
 	    		content = {@Content(mediaType = MediaType.APPLICATION_JSON, 
@@ -97,8 +93,8 @@ public class SignalkStreamService extends BaseApiService {
 	@Consumes(value = MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@POST
-	public String post(@HeaderParam(HttpHeaders.COOKIE) Cookie cookie, 
-			 String body) {
+	public String post(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
+			@Parameter( name="body", description = "A signalk HISTORY message") String body) {
 		
 			return getWebsocket(body,cookie);
 		

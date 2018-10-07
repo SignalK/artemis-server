@@ -1,13 +1,13 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SIGNALK_API;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SK_TOKEN;
 
 import java.io.IOException;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -16,7 +16,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -64,8 +63,7 @@ public class SignalkApiService extends BaseApiService {
 		}
 	}
 
-	@Operation(summary = "Request self uuid", description = "Returns the uuid of this vessel. Optionally supply time to obtain the historic value. ",
-			parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN"))
+	@Operation(summary = "Request self uuid", description = "Returns the uuid of this vessel. Optionally supply time to obtain the historic value. ")
 	@ApiResponses ({
 	    @ApiResponse(responseCode = "200", description = "OK", 
 	    		content = @Content(
@@ -81,7 +79,7 @@ public class SignalkApiService extends BaseApiService {
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
 	@Path("self")
-	public Response getSelf(
+	public Response getSelf(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
 			@Parameter( description = "An ISO 8601 format date/time string", example="2015-03-07T12:37:10.523Z") @QueryParam("time")String time) throws Exception {
 		//String path = req.getPathInfo();
 		if (logger.isDebugEnabled())
@@ -96,8 +94,7 @@ public class SignalkApiService extends BaseApiService {
 	 * @param path
 	 * @throws Exception
 	 */
-	@Operation(summary = "Request all signalk data", description = "Returns the full signalk data tree as json in full format. Optionally supply time to obtain the historic value. ",
-			parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN"))
+	@Operation(summary = "Request all signalk data", description = "Returns the full signalk data tree as json in full format. Optionally supply time to obtain the historic value. ")
 	@ApiResponses ({
 	    @ApiResponse(responseCode = "200", description = "OK", 
 	    		content = @Content(
@@ -112,7 +109,7 @@ public class SignalkApiService extends BaseApiService {
 	@Suspend(contentType = MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@GET
-	public String getAll(@HeaderParam(HttpHeaders.COOKIE) Cookie cookie, 
+	public String getAll(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie, 
 			@Parameter( description = "An ISO 8601 format date/time string", example="2015-03-07T12:37:10.523Z") @QueryParam("time")String time) throws Exception {
 		getPath(null,cookie);
 		return "";
@@ -123,8 +120,7 @@ public class SignalkApiService extends BaseApiService {
 	 * @param path
 	 * @throws Exception
 	 */
-	@Operation(summary = "Request signalk data at path", description = "Returns the signalk data tree found at path as json in full format. Optionally supply time to obtain the historic value. ",
-			parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN"))
+	@Operation(summary = "Request signalk data at path", description = "Returns the signalk data tree found at path as json in full format. Optionally supply time to obtain the historic value. ")
 	@ApiResponses ({
 	    @ApiResponse(responseCode = "200", description = "OK", 
 	    		content = @Content(
@@ -140,7 +136,7 @@ public class SignalkApiService extends BaseApiService {
 	@Produces(MediaType.APPLICATION_JSON)
 	@GET
 	@Path( "{path:[^?]*}")
-	public String get(@HeaderParam(HttpHeaders.COOKIE) Cookie cookie, 
+	public String get(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie, 
 			@Parameter( description = "A signalk path", example="/vessel/self/navigation") @PathParam(value = "path") String path,
 			@Parameter( description = "An ISO 8601 format date/time string", example="2015-03-07T12:37:10.523Z") @QueryParam("time")String time) throws Exception {
 		//String path = req.getPathInfo();
@@ -176,8 +172,7 @@ public class SignalkApiService extends BaseApiService {
 
 	
 	@Operation(summary = "Post a signalk message", description = " Post a signalk message. Has the same result as using non-http transport. This is a 'fire-and-forget' method,"
-			+ " see PUT ",
-			parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN"))
+			+ " see PUT ")
 	@ApiResponses ({
 	    @ApiResponse(responseCode = "200", description = "OK", 
 	    		content = @Content(
@@ -190,7 +185,8 @@ public class SignalkApiService extends BaseApiService {
 	    })
 	@Consumes(MediaType.APPLICATION_JSON)
 	@POST
-	public Response post(@HeaderParam(HttpHeaders.COOKIE) Cookie cookie, String body) {
+	public Response post(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie, 
+			@Parameter( name="body", description = "A signalk message")String body) {
 		try {
 			
 			if (logger.isDebugEnabled())
@@ -205,10 +201,7 @@ public class SignalkApiService extends BaseApiService {
 	}
 	
 	@Operation(summary = "PUT a signalk message", description = " PUT a signalk message. Processes the message, with request/response semantics, "
-			+ "use this in preference to POST if you require confirmation of the message processing outcome.",
-			parameters = {@Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN"),
-			 			@Parameter( name="body", description = "A signalk message")
-					})
+			+ "use this in preference to POST if you require confirmation of the message processing outcome.")
 	@ApiResponses ({
 	    @ApiResponse(responseCode = "200", description = "OK", 
 	    		content = @Content(
@@ -221,13 +214,14 @@ public class SignalkApiService extends BaseApiService {
 	    })
 	@Consumes(MediaType.APPLICATION_JSON)
 	@PUT
-	public Response put(@Context HttpServletRequest req) {
+	public Response put(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
+			@Parameter( name="body", description = "A signalk message") String body) {
+		//requestId, context, state, code (result), message (optional)
 		try {
-			String body = Util.readString(req.getInputStream(),req.getCharacterEncoding());
 			if (logger.isDebugEnabled())
 				logger.debug("Post:" + body);
 		
-			sendMessage(body);
+			sendMessage(addToken(body, cookie));
 			return Response.status(HttpStatus.SC_ACCEPTED).build();
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);

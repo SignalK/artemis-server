@@ -12,7 +12,11 @@ import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+
 
 @Path("/signalk")
 //@Api(value = "Signalk Root Endpoint")
@@ -20,7 +24,11 @@ public class SignalkEndpointService {
 
 	private static Logger logger = LogManager.getLogger(SignalkEndpointService.class);
 
-
+	@Operation(summary = "Request self uuid", description = "Returns the json discovery message for this server")
+	@ApiResponses ({
+	    @ApiResponse(responseCode = "200", description = "OK"),
+	    @ApiResponse(responseCode = "500", description = "Internal server error")
+	    })
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response onGet(@Context HttpServletRequest req) {

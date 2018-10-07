@@ -41,7 +41,6 @@ import org.influxdb.dto.QueryResult.Series;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
 
-
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;

@@ -19,14 +19,12 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.values;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.version;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
-import java.util.NavigableSet;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.apache.commons.lang3.StringUtils;
