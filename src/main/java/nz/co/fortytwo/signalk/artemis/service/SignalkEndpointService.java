@@ -24,7 +24,7 @@ public class SignalkEndpointService {
 
 	private static Logger logger = LogManager.getLogger(SignalkEndpointService.class);
 
-	@Operation(summary = "Request self uuid", description = "Returns the json discovery message for this server")
+	@Operation(summary = "Request signalk endpoints and server details", description = "Returns the json endpoints message for this server")
 	@ApiResponses ({
 	    @ApiResponse(responseCode = "200", description = "OK"),
 	    @ApiResponse(responseCode = "500", description = "Internal server error")

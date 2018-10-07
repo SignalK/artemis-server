@@ -40,7 +40,7 @@ import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
-@Path("/signalk/v1/api")
+@Path("/signalk/v1/api/")
 @Tag(name = "REST API")
 public class SignalkApiService extends BaseApiService {
 
@@ -80,7 +80,7 @@ public class SignalkApiService extends BaseApiService {
 	@Produces(MediaType.TEXT_PLAIN)
 	@Path("self")
 	public Response getSelf(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
-			@Parameter( description = "An ISO 8601 format date/time string", example="2015-03-07T12:37:10.523Z") @QueryParam("time")String time) throws Exception {
+			@Parameter( description = "Optional: An ISO 8601 format date/time string", example="2015-03-07T12:37:10.523Z") @QueryParam("time")String time) throws Exception {
 		//String path = req.getPathInfo();
 		if (logger.isDebugEnabled())
 			logger.debug("get :{} ","self");
