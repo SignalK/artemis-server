@@ -54,6 +54,7 @@ import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.Response;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.JodaTimePermission;
 import org.joda.time.format.ISODateTimeFormat;
 
 import io.netty.handler.codec.http.cookie.Cookie;
@@ -526,9 +527,9 @@ public class Util {
 	}
 	
 	public static Json getSubscriptionJson(String context, String path, int period, int minPeriod, String format, String policy) {
-		return getSubscriptionJson(context, path, period, minPeriod, format, policy, -1, -1.0d);
+		return getSubscriptionJson(context, path, period, minPeriod, format, policy, Util.getIsoTimeString(0l), -1.0d);
 	}
-	public static Json getSubscriptionJson(String context, String path, int period, int minPeriod, String format, String policy, long startTime, double playbackRate) {
+	public static Json getSubscriptionJson(String context, String path, int period, int minPeriod, String format, String policy, String startTime, double playbackRate) {
 		Json json = Json.read("{\"context\":\"" + context + "\", \"subscribe\": []}");
 		Json sub = Json.object();
 		sub.set("path", path);

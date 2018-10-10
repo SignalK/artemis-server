@@ -69,7 +69,7 @@ public class SignalkStreamService extends BaseApiService {
 	@GET
 	public String getWS(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
 			@Parameter( description = "A signalk path", example="/vessel/self/navigation") @QueryParam("subscribe")String subscribe,
-			@Parameter( description = "An ISO 8601 format date/time string", example="2015-03-07T12:37:10.523Z") @QueryParam("startTime")Long startTime,
+			@Parameter( description = "An ISO 8601 format date/time string", example="2015-03-07T12:37:10.523Z") @QueryParam("startTime")String startTime,
 			@Parameter( description = "Playback rate multiplier, eg '2' = twice normal speed", example="2") @QueryParam("playbackRate")Double playbackRate) throws Exception {
 		
 		if (logger.isDebugEnabled())
