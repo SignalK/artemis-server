@@ -220,11 +220,11 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 		if (subscription.at(POLICY) != null)
 			policy = subscription.at(POLICY).asString();
 		long minPeriod = 0;
-		if (subscription.at(START_TIME) != null)
+		if (subscription.at(MIN_PERIOD) != null)
 			minPeriod = subscription.at(MIN_PERIOD).asInteger();
-		long startTime = -1;
+		String startTime = null;
 		if (subscription.at(START_TIME) != null)
-			startTime = Util.getMillisFromIsoTime(subscription.at(START_TIME).asString());
+			startTime = subscription.at(START_TIME).asString();
 		double playbackRate = -1.0d;
 		if (subscription.at(PLAYBACK_RATE) != null)
 			playbackRate = subscription.at(PLAYBACK_RATE).asDouble();

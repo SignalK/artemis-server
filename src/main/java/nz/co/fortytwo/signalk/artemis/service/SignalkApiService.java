@@ -111,7 +111,7 @@ public class SignalkApiService extends BaseApiService {
 	@GET
 	public String getAll(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie, 
 			@Parameter( description = "An ISO 8601 format date/time string", example="2015-03-07T12:37:10.523Z") @QueryParam("time")String time) throws Exception {
-		getPath(null,cookie);
+		getPath(null,cookie, time);
 		return "";
 	}
 	
@@ -140,11 +140,11 @@ public class SignalkApiService extends BaseApiService {
 			@Parameter( description = "A signalk path", example="/vessel/self/navigation") @PathParam(value = "path") String path,
 			@Parameter( description = "An ISO 8601 format date/time string", example="2015-03-07T12:37:10.523Z") @QueryParam("time")String time) throws Exception {
 		//String path = req.getPathInfo();
-		getPath(path,cookie);
+		getPath(path,cookie, time);
 		return "";
 	}
 	
-	private void getPath(String path, Cookie cookie) throws Exception {
+	private void getPath(String path, Cookie cookie, String time) throws Exception {
 		String correlation = java.util.UUID.randomUUID().toString();
 		initSession(correlation);
 
@@ -165,8 +165,11 @@ public class SignalkApiService extends BaseApiService {
 		if (logger.isDebugEnabled()) {//
 			logger.debug("JwtToken: {}", getToken(cookie));
 		}
-		
-		sendMessage(Util.getJsonGetRequest(path,getToken(cookie)).toString(),correlation);
+		if(StringUtils.isNotBlank(time)) {
+			sendMessage(Util.getJsonGetSnapshotRequest(path,getToken(cookie), time).toString(),correlation);
+		}else {
+			sendMessage(Util.getJsonGetRequest(path,getToken(cookie)).toString(),correlation);
+		}
 		
 	}
 

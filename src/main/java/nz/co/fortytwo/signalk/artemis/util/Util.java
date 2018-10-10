@@ -224,7 +224,12 @@ public class Util {
 			producer.send(Config.INCOMING_RAW, message);
 		} 
 	}
-	
+	public static Json getJsonGetSnapshotRequest(String path, String token, String time) {
+		path=Util.sanitizePath(path);
+		String ctx = Util.getContext(path);
+		return getJsonGetRequest(ctx, StringUtils.substringAfter(path, ctx + dot), token, time);
+
+	}
 
 	public static Json getJsonGetRequest(String path, String token) {
 		path=Util.sanitizePath(path);
@@ -234,10 +239,16 @@ public class Util {
 	}
 
 	public static Json getJsonGetRequest(String context, String path, String token) {
+		return getJsonGetRequest(context, path, token, null);
+	}
+	public static Json getJsonGetRequest(String context, String path, String token, String time) {
 		Json json = Json.read("{\"context\":\"" + context + "\",\"get\": []}");
 		json.set(SignalKConstants.TOKEN, token);
 		Json sub = Json.object();
 		sub.set("path", StringUtils.defaultIfBlank(path, "*"));
+		if(StringUtils.isNotBlank(time)) {
+			sub.set("time", StringUtils.defaultIfBlank(time, time));
+		}
 		json.at("get").add(sub);
 		if (logger.isDebugEnabled())logger.debug("Created json sub: {}", json);
 		return json;

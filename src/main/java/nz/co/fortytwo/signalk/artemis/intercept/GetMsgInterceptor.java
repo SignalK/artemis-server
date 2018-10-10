@@ -136,7 +136,10 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 				try {
 					NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
 					for(Json p: node.at(GET).asJsonList()){
+						
 						String path = p.at(PATH).asString();
+						String time = p.has("time")? p.at("time").asString(): null;
+						
 						path=Util.sanitizePath(path);
 						fullPaths.add(Util.sanitizeRoot(ctx+dot+path));
 						StringBuffer sql=new StringBuffer();
@@ -152,22 +155,45 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 							influx.loadResources(map, queryMap);
 							break;
 						case sources:
-						influx.loadSources(map, queryMap);
+							influx.loadSources(map, queryMap);
 							break;
 						case vessels:
-							influx.loadData(map, vessels, queryMap);
+							if(StringUtils.isNotBlank(time)) {
+								influx.loadDataSnapshot(map, vessels, queryMap, time);
+							}else {
+								influx.loadData(map, vessels, queryMap);
+							}
 							break;
 						case aircraft:
-							influx.loadData(map, aircraft, queryMap);
+							if(StringUtils.isNotBlank(time)) {
+								influx.loadDataSnapshot(map, aircraft, queryMap, time);
+							}else {
+								influx.loadData(map, aircraft, queryMap);
+							}
+							
 							break;
 						case sar:
-							influx.loadData(map, sar, queryMap);
+							if(StringUtils.isNotBlank(time)) {
+								influx.loadDataSnapshot(map, sar, queryMap, time);
+							}else {
+								influx.loadData(map, sar, queryMap);
+							}
+				
 							break;
 						case aton:
-							influx.loadData(map, aton, queryMap);
+							if(StringUtils.isNotBlank(time)) {
+								influx.loadDataSnapshot(map, aton, queryMap, time);
+							}else {
+								influx.loadData(map, aton, queryMap);
+							}
+							
 							break;
 						case ALL:
-							influx.loadData(map, vessels, null);
+							if(StringUtils.isNotBlank(time)) {
+								influx.loadDataSnapshot(map, vessels, null, time);
+							}else {
+								influx.loadData(map, vessels, null);
+							}
 							//loadAllDataFromInflux(map,aircraft);
 							//loadAllDataFromInflux(map,sar);
 							//loadAllDataFromInflux(map,aton);

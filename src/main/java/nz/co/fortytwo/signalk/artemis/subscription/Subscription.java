@@ -74,7 +74,7 @@ public class Subscription {
 	String sessionId = null;
 	String path = null;
 	long period = -1;
-	private long startTime = -1;
+	private String startTime = null;
 	private long playbackPeriod = -1;
 	boolean active = true;
 	private long minPeriod;
@@ -95,7 +95,7 @@ public class Subscription {
 	private String correlation;
 
 	public Subscription(String sessionId, String destination, String user, String password, String path, long period,
-			long minPeriod, String format, String policy, String correlation, long startTime, double playbackRate) throws Exception {
+			long minPeriod, String format, String policy, String correlation, String startTime, double playbackRate) throws Exception {
 		this.sessionId = sessionId;
 
 		this.path = Util.sanitizePath(path);
@@ -111,7 +111,7 @@ public class Subscription {
 		this.destination = destination;
 		this.setCorrelation(correlation);
 		this.startTime=startTime;
-		if(startTime>0) {
+		if(StringUtils.isNotBlank(startTime)) {
 			this.playbackPeriod=(long) (period/playbackRate);
 		}
 		
@@ -121,7 +121,7 @@ public class Subscription {
 		SubscriptionManagerFactory.getInstance().createTempQueue(destination);
 		task = new TimerTask() {
 
-			private long queryTime;
+			private long queryTime=Util.getMillisFromIsoTime(startTime);
 
 			@Override
 			public void run() {
@@ -135,14 +135,14 @@ public class Subscription {
 						cancel();
 						return;
 					}
-					this.queryTime=startTime;
+					
 					// get a map of the current subs values
 					NavigableMap<String, Json> rslt = new ConcurrentSkipListMap<String, Json>();
 					// select * from vessels where
 					// uuid='urn:mrn:imo:mmsi:209023000' AND skey=~/nav.*cou/
 					// group by skey,uuid,sourceRef,owner,grp order by time desc
 					// limit 1
-					if(startTime>0) {
+					if(StringUtils.isNotBlank(startTime)) {
 						influx.loadDataSnapshot(rslt, table, map, queryTime);
 						if(queryTime<System.currentTimeMillis()) {
 							queryTime=queryTime+period;
@@ -256,7 +256,7 @@ public class Subscription {
 			logger.debug("Set active:{}, {}", active, this);
 
 		if (active) {
-			if(startTime>0) {
+			if(StringUtils.isNotBlank(startTime)) {
 				SubscriptionManagerFactory.getInstance().schedule(task, playbackPeriod);
 			}else {
 				SubscriptionManagerFactory.getInstance().schedule(task, getPeriod());
@@ -417,13 +417,6 @@ public class Subscription {
 	}
 
 
-	public long getStartTime() {
-		return startTime;
-	}
-
-
-	public void setStartTime(long startTime) {
-		this.startTime = startTime;
-	}
+	
 
 }

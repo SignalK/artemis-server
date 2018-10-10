@@ -53,6 +53,9 @@ public interface TDBService {
 	void close();
 
 	public NavigableMap<String, Json> loadDataSnapshot(NavigableMap<String, Json> map, String table, Map<String, String> query,
-			long time);
+			String time);
+
+	public NavigableMap<String, Json> loadDataSnapshot(NavigableMap<String, Json> rslt, String table, Map<String, String> map,
+			long queryTime);
 
 }
