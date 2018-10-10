@@ -52,4 +52,7 @@ public interface TDBService {
 
 	void close();
 
+	public NavigableMap<String, Json> loadDataSnapshot(NavigableMap<String, Json> map, String table, Map<String, String> query,
+			long time);
+
 }

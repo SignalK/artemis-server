@@ -74,6 +74,8 @@ public class Subscription {
 	String sessionId = null;
 	String path = null;
 	long period = -1;
+	private long startTime = -1;
+	private long playbackPeriod = -1;
 	boolean active = true;
 	private long minPeriod;
 	private String format;
@@ -93,7 +95,7 @@ public class Subscription {
 	private String correlation;
 
 	public Subscription(String sessionId, String destination, String user, String password, String path, long period,
-			long minPeriod, String format, String policy, String correlation) throws Exception {
+			long minPeriod, String format, String policy, String correlation, long startTime, double playbackRate) throws Exception {
 		this.sessionId = sessionId;
 
 		this.path = Util.sanitizePath(path);
@@ -108,11 +110,18 @@ public class Subscription {
 		this.policy = policy;
 		this.destination = destination;
 		this.setCorrelation(correlation);
+		this.startTime=startTime;
+		if(startTime>0) {
+			this.playbackPeriod=(long) (period/playbackRate);
+		}
+		
 		map.put("uuid", uuidPattern.toString());
 		map.put("skey", pathPattern.toString());
 		
 		SubscriptionManagerFactory.getInstance().createTempQueue(destination);
 		task = new TimerTask() {
+
+			private long queryTime;
 
 			@Override
 			public void run() {
@@ -126,13 +135,21 @@ public class Subscription {
 						cancel();
 						return;
 					}
+					this.queryTime=startTime;
 					// get a map of the current subs values
 					NavigableMap<String, Json> rslt = new ConcurrentSkipListMap<String, Json>();
 					// select * from vessels where
 					// uuid='urn:mrn:imo:mmsi:209023000' AND skey=~/nav.*cou/
 					// group by skey,uuid,sourceRef,owner,grp order by time desc
 					// limit 1
-					influx.loadData(rslt, table, map);
+					if(startTime>0) {
+						influx.loadDataSnapshot(rslt, table, map, queryTime);
+						if(queryTime<System.currentTimeMillis()) {
+							queryTime=queryTime+period;
+						}
+					}else {
+						influx.loadData(rslt, table, map);
+					}
 					if (logger.isDebugEnabled())
 						logger.debug("rslt map = {}" , rslt);
 					Json json = null;
@@ -239,7 +256,11 @@ public class Subscription {
 			logger.debug("Set active:{}, {}", active, this);
 
 		if (active) {
-			SubscriptionManagerFactory.getInstance().schedule(task, getPeriod());
+			if(startTime>0) {
+				SubscriptionManagerFactory.getInstance().schedule(task, playbackPeriod);
+			}else {
+				SubscriptionManagerFactory.getInstance().schedule(task, getPeriod());
+			}
 			if (logger.isDebugEnabled())
 				logger.debug("Scheduled:{}" , getPeriod());
 		}
@@ -393,6 +414,16 @@ public class Subscription {
 
 	public void setCorrelation(String correlation) {
 		this.correlation = correlation;
+	}
+
+
+	public long getStartTime() {
+		return startTime;
+	}
+
+
+	public void setStartTime(long startTime) {
+		this.startTime = startTime;
 	}
 
 }

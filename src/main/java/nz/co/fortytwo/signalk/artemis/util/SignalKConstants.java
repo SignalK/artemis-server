@@ -143,6 +143,8 @@ public class SignalKConstants {
 
 	public static final String PATH = "path";
 	public static final String PERIOD = "period";
+	public static final String START_TIME = "startTime";
+	public static final String PLAYBACK_RATE = "playbackRate";
 	public static final String MIN_PERIOD = "minPeriod";
 	public static final String SIGNALK_FORMAT="SIGNALK_FORMAT";
 	public static final String FORMAT="format";

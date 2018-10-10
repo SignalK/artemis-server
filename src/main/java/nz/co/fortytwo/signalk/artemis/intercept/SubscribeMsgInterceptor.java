@@ -1,6 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.intercept;
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT_DELTA;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.MIN_PERIOD;
@@ -220,11 +220,17 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 		if (subscription.at(POLICY) != null)
 			policy = subscription.at(POLICY).asString();
 		long minPeriod = 0;
-		if (subscription.at(MIN_PERIOD) != null)
+		if (subscription.at(START_TIME) != null)
 			minPeriod = subscription.at(MIN_PERIOD).asInteger();
+		long startTime = -1;
+		if (subscription.at(START_TIME) != null)
+			startTime = subscription.at(START_TIME).asInteger();
+		double playbackRate = -1.0d;
+		if (subscription.at(PLAYBACK_RATE) != null)
+			playbackRate = subscription.at(PLAYBACK_RATE).asDouble();
 
 		Subscription sub = new Subscription(sessionId, destination, user, password, path, period, minPeriod, format,
-				policy, correlation);
+				policy, correlation, startTime, playbackRate);
 
 		// STOMP, MQTT
 		// if(headers.containsKey(ConfigConstants.DESTINATION)){

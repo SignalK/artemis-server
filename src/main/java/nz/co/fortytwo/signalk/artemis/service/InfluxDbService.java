@@ -131,6 +131,21 @@ public class InfluxDbService implements TDBService {
 		}
 		return builder.toString();
 	}
+	
+	private String getWhereString(Map<String, String> query, long time) {
+		StringBuilder builder = new StringBuilder();
+		builder.append(" where time < "+time+ " ");
+		if(query==null || query.size()==0)return builder.toString();
+		String joiner = "and ";
+		for(Entry<String, String> e: query.entrySet()){
+			builder.append(joiner)
+				.append(e.getKey())
+				.append("=~/")
+				.append(e.getValue())
+				.append("/");
+		}
+		return builder.toString();
+	}
 
 	@Override
 	public NavigableMap<String, Json> loadConfig(NavigableMap<String, Json> map, Map<String, String> query) {
@@ -141,6 +156,12 @@ public class InfluxDbService implements TDBService {
 	@Override
 	public NavigableMap<String, Json> loadData(NavigableMap<String, Json> map, String table, Map<String, String> query) {
 		String queryStr="select * from "+table+getWhereString(query)+" group by skey,primary, uuid,sourceRef order by time desc limit 1";
+		return loadData(map, queryStr);
+	}
+	
+	@Override
+	public NavigableMap<String, Json> loadDataSnapshot(NavigableMap<String, Json> map, String table, Map<String, String> query, long time) {
+		String queryStr="select * from "+table+getWhereString(query, time)+" group by skey,primary, uuid,sourceRef order by time desc limit 1";
 		return loadData(map, queryStr);
 	}
 
