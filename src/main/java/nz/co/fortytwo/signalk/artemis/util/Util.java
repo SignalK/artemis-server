@@ -1,6 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.util;
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.ALL;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONFIG;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.GET;
@@ -526,6 +526,9 @@ public class Util {
 	}
 	
 	public static Json getSubscriptionJson(String context, String path, int period, int minPeriod, String format, String policy) {
+		return getSubscriptionJson(context, path, period, minPeriod, format, policy, -1, -1.0d);
+	}
+	public static Json getSubscriptionJson(String context, String path, int period, int minPeriod, String format, String policy, long startTime, double playbackRate) {
 		Json json = Json.read("{\"context\":\"" + context + "\", \"subscribe\": []}");
 		Json sub = Json.object();
 		sub.set("path", path);
@@ -533,6 +536,8 @@ public class Util {
 		sub.set("minPeriod", minPeriod);
 		sub.set("format", format);
 		sub.set("policy", policy);
+		sub.set(START_TIME, startTime);
+		sub.set(PLAYBACK_RATE, playbackRate);
 		json.at("subscribe").add(sub);
 		logger.debug("Created json sub: " + json);
 		return json;
