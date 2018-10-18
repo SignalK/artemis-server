@@ -139,10 +139,11 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 						
 						String path = p.at(PATH).asString();
 						String time = p.has("time")? p.at("time").asString(): null;
-						
+						if (logger.isDebugEnabled())
+							logger.debug("GET time : {}={}", time, StringUtils.isNotBlank(time)?Util.getMillisFromIsoTime(time):null);
 						path=Util.sanitizePath(path);
 						fullPaths.add(Util.sanitizeRoot(ctx+dot+path));
-						StringBuffer sql=new StringBuffer();
+						
 						path=Util.regexPath(path).toString();
 						Map<String, String> queryMap = new HashMap<>();
 						if(StringUtils.isNotBlank(qUuid))queryMap.put("skey",path);
@@ -200,8 +201,7 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 						default:
 						}
 						
-						if (logger.isDebugEnabled())
-							logger.debug("GET sql : {}", sql);
+						
 					}
 					
 					if (logger.isDebugEnabled())logger.debug("GET  token: {}, map : {}",jwtToken, map);

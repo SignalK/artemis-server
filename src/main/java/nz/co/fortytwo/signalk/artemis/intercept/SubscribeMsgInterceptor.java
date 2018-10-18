@@ -150,7 +150,8 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 							ctx, subscription, correlation);
 					if (logger.isDebugEnabled())
 						logger.debug("Remove subscription; " + sub.toString());
-					SubscriptionManagerFactory.getInstance().removeSubscription(sub);
+					if(sub!=null)
+						SubscriptionManagerFactory.getInstance().removeSubscription(sub);
 				}
 			}
 
@@ -177,7 +178,8 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 							ctx, subscription, correlation);
 					if (logger.isDebugEnabled())
 						logger.debug("Created subscription; " + sub.toString());
-					SubscriptionManagerFactory.getInstance().addSubscription(sub);
+					if(sub!=null)
+						SubscriptionManagerFactory.getInstance().addSubscription(sub);
 				}
 			}
 			if (logger.isDebugEnabled())
@@ -208,8 +210,19 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 		if (logger.isDebugEnabled())
 			logger.debug("Parsing subscribe for : " + user + " : " + password + " : " + destination + " : " + context
 					+ " : " + subscription);
-
-		String path = context + "." + subscription.at(PATH).asString();
+		String path = subscription.at(PATH).asString();
+		if(StringUtils.equals("none", path)) {
+			//unsubscribe all
+			
+			for(Subscription sub : SubscriptionManagerFactory.getInstance().getSubscriptions(sessionId)) {
+				SubscriptionManagerFactory.getInstance().removeSubscription(sub);
+			}
+			return null;
+		}
+		if(StringUtils.isBlank(path)||StringUtils.isBlank("all") ) {
+			path= "*";
+		}
+		path = context + "." + path;
 		long period = 1000;
 		if (subscription.at(PERIOD) != null)
 			period = subscription.at(PERIOD).asInteger();

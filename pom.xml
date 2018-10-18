@@ -204,28 +204,28 @@
 			<version>2.9</version>
 		</dependency>
 		<!-- swagger -->
-<!-- https://mvnrepository.com/artifact/io.swagger/swagger-jaxrs -->
-<!-- https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-core -->
-<dependency>
-    <groupId>io.swagger.core.v3</groupId>
-    <artifactId>swagger-core</artifactId>
-    <version>2.0.5</version>
-</dependency>
-<dependency>
-    <groupId>io.swagger.core.v3</groupId>
-    <artifactId>swagger-jaxrs2</artifactId>
-    <version>2.0.5</version>
-</dependency>
-<dependency>
-      <groupId>io.swagger.core.v3</groupId>
-      <artifactId>swagger-jaxrs2-servlet-initializer</artifactId>
-      <version>2.0.5</version>
-    </dependency>
-<!-- 		<dependency> -->
-<!-- 			<groupId>io.swagger</groupId> -->
-<!-- 			<artifactId>swagger-jersey2-jaxrs</artifactId> -->
-<!-- 			<version>${swagger-version}</version> -->
-<!-- 		</dependency> -->
+		<!-- https://mvnrepository.com/artifact/io.swagger/swagger-jaxrs -->
+		<!-- https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-core -->
+		<dependency>
+			<groupId>io.swagger.core.v3</groupId>
+			<artifactId>swagger-core</artifactId>
+			<version>2.0.5</version>
+		</dependency>
+		<dependency>
+			<groupId>io.swagger.core.v3</groupId>
+			<artifactId>swagger-jaxrs2</artifactId>
+			<version>2.0.5</version>
+		</dependency>
+		<dependency>
+			<groupId>io.swagger.core.v3</groupId>
+			<artifactId>swagger-jaxrs2-servlet-initializer</artifactId>
+			<version>2.0.5</version>
+		</dependency>
+		<!-- <dependency> -->
+		<!-- <groupId>io.swagger</groupId> -->
+		<!-- <artifactId>swagger-jersey2-jaxrs</artifactId> -->
+		<!-- <version>${swagger-version}</version> -->
+		<!-- </dependency> -->
 		<!-- https://mvnrepository.com/artifact/com.sun.jersey/jersey-servlet -->
 		<dependency>
 			<groupId>org.glassfish.jersey.core</groupId>
@@ -276,7 +276,7 @@
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
-			<version>4.3.2</version>
+			<version>4.5.6</version>
 
 		</dependency>
 
@@ -354,6 +354,33 @@
 					<target>1.8</target>
 				</configuration>
 			</plugin>
+			
+			<plugin>
+				<groupId>org.jsonschema2pojo</groupId>
+				<artifactId>jsonschema2pojo-maven-plugin</artifactId>
+				<version>0.5.1</version>
+				<configuration>
+<!-- 					<sourcePaths>${basedir}/../specification/schemas/messages,${basedir}/../specification/schemas</sourcePaths>				 -->
+					<sourceType>json</sourceType>
+					<sourceDirectory>${basedir}/../specification/samples</sourceDirectory>
+					<targetPackage>org.signalk.schema</targetPackage>
+					<includeAccessors>false</includeAccessors>
+					<generateBuilders>true</generateBuilders>
+					<outputDirectory>${basedir}/src/main/java</outputDirectory>
+					<useCommonsLang3>true</useCommonsLang3>
+					
+<!-- 					<includes>*.json</includes> -->
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>

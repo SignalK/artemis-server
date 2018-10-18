@@ -137,15 +137,17 @@ public class InfluxDbService implements TDBService {
 	}
 	private String getWhereString(Map<String, String> query, long time) {
 		StringBuilder builder = new StringBuilder();
-		builder.append(" where time < "+time+ " ");
-		if(query==null || query.size()==0)return builder.toString();
-		String joiner = "and ";
-		for(Entry<String, String> e: query.entrySet()){
-			builder.append(joiner)
-				.append(e.getKey())
-				.append("=~/")
-				.append(e.getValue())
-				.append("/");
+		//1536567258000 = ms
+		//1537401592000000000=ns
+		builder.append(" where time < "+time+ "ms");
+		if(query!=null || query.size()>0) {
+			for(Entry<String, String> e: query.entrySet()){
+				builder.append(" and ")
+					.append(e.getKey())
+					.append("=~/")
+					.append(e.getValue())
+					.append("/");
+			}
 		}
 		return builder.toString();
 	}

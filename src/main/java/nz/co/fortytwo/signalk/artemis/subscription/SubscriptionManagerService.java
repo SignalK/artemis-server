@@ -58,8 +58,7 @@ public class SubscriptionManagerService{
 	protected ClientProducer producer;
 	private Timer timer;
 	protected ConcurrentLinkedQueue<Subscription> subscriptions = new ConcurrentLinkedQueue<Subscription>();
-	protected ConcurrentLinkedQueue<String> heartbeats = new ConcurrentLinkedQueue<String>();
-
+	
 	public SubscriptionManagerService() {
 		super();
 		timer = new Timer( true);
@@ -89,7 +88,6 @@ public class SubscriptionManagerService{
 				sub.setActive(true);
 				if (logger.isDebugEnabled())
 					logger.debug("Started route for {} ",sub);
-				heartbeats.remove(sub.getSessionId());
 			}
 			if (logger.isDebugEnabled())
 				logger.debug("Subs size = {}",subscriptions.size());
@@ -140,11 +138,6 @@ public class SubscriptionManagerService{
 				logger.debug("Subs size ={}", subscriptions.size());
 		}
 
-		// if we have no subs, then we should put a sub for empty updates as
-		// heartbeat
-		if (getSubscriptions(sub.getSessionId()).size() == 0) {
-			heartbeats.add(sub.getSessionId());
-		}
 	}
 
 	public ConcurrentLinkedQueue<Subscription> getSubscriptions(String wsSession) {
@@ -183,10 +176,6 @@ public class SubscriptionManagerService{
 
 	}
 
-
-	public ConcurrentLinkedQueue<String> getHeartbeats() {
-		return heartbeats;
-	}
 	
 	public void send(String type, String destination, String format, String correlation, Json json)
 			throws ActiveMQException {

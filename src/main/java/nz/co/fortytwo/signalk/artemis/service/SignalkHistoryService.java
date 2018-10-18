@@ -54,7 +54,7 @@ public class SignalkHistoryService extends BaseApiService {
 	@Produces(MediaType.APPLICATION_JSON)
 	@GET
 	@Path("{path:[^?]*}")
-	public Response get(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie, 
+	public Response getHistory(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie, 
 			@Parameter( in = ParameterIn.PATH, description = "A signalk path", example="/vessel/self/navigation")@PathParam(value="path") String path,
 			@Parameter( description = "An ISO 8601 format date/time string, defaults to current time -4h", example="2015-03-07T12:37:10.523Z" ) @QueryParam("fromTime")String fromTime,
 			@Parameter( description = "An ISO 8601 format date/time string, defaults to current time", example="2016-03-07T12:37:10.523Z") @QueryParam("toTime")String toTime,
@@ -90,7 +90,7 @@ public class SignalkHistoryService extends BaseApiService {
 	@Consumes(value = MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@POST
-	public Response post(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
+	public Response postHistory(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
 			@Parameter( name="body", description = "A signalk HISTORY message") String body) {
 		try {
 			

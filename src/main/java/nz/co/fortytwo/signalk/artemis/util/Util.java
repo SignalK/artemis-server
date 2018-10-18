@@ -271,6 +271,7 @@ public class Util {
 	}
 	
 	public static String sanitizePath(String newPath) {
+	
 		newPath = newPath.replace('/', '.');
 		if (newPath.startsWith(dot)) {
 			newPath = newPath.substring(1);
@@ -538,7 +539,7 @@ public class Util {
 	}
 	
 	public static Json getSubscriptionJson(String context, String path, int period, int minPeriod, String format, String policy) {
-		return getSubscriptionJson(context, path, period, minPeriod, format, policy, Util.getIsoTimeString(0l), -1.0d);
+		return getSubscriptionJson(context, path, period, minPeriod, format, policy, null, -1.0d);
 	}
 	public static Json getSubscriptionJson(String context, String path, int period, int minPeriod, String format, String policy, String startTime, double playbackRate) {
 		Json json = Json.read("{\"context\":\"" + context + "\", \"subscribe\": []}");
@@ -548,8 +549,10 @@ public class Util {
 		sub.set("minPeriod", minPeriod);
 		sub.set("format", format);
 		sub.set("policy", policy);
-		sub.set(START_TIME, startTime);
-		sub.set(PLAYBACK_RATE, playbackRate);
+		if(StringUtils.isNotBlank(startTime)) {
+			sub.set(START_TIME, startTime);
+			sub.set(PLAYBACK_RATE, playbackRate);
+		}
 		json.at("subscribe").add(sub);
 		logger.debug("Created json sub: " + json);
 		return json;

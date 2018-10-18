@@ -2,9 +2,12 @@ package nz.co.fortytwo.signalk.artemis.service;
 
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.STATIC_DIR;
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.AUTH_COOKIE_NAME;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SIGNALK_API;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
@@ -21,12 +24,17 @@ import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.activemq.artemis.api.core.client.MessageHandler;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.cpr.AtmosphereResourceEvent;
 import org.atmosphere.cpr.AtmosphereResourceEventListenerAdapter;
+import org.atmosphere.cpr.AtmosphereResourceSession;
+import org.atmosphere.cpr.AtmosphereResourceSessionFactory;
 import org.atmosphere.cpr.BroadcasterFactory;
+import org.atmosphere.websocket.WebSocket;
+import org.atmosphere.websocket.WebSocketEventListenerAdapter;
 import org.jgroups.util.UUID;
 
 import mjson.Json;
@@ -50,6 +58,10 @@ public class BaseApiService {
 	protected long lastBroadcast = System.currentTimeMillis();
 
 	protected File staticDir = null;
+	
+	private static final long PING_PERIOD = 5000;
+	
+	private static Timer timer = new Timer();
 
 	@Context
 	protected BroadcasterFactory broadCasterFactory;
@@ -144,8 +156,10 @@ public class BaseApiService {
 				} catch (IllegalStateException | IOException e) {
 					logger.error(e, e);
 				}
-				if (logger.isDebugEnabled())
+				if (logger.isDebugEnabled()) {
 					logger.debug("websocket.onThrowable: {}", event);
+					event.throwable().printStackTrace();
+				}
 
 			}
 
@@ -194,7 +208,8 @@ public class BaseApiService {
 			}
 
 		});
-
+		if(logger.isDebugEnabled())
+			logger.debug("Added close listener");
 	}
 
 	public boolean setConsumer(AtmosphereResource resource, boolean resumeAfter) throws ActiveMQException {
@@ -205,6 +220,7 @@ public class BaseApiService {
 
 			if (!resumeAfter) {
 				resource.setBroadcaster(broadCasterFactory.get());
+				logger.debug("Adding broadcaster");
 			}
 
 			getConsumer().setMessageHandler(new MessageHandler() {
@@ -237,6 +253,7 @@ public class BaseApiService {
 					}
 				}
 			});
+			logger.debug("Set handler");
 			return true;
 		}
 		return false;
@@ -332,4 +349,131 @@ public class BaseApiService {
 		return tempQ;
 	}
 
+	protected void addWebsocketCloseListener(AtmosphereResource resource) {
+		resource.addEventListener( new WebSocketEventListenerAdapter() {
+			
+			@Override
+			public void onResume(AtmosphereResourceEvent event) {
+				if (logger.isDebugEnabled()) 
+					logger.debug("onResume: {}",event);
+				super.onResume(event);
+				try {
+					resource.close();
+				} catch (IOException e) {
+					logger.error(e,e);
+				}
+				addCloseListener(resource);
+		
+			}
+		});
+	}
+	
+	protected void getPath(String path, Cookie cookie, String time) throws Exception {
+		String correlation = java.util.UUID.randomUUID().toString();
+		initSession(correlation);
+
+		path=StringUtils.defaultIfBlank(path,"*");
+		if (logger.isDebugEnabled())
+			logger.debug("get raw: {}",path);
+		
+		path = StringUtils.removeStart(path,SIGNALK_API);
+		path = StringUtils.removeStart(path,"/");
+		path = path.replace('/', '.');
+
+		
+		// handle /vessels.* etc
+		path = Util.fixSelfKey(path);
+		if (logger.isDebugEnabled())
+			logger.debug("get path: {}",path);
+		//String jwtToken = (String) resource.getRequest().getAttribute(SignalKConstants.JWT_TOKEN);
+		if (logger.isDebugEnabled()) {//
+			logger.debug("JwtToken: {}", getToken(cookie));
+		}
+		if(StringUtils.isNotBlank(time)) {
+			sendMessage(Util.getJsonGetSnapshotRequest(path,getToken(cookie), time).toString(),correlation);
+		}else {
+			sendMessage(Util.getJsonGetRequest(path,getToken(cookie)).toString(),correlation);
+		}
+		
+	}
+	
+	protected String getWebsocket(AtmosphereResource resource, String body, Cookie cookie) {
+		try {
+			String correlationId = "stream-" + resource.uuid(); // UUID.randomUUID().toString();
+
+			// resource.suspend();
+			
+			
+			if (logger.isDebugEnabled())
+				logger.debug("Correlation: {}, Post: {}", correlationId, body);
+			
+			initSession(correlationId);
+			if(setConsumer(resource, false)) {
+				addCloseListener(resource);
+				setConnectionWatcher(resource, PING_PERIOD);
+			}
+			if (logger.isDebugEnabled())
+				logger.debug("Sending hello: {}", Config.getHelloMsg());
+			resource.getBroadcaster().broadcast(Config.getHelloMsg().toString(),resource);
+			sendMessage(addToken(body, cookie), correlationId);
+
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			try {
+				resource.getResponse().sendError(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+			} catch (IOException e1) {
+				logger.error(e.getMessage(), e);
+			}
+		}
+		return "";
+	}
+
+	protected void setConnectionWatcher(AtmosphereResource resource, long period) {
+		TimerTask task = new TimerTask() {
+
+			@Override
+			public void run() {
+				AtmosphereResourceSessionFactory factory = resource.getAtmosphereConfig().framework().sessionFactory();
+				AtmosphereResourceSession session = factory.getSession(resource);
+				Long lastPing = (Long) session.getAttribute("lastPing");
+
+				if (logger.isDebugEnabled())logger.debug("Get lastPing {}={}", resource.uuid(),lastPing );
+				try {
+					ping(resource);
+					
+					if (logger.isDebugEnabled())
+						logger.debug("Checking broadcast age < {}", period*3);
+					if (lastPing!=null && System.currentTimeMillis() - lastPing > period * 3) {
+						
+							if (logger.isDebugEnabled())
+								logger.debug("Checking ping failed: {} , closing...",
+										System.currentTimeMillis() - lastPing);
+							resource.close();
+							cancel();
+							timer.purge();
+					}
+				}catch (Exception e) {
+					logger.debug(e,e);
+					cancel();
+					timer.purge();
+				}
+			}
+
+			
+		};
+		if(logger.isDebugEnabled())
+			logger.debug("Created connection watcher");
+		timer.schedule(task, period, period);
+		if(logger.isDebugEnabled())
+			logger.debug("Scheduled connection watcher");
+	}
+
+	protected void ping(AtmosphereResource resource) {
+		if (logger.isDebugEnabled())
+			logger.debug("Sending a ping to {}", resource.uuid());
+		// send a ping
+			WebSocket ws = resource.getAtmosphereConfig().websocketFactory().find(resource.uuid());
+			ws.sendPing("XX".getBytes());
+		
+	}
 }

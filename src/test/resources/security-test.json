@@ -1,0 +1,210 @@
+{
+	"roles": {
+		"skipper": {
+			"allowed": [
+				{
+					"read": true,
+					"name": "all",
+					"write": true
+				}
+			],
+			"denied": []
+		},
+		"public": {
+			"allowed": [
+				{
+					"read": true,
+					"name": "vessels.self.communication.callsignVhf",
+					"write": false
+				},
+				{
+					"read": true,
+					"name": "vessels.self.navigation.position",
+					"write": false
+				},
+				{
+					"read": true,
+					"name": "vessels.self.navigation.courseOverGroundTrue",
+					"write": false
+				},
+				{
+					"read": true,
+					"name": "vessels.self.navigation.speedOverGround",
+					"write": false
+				},
+				{
+					"read": true,
+					"name": "vessels.self.communication.callsignHf",
+					"write": false
+				}
+			],
+			"denied": [
+				{
+					"read": true,
+					"name": "undefined",
+					"write": true
+				}
+			]
+		},
+		"guests": {
+			"allowed": [
+				{
+					"read": true,
+					"name": "vessels.self.environment",
+					"write": false
+				},
+				{
+					"read": true,
+					"name": "vessels.self.navigation",
+					"write": false
+				},
+				{
+					"read": true,
+					"name": "vessels.self.communication.email",
+					"write": false
+				},
+				{
+					"read": true,
+					"name": "vessels.self.communication.skipperName",
+					"write": false
+				},
+				{
+					"read": true,
+					"name": "vessels.self.communication.callsignVhf",
+					"write": false
+				}
+			],
+			"denied": []
+		},
+		"friend": {
+			"allowed": [
+				{
+					"read": true,
+					"name": "resources",
+					"write": false
+				},
+				{
+					"read": true,
+					"name": "vessels.self.communication",
+					"write": false
+				},
+				{
+					"read": true,
+					"name": "vessels.self.design",
+					"write": false
+				},
+				{
+					"read": true,
+					"name": "vessels.self.environment",
+					"write": false
+				},
+				{
+					"read": true,
+					"name": "vessels.self.navigation",
+					"write": false
+				}
+			],
+			"denied": [
+				{
+					"read": true,
+					"name": "vessels.self.environment.inside",
+					"write": true
+				},
+				{
+					"read": true,
+					"name": "vessels.self.navigation.gnss",
+					"write": true
+				},
+				{
+					"read": true,
+					"name": "vessels.self.navigation.log",
+					"write": true
+				},
+				{
+					"read": true,
+					"name": "vessels.self.navigation.racing",
+					"write": true
+				}
+			]
+		},
+		"official": {
+			"allowed": [
+				{
+					"read": true,
+					"name": "vessels.self.environment",
+					"write": false
+				},
+				{
+					"read": true,
+					"name": "vessels.self.navigation.position",
+					"write": false
+				},
+				{
+					"read": true,
+					"name": "vessels.self.navigation.courseOverGroundTrue",
+					"write": false
+				},
+				{
+					"read": true,
+					"name": "vessels.self.navigation.destination",
+					"write": false
+				},
+				{
+					"read": true,
+					"name": "vessels.self.navigation.speedOverGround",
+					"write": false
+				},
+				{
+					"read": true,
+					"name": "vessels.self.communication.callsignVhf",
+					"write": false
+				},
+				{
+					"read": true,
+					"name": "vessels.self.communication.callsignHf",
+					"write": false
+				},
+				{
+					"read": true,
+					"name": "vessels.self.communication.skipperName",
+					"write": false
+				}
+			],
+			"denied": [
+				{
+					"read": true,
+					"name": "vessels.self.environment.inside",
+					"write": true
+				}
+			]
+		},
+		"crew": {
+			"allowed": [
+				{
+					"read": true,
+					"name": "all",
+					"write": false
+				}
+			],
+			"denied": [
+				{
+					"read": true,
+					"name": "config",
+					"write": true
+				}
+			]
+		}
+	},
+	"users": [
+		{
+			"password": "",
+			"roles": [
+				"skipper"
+			],
+			"name": "admin",
+			"lastPasswordChange": "2018-08-10T21:15:05.534Z",
+			"email": "",
+			"hash": "sha1:64000:18:dF/g8lYxQBz2a6InjOxceZM1LmNC3zv6:Tu74gQxhFCYDUgnQLn0MZZRY"
+		}
+	]
+}

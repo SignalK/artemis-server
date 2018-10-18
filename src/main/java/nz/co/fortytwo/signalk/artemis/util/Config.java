@@ -1,6 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.util;
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.uuid;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
@@ -134,6 +134,20 @@ public class Config {
 		
 		Json reply = Json.object().set("endpoints", endpoints);
 		reply.set("server",server);
+		return reply;
+	}
+	
+	public static Json getHelloMsg() {
+
+		Json reply = Json.object();
+		reply.set("name", "signalk-server");
+		reply.set("roles", "[\"master\",\"main\"]");
+		String ver = getConfigProperty(ConfigConstants.VERSION);
+		ver = StringUtils.removeStart(ver,"v");
+		reply.set("version", ver);
+		reply.set(timestamp, Util.getIsoTimeString());
+		reply.set(self_str, vessels+dot+getConfigProperty(ConfigConstants.UUID));
+		
 		return reply;
 	}
 

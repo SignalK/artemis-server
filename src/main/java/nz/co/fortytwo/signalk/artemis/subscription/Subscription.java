@@ -110,8 +110,9 @@ public class Subscription {
 		this.policy = policy;
 		this.destination = destination;
 		this.setCorrelation(correlation);
-		this.startTime=startTime;
+		
 		if(StringUtils.isNotBlank(startTime)) {
+			this.startTime=startTime;
 			this.playbackPeriod=(long) (period/playbackRate);
 		}
 		
@@ -121,7 +122,7 @@ public class Subscription {
 		SubscriptionManagerFactory.getInstance().createTempQueue(destination);
 		task = new TimerTask() {
 
-			private long queryTime=Util.getMillisFromIsoTime(startTime);
+			private long queryTime=StringUtils.isNotBlank(startTime)?Util.getMillisFromIsoTime(startTime):System.currentTimeMillis();
 
 			@Override
 			public void run() {
