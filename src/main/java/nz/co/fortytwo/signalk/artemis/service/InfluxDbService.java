@@ -33,6 +33,7 @@ import org.apache.logging.log4j.Logger;
 import org.influxdb.BatchOptions;
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
+import org.influxdb.InfluxDBIOException;
 import org.influxdb.dto.Point;
 import org.influxdb.dto.Point.Builder;
 import org.influxdb.dto.Query;
@@ -74,7 +75,22 @@ public class InfluxDbService implements TDBService {
 	 */
 	@Override
 	public void setUpTDb() {
-		influxDB = InfluxDBFactory.connect("http://localhost:8086", "admin", "admin");
+		//try 3 times
+		int c=0;
+		while(c<4) {
+			c++;
+			try {
+				influxDB = InfluxDBFactory.connect("http://localhost:8086", "admin", "admin");
+				c=4;
+			}catch(InfluxDBIOException e) {
+				logger.error(e, e);
+				try {
+					wait(5000);
+				} catch (InterruptedException e1) {
+					logger.error(e1,e1);
+				}
+			}
+		}
 		if (!influxDB.databaseExists(dbName))
 			influxDB.createDatabase(dbName);
 		influxDB.setDatabase(dbName);

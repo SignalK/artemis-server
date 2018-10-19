@@ -3,9 +3,13 @@ Artemis Server
 
 This is the replacement for the signalk-java-server which began long before signalk, and has become too difficult to support.
 
-The artemis server leverages Java8+ async, lambdas, streams, and other new features of Java, resulting in a simpler implementation, better suited to signalk.
+The artemis server uses a time-series database as the core storage for all data. This means all data is persistent, 
+and it can recover the vessels entire signalk data at any point backwards through time.
+ 
+The intention is to provide a platform to explore a signalk history api that allows analysis over time, and against historic data.
 
-It also uses a time-series database as the core storage for all data. This means all data is persistent, and it can recover the vessels entire signalk data at any point backwards through time. The intention is to provide a platform to implement a signalk history api that allows analysis over time, and against historic data.
+Artemis also leverages Java8+ async, lambdas, streams, and other new features of Java, resulting in a simpler implementation, 
+better suited to signalk, high prallelism, and able to make full use of the multi-core cpus like the Raspberry Pi3.
 
 Its a drop in replacement for the signalk-java-server, missing functionality is a bug.
 
