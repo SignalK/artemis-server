@@ -355,30 +355,27 @@
 				</configuration>
 			</plugin>
 			
-			<plugin>
-				<groupId>org.jsonschema2pojo</groupId>
-				<artifactId>jsonschema2pojo-maven-plugin</artifactId>
-				<version>0.5.1</version>
-				<configuration>
-<!-- 					<sourcePaths>${basedir}/../specification/schemas/messages,${basedir}/../specification/schemas</sourcePaths>				 -->
-					<sourceType>json</sourceType>
-					<sourceDirectory>${basedir}/../specification/samples</sourceDirectory>
-					<targetPackage>org.signalk.schema</targetPackage>
-					<includeAccessors>false</includeAccessors>
-					<generateBuilders>true</generateBuilders>
-					<outputDirectory>${basedir}/src/main/java</outputDirectory>
-					<useCommonsLang3>true</useCommonsLang3>
-					
-<!-- 					<includes>*.json</includes> -->
-				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
+<!-- 			<plugin> -->
+<!-- 				<groupId>org.jsonschema2pojo</groupId> -->
+<!-- 				<artifactId>jsonschema2pojo-maven-plugin</artifactId> -->
+<!-- 				<version>0.5.1</version> -->
+<!-- 				<configuration> -->
+<!-- 					<sourceType>json</sourceType> -->
+<!-- 					<sourceDirectory>${basedir}/../specification/samples</sourceDirectory> -->
+<!-- 					<targetPackage>org.signalk.schema</targetPackage> -->
+<!-- 					<includeAccessors>false</includeAccessors> -->
+<!-- 					<generateBuilders>true</generateBuilders> -->
+<!-- 					<outputDirectory>${basedir}/src/main/java</outputDirectory> -->
+<!-- 					<useCommonsLang3>true</useCommonsLang3> -->
+<!-- 				</configuration> -->
+<!-- 				<executions> -->
+<!-- 					<execution> -->
+<!-- 						<goals> -->
+<!-- 							<goal>generate</goal> -->
+<!-- 						</goals> -->
+<!-- 					</execution> -->
+<!-- 				</executions> -->
+<!-- 			</plugin> -->
 
 
 			<plugin>
