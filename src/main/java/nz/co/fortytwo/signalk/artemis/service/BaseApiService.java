@@ -72,6 +72,8 @@ public class BaseApiService {
 	}
 
 	protected void initSession(String tempQ) throws Exception {
+		if (logger.isDebugEnabled())
+			logger.debug("initSession: {}", tempQ);
 		if (getTempQ() == null) {
 			this.tempQ = tempQ;
 		}
@@ -117,6 +119,8 @@ public class BaseApiService {
 	}
 
 	protected String sendMessage(String body, String correlation) throws ActiveMQException {
+		if (logger.isDebugEnabled())
+			logger.debug("Incoming msg: {}, {}", correlation, body);
 		ClientMessage message = null;
 		synchronized (txSession) {
 			message = txSession.createMessage(false);
@@ -412,9 +416,7 @@ public class BaseApiService {
 				addCloseListener(resource);
 				setConnectionWatcher(resource, PING_PERIOD);
 			}
-			if (logger.isDebugEnabled())
-				logger.debug("Sending hello: {}", Config.getHelloMsg());
-			resource.getBroadcaster().broadcast(Config.getHelloMsg().toString(),resource);
+
 			sendMessage(addToken(body, cookie), correlationId);
 
 		} catch (Exception e) {

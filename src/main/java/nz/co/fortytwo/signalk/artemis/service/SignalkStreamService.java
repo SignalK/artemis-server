@@ -18,6 +18,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
@@ -59,7 +60,7 @@ public class SignalkStreamService extends BaseApiService {
 	@Suspend()
 	//@Produces(MediaType.APPLICATION_JSON)
 	@GET
-	public String getWS(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
+	public Response getWS(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
 			@Parameter( description = "A signalk path", example="/vessel/self/navigation") @QueryParam("subscribe")String subscribe) throws Exception {
 		
 		if (logger.isDebugEnabled())
@@ -85,7 +86,8 @@ public class SignalkStreamService extends BaseApiService {
 				
 		}
 		
-		return getWebsocket(resource, Util.getSubscriptionJson(ctx,path,1000,1000,FORMAT_DELTA,POLICY_IDEAL).toString(),cookie);
+		getWebsocket(resource, Util.getSubscriptionJson(ctx,path,1000,1000,FORMAT_DELTA,POLICY_IDEAL).toString(),cookie);
+		return Response.ok().build();
 		
 	}
 

@@ -131,7 +131,7 @@ public class Util {
 		if(playbackRate!=null) {
 			msg.set("playbackRate", playbackRate);
 		}
-		msg.set(self_str, Config.getConfigProperty(ConfigConstants.UUID));
+		msg.set(self_str, vessels+dot+Config.getConfigProperty(ConfigConstants.UUID));
 		msg.set("roles", Json.read("[\"master\",\"main\"]"));
 		return msg;
 	}

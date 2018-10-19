@@ -54,6 +54,7 @@ import nz.co.fortytwo.signalk.artemis.event.PathEvent;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.service.TDBService;
+import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
@@ -178,7 +179,15 @@ public class Subscription {
 
 			}
 		};
-
+		//now send hello
+		if (logger.isDebugEnabled())
+			logger.debug("Sending hello: {}", Config.getHelloMsg());
+		try{
+			SubscriptionManagerFactory.getInstance().send(ConcurrentSkipListMap.class.getSimpleName(), destination, format, correlation,  Config.getHelloMsg());
+		}catch(ActiveMQException amq){
+			logger.error(amq,amq);
+			setActive(false);
+		}
 	}
 
 
