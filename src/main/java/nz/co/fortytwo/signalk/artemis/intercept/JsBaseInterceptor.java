@@ -44,7 +44,7 @@ public class JsBaseInterceptor extends BaseInterceptor {
 		
 		try {
 			engine.eval(IOUtils.toString(getIOStream("jsext/nashorn-polyfill.js")));
-			engine.eval(IOUtils.toString(getIOStream("jsext/json-loader.js")));
+			//engine.eval(IOUtils.toString(getIOStream("jsext/json-loader.js")));
 		} catch (ScriptException | IOException e) {
 			logger.error(e, e);
 		}
