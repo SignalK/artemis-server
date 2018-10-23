@@ -37,7 +37,7 @@ function isEmpty(mixed) {
   return typeof mixed !== 'string' && typeof mixed !== 'number' || typeof mixed === 'string' && mixed.trim() === '';
 }
 
-module.exports = function (parser, input) {
+module.exports = function (input) {
   var id = input.id,
       sentence = input.sentence,
       parts = input.parts,
@@ -47,8 +47,8 @@ module.exports = function (parser, input) {
   var empty = parts.reduce(function (count, part) {
     count += isEmpty(part) ? 1 : 0;return count;
   }, 0);
-  if (empty > 3) {
-    return Promise.resolve(null);
+  if (empty > 4) {
+    return null;
   }
 
   var rightPositive = 0;
@@ -58,23 +58,17 @@ module.exports = function (parser, input) {
     rightPositive = -1;
   }
 
-  try {
-    var delta = {
-      updates: [{
-        source: tags.source,
-        timestamp: tags.timestamp,
-        values: [{
-          path: 'environment.wind.angleApparent',
-          value: utils.transform(utils.float(parts[0]) * rightPositive, 'deg', 'rad')
-        }, {
-          path: 'environment.wind.speedApparent',
-          value: utils.transform(utils.float(parts[2]), 'knots', 'ms')
-        }]
+  return {
+    updates: [{
+      source: tags.source,
+      timestamp: tags.timestamp,
+      values: [{
+        path: 'environment.wind.angleApparent',
+        value: utils.transform(utils.float(parts[0]) * rightPositive, 'deg', 'rad')
+      }, {
+        path: 'environment.wind.speedApparent',
+        value: utils.transform(utils.float(parts[2]), 'knots', 'ms')
       }]
-    };
-
-    return Promise.resolve({ delta: delta });
-  } catch (e) {
-    return Promise.reject(e);
-  }
+    }]
+  };
 };

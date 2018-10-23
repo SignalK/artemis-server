@@ -2,13 +2,13 @@
 
 /**
  * Copyright 2016 Signal K and Fabian Tollenaar <fabian@signalk.org>.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an 'AS IS' BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-//var debug = require('debug')('signalk-parser-nmea0183/GGA');
+var debug = require('debug')('signalk-parser-nmea0183/GGA');
 var utils = require('@signalk/nmea0183-utilities');
 var moment = require('moment-timezone');
 
@@ -28,7 +28,7 @@ Time, Position and fix related data for a GPS receiver.
         |         |       | |        | | |  |   |   | |   | |   |    |
  $--GGA,hhmmss.ss,llll.ll,a,yyyyy.yy,a,x,xx,x.x,x.x,M,x.x,M,x.x,xxxx*hh<CR><LF>
 ------------------------------------------------------------------------------
-Field Number: 
+Field Number:
 0. Universal Time Coordinated (UTC)
 1. Latitude
 2. N or S (North or South)
@@ -63,82 +63,77 @@ function isEmpty(mixed) {
   return typeof mixed !== 'string' && typeof mixed !== 'number' || typeof mixed === 'string' && mixed.trim() === '';
 }
 
-module.exports = function (parser, input) {
-  try {
-    var id = input.id,
-        sentence = input.sentence,
-        parts = input.parts,
-        tags = input.tags;
+module.exports = function (input) {
+  var id = input.id,
+      sentence = input.sentence,
+      parts = input.parts,
+      tags = input.tags;
 
 
-    var empty = parts.reduce(function (e, val) {
-      if (isEmpty(val)) {
-        ++e;
-      }
-      return e;
-    }, 0);
-
-    if (empty > 3) {
-      return Promise.resolve(null);
+  var empty = parts.reduce(function (e, val) {
+    if (isEmpty(val)) {
+      ++e;
     }
+    return e;
+  }, 0);
 
-    var time = parts[0].indexOf('.') === -1 ? parts[0] : parts[0].split('.')[0];
-    var timestamp = utils.timestamp(time, moment.tz('UTC').format('DDMMYY'));
-
-    var quality = ['no GPS', 'GNSS Fix', 'DGNSS fix', 'Precise GNSS', 'RTK fixed integer', 'RTK float', 'Estimated (DR) mode', 'Manual input', 'Simulator mode', 'Error'];
-
-    var delta = {
-      updates: [{
-        source: tags.source,
-        timestamp: timestamp,
-        values: [{
-          path: 'navigation.position',
-          value: {
-            longitude: utils.coordinate(parts[3], parts[4]),
-            latitude: utils.coordinate(parts[1], parts[2])
-          }
-        }, {
-          path: 'navigation.gnss.methodQuality',
-          value: quality[utils.int(parts[5])]
-        }, {
-          path: 'navigation.gnss.satellites',
-          value: utils.int(parts[6])
-        }, {
-          path: 'navigation.gnss.antennaAltitude',
-          value: utils.int(parts[8])
-        }, {
-          path: 'navigation.gnss.horizontalDilution',
-          value: utils.int(parts[7])
-        }, {
-          path: 'navigation.gnss.geoidalSeparation',
-          value: utils.int(parts[11])
-        }, {
-          path: 'navigation.gnss.differentialAge',
-          value: utils.int(parts[12])
-        }, {
-          path: 'navigation.gnss.differentialReference',
-          value: Number(parts[13])
-        }]
-      }]
-    };
-
-    var toRemove = [];
-
-    delta.updates[0].values.forEach(function (update, index) {
-      if (typeof update.value === 'undefined' || update.value === null || typeof update.value === 'string' && update.value.trim() === '' || typeof update.value === 'number' && isNaN(update.value)) {
-        toRemove.push(index);
-      }
-    });
-
-    if (toRemove.length > 0) {
-      toRemove.forEach(function (index) {
-        delta.updates[0].values.splice(index, 1);
-      });
-    }
-
-    return Promise.resolve({ delta: delta });
-  } catch (e) {
-    debug('Try/catch failed: ' + e.message);
-    return Promise.reject(e);
+  if (empty > 3) {
+    return null;
   }
+
+  var time = parts[0].indexOf('.') === -1 ? parts[0] : parts[0].split('.')[0];
+  var timestamp = utils.timestamp(time, moment.tz('UTC').format('DDMMYY'));
+
+  var quality = ['no GPS', 'GNSS Fix', 'DGNSS fix', 'Precise GNSS', 'RTK fixed integer', 'RTK float', 'Estimated (DR) mode', 'Manual input', 'Simulator mode', 'Error'];
+
+  var delta = {
+    updates: [{
+      source: tags.source,
+      timestamp: timestamp,
+      values: [{
+        path: 'navigation.position',
+        value: {
+          longitude: utils.coordinate(parts[3], parts[4]),
+          latitude: utils.coordinate(parts[1], parts[2])
+        }
+      }, {
+        path: 'navigation.gnss.methodQuality',
+        value: quality[utils.int(parts[5])]
+      }, {
+        path: 'navigation.gnss.satellites',
+        value: utils.int(parts[6])
+      }, {
+        path: 'navigation.gnss.antennaAltitude',
+        value: utils.int(parts[8])
+      }, {
+        path: 'navigation.gnss.horizontalDilution',
+        value: utils.int(parts[7])
+      }, {
+        path: 'navigation.gnss.geoidalSeparation',
+        value: utils.int(parts[11])
+      }, {
+        path: 'navigation.gnss.differentialAge',
+        value: utils.int(parts[12])
+      }, {
+        path: 'navigation.gnss.differentialReference',
+        value: Number(parts[13])
+      }]
+    }]
+  };
+
+  var toRemove = [];
+
+  delta.updates[0].values.forEach(function (update, index) {
+    if (typeof update.value === 'undefined' || update.value === null || typeof update.value === 'string' && update.value.trim() === '' || typeof update.value === 'number' && isNaN(update.value)) {
+      toRemove.push(index);
+    }
+  });
+
+  if (toRemove.length > 0) {
+    toRemove.forEach(function (index) {
+      delta.updates[0].values.splice(index, 1);
+    });
+  }
+
+  return delta;
 };

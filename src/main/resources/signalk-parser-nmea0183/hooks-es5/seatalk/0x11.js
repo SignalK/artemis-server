@@ -19,12 +19,10 @@
 var utils = require('@signalk/nmea0183-utilities');
 
 /*
-#        0 1 2   3   4 5
-#        | | |   |   | |
-# $--RPM,a,x,x.x,x.x,A*hh<CR><LF> Field Number:
-#  0) Source, S = Shaft, E = Engine 1) Engine or shaft number 2) Speed,
-#  Revolutions per minute 3) Propeller pitch, % of maximum, "-" means
-#  astern 4) Status, A means data is valid 5) Checksum
+11  01  XX  0Y  Apparent Wind Speed: (XX & 0x7F) + Y/10 Knots
+                 Units flag: XX&0x80=0    => Display value in Knots
+                             XX&0x80=0x80 => Display value in Meter/Second
+                 Corresponding NMEA sentence: MWV
 */
 
 module.exports = function (input) {
@@ -34,16 +32,21 @@ module.exports = function (input) {
       tags = input.tags;
 
 
-  var delta = {
+  var XX = parseInt(parts[2], 16);
+  var Y = parseInt(parts[3], 16);
+  var apparentWindSpeed = (XX & 0x7F) + Y / 10.0;
+  var pathValues = [];
+
+  pathValues.push({
+    path: 'environment.wind.speedApparent',
+    value: utils.transform(utils.float(apparentWindSpeed), 'knots', 'ms')
+  });
+
+  return {
     updates: [{
       source: tags.source,
       timestamp: tags.timestamp,
-      values: [{
-        path: 'propulsion.' + (parts[0].toUpperCase() === 'S' ? 'shaft' : 'engine') + '_' + parts[1] + '.revolutions',
-        value: utils.float(parts[2]) / 60
-      }]
+      values: pathValues
     }]
   };
-
-  return delta;
 };

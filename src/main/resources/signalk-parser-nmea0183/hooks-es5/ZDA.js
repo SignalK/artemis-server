@@ -38,7 +38,7 @@ Field Number:
 7. Checksum
 */
 
-//var debug = require('debug')('signalk-parser-nmea0183/ZDA');
+var debug = require('debug')('signalk-parser-nmea0183/ZDA');
 var utils = require('@signalk/nmea0183-utilities');
 var moment = require('moment-timezone');
 
@@ -46,68 +46,63 @@ function isEmpty(mixed) {
   return typeof mixed !== 'string' && typeof mixed !== 'number' || typeof mixed === 'string' && mixed.trim() === '';
 }
 
-module.exports = function (parser, input) {
-  try {
-    var id = input.id,
-        sentence = input.sentence,
-        parts = input.parts,
-        tags = input.tags;
+module.exports = function (input) {
+  var id = input.id,
+      sentence = input.sentence,
+      parts = input.parts,
+      tags = input.tags;
 
 
-    var empty = parts.reduce(function (e, val) {
-      if (isEmpty(val)) {
-        ++e;
-      }
-      return e;
-    }, 0);
-
-    if (empty > 3) {
-      return Promise.resolve(null);
+  var empty = parts.reduce(function (e, val) {
+    if (isEmpty(val)) {
+      ++e;
     }
+    return e;
+  }, 0);
 
-    var time = parts[0] || '';
-    var date = parts[1] + parts[2] + (parts[3] || '').slice(-2);
-
-    var delta = {};
-    if (time.length >= 6 && date.length === 6 && empty < 3) {
-      var year = parts[3];
-      var month = parts[2] - 1;
-      var day = parts[1];
-      var hour = (parts[0] || '').substring(0, 2);
-      var minute = (parts[0] || '').substring(2, 4);
-      var second = (parts[0] || '').substring(4, 6);
-      var milliSecond = parts[0].substring(4) % second * 1000;
-      var d = new Date(Date.UTC(year, month, day, hour, minute, second, milliSecond));
-      var ts = d.toISOString();
-      delta = {
-        updates: [{
-          source: tags.source,
-          timestamp: tags.timestamp,
-          values: [{
-            "path": "navigation.datetime",
-            "value": ts
-          }]
-        }]
-      };
-    }
-
-    var toRemove = [];
-
-    delta.updates[0].values.forEach(function (update, index) {
-      if (typeof update.value === 'undefined' || update.value === null || typeof update.value === 'string' && update.value.trim() === '' || typeof update.value !== 'string' && isNaN(update.value)) {
-        toRemove.push(index);
-      }
-    });
-
-    if (toRemove.length > 0) {
-      toRemove.forEach(function (index) {
-        delta.updates[0].values.splice(index, 1);
-      });
-    }
-
-    return Promise.resolve({ delta: delta });
-  } catch (e) {
-    debug('Try/catch failed: ' + e.message);
-    return Promise.reject(e);
+  if (empty > 3) {
+    return null;
   }
+
+  var time = parts[0] || '';
+  var date = parts[1] + parts[2] + (parts[3] || '').slice(-2);
+
+  var delta = {};
+  if (time.length >= 6 && date.length === 6 && empty < 3) {
+    var year = parts[3];
+    var month = parts[2] - 1;
+    var day = parts[1];
+    var hour = (parts[0] || '').substring(0, 2);
+    var minute = (parts[0] || '').substring(2, 4);
+    var second = (parts[0] || '').substring(4, 6);
+    var milliSecond = parts[0].substring(4) % second * 1000;
+    var d = new Date(Date.UTC(year, month, day, hour, minute, second, milliSecond));
+    var ts = d.toISOString();
+    delta = {
+      updates: [{
+        source: tags.source,
+        timestamp: tags.timestamp,
+        values: [{
+          "path": "navigation.datetime",
+          "value": ts
+        }]
+      }]
+    };
+  }
+
+  var toRemove = [];
+
+  delta.updates[0].values.forEach(function (update, index) {
+    if (typeof update.value === 'undefined' || update.value === null || typeof update.value === 'string' && update.value.trim() === '' || typeof update.value !== 'string' && isNaN(update.value)) {
+      toRemove.push(index);
+    }
+  });
+
+  if (toRemove.length > 0) {
+    toRemove.forEach(function (index) {
+      delta.updates[0].values.splice(index, 1);
+    });
+  }
+
+  return delta;
 };

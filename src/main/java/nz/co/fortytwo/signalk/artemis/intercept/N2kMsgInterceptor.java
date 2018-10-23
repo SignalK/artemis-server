@@ -30,6 +30,7 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 import java.io.File;
 
 import javax.script.Invocable;
+import javax.script.ScriptEngine;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ActiveMQExceptionType;
@@ -64,12 +65,6 @@ public class N2kMsgInterceptor extends JsBaseInterceptor implements Interceptor 
 
 	private static Logger logger = LogManager.getLogger(N2kMsgInterceptor.class);
 	
-	private Invocable inv;
-	private Object n2kMapper;
-	// private boolean rmcClock = false;
-
-
-	
 	@SuppressWarnings("restriction")
 	public N2kMsgInterceptor() throws Exception {
 		super();
@@ -88,14 +83,13 @@ public class N2kMsgInterceptor extends JsBaseInterceptor implements Interceptor 
 		
 		if(logger.isDebugEnabled())logger.debug("Starting nashorn env from: {}", rootFolder.getPath());
 		
+		engineHolder = ThreadLocal.withInitial(() -> getEngine());
+		
 		if(logger.isDebugEnabled())logger.debug("Load parser: {}", "n2k-signalk/dist/bundle.js");
 		
-		engine.eval(IOUtils.toString(getIOStream("n2k-signalk/dist/bundle.js")));
-		n2kMapper = engine.get("n2kMapper");
-		if(logger.isDebugEnabled())logger.debug("Parser: {}",n2kMapper);
+		engineHolder.get().eval(IOUtils.toString(getIOStream("n2k-signalk/dist/bundle.js")));
 		
-		// create an Invocable object by casting the script engine object
-		inv = (Invocable) engine;
+		if(logger.isDebugEnabled())logger.debug("Parser: {}",getN2kMapper());
 	
 	}
 
@@ -123,7 +117,7 @@ public class N2kMsgInterceptor extends JsBaseInterceptor implements Interceptor 
 					if (logger.isDebugEnabled())
 						logger.debug("Processing N2K: {}",bodyStr);
 
-					Object result = inv.invokeMethod(n2kMapper,"toDelta", bodyStr);
+					Object result = ((Invocable) engineHolder.get()).invokeMethod(getN2kMapper(),"toDelta", bodyStr);
 
 					if (logger.isDebugEnabled())
 						logger.debug("Processed N2K: {} ",result);
@@ -151,6 +145,11 @@ public class N2kMsgInterceptor extends JsBaseInterceptor implements Interceptor 
 			}
 		}
 		return true;
+	}
+
+
+	private Object getN2kMapper() {
+		return engineHolder.get().get("n2kMapper");
 	}
 
 }

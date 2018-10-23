@@ -36,7 +36,7 @@ values:
  -      *6A          The checksum data, always begins with *
 */
 
-module.exports = function (parser, input) {
+module.exports = function (input) {
   var id = input.id,
       sentence = input.sentence,
       parts = input.parts,
@@ -49,51 +49,48 @@ module.exports = function (parser, input) {
   var track = 0.0;
   var variation = 0.0;
 
-  try {
-    var timestamp = utils.timestamp(parts[0], parts[8]);
-    var age = moment.tz(timestamp, 'UTC').unix();
+  var timestamp = utils.timestamp(parts[0], parts[8]);
+  var age = moment.tz(timestamp, 'UTC').unix();
 
-    latitude = utils.coordinate(parts[2], parts[3]);
-    longitude = utils.coordinate(parts[4], parts[5]);
+  latitude = utils.coordinate(parts[2], parts[3]);
+  longitude = utils.coordinate(parts[4], parts[5]);
 
-    speed = utils.float(parts[6]);
-    speed = !isNaN(speed) && speed > 0 ? speed : 0.0;
+  speed = utils.float(parts[6]);
+  speed = !isNaN(speed) && speed > 0 ? speed : 0.0;
 
-    track = utils.float(parts[7]);
-    track = !isNaN(track) ? track : 0.0;
+  track = utils.float(parts[7]);
+  track = !isNaN(track) ? track : 0.0;
 
-    variation = utils.magneticVariaton(parts[9], parts[10]);
+  variation = utils.magneticVariaton(parts[9], parts[10]);
 
-    var delta = {
-      updates: [{
-        source: tags.source,
-        timestamp: timestamp,
-        values: [{
-          path: 'navigation.position',
-          value: {
-            longitude: longitude,
-            latitude: latitude
-          }
-        }, {
-          path: 'navigation.courseOverGroundTrue',
-          value: utils.transform(track, 'deg', 'rad')
-        }, {
-          path: 'navigation.speedOverGround',
-          value: utils.transform(speed, 'knots', 'ms')
-        }, {
-          path: 'navigation.magneticVariation',
-          value: utils.transform(variation, 'deg', 'rad')
-        }, {
-          path: 'navigation.magneticVariationAgeOfService',
-          value: age
-        }, {
-          path: 'navigation.datetime',
-          value: timestamp
-        }]
+  var delta = {
+    updates: [{
+      source: tags.source,
+      timestamp: timestamp,
+      values: [{
+        path: 'navigation.position',
+        value: {
+          longitude: longitude,
+          latitude: latitude
+        }
+      }, {
+        path: 'navigation.courseOverGroundTrue',
+        value: utils.transform(track, 'deg', 'rad')
+      }, {
+        path: 'navigation.speedOverGround',
+        value: utils.transform(speed, 'knots', 'ms')
+      }, {
+        path: 'navigation.magneticVariation',
+        value: utils.transform(variation, 'deg', 'rad')
+      }, {
+        path: 'navigation.magneticVariationAgeOfService',
+        value: age
+      }, {
+        path: 'navigation.datetime',
+        value: timestamp
       }]
-    };
-    return Promise.resolve({ delta: delta });
-  } catch (e) {
-    return Promise.reject(e);
-  }
+    }]
+  };
+
+  return delta;
 };

@@ -19,12 +19,7 @@
 var utils = require('@signalk/nmea0183-utilities');
 
 /*
-#        0 1 2   3   4 5
-#        | | |   |   | |
-# $--RPM,a,x,x.x,x.x,A*hh<CR><LF> Field Number:
-#  0) Source, S = Shaft, E = Engine 1) Engine or shaft number 2) Speed,
-#  Revolutions per minute 3) Propeller pitch, % of maximum, "-" means
-#  astern 4) Status, A means data is valid 5) Checksum
+ 21  02  XX  XX  0X  Trip Mileage: XXXXX/100 nautical miles
 */
 
 module.exports = function (input) {
@@ -34,16 +29,21 @@ module.exports = function (input) {
       tags = input.tags;
 
 
-  var delta = {
+  var XXXX = parseInt(parts[2], 16) + 256 * parseInt(parts[3], 16);
+  var X = parseInt(parts[4], 16) & 0x0F;
+  var trip = (XXXX + X * 65536) / 100.0;
+  var pathValues = [];
+
+  pathValues.push({
+    path: 'navigation.trip',
+    value: utils.transform(utils.float(trip), 'nm', 'km') * 1000
+  });
+
+  return {
     updates: [{
       source: tags.source,
       timestamp: tags.timestamp,
-      values: [{
-        path: 'propulsion.' + (parts[0].toUpperCase() === 'S' ? 'shaft' : 'engine') + '_' + parts[1] + '.revolutions',
-        value: utils.float(parts[2]) / 60
-      }]
+      values: pathValues
     }]
   };
-
-  return delta;
 };

@@ -31,7 +31,7 @@ Field Number:
 4 - Checksum
 */
 
-module.exports = function (parser, input) {
+module.exports = function (input) {
   var velocityValue;
   var id = input.id,
       sentence = input.sentence,
@@ -45,21 +45,15 @@ module.exports = function (parser, input) {
   } else {
     return null;
   }
-  try {
 
-    var delta = {
-      updates: [{
-        source: tags.source,
-        timestamp: tags.timestamp,
-        values: [{
-          path: 'performance.velocityMadeGood',
-          value: velocityValue
-        }]
+  return {
+    updates: [{
+      source: tags.source,
+      timestamp: tags.timestamp,
+      values: [{
+        path: 'performance.velocityMadeGood',
+        value: velocityValue
       }]
-    };
-
-    return Promise.resolve({ delta: delta });
-  } catch (e) {
-    return Promise.reject(e);
-  }
+    }]
+  };
 };

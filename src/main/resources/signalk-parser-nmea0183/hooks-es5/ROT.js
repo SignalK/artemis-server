@@ -32,7 +32,7 @@ var utils = require('@signalk/nmea0183-utilities');
 #
 */
 
-module.exports = function (parser, input) {
+module.exports = function (input) {
   var id = input.id,
       sentence = input.sentence,
       parts = input.parts,
@@ -40,24 +40,19 @@ module.exports = function (parser, input) {
 
 
   if (String(parts[1]).toUpperCase() !== 'A') {
-    // Don't parse this sentence as it's void.
-    return Promise.reject(new Error('Not parsing sentence as data is not valid)'));
+    return null;
   }
 
-  try {
-    var delta = {
-      updates: [{
-        source: tags.source,
-        timestamp: tags.timestamp,
-        values: [{
-          path: 'navigation.rateOfTurn',
-          value: utils.transform(utils.float(parts[0]), 'deg', 'rad') / 60
-        }]
+  var delta = {
+    updates: [{
+      source: tags.source,
+      timestamp: tags.timestamp,
+      values: [{
+        path: 'navigation.rateOfTurn',
+        value: utils.transform(utils.float(parts[0]), 'deg', 'rad') / 60
       }]
-    };
+    }]
+  };
 
-    return Promise.resolve({ delta: delta });
-  } catch (e) {
-    return Promise.reject(e);
-  }
+  return delta;
 };

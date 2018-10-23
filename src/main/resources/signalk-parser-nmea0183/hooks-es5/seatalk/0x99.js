@@ -19,12 +19,13 @@
 var utils = require('@signalk/nmea0183-utilities');
 
 /*
-#        0 1 2   3   4 5
-#        | | |   |   | |
-# $--RPM,a,x,x.x,x.x,A*hh<CR><LF> Field Number:
-#  0) Source, S = Shaft, E = Engine 1) Engine or shaft number 2) Speed,
-#  Revolutions per minute 3) Propeller pitch, % of maximum, "-" means
-#  astern 4) Status, A means data is valid 5) Checksum
+99  00  XX        Compass variation sent by ST40 compass instrument
+                     or ST1000, ST2000, ST4000+, E-80 every 10 seconds
+                     but only if the variation is set on the instrument
+                     Positive XX values: Variation West, Negative XX values: Variation East
+                     Examples (XX => variation): 00 => 0, 01 => -1 west, 02 => -2 west ...
+                                                 FF => +1 east, FE => +2 east ...
+                   Corresponding NMEA sentences: RMC, HDG
 */
 
 module.exports = function (input) {
@@ -34,16 +35,26 @@ module.exports = function (input) {
       tags = input.tags;
 
 
-  var delta = {
+  var XX = parseInt(parts[2], 16);
+  var value = 128 - (XX & 0x7F);
+  var s = -1;
+  if (XX & 0x80 != 0) {
+    s = 1;
+  }
+  var magneticVariation = s * value;
+
+  var pathValues = [];
+
+  pathValues.push({
+    path: 'navigation.magneticVariation',
+    value: utils.transform(utils.float(magneticVariation), 'deg', 'rad')
+  });
+
+  return {
     updates: [{
       source: tags.source,
       timestamp: tags.timestamp,
-      values: [{
-        path: 'propulsion.' + (parts[0].toUpperCase() === 'S' ? 'shaft' : 'engine') + '_' + parts[1] + '.revolutions',
-        value: utils.float(parts[2]) / 60
-      }]
+      values: pathValues
     }]
   };
-
-  return delta;
 };

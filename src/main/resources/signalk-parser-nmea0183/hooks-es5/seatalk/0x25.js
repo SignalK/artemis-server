@@ -19,12 +19,9 @@
 var utils = require('@signalk/nmea0183-utilities');
 
 /*
-#        0 1 2   3   4 5
-#        | | |   |   | |
-# $--RPM,a,x,x.x,x.x,A*hh<CR><LF> Field Number:
-#  0) Source, S = Shaft, E = Engine 1) Engine or shaft number 2) Speed,
-#  Revolutions per minute 3) Propeller pitch, % of maximum, "-" means
-#  astern 4) Status, A means data is valid 5) Checksum
+25  Z4  XX  YY  UU  VV AW  Total & Trip Log 
+                      total= (XX+YY*256+Z* 4096)/ 10 [max=104857.5] nautical miles
+                      trip = (UU+VV*256+W*65536)/100 [max=10485.75] nautical miles
 */
 
 module.exports = function (input) {
@@ -34,16 +31,33 @@ module.exports = function (input) {
       tags = input.tags;
 
 
-  var delta = {
+  var Z = (parseInt(parts[1], 16) & 0xF0) >> 4;
+  var XX = parseInt(parts[2], 16);
+  var YY = parseInt(parts[3], 16);
+  var UU = parseInt(parts[4], 16);
+  var VV = parseInt(parts[5], 16);
+  var W = parseInt(parts[6], 16) & 0x0F;
+
+  var total = (XX + YY * 256 + Z * 4096) / 10.0;
+  var trip = (UU + VV * 256 + W * 65536) / 100.0;
+
+  var pathValues = [];
+
+  pathValues.push({
+    path: 'navigation.trip',
+    value: utils.transform(utils.float(trip), 'nm', 'km') * 1000
+  });
+
+  pathValues.push({
+    path: 'navigation.log',
+    value: utils.transform(utils.float(total), 'nm', 'km') * 1000
+  });
+
+  return {
     updates: [{
       source: tags.source,
       timestamp: tags.timestamp,
-      values: [{
-        path: 'propulsion.' + (parts[0].toUpperCase() === 'S' ? 'shaft' : 'engine') + '_' + parts[1] + '.revolutions',
-        value: utils.float(parts[2]) / 60
-      }]
+      values: pathValues
     }]
   };
-
-  return delta;
 };

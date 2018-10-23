@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-//var debug = require('debug')('signalk-parser-nmea0183/getTagBlock');
+var debug = require('debug')('signalk-parser-nmea0183/getTagBlock');
 var moment = require('moment-timezone');
 var tags = ['s:', 'c:'];
 

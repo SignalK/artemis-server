@@ -19,12 +19,12 @@
 var utils = require('@signalk/nmea0183-utilities');
 
 /*
-#        0 1 2   3   4 5
-#        | | |   |   | |
-# $--RPM,a,x,x.x,x.x,A*hh<CR><LF> Field Number:
-#  0) Source, S = Shaft, E = Engine 1) Engine or shaft number 2) Speed,
-#  Revolutions per minute 3) Propeller pitch, % of maximum, "-" means
-#  astern 4) Status, A means data is valid 5) Checksum
+53  U0  VW      Magnetic Course in degrees:
+                  The two lower  bits of  U * 90 +
+                  the six lower  bits of VW *  2 +
+                  the two higher bits of  U /  2 =
+                  (U & 0x3) * 90 + (VW & 0x3F) * 2 + (U & 0xC) / 8
+                  The Magnetic Course may be offset by the Compass Variation (see datagram 99) to get the Course Over Ground (COG).
 */
 
 module.exports = function (input) {
@@ -34,16 +34,22 @@ module.exports = function (input) {
       tags = input.tags;
 
 
-  var delta = {
+  var U = (parseInt(parts[1], 16) & 0xF0) >> 4;
+  var VW = parseInt(parts[2], 16);
+  var magneticCourse = (U & 0x3) * 90.0 + (VW & 0x3F) * 2.0 + (U & 0xC) / 8.0;
+
+  var pathValues = [];
+
+  pathValues.push({
+    path: 'navigation.courseOverGroundMagnetic',
+    value: utils.transform(utils.float(magneticCourse), 'deg', 'rad')
+  });
+
+  return {
     updates: [{
       source: tags.source,
       timestamp: tags.timestamp,
-      values: [{
-        path: 'propulsion.' + (parts[0].toUpperCase() === 'S' ? 'shaft' : 'engine') + '_' + parts[1] + '.revolutions',
-        value: utils.float(parts[2]) / 60
-      }]
+      values: pathValues
     }]
   };
-
-  return delta;
 };

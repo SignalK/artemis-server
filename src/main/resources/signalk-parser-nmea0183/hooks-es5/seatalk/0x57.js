@@ -19,12 +19,8 @@
 var utils = require('@signalk/nmea0183-utilities');
 
 /*
-#        0 1 2   3   4 5
-#        | | |   |   | |
-# $--RPM,a,x,x.x,x.x,A*hh<CR><LF> Field Number:
-#  0) Source, S = Shaft, E = Engine 1) Engine or shaft number 2) Speed,
-#  Revolutions per minute 3) Propeller pitch, % of maximum, "-" means
-#  astern 4) Status, A means data is valid 5) Checksum
+57  S0  DD
+                Sat Info: S number of sats, DD horiz. dillution of position, if S=1 -> DD=0x94
 */
 
 module.exports = function (input) {
@@ -34,16 +30,29 @@ module.exports = function (input) {
       tags = input.tags;
 
 
-  var delta = {
+  var S = (parseInt(parts[1], 16) & 0xF0) >> 4;
+  var DD = parseInt(parts[2], 16);
+  if (S == 1) {
+    DD = 0x94;
+  };
+
+  var pathValues = [];
+
+  pathValues.push({
+    path: 'navigation.gnss.satellites',
+    value: utils.float(S)
+  });
+
+  pathValues.push({
+    path: 'navigation.gnss.horizontalDilution',
+    value: utils.float(DD)
+  });
+
+  return {
     updates: [{
       source: tags.source,
       timestamp: tags.timestamp,
-      values: [{
-        path: 'propulsion.' + (parts[0].toUpperCase() === 'S' ? 'shaft' : 'engine') + '_' + parts[1] + '.revolutions',
-        value: utils.float(parts[2]) / 60
-      }]
+      values: pathValues
     }]
   };
-
-  return delta;
 };

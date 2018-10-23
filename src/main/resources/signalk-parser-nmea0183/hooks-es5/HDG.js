@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-//var debug = require('debug')('signalk-parser-nmea0183/HDG');
+var debug = require('debug')('signalk-parser-nmea0183/HDG');
 var utils = require('@signalk/nmea0183-utilities');
 
 /*
@@ -35,42 +35,37 @@ function isEmpty(mixed) {
   return typeof mixed !== 'string' && typeof mixed !== 'number' || typeof mixed === 'string' && mixed.trim() === '';
 }
 
-module.exports = function (parser, input) {
-  try {
-    var id = input.id,
-        sentence = input.sentence,
-        parts = input.parts,
-        tags = input.tags;
+module.exports = function (input) {
+  var id = input.id,
+      sentence = input.sentence,
+      parts = input.parts,
+      tags = input.tags;
 
 
-    var values = [];
-    if (!isEmpty(parts[0])) {
-      values.push({
-        path: 'navigation.headingMagnetic',
-        value: utils.transform(utils.float(parts[0]), 'deg', 'rad')
-      });
-    }
-    if (!(isEmpty(parts[3]) || isEmpty(parts[4]))) {
-      values.push({
-        path: 'navigation.magneticVariation',
-        value: utils.transform(utils.float(parts[3]), 'deg', 'rad') * (parts[4] === 'E' ? 1 : -1)
-      });
-    }
-    if (!values.length) {
-      return Promise.resolve(null);
-    }
-
-    var delta = {
-      updates: [{
-        source: tags.source,
-        timestamp: tags.timestamp,
-        values: values
-      }]
-    };
-
-    return Promise.resolve({ delta: delta });
-  } catch (e) {
-    debug('Try/catch failed: ' + e.message);
-    return Promise.reject(e);
+  var values = [];
+  if (!isEmpty(parts[0])) {
+    values.push({
+      path: 'navigation.headingMagnetic',
+      value: utils.transform(utils.float(parts[0]), 'deg', 'rad')
+    });
   }
+  if (!(isEmpty(parts[3]) || isEmpty(parts[4]))) {
+    values.push({
+      path: 'navigation.magneticVariation',
+      value: utils.transform(utils.float(parts[3]), 'deg', 'rad') * (parts[4] === 'E' ? 1 : -1)
+    });
+  }
+  if (!values.length) {
+    return null;
+  }
+
+  var delta = {
+    updates: [{
+      source: tags.source,
+      timestamp: tags.timestamp,
+      values: values
+    }]
+  };
+
+  return delta;
 };

@@ -414,7 +414,7 @@ public class BaseApiService {
 			initSession(correlationId);
 			if(setConsumer(resource, false)) {
 				addCloseListener(resource);
-				setConnectionWatcher(resource, PING_PERIOD);
+				//setConnectionWatcher(resource, PING_PERIOD);
 			}
 
 			sendMessage(addToken(body, cookie), correlationId);

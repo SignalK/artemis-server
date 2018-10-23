@@ -28,7 +28,7 @@
 			<acceptor name="netty">tcp://localhost:61617//</acceptor>
 <!-- <acceptor name="mqtt">tcp://0.0.0.0:1883?tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=MQTT</acceptor>
    <acceptor name="mqtts">tcp://0.0.0.0:8883?tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=MQTT;sslEnabled=true;keyStorePath=/opt/keystore.jks;keyStorePassword=password</acceptor>
-</acceptors> -->
+-->
 		</acceptors>
 		
 		<address-settings>

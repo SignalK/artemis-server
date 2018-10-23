@@ -32,28 +32,24 @@ var utils = require('@signalk/nmea0183-utilities');
  *
  */
 
-module.exports = function (parser, input) {
+module.exports = function (input) {
   var id = input.id,
       sentence = input.sentence,
       parts = input.parts,
       tags = input.tags;
 
 
-  try {
-    var delta = {
-      updates: [{
-        source: tags.source,
-        timestamp: tags.timestamp,
-        values: [{
-          path: 'environment.water.temperature',
-          value: utils.transform(utils.float(parts[0]), 'c', 'k')
-          //returns raw value, no transformation done
-        }]
+  var delta = {
+    updates: [{
+      source: tags.source,
+      timestamp: tags.timestamp,
+      values: [{
+        path: 'environment.water.temperature',
+        value: utils.transform(utils.float(parts[0]), 'c', 'k')
+        //returns raw value, no transformation done
       }]
-    };
+    }]
+  };
 
-    return Promise.resolve({ delta: delta });
-  } catch (e) {
-    return Promise.reject(e);
-  }
+  return delta;
 };

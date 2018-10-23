@@ -13,6 +13,42 @@ better suited to signalk, high prallelism, and able to make full use of the mult
 
 Its a drop in replacement for the signalk-java-server, missing functionality is a bug.
 
+Functionality
+-------------
+Done:
+	Inputs:
+		Formats:
+			Signalk delta
+			Signalk full
+			NMEA 0183
+			Canboat format N2K
+		Transports:	
+			HTTP
+			Websockets
+			TCP
+			UDP
+			serial connections
+		REST APIs
+			/signalk/v1/api
+			/signalk/v1/snapshot
+			/signalk/v1/stream
+			/signalk/v1/playback
+			/signalk/v1/history
+				
+	Charts:
+		upload
+	UI:
+		config
+		shutdown
+		users/groups
+		manage apps
+		menu to apps
+		
+Todo:
+	AIS conversion 
+	Enable MQTT/STOMP/COAP
+	
+
 It assumes influx db is running on localhost:8086
 
 REST API docs

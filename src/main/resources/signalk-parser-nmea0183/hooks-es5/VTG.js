@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-//var debug = require('debug')('signalk-parser-nmea0183/HDG');
+var debug = require('debug')('signalk-parser-nmea0183/HDG');
 var utils = require('@signalk/nmea0183-utilities');
 
 /*
@@ -43,48 +43,41 @@ function isEmpty(mixed) {
   return typeof mixed !== 'string' && typeof mixed !== 'number' || typeof mixed === 'string' && mixed.trim() === '';
 }
 
-module.exports = function (parser, input) {
-  try {
-    var id = input.id,
-        sentence = input.sentence,
-        parts = input.parts,
-        tags = input.tags;
+module.exports = function (input) {
+  var id = input.id,
+      sentence = input.sentence,
+      parts = input.parts,
+      tags = input.tags;
 
 
-    if (parts[2] === '' && parts[0] === '' && parts[6] === '' && parts[4] === '') {
-      return Promise.resolve(null);
-    }
-
-    var speed = 0.0;
-
-    if (utils.float(parts[6]) > 0 && String(parts[7]).toUpperCase() === 'K') {
-      speed = utils.transform(utils.float(parts[6]), 'kph', 'ms');
-    }
-
-    if (utils.float(parts[4]) > 0 && String(parts[5]).toUpperCase() === 'N') {
-      speed = utils.transform(utils.float(parts[4]), 'knots', 'ms');
-    }
-
-    var delta = {
-      updates: [{
-        source: tags.source,
-        timestamp: tags.timestamp,
-        values: [{
-          path: 'navigation.courseOverGroundMagnetic',
-          value: utils.transform(utils.float(parts[2]), 'deg', 'rad')
-        }, {
-          path: 'navigation.courseOverGroundTrue',
-          value: utils.transform(utils.float(parts[0]), 'deg', 'rad')
-        }, {
-          path: 'navigation.speedOverGround',
-          value: speed
-        }]
-      }]
-    };
-
-    return Promise.resolve({ delta: delta });
-  } catch (e) {
-    debug('Try/catch failed: ' + e.message);
-    return Promise.reject(e);
+  if (parts[2] === '' && parts[0] === '' && parts[6] === '' && parts[4] === '') {
+    return null;
   }
+
+  var speed = 0.0;
+
+  if (utils.float(parts[6]) > 0 && String(parts[7]).toUpperCase() === 'K') {
+    speed = utils.transform(utils.float(parts[6]), 'kph', 'ms');
+  }
+
+  if (utils.float(parts[4]) > 0 && String(parts[5]).toUpperCase() === 'N') {
+    speed = utils.transform(utils.float(parts[4]), 'knots', 'ms');
+  }
+
+  return {
+    updates: [{
+      source: tags.source,
+      timestamp: tags.timestamp,
+      values: [{
+        path: 'navigation.courseOverGroundMagnetic',
+        value: utils.transform(utils.float(parts[2]), 'deg', 'rad')
+      }, {
+        path: 'navigation.courseOverGroundTrue',
+        value: utils.transform(utils.float(parts[0]), 'deg', 'rad')
+      }, {
+        path: 'navigation.speedOverGround',
+        value: speed
+      }]
+    }]
+  };
 };
