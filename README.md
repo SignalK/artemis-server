@@ -40,28 +40,31 @@ Functionality
 			TCP
 			UDP
 			serial connections
-		REST APIs
-			/signalk/v1/api
-			/signalk/v1/snapshot
-			/signalk/v1/stream
-			/signalk/v1/playback
-			/signalk/v1/history
-			/signalk/v1/webapps
+	REST APIs:
+		/signalk/v1/api
+		/signalk/v1/stream
+		/signalk/v1/snapshot
+		/signalk/v1/playback
+		/signalk/v1/history(prototye)
+		/signalk/v1/webapps(prototye)
+	REST API docs:
+		/docs/ (Swagger/OpenAPI3)
 				
 	Charts:
 		upload
 	UI:
-		config
-		shutdown
-		users/groups
+		Server config
+		Users/Groups
+		Logging management
+		Logs
+		Shutdown/Restart
 		
-		
-	Todo:
-		AIS conversion 
+	TODO:
+		Test, test, more tests...
 		Enable MQTT/STOMP/COAP
 		manage apps (api is done)
 		menu to apps
-	
+		Better UI
 
 It assumes influx db is running on localhost:8086
 
@@ -106,6 +109,6 @@ To merge future changes from the signalk-parser-nmea0183 project, clone the sign
   npm run build-es5-lib
   
 ```
-  The hooks-es5 dir and the some parts of the lib-es5 dir were then copied to artemis-server/src/main/resources/signalk-parser-nmea0183/ and modified to suit. future changes to signalk-parser-nmea0183 will have to be copied over as required, and the webpack re-run to create the dist/bundle.js file.
+  The hooks-es5 dir and the lib-es5 dir were then copied to artemis-server/src/main/resources/signalk-parser-nmea0183/ and modified to suit. future changes to signalk-parser-nmea0183 will have to be copied over as required, and the webpack re-run to create the dist/bundle.js file.
   
   
