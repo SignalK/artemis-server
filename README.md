@@ -27,7 +27,7 @@ Apart from keeping signalk on track :-) the Artemis server has some really inter
 
 Functionality
 -------------
-Done:
+
 	Inputs:
 		Formats:
 			Signalk delta
@@ -46,6 +46,7 @@ Done:
 			/signalk/v1/stream
 			/signalk/v1/playback
 			/signalk/v1/history
+			/signalk/v1/webapps
 				
 	Charts:
 		upload
@@ -53,12 +54,13 @@ Done:
 		config
 		shutdown
 		users/groups
-		manage apps
-		menu to apps
 		
-Todo:
-	AIS conversion 
-	Enable MQTT/STOMP/COAP
+		
+	Todo:
+		AIS conversion 
+		Enable MQTT/STOMP/COAP
+		manage apps (api is done)
+		menu to apps
 	
 
 It assumes influx db is running on localhost:8086
