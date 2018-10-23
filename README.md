@@ -3,15 +3,27 @@ Artemis Server
 
 This is the replacement for the signalk-java-server which began long before signalk, and has become too difficult to support.
 
-The artemis server uses a time-series database as the core storage for all data. This means all data is persistent, 
-and it can recover the vessels entire signalk data at any point backwards through time.
- 
-The intention is to provide a platform to explore a signalk history api that allows analysis over time, and against historic data.
-
-Artemis also leverages Java8+ async, lambdas, streams, and other new features of Java, resulting in a simpler implementation, 
-better suited to signalk, high prallelism, and able to make full use of the multi-core cpus like the Raspberry Pi3.
-
 Its a drop in replacement for the signalk-java-server, missing functionality is a bug.
+
+The primary reason for at least two implementations of a signalk server is to ensure we dont  create a node application instead of a generic communication standard in signalk.  This has already been avoided several times, as the node-server is quite RPi/web-browser oriented, resulting in node/npm/http dependencies creeping in to webapp deployments, IoT device requirements,  and node specialised server-side requirements. 
+
+In a signalk world there should be no dependency except on signalk message and API proocols, and all devices should be equal participants. If we dont achieve this we will just create another specialised application framework.
+
+The Artemis server has several architectural features of note:
+
+1) Java is natively multi-threaded, Artemis uses Java 8+ aysnc IO, lamdbas and streams processing to transprently spread workloads across available CPU's. Hence a slow, blocking or failed operation will only stall one CPU, with others able to repair things.  Node (javascript) is single threaded, so only one CPU does the work, and if one process blocks, the server can stall.
+
+2) The underlying transport is Activemq Artemis (hence the name!). https://activemq.apache.org/artemis/  Its a state-of-the-art async messaging server, with full support for most common protocols (AMQP,JMS,MQTT.COAP,STOMP, etc) and provides a highly redundant message layer for processing and routing imessages. This can scale horizontally to massive workloads, aka marinetraffic.com. The difference between a messaging layer and a pipeline (node-server) is that the messaging layer buffers messages in a queue between the processing steps. So the steps can execute at their own speed, and slow steps can be parallelised. Intermittent connections or periodic processes are naturally handled by the queue. If you optionally make a queue persistent, then no message will be lost even on reboot.
+
+3) Artemis uses the Java 8 Nashorn Javascript engine to provide a Javascript compatibility layer. It already uses the signalk-parser-nmea0183 and n2k-signalk projects for NMEA conversion, and could use others if required. Where it differs from node is it runs javascript multi-threaded! So the NMEA processing is spread across CPU's, and does not block other tasks.
+
+4) Artemis uses a Time Series Database (TSB) as native storage. Hence all data is persistent, and full data history is maintained. Exploring the use of history is one area of special interest for me, as its virtually unknown in the recreational marine world. See item2), storing history and running sophisticated diagnostics and explorations will create workloads and data transfers way beyond the little RPi. The underlying Artemis message server can be used to spread this workload across many servers, even when they are only intermittently available.
+
+5) Artemis exposes very sophisticated remote diagnostics via JMX/jolokia. You can capture, watch and trace messages as they pass through the server, and get detailed performance data. The data can also be stored in the TSB, so you can look back into it later.
+
+Apart from keeping signalk on track :-) the Artemis server has some really interesting aspects and  I expect it will gain more interest over time. If you think it has merit you are very welcome to contribute.
+
+
 
 Functionality
 -------------
