@@ -52,26 +52,23 @@ var parse = function(sentence){
 	 //print("JS:NMEA: unsupported sentence "+sentence);
 	  return "Error:NMEA: unsupported sentence "+sentence;
   }
-  var parser = mappings[id](this, {
-    id: id,
-    sentence: sentence,
-    parts: split,
-    tags: tags
-  });
-  var result;
-  parser.then(function (data) {
-	  //print(JSON.stringify(transformSource(data, id, talker)))
-	  	result= JSON.stringify(transformSource(data, id, talker))
-	    
-	  })
-	  .catch(function (error) {
-		  //print('JS:Error:')
-	  	result= "Error:NMEA:"+JSON.stringify(error);
-	    
-	  })
+  //print('JS:Debug:'+JSON.stringify(mappings[id]));
+  if (typeof mappings[id] === 'function') {
+      var result = mappings[id]({
+        id: id,
+        sentence: sentence,
+        parts: split,
+        tags: tags
+      });
+      //print('JS:Debug:'+JSON.stringify(result));
+      //print('JS:Debug:'+JSON.stringify(transformSource(data, id, talker)))
+      return JSON.stringify(transformSource(result, id, talker));
+    } else {
+      return null;
+    }
   
   
-  global.nashornEventLoop.process();
+ // global.nashornEventLoop.process();
 
   return result
 }

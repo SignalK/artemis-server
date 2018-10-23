@@ -28,10 +28,13 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self_str;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.io.File;
+import java.io.IOException;
 
+import javax.script.Bindings;
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ActiveMQExceptionType;
@@ -67,6 +70,7 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 public class NMEAMsgInterceptor extends JsBaseInterceptor implements Interceptor {
 
 	private static Logger logger = LogManager.getLogger(NMEAMsgInterceptor.class);
+	private ThreadLocal<Bindings> engineHolder;
 	
 	
 	@SuppressWarnings("restriction")
@@ -86,14 +90,24 @@ public class NMEAMsgInterceptor extends JsBaseInterceptor implements Interceptor
 		}
 		if(logger.isDebugEnabled())logger.debug("Starting nashorn env from: {}", rootFolder.getPath());
 		
+		engine = getEngine();
 		
-		engineHolder = ThreadLocal.withInitial(() -> getEngine());
+		engineHolder = ThreadLocal.withInitial(() -> {
+				return engine.createBindings();
+			
+		});
+		
+		
+		
+		
+	}
+
+	protected NashornScriptEngine getEngine() throws IOException, ScriptException, NoSuchMethodException {
 		
 		if(logger.isDebugEnabled())logger.debug("Load parser: {}", "signalk-parser-nmea0183/dist/bundle.js");
-		
-		engineHolder.get().eval(IOUtils.toString(getIOStream("signalk-parser-nmea0183/dist/bundle.js")));
- 
-		if(logger.isDebugEnabled())logger.debug("Parser: {}",getParser());
+		engine.eval(IOUtils.toString(getIOStream("signalk-parser-nmea0183/dist/bundle.js")));
+		 
+		if(logger.isDebugEnabled())logger.debug("Parser: {}",engine.get("parser"));
 		
 		String hooks = IOUtils.toString(getIOStream("signalk-parser-nmea0183/hooks-es5/supported.txt"), Charsets.UTF_8);
 		if(logger.isDebugEnabled())logger.debug("Hooks: {}",hooks);
@@ -105,15 +119,15 @@ public class NMEAMsgInterceptor extends JsBaseInterceptor implements Interceptor
 			if (f.startsWith("ALK"))
 				continue;
 			if(logger.isDebugEnabled())logger.debug(f);
-			((Invocable) engineHolder.get()).invokeMethod(getParser(), "loadHook", f.trim());
+			engine.invokeMethod(engine.get("parser"), "loadHook", f.trim());
 		}
+		return engine;
+		
 	}
 
-	
-
-	private Object getParser() {
+	private Object getParser(Bindings bindings) {
 		
-		return engineHolder.get().get("parser");
+		return bindings.get("parser");
 	}
 
 
@@ -139,8 +153,8 @@ public class NMEAMsgInterceptor extends JsBaseInterceptor implements Interceptor
 				try {
 					if (logger.isDebugEnabled())
 						logger.debug("Processing NMEA:[" + bodyStr + "]");
-
-					Object result = ((Invocable) engineHolder.get()).invokeMethod(getParser(),"parse", bodyStr);
+					if(logger.isDebugEnabled())logger.debug("Parser inv: {}",engineHolder.get().get("parser"));
+					Object result =  ((Invocable)engine).invokeMethod(engineHolder.get().get("parser"),"parse", bodyStr);
 
 					if (logger.isDebugEnabled())
 						logger.debug("Processed NMEA:[" + result + "]");

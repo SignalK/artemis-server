@@ -4953,7 +4953,7 @@ module.exports = function (exec) {
 /* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
-var store = __webpack_require__(75)('wks');
+var store = __webpack_require__(74)('wks');
 var uid = __webpack_require__(48);
 var Symbol = __webpack_require__(5).Symbol;
 var USE_SYMBOL = typeof Symbol == 'function';
@@ -5292,7 +5292,7 @@ exports.f = __webpack_require__(10) ? gOPD : function getOwnPropertyDescriptor(O
 // 19.1.2.9 / 15.2.3.2 Object.getPrototypeOf(O)
 var has = __webpack_require__(17);
 var toObject = __webpack_require__(12);
-var IE_PROTO = __webpack_require__(144)('IE_PROTO');
+var IE_PROTO = __webpack_require__(143)('IE_PROTO');
 var ObjectProto = Object.prototype;
 
 module.exports = Object.getPrototypeOf || function (O) {
@@ -5434,7 +5434,7 @@ var ctx = __webpack_require__(23);
 var IObject = __webpack_require__(53);
 var toObject = __webpack_require__(12);
 var toLength = __webpack_require__(11);
-var asc = __webpack_require__(126);
+var asc = __webpack_require__(125);
 module.exports = function (TYPE, $create) {
   var IS_MAP = TYPE == 1;
   var IS_FILTER = TYPE == 2;
@@ -5532,7 +5532,7 @@ module.exports = function (it, S) {
 
 var Map = __webpack_require__(209);
 var $export = __webpack_require__(0);
-var shared = __webpack_require__(75)('metadata');
+var shared = __webpack_require__(74)('metadata');
 var store = shared.store || (shared.store = new (__webpack_require__(212))());
 
 var getOrCreateMetadataMap = function (target, targetKey, create) {
@@ -5590,21 +5590,21 @@ module.exports = {
 // 19.1.2.2 / 15.2.3.5 Object.create(O [, Properties])
 var anObject = __webpack_require__(4);
 var dPs = __webpack_require__(195);
-var enumBugKeys = __webpack_require__(129);
-var IE_PROTO = __webpack_require__(144)('IE_PROTO');
+var enumBugKeys = __webpack_require__(128);
+var IE_PROTO = __webpack_require__(143)('IE_PROTO');
 var Empty = function () { /* empty */ };
 var PROTOTYPE = 'prototype';
 
 // Create object with fake `null` prototype: use iframe Object with cleared prototype
 var createDict = function () {
   // Thrash, waste and sodomy: IE GC bug
-  var iframe = __webpack_require__(128)('iframe');
+  var iframe = __webpack_require__(127)('iframe');
   var i = enumBugKeys.length;
   var lt = '<';
   var gt = '>';
   var iframeDocument;
   iframe.style.display = 'none';
-  __webpack_require__(131).appendChild(iframe);
+  __webpack_require__(130).appendChild(iframe);
   iframe.src = 'javascript:'; // eslint-disable-line no-script-url
   // createDict = iframe.contentWindow.Object;
   // html.removeChild(iframe);
@@ -5636,7 +5636,7 @@ module.exports = Object.create || function create(O, Properties) {
 
 // 19.1.2.14 / 15.2.3.14 Object.keys(O)
 var $keys = __webpack_require__(197);
-var enumBugKeys = __webpack_require__(129);
+var enumBugKeys = __webpack_require__(128);
 
 module.exports = Object.keys || function keys(O) {
   return $keys(O, enumBugKeys);
@@ -5654,8 +5654,8 @@ if (__webpack_require__(10)) {
   var global = __webpack_require__(5);
   var fails = __webpack_require__(7);
   var $export = __webpack_require__(0);
-  var $typed = __webpack_require__(77);
-  var $buffer = __webpack_require__(150);
+  var $typed = __webpack_require__(76);
+  var $buffer = __webpack_require__(149);
   var ctx = __webpack_require__(23);
   var anInstance = __webpack_require__(41);
   var propertyDesc = __webpack_require__(40);
@@ -5670,7 +5670,7 @@ if (__webpack_require__(10)) {
   var classof = __webpack_require__(42);
   var isObject = __webpack_require__(6);
   var toObject = __webpack_require__(12);
-  var isArrayIter = __webpack_require__(134);
+  var isArrayIter = __webpack_require__(133);
   var create = __webpack_require__(32);
   var getPrototypeOf = __webpack_require__(20);
   var gOPN = __webpack_require__(44).f;
@@ -5678,13 +5678,13 @@ if (__webpack_require__(10)) {
   var uid = __webpack_require__(48);
   var wks = __webpack_require__(8);
   var createArrayMethod = __webpack_require__(26);
-  var createArrayIncludes = __webpack_require__(62);
-  var speciesConstructor = __webpack_require__(76);
-  var ArrayIterators = __webpack_require__(152);
+  var createArrayIncludes = __webpack_require__(61);
+  var speciesConstructor = __webpack_require__(75);
+  var ArrayIterators = __webpack_require__(151);
   var Iterators = __webpack_require__(43);
-  var $iterDetect = __webpack_require__(70);
+  var $iterDetect = __webpack_require__(69);
   var setSpecies = __webpack_require__(46);
-  var arrayFill = __webpack_require__(125);
+  var arrayFill = __webpack_require__(124);
   var arrayCopyWithin = __webpack_require__(180);
   var $DP = __webpack_require__(9);
   var $GOPD = __webpack_require__(19);
@@ -6339,7 +6339,7 @@ module.exports = function (key) {
 
 var ctx = __webpack_require__(23);
 var call = __webpack_require__(190);
-var isArrayIter = __webpack_require__(134);
+var isArrayIter = __webpack_require__(133);
 var anObject = __webpack_require__(4);
 var toLength = __webpack_require__(11);
 var getIterFn = __webpack_require__(55);
@@ -6497,7 +6497,7 @@ module.exports = {};
 
 // 19.1.2.7 / 15.2.3.4 Object.getOwnPropertyNames(O)
 var $keys = __webpack_require__(197);
-var hiddenKeys = __webpack_require__(129).concat('length', 'prototype');
+var hiddenKeys = __webpack_require__(128).concat('length', 'prototype');
 
 exports.f = Object.getOwnPropertyNames || function getOwnPropertyNames(O) {
   return $keys(O, hiddenKeys);
@@ -6579,7 +6579,7 @@ module.exports = function (it, tag, stat) {
 var $export = __webpack_require__(0);
 var defined = __webpack_require__(27);
 var fails = __webpack_require__(7);
-var spaces = __webpack_require__(148);
+var spaces = __webpack_require__(147);
 var space = '[' + spaces + ']';
 var non = '\u200b\u0085';
 var ltrim = RegExp('^' + space + space + '*');
@@ -8504,35 +8504,10 @@ function isnan (val) {
   return val !== val // eslint-disable-line no-self-compare
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(59).Buffer, __webpack_require__(60)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(59).Buffer, __webpack_require__(176)))
 
 /***/ },
 /* 60 */
-/***/ function(module, exports) {
-
-var g;
-
-// This works in non-strict mode
-g = (function() { return this; })();
-
-try {
-	// This works if eval is allowed (see CSP)
-	g = g || Function("return this")() || (1,eval)("this");
-} catch(e) {
-	// This works if the window reference is available
-	if(typeof window === "object")
-		g = window;
-}
-
-// g can still be undefined, but nothing to do about it...
-// We return undefined, instead of nothing here, so it's
-// easier to handle this case. if(!global) { ...}
-
-module.exports = g;
-
-
-/***/ },
-/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8754,7 +8729,7 @@ module.exports = function (input, session) {
 };
 
 /***/ },
-/* 62 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
 // false -> Array#indexOf
@@ -8783,7 +8758,7 @@ module.exports = function (IS_INCLUDES) {
 
 
 /***/ },
-/* 63 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8797,9 +8772,9 @@ var forOf = __webpack_require__(37);
 var anInstance = __webpack_require__(41);
 var isObject = __webpack_require__(6);
 var fails = __webpack_require__(7);
-var $iterDetect = __webpack_require__(70);
+var $iterDetect = __webpack_require__(69);
 var setToStringTag = __webpack_require__(49);
-var inheritIfRequired = __webpack_require__(132);
+var inheritIfRequired = __webpack_require__(131);
 
 module.exports = function (NAME, wrapper, methods, common, IS_MAP, IS_WEAK) {
   var Base = global[NAME];
@@ -8875,7 +8850,7 @@ module.exports = function (NAME, wrapper, methods, common, IS_MAP, IS_WEAK) {
 
 
 /***/ },
-/* 64 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8910,7 +8885,7 @@ module.exports = function (KEY, length, exec) {
 
 
 /***/ },
-/* 65 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8930,7 +8905,7 @@ module.exports = function () {
 
 
 /***/ },
-/* 66 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
 // 7.2.2 IsArray(argument)
@@ -8941,7 +8916,7 @@ module.exports = Array.isArray || function isArray(arg) {
 
 
 /***/ },
-/* 67 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
 // 7.2.8 IsRegExp(argument)
@@ -8955,7 +8930,7 @@ module.exports = function (it) {
 
 
 /***/ },
-/* 68 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8975,7 +8950,7 @@ module.exports = function (Constructor, NAME, next) {
 
 
 /***/ },
-/* 69 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8985,7 +8960,7 @@ var $export = __webpack_require__(0);
 var redefine = __webpack_require__(21);
 var hide = __webpack_require__(18);
 var Iterators = __webpack_require__(43);
-var $iterCreate = __webpack_require__(68);
+var $iterCreate = __webpack_require__(67);
 var setToStringTag = __webpack_require__(49);
 var getPrototypeOf = __webpack_require__(20);
 var ITERATOR = __webpack_require__(8)('iterator');
@@ -9051,7 +9026,7 @@ module.exports = function (Base, NAME, Constructor, next, DEFAULT, IS_SET, FORCE
 
 
 /***/ },
-/* 70 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
 var ITERATOR = __webpack_require__(8)('iterator');
@@ -9079,7 +9054,7 @@ module.exports = function (exec, skipClosing) {
 
 
 /***/ },
-/* 71 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9095,14 +9070,14 @@ module.exports = __webpack_require__(38) || !__webpack_require__(7)(function () 
 
 
 /***/ },
-/* 72 */
+/* 71 */
 /***/ function(module, exports) {
 
 exports.f = Object.getOwnPropertySymbols;
 
 
 /***/ },
-/* 73 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9137,7 +9112,7 @@ module.exports = function (COLLECTION) {
 
 
 /***/ },
-/* 74 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9156,7 +9131,7 @@ module.exports = function (COLLECTION) {
 
 
 /***/ },
-/* 75 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
 var core = __webpack_require__(14);
@@ -9174,7 +9149,7 @@ var store = global[SHARED] || (global[SHARED] = {});
 
 
 /***/ },
-/* 76 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
 // 7.3.20 SpeciesConstructor(O, defaultConstructor)
@@ -9189,7 +9164,7 @@ module.exports = function (O, D) {
 
 
 /***/ },
-/* 77 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
 var global = __webpack_require__(5);
@@ -9223,7 +9198,7 @@ module.exports = {
 
 
 /***/ },
-/* 78 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
 var global = __webpack_require__(5);
@@ -9233,13 +9208,13 @@ module.exports = navigator && navigator.userAgent || '';
 
 
 /***/ },
-/* 79 */
+/* 78 */
 /***/ function(module, exports) {
 
 module.exports = {"type":"object","$schema":"http://json-schema.org/draft-04/schema#","id":"https://signalk.org/specification/1.0.0/schemas/aton.json#","description":"An object describing an individual aid to navigation. It should be an object in aton, named using MMSI or a UUID","title":"aid to navigation","anyOf":[{"required":["mmsi"]},{"required":["url"]},{"required":["uuid"]}],"properties":{"url":{"description":"URL based identity of the aid to navigation, if available.","$ref":"definitions.json#/definitions/url"},"mmsi":{"description":"MMSI number of the aid to navigation, if available.","$ref":"definitions.json#/definitions/atonMmsi"},"uuid":{"description":"A unique Signal K flavoured maritime resource identifier, assigned by the server.","$ref":"definitions.json#/definitions/uuid","example":"urn:mrn:signalk:uuid:b7590868-1d62-47d9-989c-32321b349fb9"},"atonType":{"type":"object","description":"The aton type","allOf":[{"$ref":"definitions.json#/definitions/commonValueFields"},{"properties":{"value":{"type":"object","allOf":[{"properties":{"id":{"type":"number","description":"The aton type number"},"name":{"type":"string","description":"The aton type name"}}},{"enum":[{"id":1,"name":"Reference Point"},{"id":2,"value":"RACON"},{"id":3,"name":"Fixed Structure Off Shore"},{"id":4,"name":"Emergency Wreck Marking Buoy"},{"id":5,"name":"Light, Without Sectors"},{"id":6,"name":"Light, With Sectors"},{"id":7,"name":"Leading Light Front"},{"id":8,"name":"Leading Light Rear"},{"id":9,"name":"Beacon, Cardinal N"},{"id":10,"name":"Beacon, Cardinal E"},{"id":11,"name":"Beacon, Cardinal S"},{"id":12,"name":"Beacon, Cardinal W"},{"id":13,"name":"Beacon, Port Hand"},{"id":14,"name":"Beacon, Starboard Hand"},{"id":15,"name":"Beacon, Preferred Channel Port Hand"},{"id":16,"name":"Beacon, Preferred Channel Starboard Hand"},{"id":17,"name":"Beacon, Isolated Danger"},{"id":18,"name":"Beacon, Safe Water"},{"id":19,"name":"Beacon, Special Mark"},{"id":20,"name":"Cardinal Mark N"},{"id":21,"name":"Cardinal Mark E"},{"id":22,"name":"Cardinal Mark S"},{"id":23,"name":"Cardinal Mark W"},{"id":24,"name":"Port Hand Mark"},{"id":25,"name":"Starboard Hand Mark"},{"id":26,"name":"Preferred Channel Port Hand"},{"id":27,"name":"Preferred Channel Starboard Hand"},{"id":28,"name":"Isolated danger"},{"id":29,"name":"Safe Water"},{"id":30,"name":"Special Mark"},{"id":31,"name":"Light Vessel/LANBY/Rigs"}]}]}}}]},"name":{"type":"string","description":"The aton name","example":"Motu"},"communication":{"description":"Communication data including Radio, Telephone, E-Mail, etc.","$ref":"groups/communication.json#"},"environment":{"description":"Environmental data measured locally including Depth, Wind, Temp, etc.","$ref":"groups/environment.json#"},"navigation":{"description":"Navigation data including Position, Course to next WP information, etc.","$ref":"groups/navigation.json#"},"notifications":{"type":"object","title":"notifications","description":"Notifications currently raised. Major categories have well-defined names, but the tree can be extended by any hierarchical structure","patternProperties":{"(^((?!^mob$|^fire$|^sinking$|^flooding$|^collision$|^grounding$|^listing$|^adrift$|^piracy$|^abandon$)[A-Za-z0-9-])+$)":{"description":"This regex pattern is used for validation of the path of the alarm","oneOf":[{"$ref":"groups/notifications.json#/definitions/notificationBranch","example":"navigation"},{"$ref":"groups/notifications.json#/definitions/notification"}]}},"additionalProperties":false},"design":{"description":"Design/dimensional data of this ","$ref":"groups/design.json#"},"sensors":{"type":"object","title":"sensors","description":"Sensors, their state, and data.","patternProperties":{"(^[A-Za-z0-9]+$)":{"description":"This regex pattern is used for validation UUID identifier for the sensor","$ref":"groups/sensors.json#"}}}}}
 
 /***/ },
-/* 80 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9273,7 +9248,7 @@ STALK     	Raymarine Seatalk1 datagram sentence
 3 			hex      	Checksum
 */
 
-var seatalkHooks = __webpack_require__(124);
+var seatalkHooks = __webpack_require__(123);
 
 module.exports = function (input) {
   var id = input.id,
@@ -9290,7 +9265,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 81 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9371,7 +9346,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 82 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9439,7 +9414,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 83 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9526,7 +9501,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 84 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9815,7 +9790,7 @@ module.exports = function (input) {
 */
 
 /***/ },
-/* 85 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9960,7 +9935,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 86 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10048,7 +10023,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 87 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10125,7 +10100,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 88 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10189,7 +10164,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 89 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10253,7 +10228,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 90 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10413,7 +10388,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 91 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10474,7 +10449,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 92 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10551,7 +10526,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 93 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10661,7 +10636,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 94 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10763,7 +10738,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 95 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10827,7 +10802,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 96 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10882,7 +10857,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 97 */
+/* 96 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10904,10 +10879,10 @@ module.exports = function (input) {
  * limitations under the License.
  */
 
-module.exports = __webpack_require__(61);
+module.exports = __webpack_require__(60);
 
 /***/ },
-/* 98 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10972,7 +10947,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 99 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11056,7 +11031,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 100 */
+/* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11127,7 +11102,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 101 */
+/* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11192,7 +11167,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 102 */
+/* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11281,7 +11256,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 103 */
+/* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11361,7 +11336,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 104 */
+/* 103 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11475,7 +11450,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 105 */
+/* 104 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11565,7 +11540,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 106 */
+/* 105 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11628,7 +11603,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 107 */
+/* 106 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11686,7 +11661,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 108 */
+/* 107 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11740,7 +11715,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 109 */
+/* 108 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11795,7 +11770,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 110 */
+/* 109 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11848,7 +11823,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 111 */
+/* 110 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11917,7 +11892,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 112 */
+/* 111 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12003,7 +11978,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 113 */
+/* 112 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12059,7 +12034,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 114 */
+/* 113 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12125,7 +12100,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 115 */
+/* 114 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12191,7 +12166,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 116 */
+/* 115 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12245,7 +12220,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 117 */
+/* 116 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12306,7 +12281,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 118 */
+/* 117 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12380,7 +12355,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 119 */
+/* 118 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12449,7 +12424,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 120 */
+/* 119 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12513,7 +12488,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 121 */
+/* 120 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12657,7 +12632,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 122 */
+/* 121 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12723,7 +12698,7 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 123 */
+/* 122 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12805,36 +12780,36 @@ module.exports = function (input) {
 };
 
 /***/ },
-/* 124 */
+/* 123 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 'use strict';
 
 module.exports = {
-  '0x00': __webpack_require__(105),
-  '0x9C': __webpack_require__(123),
-  '0x10': __webpack_require__(106),
-  '0x11': __webpack_require__(107),
-  '0x20': __webpack_require__(108),
-  '0x21': __webpack_require__(109),
-  '0x22': __webpack_require__(110),
-  '0x25': __webpack_require__(111),
-  '0x26': __webpack_require__(112),
-  '0x27': __webpack_require__(113),
-  '0x50': __webpack_require__(114),
-  '0x51': __webpack_require__(115),
-  '0x52': __webpack_require__(116),
-  '0x53': __webpack_require__(117),
-  '0x54': __webpack_require__(118),
-  '0x56': __webpack_require__(119),
-  '0x57': __webpack_require__(120),
-  '0x84': __webpack_require__(121),
-  '0x99': __webpack_require__(122)
+  '0x00': __webpack_require__(104),
+  '0x9C': __webpack_require__(122),
+  '0x10': __webpack_require__(105),
+  '0x11': __webpack_require__(106),
+  '0x20': __webpack_require__(107),
+  '0x21': __webpack_require__(108),
+  '0x22': __webpack_require__(109),
+  '0x25': __webpack_require__(110),
+  '0x26': __webpack_require__(111),
+  '0x27': __webpack_require__(112),
+  '0x50': __webpack_require__(113),
+  '0x51': __webpack_require__(114),
+  '0x52': __webpack_require__(115),
+  '0x53': __webpack_require__(116),
+  '0x54': __webpack_require__(117),
+  '0x56': __webpack_require__(118),
+  '0x57': __webpack_require__(119),
+  '0x84': __webpack_require__(120),
+  '0x99': __webpack_require__(121)
 };
 
 /***/ },
-/* 125 */
+/* 124 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12856,7 +12831,7 @@ module.exports = function fill(value /* , start = 0, end = @length */) {
 
 
 /***/ },
-/* 126 */
+/* 125 */
 /***/ function(module, exports, __webpack_require__) {
 
 // 9.4.2.3 ArraySpeciesCreate(originalArray, length)
@@ -12868,7 +12843,7 @@ module.exports = function (original, length) {
 
 
 /***/ },
-/* 127 */
+/* 126 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12883,7 +12858,7 @@ module.exports = function (object, index, value) {
 
 
 /***/ },
-/* 128 */
+/* 127 */
 /***/ function(module, exports, __webpack_require__) {
 
 var isObject = __webpack_require__(6);
@@ -12896,7 +12871,7 @@ module.exports = function (it) {
 
 
 /***/ },
-/* 129 */
+/* 128 */
 /***/ function(module, exports) {
 
 // IE 8- don't enum bug keys
@@ -12906,7 +12881,7 @@ module.exports = (
 
 
 /***/ },
-/* 130 */
+/* 129 */
 /***/ function(module, exports, __webpack_require__) {
 
 var MATCH = __webpack_require__(8)('match');
@@ -12924,7 +12899,7 @@ module.exports = function (KEY) {
 
 
 /***/ },
-/* 131 */
+/* 130 */
 /***/ function(module, exports, __webpack_require__) {
 
 var document = __webpack_require__(5).document;
@@ -12932,11 +12907,11 @@ module.exports = document && document.documentElement;
 
 
 /***/ },
-/* 132 */
+/* 131 */
 /***/ function(module, exports, __webpack_require__) {
 
 var isObject = __webpack_require__(6);
-var setPrototypeOf = __webpack_require__(143).set;
+var setPrototypeOf = __webpack_require__(142).set;
 module.exports = function (that, target, C) {
   var S = target.constructor;
   var P;
@@ -12947,7 +12922,7 @@ module.exports = function (that, target, C) {
 
 
 /***/ },
-/* 133 */
+/* 132 */
 /***/ function(module, exports) {
 
 // fast apply, http://jsperf.lnkit.com/fast-apply/5
@@ -12969,7 +12944,7 @@ module.exports = function (fn, args, that) {
 
 
 /***/ },
-/* 134 */
+/* 133 */
 /***/ function(module, exports, __webpack_require__) {
 
 // check on default Array iterator
@@ -12983,7 +12958,7 @@ module.exports = function (it) {
 
 
 /***/ },
-/* 135 */
+/* 134 */
 /***/ function(module, exports) {
 
 module.exports = function (done, value) {
@@ -12992,7 +12967,7 @@ module.exports = function (done, value) {
 
 
 /***/ },
-/* 136 */
+/* 135 */
 /***/ function(module, exports) {
 
 // 20.2.2.14 Math.expm1(x)
@@ -13008,7 +12983,7 @@ module.exports = (!$expm1
 
 
 /***/ },
-/* 137 */
+/* 136 */
 /***/ function(module, exports) {
 
 // 20.2.2.28 Math.sign(x)
@@ -13019,11 +12994,11 @@ module.exports = Math.sign || function sign(x) {
 
 
 /***/ },
-/* 138 */
+/* 137 */
 /***/ function(module, exports, __webpack_require__) {
 
 var global = __webpack_require__(5);
-var macrotask = __webpack_require__(149).set;
+var macrotask = __webpack_require__(148).set;
 var Observer = global.MutationObserver || global.WebKitMutationObserver;
 var process = global.process;
 var Promise = global.Promise;
@@ -13094,7 +13069,7 @@ module.exports = function () {
 
 
 /***/ },
-/* 139 */
+/* 138 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13119,14 +13094,14 @@ module.exports.f = function (C) {
 
 
 /***/ },
-/* 140 */
+/* 139 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 'use strict';
 // 19.1.2.1 Object.assign(target, source, ...)
 var getKeys = __webpack_require__(33);
-var gOPS = __webpack_require__(72);
+var gOPS = __webpack_require__(71);
 var pIE = __webpack_require__(54);
 var toObject = __webpack_require__(12);
 var IObject = __webpack_require__(53);
@@ -13160,12 +13135,12 @@ module.exports = !$assign || __webpack_require__(7)(function () {
 
 
 /***/ },
-/* 141 */
+/* 140 */
 /***/ function(module, exports, __webpack_require__) {
 
 // all object keys, includes non-enumerable and symbols
 var gOPN = __webpack_require__(44);
-var gOPS = __webpack_require__(72);
+var gOPS = __webpack_require__(71);
 var anObject = __webpack_require__(4);
 var Reflect = __webpack_require__(5).Reflect;
 module.exports = Reflect && Reflect.ownKeys || function ownKeys(it) {
@@ -13176,7 +13151,7 @@ module.exports = Reflect && Reflect.ownKeys || function ownKeys(it) {
 
 
 /***/ },
-/* 142 */
+/* 141 */
 /***/ function(module, exports) {
 
 module.exports = function (regExp, replace) {
@@ -13190,7 +13165,7 @@ module.exports = function (regExp, replace) {
 
 
 /***/ },
-/* 143 */
+/* 142 */
 /***/ function(module, exports, __webpack_require__) {
 
 // Works with __proto__ only. Old v8 can't work with null proto objects.
@@ -13221,10 +13196,10 @@ module.exports = {
 
 
 /***/ },
-/* 144 */
+/* 143 */
 /***/ function(module, exports, __webpack_require__) {
 
-var shared = __webpack_require__(75)('keys');
+var shared = __webpack_require__(74)('keys');
 var uid = __webpack_require__(48);
 module.exports = function (key) {
   return shared[key] || (shared[key] = uid(key));
@@ -13232,7 +13207,7 @@ module.exports = function (key) {
 
 
 /***/ },
-/* 145 */
+/* 144 */
 /***/ function(module, exports, __webpack_require__) {
 
 var toInteger = __webpack_require__(29);
@@ -13255,11 +13230,11 @@ module.exports = function (TO_STRING) {
 
 
 /***/ },
-/* 146 */
+/* 145 */
 /***/ function(module, exports, __webpack_require__) {
 
 // helper for String#{startsWith, endsWith, includes}
-var isRegExp = __webpack_require__(67);
+var isRegExp = __webpack_require__(66);
 var defined = __webpack_require__(27);
 
 module.exports = function (that, searchString, NAME) {
@@ -13269,7 +13244,7 @@ module.exports = function (that, searchString, NAME) {
 
 
 /***/ },
-/* 147 */
+/* 146 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13288,7 +13263,7 @@ module.exports = function repeat(count) {
 
 
 /***/ },
-/* 148 */
+/* 147 */
 /***/ function(module, exports) {
 
 module.exports = '\x09\x0A\x0B\x0C\x0D\x20\xA0\u1680\u180E\u2000\u2001\u2002\u2003' +
@@ -13296,13 +13271,13 @@ module.exports = '\x09\x0A\x0B\x0C\x0D\x20\xA0\u1680\u180E\u2000\u2001\u2002\u20
 
 
 /***/ },
-/* 149 */
+/* 148 */
 /***/ function(module, exports, __webpack_require__) {
 
 var ctx = __webpack_require__(23);
-var invoke = __webpack_require__(133);
-var html = __webpack_require__(131);
-var cel = __webpack_require__(128);
+var invoke = __webpack_require__(132);
+var html = __webpack_require__(130);
+var cel = __webpack_require__(127);
 var global = __webpack_require__(5);
 var process = global.process;
 var setTask = global.setImmediate;
@@ -13386,7 +13361,7 @@ module.exports = {
 
 
 /***/ },
-/* 150 */
+/* 149 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13394,7 +13369,7 @@ module.exports = {
 var global = __webpack_require__(5);
 var DESCRIPTORS = __webpack_require__(10);
 var LIBRARY = __webpack_require__(38);
-var $typed = __webpack_require__(77);
+var $typed = __webpack_require__(76);
 var hide = __webpack_require__(18);
 var redefineAll = __webpack_require__(45);
 var fails = __webpack_require__(7);
@@ -13404,7 +13379,7 @@ var toLength = __webpack_require__(11);
 var toIndex = __webpack_require__(206);
 var gOPN = __webpack_require__(44).f;
 var dP = __webpack_require__(9).f;
-var arrayFill = __webpack_require__(125);
+var arrayFill = __webpack_require__(124);
 var setToStringTag = __webpack_require__(49);
 var ARRAY_BUFFER = 'ArrayBuffer';
 var DATA_VIEW = 'DataView';
@@ -13669,7 +13644,7 @@ exports[DATA_VIEW] = $DataView;
 
 
 /***/ },
-/* 151 */
+/* 150 */
 /***/ function(module, exports, __webpack_require__) {
 
 var global = __webpack_require__(5);
@@ -13684,13 +13659,13 @@ module.exports = function (name) {
 
 
 /***/ },
-/* 152 */
+/* 151 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 'use strict';
 var addToUnscopables = __webpack_require__(36);
-var step = __webpack_require__(135);
+var step = __webpack_require__(134);
 var Iterators = __webpack_require__(43);
 var toIObject = __webpack_require__(15);
 
@@ -13698,7 +13673,7 @@ var toIObject = __webpack_require__(15);
 // 22.1.3.13 Array.prototype.keys()
 // 22.1.3.29 Array.prototype.values()
 // 22.1.3.30 Array.prototype[@@iterator]()
-module.exports = __webpack_require__(69)(Array, 'Array', function (iterated, kind) {
+module.exports = __webpack_require__(68)(Array, 'Array', function (iterated, kind) {
   this._t = toIObject(iterated); // target
   this._i = 0;                   // next index
   this._k = kind;                // kind
@@ -13725,127 +13700,127 @@ addToUnscopables('entries');
 
 
 /***/ },
-/* 153 */
+/* 152 */
 /***/ function(module, exports) {
 
 module.exports = {"type":"object","$schema":"http://json-schema.org/draft-04/schema#","id":"https://signalk.org/specification/1.0.0/schemas/aircraft.json#","description":"An object describing an individual aircraft. It should be an object in aircraft, named using MMSI or a UUID","title":"aircraft","anyOf":[{"required":["mmsi"]},{"required":["url"]},{"required":["uuid"]}],"properties":{"url":{"description":"URL based identity of the aircraft, if available.","$ref":"definitions.json#/definitions/url"},"mmsi":{"description":"MMSI number of the aircraft, if available.","$ref":"definitions.json#/definitions/aircraftMmsi"},"uuid":{"description":"A unique Signal K flavoured maritime resource identifier, assigned by the server.","$ref":"definitions.json#/definitions/uuid","example":"urn:mrn:signalk:uuid:b7590868-1d62-47d9-989c-32321b349fb9"},"flag":{"type":"string","description":"The country of aircraft registration, or flag state of the aircraft","example":"NZ"},"base":{"type":"string","description":"The home base of the aircraft","example":"Nelson"},"registrations":{"type":"object","description":"The various registrations of the aircraft.","example":"eg for a New Zealand Part B recreational aircraft: 'NZ654'","properties":{"imo":{"type":"string","description":"The IMO number of the aircraft.","pattern":"^IMO [0-9]{7,7}$","example":"IMO 9074729","maxLength":11,"minLength":11},"national":{"type":"object","description":"The national registration number of the aircraft.","patternProperties":{"(^[A-Za-z0-9_-]+$)":{"description":"This regex pattern is used for validating the identifier for the registration","properties":{"country":{"type":"string","description":"The ISO 3166-2 country code.","example":"NZ","maxLength":2,"minLength":2},"registration":{"type":"string","description":"The registration code","example":"NZ654"},"description":{"type":"string","description":"The registration description","example":"New Zealand Part B recreational aircraft"}}}}},"other":{"type":"object","description":"Other registration or permits for the aircraft.","patternProperties":{"(^[A-Za-z0-9_-]+$)":{"description":"This regex pattern is used for validating the identifier for the registration","properties":{"registration":{"type":"string","description":"The registration code","example":"DOC-2345"},"description":{"type":"string","description":"The registration description","example":"Tasmanian National Parks Access Permit 2015"}}}}}}},"communication":{"description":"Communication data including Radio, Telephone, E-Mail, etc.","$ref":"groups/communication.json#"},"environment":{"description":"Environmental data measured locally including Depth, Wind, Temp, etc.","$ref":"groups/environment.json#"},"navigation":{"description":"Navigation data including Position, Course to next WP information, etc.","$ref":"groups/navigation.json#"},"notifications":{"type":"object","title":"notifications","description":"Notifications currently raised. Major categories have well-defined names, but the tree can be extended by any hierarchical structure","patternProperties":{"(^((?!^mob$|^fire$|^sinking$|^flooding$|^collision$|^grounding$|^listing$|^adrift$|^piracy$|^abandon$)[A-Za-z0-9-])+$)":{"description":"This regex pattern is used for validation of the path of the alarm","oneOf":[{"$ref":"groups/notifications.json#/definitions/notificationBranch","example":"navigation"},{"$ref":"groups/notifications.json#/definitions/notification"}]}},"additionalProperties":false},"design":{"description":"Design/dimensional data of this aircraft","$ref":"groups/design.json#"},"sensors":{"type":"object","title":"sensors","description":"Sensors, their state, and data.","patternProperties":{"(^[A-Za-z0-9]+$)":{"description":"This regex pattern is used for validation UUID identifier for the sensor","$ref":"groups/sensors.json#"}}}}}
 
 /***/ },
-/* 154 */
+/* 153 */
 /***/ function(module, exports) {
 
 module.exports = {"type":"object","$schema":"http://json-schema.org/draft-04/schema#","id":"https://signalk.org/specification/1.0.0/schemas/delta.json#","title":"SignalK Delta message schema","description":"Schema for defining updates and subscriptions to parts of a SignalK data model, for example for communicating updates of data","required":["updates"],"properties":{"context":{"type":"string","description":"The context path of the updates, eg. the top level path plus object identifier.","example":"vessels.urn:mrn:signalk:uuid:6b0e776f-811a-4b35-980e-b93405371bc5"},"updates":{"type":"array","description":"The updates","items":{"type":"object","required":["values"],"not":{"allOf":[{"required":["source"]},{"required":["$source"]}]},"properties":{"$source":{"$ref":"./definitions.json#/definitions/sourceRef"},"source":{"$ref":"./definitions.json#/definitions/source"},"timestamp":{"$ref":"./definitions.json#/definitions/timestamp"},"values":{"type":"array","items":{"type":"object","required":["path","value"],"properties":{"path":{"type":"string","description":"The local path to the data value","example":"navigation.courseOverGroundMagnetic"},"value":{"type":["string","number","object","boolean","null"],"additionalProperties":true}}}}}}},"subscribe":{"type":"array","description":"A subscription request","items":{"type":"object","properties":{"path":{"description":"The relative path of the subscription,  supports jsonPath syntax for complex matches","type":"string"},"period":{"description":"The period to repeat the message in millisecs","example":1000,"default":1000,"type":"integer"},"format":{"type":"string","description":"The message format for periodic messages","enum":["full","delta"],"default":"delta"},"policy":{"type":"string","description":"The policy rules for repetition. [instant]=send all changes as fast as they are received, but no faster than minPeriod. [ideal]=use instant policy, but send the value every `period` millisecs anyway, whether changed or not. [fixed]=send the last known values every period. ","enum":["instant","ideal","fixed"],"default":"ideal"},"minPeriod":{"type":"integer","description":"The the fastest message transmission rate allowed, e.g. every `minPeriod/1000` seconds."}},"required":["path"]}},"unsubscribe":{"type":"array","description":"An unsubscribe request.","items":{"type":"object","properties":{"path":{"description":"The relative path to unsubscribe,  supports jsonPath syntax for complex matches","type":"string"},"period":{"description":"The period to repeat the message in millisecs","example":1000,"default":1000,"type":"integer"},"format":{"type":"string","description":"The message format for periodic messages","enum":["full","delta"],"default":"delta"},"policy":{"type":"string","description":"The policy rules for repetition. [instant]=send all changes as fast as they are received, but no faster than minPeriod. [ideal]=use instant policy, but send the value every `period` millisecs anyway, whether changed or not. [fixed]=send the last known values every period. ","enum":["instant","ideal","fixed"],"default":"ideal"},"minPeriod":{"type":"integer","description":"The the fastest message transmission rate allowed, e.g. every `minPeriod/1000` seconds."}},"required":["path"]}},"get":{"type":"array","description":"A websockets equivalent to a REST GET request.This is for one-off requests, use the subscribe message for regular changes.","items":{"type":"object","properties":{"path":{"type":"string","description":"The relative path to GET,  supports jsonPath syntax for complex matches"}},"required":["path"]}},"list":{"type":"array","description":"Gets a list of known keys for this path","items":{"type":"object","properties":{"path":{"type":"string","description":"The relative path to list keys for,  supports jsonPath syntax for complex matches"}},"required":["path"]}},"put":{"type":"array","description":"A websockets equivalent to a REST PUT request. This is for one-off changes, use the updates message for regular changes.","items":{"type":"object","properties":{"path":{"type":"string","description":"The relative path to set."},"value":{"type":["string","number","object","boolean","null"],"description":"The value to set at the path"}},"required":["path","value"]}}}}
 
 /***/ },
-/* 155 */
+/* 154 */
 /***/ function(module, exports) {
 
 module.exports = {"$schema":"http://json-schema.org/draft-04/schema#","id":"http://json-schema.org/geojson/geometry.json#","title":"geometry","description":"One geometry as defined by GeoJSON","type":"object","required":["type","coordinates"],"oneOf":[{"title":"Point","properties":{"type":{"enum":["Point"]},"coordinates":{"$ref":"#/definitions/position"}}},{"title":"MultiPoint","properties":{"type":{"enum":["MultiPoint"]},"coordinates":{"$ref":"#/definitions/positionArray"}}},{"title":"LineString","properties":{"type":{"enum":["LineString"]},"coordinates":{"$ref":"#/definitions/lineString"}}},{"title":"MultiLineString","properties":{"type":{"enum":["MultiLineString"]},"coordinates":{"type":"array","items":{"$ref":"#/definitions/lineString"}}}},{"title":"Polygon","properties":{"type":{"enum":["Polygon"]},"coordinates":{"$ref":"#/definitions/polygon"}}},{"title":"MultiPolygon","properties":{"type":{"enum":["MultiPolygon"]},"coordinates":{"type":"array","items":{"$ref":"#/definitions/polygon"}}}}],"definitions":{"position":{"description":"A single position","type":"array","minItems":2,"items":[{"type":"number"},{"type":"number"}],"additionalItems":false},"positionArray":{"description":"An array of positions","type":"array","items":{"$ref":"#/definitions/position"}},"lineString":{"description":"An array of two or more positions","allOf":[{"$ref":"#/definitions/positionArray"},{"minItems":2}]},"linearRing":{"description":"An array of four positions where the first equals the last","allOf":[{"$ref":"#/definitions/positionArray"},{"minItems":4}]},"polygon":{"description":"An array of linear rings","type":"array","items":{"$ref":"#/definitions/linearRing"}}}}
 
 /***/ },
-/* 156 */
+/* 155 */
 /***/ function(module, exports) {
 
 module.exports = {"type":"object","$schema":"http://json-schema.org/draft-04/schema#","id":"https://signalk.org/specification/1.0.0/schemas/groups/communication.json#","description":"Schema describing the communication child-object of a Vessel.","title":"communication","properties":{"callsignVhf":{"type":"string","description":"Callsign for VHF communication","example":"ZL1234"},"callsignHf":{"type":"string","description":"Callsign for HF communication","example":"ZL3RTH"},"phoneNumber":{"type":"string","description":"Phone number of skipper","example":"+64xxxxxx"},"emailHf":{"type":"string","description":"Email address to be used for HF email (Winmail, Airmail, Sailmail)","example":"motu@xxx.co.nz"},"email":{"type":"string","description":"Regular email for the skipper","example":"robert@xxx.co.nz"},"satPhoneNumber":{"type":"string","description":"Satellite phone number for vessel.","example":"+64xxxxxx"},"skipperName":{"type":"string","description":"Full name of the skipper of the vessel.","example":"Fabian Tollenaar"},"crewNames":{"type":"array","description":"Array with the names of the crew","items":[{"type":"string","description":"Name of a crew member of the vessel.","example":"Catherine"}]}}}
 
 /***/ },
-/* 157 */
+/* 156 */
 /***/ function(module, exports) {
 
 module.exports = {"type":"object","$schema":"http://json-schema.org/draft-04/schema#","id":"https://signalk.org/specification/1.0.0/schemas/groups/design.json#","description":"An object describing the vessels primary dimensions and statistics.","title":"design","properties":{"displacement":{"$ref":"../definitions.json#/definitions/numberValue","description":"The displacement of the vessel","units":"kg"},"aisShipType":{"type":"object","description":"The ais ship type see http://www.bosunsmate.org/ais/message5.php","allOf":[{"$ref":"../definitions.json#/definitions/commonValueFields"},{"properties":{"value":{"type":"object","allOf":[{"properties":{"id":{"type":"number","description":"The ship type number"},"name":{"type":"string","description":"The ship type name"}}},{"enum":[{"id":20,"name":"Wing In Ground"},{"id":21,"name":"Wing In Ground hazard cat A"},{"id":22,"name":"Wing In Ground hazard cat B"},{"id":23,"name":"Wing In Ground hazard cat C"},{"id":24,"name":"Wing In Ground hazard cat D"},{"id":25,"name":"Wing In Ground"},{"id":26,"name":"Wing In Ground"},{"id":27,"name":"Wing In Ground"},{"id":28,"name":"Wing In Ground"},{"id":29,"name":"Wing In Ground (no other information)"},{"id":30,"name":"Fishing"},{"id":31,"name":"Towing"},{"id":32,"name":"Towing exceeds 200m or wider than 25m"},{"id":33,"name":"Engaged in dredging or underwater operations"},{"id":34,"name":"Engaged in diving operations"},{"id":35,"name":"Engaged in military operations"},{"id":36,"name":"Sailing"},{"id":37,"name":"Pleasure"},{"id":40,"name":"High speed craft"},{"id":41,"name":"High speed craft carrying dangerous goods"},{"id":42,"name":"High speed craft hazard cat B"},{"id":43,"name":"High speed craft hazard cat C"},{"id":44,"name":"High speed craft hazard cat D"},{"id":45,"name":"High speed craft"},{"id":46,"name":"High speed craft"},{"id":47,"name":"High speed craft"},{"id":48,"name":"High speed craft"},{"id":49,"name":"High speed craft (no additional information)"},{"id":50,"name":"Pilot vessel"},{"id":51,"name":"SAR"},{"id":52,"name":"Tug"},{"id":53,"name":"Port tender"},{"id":54,"name":"Anti-pollution"},{"id":55,"name":"Law enforcement"},{"id":56,"name":"Spare"},{"id":57,"name":"Spare #2"},{"id":58,"name":"Medical"},{"id":59,"name":"RR Resolution No.18"},{"id":60,"name":"Passenger ship"},{"id":61,"name":"Passenger ship hazard cat A"},{"id":62,"name":"Passenger ship hazard cat B"},{"id":63,"name":"Passenger ship hazard cat C"},{"id":64,"name":"Passenger ship hazard cat D"},{"id":65,"name":"Passenger ship"},{"id":66,"name":"Passenger ship"},{"id":67,"name":"Passenger ship"},{"id":68,"name":"Passenger ship"},{"id":69,"name":"Passenger ship (no additional information)"},{"id":70,"name":"Cargo ship"},{"id":71,"name":"Cargo ship carrying dangerous goods"},{"id":72,"name":"Cargo ship hazard cat B"},{"id":73,"name":"Cargo ship hazard cat C"},{"id":74,"name":"Cargo ship hazard cat D"},{"id":75,"name":"Cargo ship"},{"id":76,"name":"Cargo ship"},{"id":77,"name":"Cargo ship"},{"id":78,"name":"Cargo ship"},{"id":79,"name":"Cargo ship (no additional information)"},{"id":80,"name":"Tanker"},{"id":81,"name":"Tanker carrying dangerous goods"},{"id":82,"name":"Tanker hazard cat B"},{"id":83,"name":"Tanker hazard cat C"},{"id":84,"name":"Tanker hazard cat D"},{"id":85,"name":"Tanker"},{"id":86,"name":"Tanker"},{"id":87,"name":"Tanker"},{"id":88,"name":"Tanker"},{"id":89,"name":"Tanker (no additional information)"},{"id":90,"name":"Other"},{"id":91,"name":"Other carrying dangerous goods"},{"id":92,"name":"Other hazard cat B"},{"id":93,"name":"Other hazard cat C"},{"id":94,"name":"Other hazard cat D"},{"id":95,"name":"Other"},{"id":96,"name":"Other"},{"id":97,"name":"Other"},{"id":98,"name":"Other"},{"id":99,"name":"Other (no additional information)"}]}]}}}]},"draft":{"type":"object","title":"draft","description":"The draft of the vessel","allOf":[{"$ref":"../definitions.json#/definitions/commonValueFields"}],"properties":{"value":{"type":"object","properties":{"minimum":{"description":"The minimum draft of the vessel","type":"number","units":"m"},"maximum":{"description":"The maximum draft of the vessel","type":"number","units":"m"},"current":{"description":"The current draft of the vessel","type":"number","units":"m"},"canoe":{"description":"The draft of the vessel without protrusions such as keel, centerboard, rudder","type":"number","units":"m"}},"values":{"type":"object","patternProperties":{".*":{"type":"object","properties":{"timestamp":{"$ref":"../definitions.json#/definitions/timestamp"},"pgn":{"type":"number"},"sentence":{"type":"string"},"minimum":{"description":"The minimum draft of the vessel","type":"number","units":"m"},"maximum":{"description":"The maximum draft of the vessel","type":"number","units":"m"},"current":{"description":"The current draft of the vessel","type":"number","units":"m"},"canoe":{"description":"The draft of the vessel without protrusions such as keel, centerboard, rudder","type":"number","units":"m"}}}}}}}},"length":{"type":"object","title":"length","description":"The various lengths of the vessel","allOf":[{"$ref":"../definitions.json#/definitions/commonValueFields"}],"properties":{"value":{"type":"object","properties":{"overall":{"type":"number","description":"Length overall","units":"m"},"hull":{"type":"number","description":"Length of hull","units":"m"},"waterline":{"type":"number","description":"Length at waterline","units":"m"}}},"values":{"type":"object","patternProperties":{".*":{"type":"object","properties":{"timestamp":{"$ref":"../definitions.json#/definitions/timestamp"},"pgn":{"type":"number"},"sentence":{"type":"string"},"overall":{"type":"number","description":"Length overall","units":"m"},"hull":{"type":"number","description":"Length of hull","units":"m"},"waterline":{"type":"number","description":"Length at waterline","units":"m"}}}}}}},"keel":{"type":"object","title":"keel","description":"Information about the vessel's keel","allOf":[{"$ref":"../definitions.json#/definitions/commonValueFields"}],"properties":{"type":{"type":"string","description":"The type of keel.","enum":["long","fin","flare","bulb","wing","centerboard","kanting","lifting","daggerboard"]},"angle":{"$ref":"../definitions.json#/definitions/numberValue","description":"A number indicating at which angle the keel currently is (in case of a canting keel), negative to port.","units":"rad"},"lift":{"$ref":"../definitions.json#/definitions/numberValue","description":"In the case of a lifting keel, centreboard or daggerboard, the part of the keel which is extended. 0 is 'all the way up' and 1 is 'all the way down'. 0.8 would be 80% down.","units":"ratio","example":0.8}}},"beam":{"$ref":"../definitions.json#/definitions/numberValue","description":"Beam length","units":"m"},"airHeight":{"$ref":"../definitions.json#/definitions/numberValue","description":"Total height of the vessel","units":"m"},"rigging":{"type":"object","title":"rigging","description":"Information about the vessel's rigging","allOf":[{"$ref":"../definitions.json#/definitions/commonValueFields"}],"properties":{"configuration":{"type":"string","description":"The configuration of the rigging","example":"sloop"},"masts":{"type":"number","description":"The number of masts on the vessel."}}}}}
 
 /***/ },
-/* 158 */
+/* 157 */
 /***/ function(module, exports) {
 
 module.exports = {"$schema":"http://json-schema.org/draft-04/schema#","id":"https://signalk.org/specification/1.0.0/schemas/groups/electrical.json#","description":"Schema describing the electrical child-object of a Vessel.","title":"Electrical Properties","type":"object","definitions":{"identity":{"type":"object","title":"Electrical ID","description":" Common ID items shared by electrical items","properties":{"name":{"type":"string","description":"Unique ID of device (houseBattery, alternator, Generator, solar1, inverter, charger, combiner, etc.)"},"location":{"type":"string","description":"Installed location of device on vessel"},"dateInstalled":{"$ref":"../definitions.json#/definitions/timestamp","description":"Date device was installed"},"manufacturer":{"properties":{"name":{"type":"string","description":"Manufacturer's name"},"model":{"type":"string","description":"Model or part number"},"URL":{"type":"string","description":"Web referance / URL"}}}}},"dcQualities":{"type":"object","title":"DC Qualities","description":"DC common qualities","properties":{"associatedBus":{"type":"string","description":"Name of BUS device is associated with"},"voltage":{"type":"object","description":"Voltage measured at or as close as possible to the device","units":"V","allOf":[{"$ref":"../definitions.json#/definitions/numberValue"},{"properties":{"ripple":{"description":"DC Ripple voltage","$ref":"../definitions.json#/definitions/numberValue","units":"V"},"meta":{"type":"object","properties":{"nominal":{"type":"number","units":"V","description":"Designed 'voltage' of device (12v, 24v, 32v, 36v, 42v, 48v, 144v, etc.)"},"warnUpper":{"type":"number","units":"V","description":"Upper operational voltage limit"},"warnLower":{"type":"number","units":"V","description":"Lower operational voltage limit"},"faultUpper":{"type":"number","units":"V","description":"Upper fault voltage limit - device may disable/disconnect"},"faultLower":{"type":"number","units":"V","description":"Lower fault voltage limit - device may disable/disconnect"}}}}}]},"current":{"type":"object","description":"Current flowing out (+ve) or in (-ve) to the device","units":"A","allOf":[{"$ref":"../definitions.json#/definitions/numberValue"},{"properties":{"meta":{"type":"object","properties":{"warnUpper":{"type":"number","description":"Upper operational current limit","units":"A"},"warnLower":{"type":"number","description":"Lower operational current limit","units":"A"},"faultUpper":{"type":"number","description":"Upper fault current limit - device may disable/disconnect","units":"A"},"faultLower":{"type":"number","description":"Lower fault current limit - device may disable/disconnect","units":"A"}}}}}]},"temperature":{"type":"object","description":"Temperature measured within or on the device","units":"K","title":"temperature","allOf":[{"$ref":"../definitions.json#/definitions/numberValue"},{"properties":{"warnUpper":{"type":"number","description":"Upper operational temperature limit","units":"K"},"warnLower":{"type":"number","description":"Lower operational temperature limit","units":"K"},"faultUpper":{"type":"number","description":"Upper fault temperature limit - device may disable/disconnect","units":"K"},"faultLower":{"type":"number","description":"Lower fault temperature limit - device may disable/disconnect","units":"K"}}}]}}},"acQualities":{"type":"object","title":"AC Qualities","description":"AC equipment common qualities","properties":{"associatedBus":{"type":"string","description":"Name of BUS device is associated with"},"lineNeutralVoltage":{"$ref":"../definitions.json#/definitions/numberValue","description":"RMS voltage measured between phase and neutral","units":"V"},"lineLineVoltage":{"$ref":"../definitions.json#/definitions/numberValue","description":"RMS voltage measured between phases","units":"V"},"current":{"$ref":"../definitions.json#/definitions/numberValue","description":"RMS current","units":"A"},"frequency":{"$ref":"../definitions.json#/definitions/numberValue","description":"AC frequency.","units":"Hz"},"reactivePower":{"$ref":"../definitions.json#/definitions/numberValue","description":"Reactive power","units":"W"},"powerFactor":{"$ref":"../definitions.json#/definitions/numberValue","description":"Power factor","unit":"ratio"},"powerFactorLagging":{"description":"Lead/lag status.","example":"leading","type":"string","enum":["leading","lagging","error","not available"]},"realPower":{"$ref":"../definitions.json#/definitions/numberValue","description":"Real power.","units":"W"},"apparentPower":{"$ref":"../definitions.json#/definitions/numberValue","description":"Apparent power.","units":"W"}}},"chargerQualities":{"type":"object","title":"Charger Qualities","description":"Common charger qualities","properties":{"chargingAlgorithm":{"type":"object","description":"Algorithm being used by the charger","allOf":[{"$ref":"../definitions.json#/definitions/commonValueFields"},{"properties":{"value":{"type":"string","enum":["trickle","two stage","three stage","four stage","constant current","constant voltage","custom profile"]}}}]},"chargerRole":{"type":"object","description":"How is charging source configured?  Standalone, or in sync with another charger?","allOf":[{"$ref":"../definitions.json#/definitions/commonValueFields"},{"properties":{"value":{"type":"string","enum":["standalone","master","slave","standby"]}}}]},"chargingMode":{"type":"object","description":"Charging mode i.e. float, overcharge, etc.","allOf":[{"$ref":"../definitions.json#/definitions/commonValueFields"},{"properties":{"value":{"type":"string","enum":["bulk","acceptance","overcharge","float","equalize","unknown","other"]}}}]},"setpointVoltage":{"description":"Target regulation voltage","$ref":"../definitions.json#/definitions/numberValue","units":"V"},"setpointCurrent":{"description":"Target current limit","$ref":"../definitions.json#/definitions/numberValue","units":"A"}}}},"properties":{"batteries":{"description":"Data about the vessel's batteries","patternProperties":{"(^[A-Za-z0-9]+$)":{"type":"object","title":"Battery keyed by instance id","description":"Batteries, one or many, within the vessel","allOf":[{"$ref":"#/definitions/identity"},{"$ref":"#/definitions/dcQualities"}],"properties":{"chemistry":{"type":"string","description":"Type of battery FLA, LiFePO4, etc."},"temperature":{"type":"object","title":"temperature","description":"Additional / unique temperatures associated with a battery","properties":{"limitDischargeLower":{"type":"number","description":"Operational minimum temperature limit for battery discharge","units":"K"},"limitDischargeUpper":{"type":"number","description":"Operational maximum temperature limit for battery discharge","units":"K"},"limitRechargeLower":{"type":"number","description":"Operational minimum temperature limit for battery recharging","units":"K"},"limitRechargeUpper":{"type":"number","description":"Operational maximum temperature limit for battery recharging","units":"K"}}},"capacity":{"type":"object","description":"Data about the battery's capacity","title":"capacity","properties":{"nominal":{"type":"number","description":"The capacity of battery as specified by the manufacturer","units":"J"},"actual":{"type":"number","description":"The measured capacity of battery. This may change over time and will likely deviate from the nominal capacity.","units":"J"},"remaining":{"type":"number","description":"Capacity remaining in battery","units":"J"},"dischargeLimit":{"type":"number","description":"Minimum capacity to be left in the battery while discharging","units":"J"},"stateOfCharge":{"$ref":"../definitions.json#/definitions/numberValue","description":"State of charge, 1 = 100%","units":"ratio"},"stateOfHealth":{"$ref":"../definitions.json#/definitions/numberValue","description":"State of Health, 1 = 100%","units":"ratio"},"dischargeSinceFull":{"$ref":"../definitions.json#/definitions/numberValue","description":"Cumulative discharge since battery was last full","units":"C"},"timeRemaining":{"$ref":"../definitions.json#/definitions/numberValue","description":"Time to discharge to discharge limit at current rate","units":"s"}}},"lifetimeDischarge":{"type":"number","description":"Cumulative charge discharged from battery over operational lifetime of battery","units":"C"},"lifetimeRecharge":{"type":"number","description":"Cumulative charge recharged into battery over operational lifetime of battery","units":"C"}}}}},"inverters":{"description":"Data about the Inverter that has both DC and AC qualities","patternProperties":{"(^[A-Za-z0-9]+$)":{"type":"object","title":"Inverter","description":"DC to AC inverter, one or many, within the vessel","allOf":[{"$ref":"#/definitions/identity"}],"properties":{"dc":{"$ref":"#/definitions/dcQualities"},"ac":{"$ref":"#/definitions/acQualities"},"inverterMode":{"type":"object","description":"Mode of inverter","allOf":[{"$ref":"../definitions.json#/definitions/commonValueFields"},{"properties":{"value":{"type":"string","enum":["idle","inverting","disabled","standby","faulted","unknown","other"]}}}]}}}}},"chargers":{"description":"Data about AC sourced battery charger","patternProperties":{"(^[A-Za-z0-9]+$)":{"type":"object","title":"Charger","description":"Battery charger","allOf":[{"$ref":"#/definitions/identity"},{"$ref":"#/definitions/dcQualities"},{"$ref":"#/definitions/chargerQualities"}]}}},"alternators":{"description":"Data about an Alternator charging device","patternProperties":{"(^[A-Za-z0-9]+$)":{"type":"object","title":"Alternator","description":"Mechanically driven alternator, includes dynamos","allOf":[{"$ref":"#/definitions/identity"},{"$ref":"#/definitions/dcQualities"},{"$ref":"#/definitions/chargerQualities"}],"properties":{"revolutions":{"description":"Alternator revolutions per second (x60 for RPM)","$ref":"../definitions.json#/definitions/numberValue","units":"Hz"},"pulleyRatio":{"description":"Mechanical pulley ratio of driving source (Used to back calculate engine RPMs)","$ref":"../definitions.json#/definitions/numberValue","units":"ratio"},"fieldDrive":{"description":"% (0..100) of field voltage applied","$ref":"../definitions.json#/definitions/numberValue","units":"%"},"regulatorTemperature":{"description":"Current temperature of critical regulator components","$ref":"../definitions.json#/definitions/numberValue","units":"K"}}}}},"solar":{"description":"Data about Solar charging device(s)","patternProperties":{"(^[A-Za-z0-9]+$)":{"type":"object","title":"Solar","description":"Photovoltaic charging devices","allOf":[{"$ref":"#/definitions/identity"},{"$ref":"#/definitions/dcQualities"},{"$ref":"#/definitions/chargerQualities"}],"properties":{"controllerMode":{"type":"object","description":"The current state of the engine","allOf":[{"$ref":"../definitions.json#/definitions/commonValueFields"},{"properties":{"value":{"type":"string","enum":["off","idle","direct","PWM","MPPT"]}}}]},"panelVoltage":{"description":"Voltage being supplied from Solar Panels to controller","$ref":"../definitions.json#/definitions/numberValue","units":"V"},"panelCurrent":{"description":"Amperage being supplied from Solar Panels to controller","$ref":"../definitions.json#/definitions/numberValue","units":"A"},"panelTemperature":{"description":"Temperature of panels","$ref":"../definitions.json#/definitions/numberValue","units":"K"},"load":{"type":"object","description":"State of load port on controller (if applicable)","allOf":[{"$ref":"../definitions.json#/definitions/commonValueFields"},{"properties":{"value":{"type":"string","enum":["enabled","disabled"]}}}]},"loadCurrent":{"description":"Amperage being supplied to load directly connected to controller","$ref":"../definitions.json#/definitions/numberValue","units":"A"}}}}},"ac":{"description":"AC buses","patternProperties":{"(^[A-Za-z0-9]+$)":{"type":"object","title":"AC Bus keyed by instance id","description":"AC Bus, one or many, within the vessel","allOf":[{"$ref":"#/definitions/identity"}],"properties":{"phase":{"type":"object","description":"Single or A,B or C in 3 Phase systems ","patternProperties":{"(single)|([A-C])":{"$ref":"#/definitions/acQualities"}}}}}}}}}
 
 /***/ },
-/* 159 */
+/* 158 */
 /***/ function(module, exports) {
 
 module.exports = {"type":"object","$schema":"http://json-schema.org/draft-04/schema#","id":"https://signalk.org/specification/1.0.0/schemas/groups/environment.json#","description":"Schema describing the environmental child-object of a Vessel.","title":"environment","definitions":{"zoneObject":{"type":"object","properties":{"temperature":{"description":"Temperature","$ref":"../definitions.json#/definitions/numberValue","units":"K"},"heatIndexTemperature":{"description":"Current heat index temperature in zone","$ref":"../definitions.json#/definitions/numberValue","units":"K"},"pressure":{"description":"Pressure in zone","units":"Pa","$ref":"../definitions.json#/definitions/numberValue"},"relativeHumidity":{"description":"Relative humidity in zone","units":"ratio","$ref":"../definitions.json#/definitions/numberValue"},"dewPoint":{"description":"Dewpoint in zone","units":"K","$ref":"../definitions.json#/definitions/numberValue"},"airDensity":{"description":"Air density in zone","units":"kg/m3","$ref":"../definitions.json#/definitions/numberValue"},"illuminance":{"description":"Illuminance in zone","units":"Lux","$ref":"../definitions.json#/definitions/numberValue"}}}},"properties":{"outside":{"description":"Environmental conditions outside of the vessel's hull","type":"object","properties":{"temperature":{"description":"Current outside air temperature","$ref":"../definitions.json#/definitions/numberValue","units":"K"},"dewPointTemperature":{"description":"Current outside dew point temperature","$ref":"../definitions.json#/definitions/numberValue","units":"K"},"apparentWindChillTemperature":{"description":"Current outside apparent wind chill temperature","$ref":"../definitions.json#/definitions/numberValue","units":"K"},"theoreticalWindChillTemperature":{"description":"Current outside theoretical wind chill temperature","$ref":"../definitions.json#/definitions/numberValue","units":"K"},"heatIndexTemperature":{"description":"Current outside heat index temperature","$ref":"../definitions.json#/definitions/numberValue","units":"K"},"pressure":{"description":"Current outside air ambient pressure","$ref":"../definitions.json#/definitions/numberValue","units":"Pa"},"humidity":{"description":"Current outside air relative humidity","$ref":"../definitions.json#/definitions/numberValue","units":"ratio"},"airDensity":{"description":"Current outside air density","units":"kg/m3","$ref":"../definitions.json#/definitions/numberValue"},"illuminance":{"description":"Current outside ambient light flux.","$ref":"../definitions.json#/definitions/numberValue","units":"Lux"}}},"inside":{"type":"object","description":"Environmental conditions inside the vessel's hull","allOf":[{"patternProperties":{"[A-Za-z0-9]+":{"description":"This regex pattern is used for validation of the identifier for the environmental zone, eg. engineRoom, mainCabin, refrigerator","$ref":"#/definitions/zoneObject"}}},{"$ref":"#/definitions/zoneObject"}]},"water":{"type":"object","description":"Environmental conditions of the water that the vessel is sailing in","properties":{"temperature":{"description":"Current water temperature","$ref":"../definitions.json#/definitions/numberValue","units":"K"},"salinity":{"description":"Water salinity","$ref":"../definitions.json#/definitions/numberValue","units":"ratio"}}},"depth":{"title":"depth","type":"object","description":"Depth related data","properties":{"belowKeel":{"description":"Depth below keel","$ref":"../definitions.json#/definitions/numberValue","units":"m"},"belowTransducer":{"description":"Depth below Transducer","$ref":"../definitions.json#/definitions/numberValue","units":"m"},"belowSurface":{"description":"Depth from surface","$ref":"../definitions.json#/definitions/numberValue","units":"m"},"transducerToKeel":{"description":"Depth from the transducer to the bottom of the keel","$ref":"../definitions.json#/definitions/numberValue","units":"m"},"surfaceToTransducer":{"description":"Depth transducer is below the water surface","$ref":"../definitions.json#/definitions/numberValue","units":"m"}}},"current":{"type":"object","title":"current","description":"Direction and strength of current affecting the vessel","allOf":[{"$ref":"../definitions.json#/definitions/commonValueFields"},{"properties":{"value":{"type":"object","properties":{"drift":{"type":"number","description":"The speed component of the water current vector","example":3.12,"units":"m/s"},"setTrue":{"type":"number","description":"The direction component of the water current vector referenced to true (geographic) north","example":123.45,"units":"rad"},"setMagnetic":{"type":"number","description":"The direction component of the water current vector referenced to magnetic north","example":131.22,"units":"rad"}}},"values":{"type":"object","patternProperties":{".*":{"type":"object","properties":{"timestamp":{"$ref":"../definitions.json#/definitions/timestamp"},"pgn":{"type":"number"},"sentence":{"type":"string"},"value":{"type":"object","properties":{"drift":{"type":"number","description":"The speed component of the water current vector","example":3.12,"units":"m/s"},"setTrue":{"type":"number","description":"The direction component of the water current vector referenced to true (geographic) north","example":123.45,"units":"rad"},"setMagnetic":{"type":"number","description":"The direction component of the water current vector referenced to magnetic north","example":131.22,"units":"rad"}}}}}}}}}]},"tide":{"type":"object","title":"tide","description":"Tide data","properties":{"heightHigh":{"description":"Next high tide height  relative to lowest astronomical tide (LAT/Chart Datum)","$ref":"../definitions.json#/definitions/numberValue","units":"m"},"heightNow":{"description":"The current tide height  relative to lowest astronomical tide (LAT/Chart Datum)","$ref":"../definitions.json#/definitions/numberValue","units":"m"},"heightLow":{"description":"The next low tide height relative to lowest astronomical tide (LAT/Chart Datum)","$ref":"../definitions.json#/definitions/numberValue","units":"m"},"timeLow":{"description":"Time of the next low tide in UTC","$ref":"../definitions.json#/definitions/timestamp"},"timeHigh":{"description":"Time of next high tide in UTC","$ref":"../definitions.json#/definitions/timestamp"}}},"heave":{"description":"Vertical movement of the vessel due to waves","$ref":"../definitions.json#/definitions/numberValue","units":"m"},"wind":{"type":"object","title":"wind","description":"Wind data.","properties":{"angleApparent":{"description":"Apparent wind angle, negative to port","$ref":"../definitions.json#/definitions/numberValue","units":"rad"},"angleTrueGround":{"description":"True wind angle based on speed over ground, negative to port","$ref":"../definitions.json#/definitions/numberValue","units":"rad"},"angleTrueWater":{"description":"True wind angle based on speed through water, negative to port","$ref":"../definitions.json#/definitions/numberValue","units":"rad"},"directionChangeAlarm":{"description":"The angle the wind needs to shift to raise an alarm","$ref":"../definitions.json#/definitions/numberValue","units":"rad"},"directionTrue":{"description":"The wind direction relative to true north","$ref":"../definitions.json#/definitions/numberValue","units":"rad"},"directionMagnetic":{"description":"The wind direction relative to magnetic north","$ref":"../definitions.json#/definitions/numberValue","units":"rad"},"speedTrue":{"description":"Wind speed over water (as calculated from speedApparent and vessel's speed through water)","$ref":"../definitions.json#/definitions/numberValue","units":"m/s"},"speedOverGround":{"description":"Wind speed over ground (as calculated from speedApparent and vessel's speed over ground)","$ref":"../definitions.json#/definitions/numberValue","units":"m/s"},"speedApparent":{"description":"Apparent wind speed","$ref":"../definitions.json#/definitions/numberValue","units":"m/s"}}},"time":{"type":"object","description":"A time reference for the vessel. All clocks on the vessel dispaying local time should use the timezone offset here. If a timezoneRegion is supplied the timezone must also be supplied. If timezoneRegion is supplied that should be displayed by UIs in preference to simply timezone. ie 12:05 (Europe/London) should be displayed in preference to 12:05 (UTC+01:00)","properties":{"millis":{"type":"number","title":"Epoch time","example":1449648657735,"description":"Milliseconds since the UNIX epoch (1970-01-01 00:00:00)"},"timezoneOffset":{"type":"number","title":"Timezone offset","example":-400,"maximum":1300,"minimum":-1300,"description":"Onboard timezone offset from UTC in hours and minutes (-)hhmm. +ve means east of Greenwich. For use by UIs","default":0},"timezoneRegion":{"type":"string","title":"IANA Timezone national region","example":"Europe/Zurich","description":"Onboard timezone offset as listed in the IANA timezone database (tz database)","pattern":"^[a-zA-Z0-9/+-]+$"},"timestamp":{"$ref":"../definitions.json#/definitions/timestamp"},"source":{"$ref":"../definitions.json#/definitions/source"}},"dependencies":{"timezoneRegion":["timezoneOffset"]}},"mode":{"type":"object","description":"Mode of the vessel based on the current conditions. Can be combined with navigation.state to control vessel signals eg switch to night mode for instrumentation and lights, or make sound signals for fog.","properties":{"value":{"enum":["day","night","restricted visibility"]},"timestamp":{"$ref":"../definitions.json#/definitions/timestamp"},"source":{"$ref":"../definitions.json#/definitions/source"}}}}}
 
 /***/ },
-/* 160 */
+/* 159 */
 /***/ function(module, exports) {
 
 module.exports = {"type":"object","$schema":"http://json-schema.org/draft-04/schema#","id":"https://signalk.org/specification/1.0.0/schemas/groups/navigation.json#","description":"Schema describing the navigation child-object of a Vessel.","title":"navigation","definitions":{"course":{"type":"object","title":"Course","description":"The currently active course (can be a route, or just a point one is navigating towards)","properties":{"crossTrackError":{"description":"The distance from the vessel's present position to the closest point on a line (track) between previousPoint and nextPoint. A negative number indicates that the vessel is currently to the left of this line (and thus must steer right to compensate), a positive number means the vessel is to the right of the line (steer left to compensate).","units":"m","$ref":"../definitions.json#/definitions/numberValue"},"bearingTrackTrue":{"description":"The bearing of a line between previousPoint and nextPoint, relative to true north.","units":"rad","$ref":"../definitions.json#/definitions/numberValue"},"bearingTrackMagnetic":{"description":"The bearing of a line between previousPoint and nextPoint, relative to magnetic north.","units":"rad","$ref":"../definitions.json#/definitions/numberValue"},"activeRoute":{"type":"object","description":"Data required if sailing to an active route, defined in resources.","properties":{"href":{"description":"A reference (URL) to the presently active route, in resources.","example":"/resources/routes/urn:mrn:signalk:uuid:3dd34dcc-36bf-4d61-ba80-233799b25672","type":"string"},"estimatedTimeOfArrival":{"$ref":"../definitions.json#/definitions/datetimeValue","description":"The estimated time of arrival at the end of the current route"},"startTime":{"$ref":"../definitions.json#/definitions/datetimeValue","description":"The time this route was activated"}}},"nextPoint":{"type":"object","description":"The point on earth the vessel's presently navigating towards","anyOf":[{"$ref":"../definitions.json#/definitions/commonValueFields"},{"properties":{"value":{"type":"object","properties":{"type":{"description":"The type of the next point (e.g. Waypoint, POI, Race Mark, etc)","type":"string"},"href":{"description":"A reference (URL) to an object (under resources) this point is related to","type":"string"}}},"distance":{"description":"The distance in meters between the vessel's present position and the nextPoint","units":"m","$ref":"../definitions.json#/definitions/numberValue"},"bearingTrue":{"description":"The bearing of a line between the vessel's current position and nextPoint, relative to true north","units":"rad","$ref":"../definitions.json#/definitions/numberValue"},"bearingMagnetic":{"description":"The bearing of a line between the vessel's current position and nextPoint, relative to magnetic north","units":"rad","$ref":"../definitions.json#/definitions/numberValue"},"velocityMadeGood":{"description":"The velocity component of the vessel towards the nextPoint","units":"m/s","$ref":"../definitions.json#/definitions/numberValue"},"timeToGo":{"description":"Time in seconds to reach nextPoint's perpendicular) with current speed & direction","units":"s","$ref":"../definitions.json#/definitions/numberValue"},"position":{"description":"The position of nextPoint in two dimensions","$ref":"../definitions.json#/definitions/position"}}}]},"previousPoint":{"type":"object","description":"The point on earth the vessel's presently navigating from","allOf":[{"$ref":"../definitions.json#/definitions/commonValueFields"},{"properties":{"value":{"type":"object","properties":{"type":{"description":"The type of the previous point (e.g. Waypoint, POI, Race Mark, etc)","type":"string"},"href":{"description":"A reference (URL) to an object (under resources) this point is related to","type":"string"}}},"distance":{"description":"The distance in meters between previousPoint and the vessel's present position","units":"m","$ref":"../definitions.json#/definitions/numberValue"},"position":{"description":"The position of lastPoint in two dimensions","$ref":"../definitions.json#/definitions/position"}}}]}}}},"properties":{"lights":{"type":"object","title":"Navigation lights","description":"Current state of the vessels navigation lights","properties":{"value":{"type":"string","enum":["off","fault","anchored","sailing","motoring","towing < 200m","towing > 200m","pushing","fishing","fishing-hampered","trawling","trawling-shooting","trawling-hauling","pilotage","not-under-way","aground","restricted manouverability","restricted manouverability towing < 200m","restricted manouverability towing > 200m","restricted manouverability underwater operations","constrained by draft","mine clearance"]},"source":{"description":"Source of this data","$ref":"../definitions.json#/definitions/source"},"timestamp":{"description":"timestamp of the last update to this data","$ref":"../definitions.json#/definitions/timestamp"}}},"courseOverGroundMagnetic":{"description":"Course over ground (magnetic)","$ref":"../definitions.json#/definitions/numberValue","units":"rad"},"courseOverGroundTrue":{"description":"Course over ground (true)","$ref":"../definitions.json#/definitions/numberValue","units":"rad"},"courseRhumbline":{"description":"Course information computed with Rhumbline","$ref":"#/definitions/course"},"courseGreatCircle":{"description":"Course information computed with Great Circle","$ref":"#/definitions/course"},"closestApproach":{"type":"object","description":"Calculated values for other vessels, e.g. from AIS","allOf":[{"$ref":"../definitions.json#/definitions/commonValueFields"},{"properties":{"value":{"type":"object","properties":{"distance":{"description":"Closest Point of Approach (CPA), distance between own vessel and other vessel, based on current speeds, headings and positions","type":"number","units":"m","example":31.2},"timeTo":{"description":"Time to Closest Point of Approach (TCPA), between own vessel and other vessel, based on current speeds, headings and positions","type":"number","units":"s","example":312}}},"values":{"type":"object","patternProperties":{".*":{"type":"object","properties":{"timestamp":{"$ref":"../definitions.json#/definitions/timestamp"},"pgn":{"type":"number"},"sentence":{"type":"string"},"value":{"type":"object","properties":{"distance":{"type":"number","units":"m"},"timeTo":{"type":"number","units":"s"}}}}}}}}}]},"racing":{"type":"object","description":"Specific navigational data related to yacht racing.","properties":{"startLineStb":{"description":"Position of starboard start mark","$ref":"../definitions.json#/definitions/position"},"startLinePort":{"description":"Position of port start mark","$ref":"../definitions.json#/definitions/position"},"distanceStartline":{"description":"The current distance to the start line","$ref":"../definitions.json#/definitions/numberValue","units":"m"},"timeToStart":{"description":"Time left before start","$ref":"../definitions.json#/definitions/numberValue","units":"s"},"timePortDown":{"description":"Time to arrive at the start line on port, turning downwind","$ref":"../definitions.json#/definitions/numberValue","units":"s"},"timePortUp":{"description":"Time to arrive at the start line on port, turning upwind","$ref":"../definitions.json#/definitions/numberValue","units":"s"},"timeStbdDown":{"description":"Time to arrive at the start line on starboard, turning downwind","$ref":"../definitions.json#/definitions/numberValue","units":"s"},"timeStbdUp":{"description":"Time to arrive at the start line on starboard, turning upwind","$ref":"../definitions.json#/definitions/numberValue","units":"s"},"layline":{"type":"object","description":"The layline crossing the current course","properties":{"distance":{"description":"The current distance to the layline","$ref":"../definitions.json#/definitions/numberValue","units":"m"},"time":{"description":"The time to the layline at current speed and heading","$ref":"../definitions.json#/definitions/numberValue","units":"s"}}},"oppositeLayline":{"type":"object","description":"The layline parallell to current course","properties":{"distance":{"description":"The current distance to the layline","$ref":"../definitions.json#/definitions/numberValue","units":"m"},"time":{"description":"The time to the layline at current speed and heading","$ref":"../definitions.json#/definitions/numberValue","units":"s"}}}}},"magneticVariation":{"$ref":"../definitions.json#/definitions/numberValue","description":"The magnetic variation (declination) at the current position that must be added to the magnetic heading to derive the true heading. Easterly variations are positive and Westerly variations are negative (in Radians).","units":"rad"},"magneticVariationAgeOfService":{"$ref":"../definitions.json#/definitions/numberValue","description":"Seconds since the 1st Jan 1970 that the variation calculation was made","units":"s"},"destination":{"title":"destination","description":"The intended destination of this trip","type":"object","properties":{"commonName":{"description":"Common name of the Destination, eg 'Fiji', also used in ais messages","$ref":"../definitions.json#/definitions/stringValue"},"eta":{"description":"Expected time of arrival at destination waypoint","$ref":"../definitions.json#/definitions/datetimeValue"},"waypoint":{"description":"UUID of destination waypoint","$ref":"../definitions.json#/definitions/stringValue"}}},"gnss":{"type":"object","title":"gnss","description":"Global satellite navigation meta information","properties":{"type":{"type":"object","description":"Fix type","default":"Undefined","allOf":[{"$ref":"../definitions.json#/definitions/commonValueFields"}],"properties":{"value":{"type":"string","enum":["Undefined","GPS","GLONASS","Combined GPS/GLONASS","Loran-C","Chayka","Integrated navigation system","Surveyed","Galileo"]}}},"methodQuality":{"type":"object","description":"Quality of the satellite fix","allOf":[{"$ref":"../definitions.json#/definitions/commonValueFields"}],"properties":{"value":{"type":"string","enum":["no GPS","GNSS Fix","DGNSS fix","Precise GNSS","RTK fixed integer","RTK float","Estimated (DR) mode","Manual input","Simulator mode","Error"]}}},"integrity":{"type":"object","description":"Integrity of the satellite fix","allOf":[{"$ref":"../definitions.json#/definitions/commonValueFields"}],"properties":{"value":{"type":"string","enum":["no Integrity checking","Safe","Caution","Unsafe"]}}},"satellites":{"$ref":"../definitions.json#/definitions/numberValue","description":"Number of satellites"},"antennaAltitude":{"$ref":"../definitions.json#/definitions/numberValue","description":"Altitude of antenna","units":"m"},"horizontalDilution":{"$ref":"../definitions.json#/definitions/numberValue","description":"Horizontal Dilution of Precision"},"positionDilution":{"$ref":"../definitions.json#/definitions/numberValue","description":"Positional Dilution of Precision"},"geoidalSeparation":{"$ref":"../definitions.json#/definitions/numberValue","description":"Difference between WGS84 earth ellipsoid and mean sea level"},"differentialAge":{"$ref":"../definitions.json#/definitions/numberValue","description":"Age of DGPS data","units":"s"},"differentialReference":{"$ref":"../definitions.json#/definitions/numberValue","description":"ID of DGPS base station"}}},"headingMagnetic":{"$ref":"../definitions.json#/definitions/numberValue","description":"Current magnetic heading of the vessel","units":"rad"},"headingTrue":{"$ref":"../definitions.json#/definitions/numberValue","description":"The current true heading of the vessel","units":"rad"},"position":{"description":"The position of the vessel in 2 or 3 dimensions (WGS84 datum)","$ref":"../definitions.json#/definitions/position"},"attitude":{"type":"object","title":"Attitude","description":"Vessel attitude: roll, pitch and yaw","allOf":[{"$ref":"../definitions.json#/definitions/commonValueFields"},{"properties":{"value":{"type":"object","properties":{"roll":{"type":"number","description":"Vessel roll, +ve is list to starboard","units":"rad"},"pitch":{"type":"number","description":"Pitch, +ve is bow up","units":"rad"},"yaw":{"type":"number","description":"Yaw, +ve is heading change to starboard","units":"rad"}}},"values":{"type":"object","patternProperties":{".*":{"type":"object","properties":{"timestamp":{"$ref":"../definitions.json#/definitions/timestamp"},"pgn":{"type":"number"},"sentence":{"type":"string"},"value":{"type":"object","properties":{"roll":{"type":"number","description":"Vessel roll, +ve is list to starboard","units":"rad"},"pitch":{"type":"number","description":"Pitch, +ve is bow up","units":"rad"},"yaw":{"type":"number","description":"Yaw, +ve is heading change to starboard","units":"rad"}}}}}}}}}]},"maneuver":{"type":"object","description":"Special maneuver such as regional passing arrangement. (from ais)","default":"Not available","allOf":[{"$ref":"../definitions.json#/definitions/commonValueFields"}],"properties":{"value":{"type":"string","enum":["Not available","No special maneuver","Special maneuver"]}}},"rateOfTurn":{"$ref":"../definitions.json#/definitions/numberValue","description":"Rate of turn (+ve is change to starboard). If the value is AIS RIGHT or LEFT, set to +-0.0206 rads and add warning in notifications","units":"rad/s"},"speedOverGround":{"$ref":"../definitions.json#/definitions/numberValue","description":"Vessel speed over ground. If converting from AIS 'HIGH' value, set to 102.2 (Ais max value) and add warning in notifications","units":"m/s"},"speedThroughWater":{"$ref":"../definitions.json#/definitions/numberValue","description":"Vessel speed through the water","units":"m/s"},"speedThroughWaterTransverse":{"$ref":"../definitions.json#/definitions/numberValue","description":"Transverse speed through the water (Leeway)","units":"m/s"},"speedThroughWaterLongitudinal":{"$ref":"../definitions.json#/definitions/numberValue","description":"Longitudinal speed through the water","units":"m/s"},"leewayAngle":{"$ref":"../definitions.json#/definitions/numberValue","description":"Leeway Angle derived from the longitudinal and transverse speeds through the water","units":"rad"},"log":{"$ref":"../definitions.json#/definitions/numberValue","description":"Total distance traveled","units":"m"},"trip":{"type":"object","description":"Trip data","properties":{"log":{"$ref":"../definitions.json#/definitions/numberValue","description":"Total distance traveled on this trip / since trip reset","units":"m"},"lastReset":{"$ref":"../definitions.json#/definitions/datetimeValue","description":"Trip log reset time"}}},"state":{"type":"object","title":"state","description":"Current navigational state of the vessel","allOf":[{"$ref":"../definitions.json#/definitions/commonValueFields"},{"properties":{"value":{"type":"string","enum":["not under command","anchored","moored","sailing","motoring","towing < 200m","towing > 200m","pushing","fishing","fishing-hampered","trawling","trawling-shooting","trawling-hauling","pilotage","not-under-way","aground","restricted manouverability","restricted manouverability towing < 200m","restricted manouverability towing > 200m","restricted manouverability underwater operations","constrained by draft","mine clearance","Reserved for future amendment of Navigational Status for HSC","Reserved for future amendment of Navigational Status for WIG","Reserved for future use-11","Reserved for future use-12","Reserved for future use-13","Reserved for future use-14","not defined (example)"]}}}]},"anchor":{"type":"object","title":"anchor","description":"The anchor data, for anchor watch etc","properties":{"source":{"description":"Source of this data","$ref":"../definitions.json#/definitions/source"},"timestamp":{"description":"Timestamp of the last update to this data","$ref":"../definitions.json#/definitions/timestamp"},"maxRadius":{"$ref":"../definitions.json#/definitions/numberValue","description":"Radius of anchor alarm boundary. The distance from anchor to the center of the boat","units":"m"},"currentRadius":{"$ref":"../definitions.json#/definitions/numberValue","description":"Current distance to anchor","units":"m"},"position":{"description":"The actual anchor position of the vessel in 3 dimensions, probably an estimate at best","$ref":"../definitions.json#/definitions/position"}}},"datetime":{"type":"object","description":"Time and Date from the GNSS Positioning System","allOf":[{"$ref":"../definitions.json#/definitions/commonValueFields"},{"properties":{"value":{"type":"string","description":"GNSS Time and Date in RFC 3339 (UTC only without local offset) format","units":"RFC 3339 (UTC)","example":"2015-12-05T13:11:59Z","format":"date-time","pattern":".*Z$"},"gnssTimeSource":{"description":"Source of GNSS Date and Time","enum":["GPS","GLONASS","Galileo","Beidou","IRNSS","Radio Signal","Internet","Local clock"]}}}]}}}
 
 /***/ },
-/* 161 */
+/* 160 */
 /***/ function(module, exports) {
 
 module.exports = {"$schema":"http://json-schema.org/draft-04/schema#","id":"https://signalk.org/specification/1.0.0/schemas/groups/notifications.json#","title":"notifications","definitions":{"notification":{"type":"object","allOf":[{"$ref":"../definitions.json#/definitions/commonValueFields"},{"properties":{"value":{"type":"object","required":["method","state","message"],"properties":{"method":{"description":"Method to use to raise notifications","type":"array","items":{"$ref":"../definitions.json#/definitions/alarmMethodEnum"}},"state":{"description":"Current notification state","$ref":"../definitions.json#/definitions/alarmState"},"message":{"description":"Message to display or speak","type":"string"}}}}}]},"notificationBranch":{"type":"object","patternProperties":{"(^((?!^mob$|^fire$|^sinking$|^flooding$|^collision$|^grounding$|^listing$|^adrift$|^piracy$|^abandon$)[A-Za-z0-9-])+$)":{"description":"This regex pattern is used for validation of the path of the alarm","oneOf":[{"$ref":"#/definitions/notificationBranch","example":"engine"},{"$ref":"#/definitions/notification"}]}},"additionalProperties":false}}}
 
 /***/ },
-/* 162 */
+/* 161 */
 /***/ function(module, exports) {
 
 module.exports = {"type":"object","$schema":"http://json-schema.org/draft-04/schema#","id":"https://signalk.org/specification/1.0.0/schemas/groups/performance.json#","description":"Schema describing the performance child-object of a Vessel.","title":"performance","properties":{"polarSpeed":{"description":"The current polar speed based on current polar diagram, WindSpeedTrue and angleTrueWater.","$ref":"../definitions.json#/definitions/numberValue","units":"m/s"},"polarSpeedRatio":{"description":"The ratio of current speed through water to the polar speed.","$ref":"../definitions.json#/definitions/numberValue","units":"ratio"},"velocityMadeGood":{"description":"The current velocity made good derived from the speed through water and appearant wind angle. A positive value is heading to upwind, negative to downwind.","$ref":"../definitions.json#/definitions/numberValue","units":"m/s"},"velocityMadeGoodToWaypoint":{"description":"The current velocity made good to the next waypoint derived from the speedOverGround, courseOverGround.","$ref":"../definitions.json#/definitions/numberValue","units":"m/s"},"beatAngle":{"description":"The true wind beat angle for the best velocity made good based on current current polar diagram and WindSpeedTrue.","$ref":"../definitions.json#/definitions/numberValue","units":"rad"},"beatAngleVelocityMadeGood":{"description":"The velocity made good for the beat angle.","$ref":"../definitions.json#/definitions/numberValue","units":"m/s"},"beatAngleTargetSpeed":{"description":"The target speed for the beat angle.","$ref":"../definitions.json#/definitions/numberValue","units":"m/s"},"gybeAngle":{"description":"The true wind gybe angle for the best velocity made good downwind based on current polar diagram and WindSpeedTrue.","$ref":"../definitions.json#/definitions/numberValue","units":"rad"},"gybeAngleVelocityMadeGood":{"description":"The velocity made good for the gybe angle","$ref":"../definitions.json#/definitions/numberValue","units":"m/s"},"gybeAngleTargetSpeed":{"description":"The target speed for the gybe angle.","$ref":"../definitions.json#/definitions/numberValue","units":"m/s"},"targetAngle":{"description":"The true wind gybe or beat angle for the best velocity made good downwind or upwind based on current polar diagram and WindSpeedTrue.","$ref":"../definitions.json#/definitions/numberValue","units":"rad"},"targetSpeed":{"description":"The target speed for the beat angle or gybe angle, which ever is applicable.","$ref":"../definitions.json#/definitions/numberValue","units":"m/s"},"leeway":{"description":"Current leeway","$ref":"../definitions.json#/definitions/numberValue","units":"rad"},"tackMagnetic":{"description":"Magnetic heading on opposite tack.","$ref":"../definitions.json#/definitions/numberValue","units":"rad"},"tackTrue":{"description":"True heading on opposite tack.","$ref":"../definitions.json#/definitions/numberValue","units":"rad"}}}
 
 /***/ },
-/* 163 */
+/* 162 */
 /***/ function(module, exports) {
 
 module.exports = {"type":"object","$schema":"http://json-schema.org/draft-04/schema#","id":"https://signalk.org/specification/1.0.0/schemas/groups/propulsion.json#","title":"propulsion","description":"An engine, named by a unique name within this vessel","patternProperties":{"(^[A-Za-z0-9]+$)":{"description":"This regex pattern is used for validation of the identifier for the propulsion unit","properties":{"label":{"type":"string","description":"Human readable label for the propulsion unit"},"state":{"type":"object","description":"The current state of the engine","allOf":[{"$ref":"../definitions.json#/definitions/commonValueFields"},{"properties":{"value":{"type":"string","enum":["stopped","started","unusable"]}}}]},"revolutions":{"description":"Engine revolutions (x60 for RPM)","$ref":"../definitions.json#/definitions/numberValue","units":"Hz"},"temperature":{"description":"Engine temperature","$ref":"../definitions.json#/definitions/numberValue","units":"K"},"oilTemperature":{"description":"Oil temperature","$ref":"../definitions.json#/definitions/numberValue","units":"K"},"oilPressure":{"description":"Oil pressure","$ref":"../definitions.json#/definitions/numberValue","units":"Pa"},"alternatorVoltage":{"description":"Alternator voltage","$ref":"../definitions.json#/definitions/numberValue","units":"V"},"runTime":{"description":"Total running time for engine (Engine Hours in seconds)","$ref":"../definitions.json#/definitions/numberValue","units":"s"},"coolantTemperature":{"description":"Coolant temperature","$ref":"../definitions.json#/definitions/numberValue","units":"K"},"coolantPressure":{"description":"Coolant pressure","$ref":"../definitions.json#/definitions/numberValue","units":"Pa"},"boostPressure":{"description":"Engine boost (turbo, supercharger) pressure","$ref":"../definitions.json#/definitions/numberValue","units":"Pa"},"intakeManifoldTemperature":{"description":"Intake manifold temperature","$ref":"../definitions.json#/definitions/numberValue","units":"K"},"engineLoad":{"description":"Engine load ratio, 0<=ratio<=1, 1 is 100%","$ref":"../definitions.json#/definitions/numberValue","units":"ratio"},"engineTorque":{"description":"Engine torque ratio, 0<=ratio<=1, 1 is 100%","$ref":"../definitions.json#/definitions/numberValue","units":"ratio"},"transmission":{"type":"object","description":"The transmission (gear box) of the named engine","properties":{"gear":{"type":"object","description":"Currently selected gear the engine is in i.e. Forward, Reverse, etc.","properties":{"value":{"enum":["Forward","Neutral","Reverse","Fault"]}}},"gearRatio":{"description":"Gear ratio, engine rotations per propeller shaft rotation","$ref":"../definitions.json#/definitions/numberValue","units":"ratio"},"oilTemperature":{"description":"Oil temperature","$ref":"../definitions.json#/definitions/numberValue","units":"K"},"oilPressure":{"description":"Oil pressure","$ref":"../definitions.json#/definitions/numberValue","units":"Pa"}}},"drive":{"type":"object","description":"Data about the engine's drive.","properties":{"type":{"description":"The type of drive the boat has i.e Outboard, shaft, jet, etc.","enum":["saildrive","shaft","outboard","jet","pod","other"]},"trimState":{"description":"Trim/tilt state, 0<=ratio<=1, 1 is 100% up","$ref":"../definitions.json#/definitions/numberValue","units":"ratio"},"thrustAngle":{"description":"Current thrust angle for steerable drives, +ve is thrust to Starboard","$ref":"../definitions.json#/definitions/numberValue","units":"rad"},"propeller":{"description":"Data about the drive's propeller (pitch and slip)","pitch":{"description":"Current pitch of propeller, the distance the propeller would advance during one revolution of the propeller without slip","$ref":"../definitions.json#/definitions/numberValue","units":"m"},"slip":{"description":"Propeller slip, the ratio of 'lost' distance (1 - (actual distance travelled/propeller pitch distance)). 0<=ratio<=1, 0 is 0% slip (ideal), 1 is 100% slip","$ref":"../definitions.json#/definitions/numberValue","units":"ratio"}}}},"fuel":{"type":"object","description":"Data about the engine's Fuel Supply","properties":{"type":{"description":"Fuel type","enum":["diesel","petrol","electric","coal/wood","other"]},"used":{"description":"Used fuel since last reset. Resetting is at user discretion","$ref":"../definitions.json#/definitions/numberValue","units":"m3"},"pressure":{"description":"Fuel pressure","$ref":"../definitions.json#/definitions/numberValue","units":"Pa"},"rate":{"description":"Fuel rate  of consumption","$ref":"../definitions.json#/definitions/numberValue","units":"m3/s"},"economyRate":{"description":"Economy fuel rate of consumption","$ref":"../definitions.json#/definitions/numberValue","units":"m3/s"},"averageRate":{"description":"Average fuel rate of consumption","$ref":"../definitions.json#/definitions/numberValue","units":"m3/s"}}},"exhaustTemperature":{"description":"Exhaust temperature","$ref":"../definitions.json#/definitions/numberValue","units":"K"}}}}}
 
 /***/ },
-/* 164 */
+/* 163 */
 /***/ function(module, exports) {
 
 module.exports = {"type":"object","$schema":"http://json-schema.org/draft-04/schema#","id":"https://signalk.org/specification/1.0.0/schemas/groups/resources.json#","title":"resources","description":"Resources to aid in navigation and operation of the vessel","properties":{"charts":{"type":"object","title":"chart","description":"A holder for charts, each named with their chart code","patternProperties":{"(^[A-Za-z0-9_-]{8,}$)":{"type":"object","description":"A chart","properties":{"name":{"type":"string","description":"Chart common name","example":"NZ615 Marlborough Sounds"},"identifier":{"type":"string","description":"Chart number","example":"NZ615"},"description":{"type":"string","description":"A description of the chart"},"tilemapUrl":{"type":"string","description":"A url to the tilemap of the chart for use in TMS chartplotting apps","example":"http://{server}:8080/mapcache/NZ615"},"region":{"type":"string","description":"Region related to note. A pointer to a region UUID. Alternative to geohash"},"geohash":{"description":"Position related to chart. Alternative to region","$ref":"../definitions.json#/definitions/geohash"},"chartUrl":{"type":"string","description":"A url to the chart file's storage location","example":"file:///home/pi/freeboard/mapcache/NZ615"},"scale":{"type":"integer","description":"The scale of the chart, the larger number from 1:200000"},"chartLayers":{"type":"array","description":"If the chart format is WMS, the layers enabled for the chart.","items":{"type":"string","description":"Identifier for the layer."}},"bounds":{"type":"array","description":"The bounds of the chart. An array containing the position of the upper left corner, and the lower right corner. Useful when the chart isn't inherently geo-referenced.","items":{"$ref":"../definitions.json#/definitions/position","description":"Position of a corner of the chart"}},"chartFormat":{"type":"string","description":"The format of the chart","enum":["gif","geotiff","kap","png","jpg","kml","wkt","topojson","geojson","gpx","tms","wms","S-57","S-63","svg","other"]},"timestamp":{"description":"timestamp of the last update to this data","$ref":"../definitions.json#/definitions/timestamp"},"source":{"description":"Source of this data","$ref":"../definitions.json#/definitions/source"}}}}},"routes":{"type":"object","title":"route","description":"A holder for routes, each named with a UUID","patternProperties":{"^urn:mrn:signalk:uuid:[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}$":{"type":"object","description":"A route, named with a UUID","properties":{"name":{"type":"string","description":"Route's common name","example":"Nelson Harbour to Adele Is"},"description":{"type":"string","description":"A description of the route"},"distance":{"description":"Total distance from start to end","type":"number","units":"m"},"start":{"type":"string","description":"The waypoint UUID at the start of the route"},"end":{"type":"string","description":"The waypoint UUID at the end of the route"},"feature":{"title":"Feature","description":"A Geo JSON feature object which describes the route between the waypoints","required":["geometry","properties"],"properties":{"type":{"enum":["Feature"]},"geometry":{"title":"LineString","properties":{"type":{"enum":["LineString"]},"coordinates":{"$ref":"../external/geojson/geometry.json#/definitions/lineString"}}},"properties":{"type":["object","null"],"description":"Additional data of any type","additionalProperties":true},"id":{"FIXME":"may be there, type not known (string? number?)"}}},"timestamp":{"description":"Timestamp of the last update to this data","$ref":"../definitions.json#/definitions/timestamp"},"source":{"description":"Source of this data","$ref":"../definitions.json#/definitions/source"}}}}},"notes":{"type":"object","title":"notes","description":"A holder for notes about regions, each named with a UUID. Notes might include navigation or cruising info, images, or anything","patternProperties":{"^urn:mrn:signalk:uuid:[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}$":{"type":"object","description":"A note about a region, named with a UUID. Notes might include navigation or cruising info, images, or anything","properties":{"title":{"type":"string","description":"Note's common name"},"description":{"type":"string","description":"A textual description of the note"},"region":{"type":"string","description":"Region related to note. A pointer to a region UUID. Alternative to position or geohash"},"position":{"description":"Position related to note. Alternative to region or geohash","$ref":"../definitions.json#/definitions/position"},"geohash":{"description":"Position related to note. Alternative to region or position","$ref":"../definitions.json#/definitions/geohash"},"mimeType":{"type":"string","description":"MIME type of the note"},"url":{"type":"string","description":"Location of the note"},"timestamp":{"description":"Timestamp of the last update to this data","$ref":"../definitions.json#/definitions/timestamp"},"source":{"description":"Source of this data","$ref":"../definitions.json#/definitions/source"}}}}},"regions":{"type":"object","title":"region","description":"A holder for regions, each named with UUID","patternProperties":{"^urn:mrn:signalk:uuid:[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}$":{"type":"object","description":"A region of interest, each named with a UUID","properties":{"geohash":{"description":"geohash of the approximate boundary of this region","$ref:":"../definitions.json#/definitions/geohash"},"feature":{"title":"Feature","description":"A Geo JSON feature object which describes the regions boundary","required":["geometry","properties"],"properties":{"type":{"enum":["Feature"]},"geometry":{"oneOf":[{"title":"Polygon","properties":{"type":{"enum":["Polygon"]},"coordinates":{"$ref":"../external/geojson/geometry.json#/definitions/polygon"}}},{"title":"MultiPolygon","properties":{"type":{"enum":["MultiPolygon"]},"coordinates":{"type":"array","items":{"$ref":"../external/geojson/geometry.json#/definitions/polygon"}}}}]},"properties":{"type":["object","null"],"description":"Additional data of any type","additionalProperties":true},"id":{"FIXME":"may be there, type not known (string? number?)"}}},"timestamp":{"description":"Timestamp of the last update to this data","$ref":"../definitions.json#/definitions/timestamp"},"source":{"description":"Source of this data","$ref":"../definitions.json#/definitions/source"}}}}},"waypoints":{"type":"object","title":"waypoints","description":"A holder for waypoints, each named with a UUID","patternProperties":{"^urn:mrn:signalk:uuid:[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}$":{"description":"A waypoint, named with a UUID","$ref":"../definitions.json#/definitions/waypoint"}}}}}
 
 /***/ },
-/* 165 */
+/* 164 */
 /***/ function(module, exports) {
 
 module.exports = {"type":"object","$schema":"http://json-schema.org/draft-04/schema#","id":"https://signalk.org/specification/1.0.0/schemas/groups/sails.json#","description":"An object describing the vessels sails if the vessel is a sailboat.","title":"sails","properties":{"inventory":{"type":"object","description":"An object containing a description of each sail available to the vessel crew","patternProperties":{"(^[a-zA-Z0-9]+$)":{"type":"object","description":"'sail' data type.","required":["name","type","active","area"],"properties":{"name":{"type":"string","description":"An unique identifier by which the crew identifies a sail","example":"J1"},"type":{"type":"string","description":"The type of sail","example":"Genaker"},"material":{"type":"string","description":"The material the sail is made from (optional)","example":"canvas"},"brand":{"type":"string","description":"The brand of the sail (optional)","example":"North Sails"},"active":{"type":"boolean","description":"Indicates wether this sail is currently in use or not"},"area":{"type":"number","description":"The total area of this sail in square meters","units":"m2"},"minimumWind":{"type":"number","description":"The minimum wind speed this sail can be used with","units":"m/s","default":0},"maximumWind":{"type":"number","description":"The maximum wind speed this sail can be used with","units":"m/s","default":666},"reducedState":{"properties":{"reduced":{"type":"boolean","description":"describes whether the sail is reduced or not"},"reefs":{"type":"number","description":"Number of reefs set, 0 means full","default":0},"furledRatio":{"type":"number","description":"Ratio of sail reduction, 0 means full and 1 is completely furled in","default":0}}},"timestamp":{"$ref":"../definitions.json#/definitions/timestamp"},"source":{"$ref":"../definitions.json#/definitions/source"},"_attr":{"$ref":"../definitions.json#/definitions/_attr"},"meta":{"$ref":"../definitions.json#/definitions/meta"}}}}},"area":{"type":"object","description":"An object containing information about the vessels' sails.","properties":{"total":{"description":"The total area of all sails on the vessel","$ref":"../definitions.json#/definitions/numberValue","units":"m2"},"active":{"description":"The total area of the sails currently in use on the vessel","$ref":"../definitions.json#/definitions/numberValue","units":"m2"}}}}}
 
 /***/ },
-/* 166 */
+/* 165 */
 /***/ function(module, exports) {
 
 module.exports = {"type":"object","$schema":"http://json-schema.org/draft-04/schema#","id":"https://signalk.org/specification/1.0.0/schemas/groups/sensors.json#","description":"An object describing an individual sensor. It should be an object in vessel, named using a unique name or UUID","title":"sensor","properties":{"name":{"type":"string","description":"The common name of the sensor"},"sensorType":{"type":"string","description":"The datamodel definition of the sensor data. FIXME - need to create a definitions lib of sensor datamodel types"},"sensorData":{"type":"string","description":"The data of the sensor data. FIXME - need to ref the definitions of sensor types"},"fromBow":{"$ref":"../definitions.json#/definitions/numberValue","description":"The distance from the bow to the sensor location"},"fromCenter":{"$ref":"../definitions.json#/definitions/numberValue","description":"The distance from the centerline to the sensor location, -ve to starboard, +ve to port"}}}
 
 /***/ },
-/* 167 */
+/* 166 */
 /***/ function(module, exports) {
 
 module.exports = {"type":"object","$schema":"http://json-schema.org/draft-04/schema#","id":"https://signalk.org/specification/1.0.0/schemas/groups/sources.json#","title":"sources","description":"Metadata about the sources, eg. buses and connected sensors","patternProperties":{".*":{"type":"object","patternProperties":{".*":{"anyOf":[{"properties":{"ais":{"description":"AIS data","type":"object","properties":{"aisType":{"type":"number","multipleOf":1,"minimum":1,"maximum":27,"description":"AIS Message Type","example":"15"}}},"talker":{"description":"NMEA 0183 talker id, the GP in $GPRMC..","type":"string"},"sentences":{"description":"NMEA 0183 sentences","type":"object","patternProperties":{"^[A-Z][A-Z][A-Z]$":{"$ref":"../definitions.json#/definitions/timestamp"}}},"n2k":{"type":"object","properties":{"src":{"description":"NMEA 2000 bus","type":"string"},"pgns":{"type":"object","description":"NMEA 2000 pgn number","patternProperties":{"[0-9]*":{"$ref":"../definitions.json#/definitions/timestamp"}}},"manufacturerId":{"type":"number","description":"Manufacturer numeric NMEA 2000 id"},"manufacturerName":{"description":"Manufacturer of the source device","type":"string","example":"Digital Yacht"},"uniqueId":{"type":"number","description":"Unique id of the source device"},"deviceFunction":{"type":"number","description":"NMEA 2000 Device Function code"},"deviceClass":{"type":"number","description":"NMEA 2000 Device Class code"},"productID":{"description":"Manufactures assigned NMEA2000 Product ID","type":"number"},"productName":{"description":"Product Name or Model Number","type":"string"},"softwareVersion":{"description":"Version of the device's Software/Firmware","type":"string"},"hardwareVersion":{"description":"Version of the device's Hardware","type":"string"},"serialNumber":{"description":"Device's Serial Number","type":"string"},"installationNote1":{"description":"Product Installation Note 1 i.e. 'Wired on Navigation Switch/Circuit'","type":"string","example":"Wired on Navigation Switch/Circuit"},"installationNote2":{"description":"Product Installation Note 2 i.e. 'Located under forward bunk'","type":"string","example":"Located under forward bunk"},"manufacturerInfo":{"description":"Manufacturer's Info i.e. 'http://digitalyachtamerica.com Tel:+44 1179 554474'","type":"string","example":"http://digitalyachtamerica.com Tel:+44 1179 554474"}}}}},{"patternProperties":{".*":{"properties":{}}}}]}},"properties":{"label":{"description":"Sources unique name e.g. [type-bus].[id], N2000-01.034","type":"string","example":"N2000-01.034"},"type":{"description":"Type of interface i.e. signalk, NMEA0183 or NMEA2000","type":"string","example":"NMEA0183"}}}}}
 
 /***/ },
-/* 168 */
+/* 167 */
 /***/ function(module, exports) {
 
 module.exports = {"type":"object","$schema":"http://json-schema.org/draft-04/schema#","id":"https://signalk.org/specification/1.0.0/schemas/groups/steering.json#","description":"Schema describing the steering child-object of a vessel.","title":"steering","properties":{"rudderAngle":{"description":"Current rudder angle, +ve is rudder to Starboard","$ref":"../definitions.json#/definitions/numberValue","units":"rad"},"rudderAngleTarget":{"description":"The angle the rudder should move to, +ve is rudder to Starboard","$ref":"../definitions.json#/definitions/numberValue","units":"rad"},"autopilot":{"type":"object","title":"autopilot","description":"Autopilot data","properties":{"state":{"type":"object","description":"Autopilot state","allOf":[{"$ref":"../definitions.json#/definitions/commonValueFields"},{"properties":{"value":{"type":"string","enum":["auto","standby","alarm","noDrift","wind","depthContour","route","directControl"]}}}]},"mode":{"type":"object","description":"Operational mode","allOf":[{"$ref":"../definitions.json#/definitions/commonValueFields"},{"properties":{"value":{"type":"string","enum":["powersave","normal","accurate"]}}}]},"target":{"type":"object","title":"target","description":"Autopilot target","properties":{"windAngleApparent":{"description":"Target angle to steer, relative to Apparent wind +port -starboard","$ref":"../definitions.json#/definitions/numberValue","units":"rad"},"headingTrue":{"description":"Target heading for autopilot, relative to North","$ref":"../definitions.json#/definitions/numberValue","units":"rad"},"headingMagnetic":{"description":"Target heading for autopilot, relative to Magnetic North","$ref":"../definitions.json#/definitions/numberValue","units":"rad"}}},"deadZone":{"description":"Dead zone to ignore for rudder corrections","$ref":"../definitions.json#/definitions/numberValue","units":"rad"},"backlash":{"description":"Slack in the rudder drive mechanism","$ref":"../definitions.json#/definitions/numberValue","units":"rad"},"gain":{"description":"Auto-pilot gain, higher number equals more rudder movement for a given turn","$ref":"../definitions.json#/definitions/numberValue"},"maxDriveCurrent":{"description":"Maximum current to use to drive servo","$ref":"../definitions.json#/definitions/numberValue","units":"A"},"maxDriveRate":{"description":"Maximum rudder rotation speed","$ref":"../definitions.json#/definitions/numberValue","units":"rad/s"},"portLock":{"description":"Position of servo on port lock","$ref":"../definitions.json#/definitions/numberValue","units":"rad"},"starboardLock":{"description":"Position of servo on starboard lock","$ref":"../definitions.json#/definitions/numberValue","units":"rad"}}}}}
 
 /***/ },
-/* 169 */
+/* 168 */
 /***/ function(module, exports) {
 
 module.exports = {"type":"object","$schema":"http://json-schema.org/draft-04/schema#","id":"https://signalk.org/specification/1.0.0/schemas/groups/tanks.json#","description":"A tank, named by a unique identifier","definitions":{"tankCollection":{"patternProperties":{".*":{"description":"Tank, one or many, within the vessel","name":"Tank","properties":{"name":{"type":"string","description":"The name of the tank. Useful if multiple tanks of a certain type are on board"},"type":{"type":"string","description":"The type of tank","enum":["petrol","fresh water","greywater","blackwater","holding","lpg","diesel","liveWell","ballast","rum"]},"capacity":{"description":"Total capacity","$ref":"../definitions.json#/definitions/numberValue","units":"m3"},"currentLevel":{"description":"Level of fluid in tank 0-100%","$ref":"../definitions.json#/definitions/numberValue","units":"ratio"},"currentVolume":{"description":"Volume of fluid in tank","units":"m3","$ref":"../definitions.json#/definitions/numberValue"},"pressure":{"description":"Pressure of contents in tank, especially LPG/gas","units":"Pa","$ref":"../definitions.json#/definitions/numberValue"},"temperature":{"description":"Temperature of tank, especially cryogenic or LPG/gas","units":"K","$ref":"../definitions.json#/definitions/numberValue"},"viscosity":{"description":"Viscosity of the fluid, if applicable","$ref":"../definitions.json#/definitions/numberValue","units":"Pa/s"},"extinguishant":{"description":"The preferred extinguishant to douse a fire in this tank","$ref":"../definitions.json#/definitions/stringValue"}}}}}},"properties":{"freshWater":{"description":"Fresh water tank (drinking)","$ref":"#/definitions/tankCollection"},"wasteWater":{"description":"Waste water tank (grey water)","$ref":"#/definitions/tankCollection"},"blackWater":{"description":"Black water tank (sewage)","$ref":"#/definitions/tankCollection"},"fuel":{"description":"Fuel tank (petrol or diesel)","$ref":"#/definitions/tankCollection"},"lubrication":{"description":"Lubrication tank (oil or grease)","$ref":"#/definitions/tankCollection"},"liveWell":{"description":"Live tank (fish)","$ref":"#/definitions/tankCollection"},"gas":{"description":"Lpg/propane and other gases","$ref":"#/definitions/tankCollection"},"ballast":{"description":"Ballast tanks","$ref":"#/definitions/tankCollection"}}}
 
 /***/ },
-/* 170 */
+/* 169 */
 /***/ function(module, exports) {
 
 module.exports = {"type":"object","$schema":"http://json-schema.org/draft-04/schema#","id":"https://signalk.org/specification/1.0.0/schemas/aton.json#","description":"An object describing an individual SAR beacon, eg EPIRB or transponser. It should be an object in sar, named using MMSI or a UUID","title":"Search and rescue beacons","anyOf":[{"required":["mmsi"]},{"required":["url"]},{"required":["uuid"]}],"properties":{"url":{"description":"URL based identity of the aid to navigation, if available.","$ref":"definitions.json#/definitions/url"},"mmsi":{"description":"MMSI number of the aid to navigation, if available.","$ref":"definitions.json#/definitions/sarMmsi"},"uuid":{"description":"A unique Signal K flavoured maritime resource identifier, assigned by the server.","$ref":"definitions.json#/definitions/uuid","example":"urn:mrn:signalk:uuid:b7590868-1d62-47d9-989c-32321b349fb9"},"communication":{"description":"Communication data including Radio, Telephone, E-Mail, etc.","$ref":"groups/communication.json#"},"navigation":{"description":"Navigation data including Position, Course to next WP information, etc.","$ref":"groups/navigation.json#"},"notifications":{"type":"object","title":"notifications","description":"Notifications currently raised. Major categories have well-defined names, but the tree can be extended by any hierarchical structure","properties":{"mob":{"description":"Man overboard","$ref":"groups/notifications.json#/definitions/notification"},"fire":{"description":"Fire onboard","$ref":"groups/notifications.json#/definitions/notification"},"sinking":{"description":"Vessel is sinking","$ref":"groups/notifications.json#/definitions/notification"},"flooding":{"description":"Vessel is flooding","$ref":"groups/notifications.json#/definitions/notification"},"collision":{"description":"In collision with another vessel or object","$ref":"groups/notifications.json#/definitions/notification"},"grounding":{"description":"Vessel grounding","$ref":"groups/notifications.json#/definitions/notification"},"listing":{"description":"Vessel is listing","$ref":"groups/notifications.json#/definitions/notification"},"adrift":{"description":"Vessel is adrift","$ref":"groups/notifications.json#/definitions/notification"},"piracy":{"description":"Under attack or danger from pirates","$ref":"groups/notifications.json#/definitions/notification"},"abandon":{"description":"Abandon ship","$ref":"groups/notifications.json#/definitions/notification"}},"patternProperties":{"(^((?!^mob$|^fire$|^sinking$|^flooding$|^collision$|^grounding$|^listing$|^adrift$|^piracy$|^abandon$)[A-Za-z0-9-])+$)":{"description":"This regex pattern is used for validation of the path of the alarm","oneOf":[{"$ref":"groups/notifications.json#/definitions/notificationBranch","example":"navigation"},{"$ref":"groups/notifications.json#/definitions/notification"}]}},"additionalProperties":false}}}
 
 /***/ },
-/* 171 */
+/* 170 */
 /***/ function(module, exports) {
 
 module.exports = {"type":"object","$schema":"http://json-schema.org/draft-04/schema#","id":"https://signalk.org/specification/1.0.0/schemas/signalk.json#","title":"SignalK","description":"Root schema of Signal K. Contains the list of vessels plus a reference to the local boat (also contained in the vessels list).","required":["version","self"],"anyOf":[{"required":["vessels"]},{"required":["aircraft"]},{"required":["aton"]},{"required":["sar"]}],"properties":{"self":{"type":"string","description":"This holds the context (prefix + UUID, MMSI or URL in dot notation) of the server's self object.","example":"vessels.urn:mrn:signalk:uuid:6b0e776f-811a-4b35-980e-b93405371bc5"},"vessels":{"type":"object","description":"A wrapper object for vessel objects, each describing vessels in range, including this vessel.","patternProperties":{"(^urn:mrn:(imo:mmsi:[2-7][0-9]{8}$|signalk:uuid:[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}$))|^(http(s?):.*|mailto:.*|tel:(\\+?)[0-9]{4,})$":{"description":"This regex pattern is used for validation of an MMSI or Signal K UUID identifier for the vessel. Examples: urn:mrn:imo:mmsi:230099999 urn:mrn:signalk:uuid:c0d79334-4e25-4245-8892-54e8ccc8021d","$ref":"vessel.json#"}},"additionalProperties":false},"aircraft":{"type":"object","description":"A wrapper object for aircraft, primarily intended for SAR aircraft in relation to marine search and rescue. For clarity about seaplanes etc, if it CAN fly, its an aircraft.","patternProperties":{"(^urn:mrn:(imo:mmsi:1[0-9]{8}$|signalk:uuid:[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}$))|^(http(s?):.*|mailto:.*|tel:(\\+?)[0-9]{4,})$":{"description":"This regex pattern is used for validation of an MMSI or Signal K UUID identifier for the aircraft. Examples: urn:mrn:imo:mmsi:111099999 urn:mrn:signalk:uuid:c0d79334-4e25-4245-8892-54e8ccc8021d","$ref":"aircraft.json#"}},"additionalProperties":false},"aton":{"type":"object","description":"A wrapper object for Aids to Navigation (aton's)","patternProperties":{"(^urn:mrn:(imo:mmsi:99[0-9]{7}$|signalk:uuid:[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}$))|^(http(s?):.*|mailto:.*|tel:(\\+?)[0-9]{4,})$":{"description":"This regex pattern is used for validation of an MMSI or Signal K UUID identifier for the aid to navigation. Examples: urn:mrn:imo:mmsi:991099999 urn:mrn:signalk:uuid:c0d79334-4e25-4245-8892-54e8ccc8021d","$ref":"aton.json#"}},"additionalProperties":false},"sar":{"type":"object","description":"A wrapper object for Search And Rescue (SAR) MMSI's usied in transponders. MOB, EPIRBS etc","patternProperties":{"(^urn:mrn:(imo:mmsi:97[0-9]{7}$|signalk:uuid:[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}$))|^(http(s?):.*|mailto:.*|tel:(\\+?)[0-9]{4,})$":{"description":"This regex pattern is used for validation of an MMSI or Signal K UUID identifier for the aid to navigation. Examples: urn:mrn:imo:mmsi:972099999 urn:mrn:signalk:uuid:c0d79334-4e25-4245-8892-54e8ccc8021d","$ref":"sar.json#"}},"additionalProperties":false},"sources":{"description":"Metadata about the data sources; physical interface, address, protocol, etc.","$ref":"groups/sources.json#"},"resources":{"description":"Resources to aid in navigation and operation of the vessel including waypoints, routes, notes, etc.","$ref":"groups/resources.json#"},"version":{"description":"Version of the schema and APIs that this data is using in Canonical format i.e. V1.0.0.","$ref":"definitions.json#/definitions/version"}}}
 
 /***/ },
-/* 172 */
+/* 171 */
 /***/ function(module, exports) {
 
 module.exports = {"type":"object","$schema":"http://json-schema.org/draft-04/schema#","id":"https://signalk.org/specification/1.0.0/schemas/vessel.json#","description":"An object describing an individual vessel. It should be an object in vessels, named using MMSI or a UUID","title":"vessel","anyOf":[{"required":["mmsi"]},{"required":["url"]},{"required":["uuid"]}],"properties":{"url":{"description":"URL based identity of the vessel, if available.","$ref":"definitions.json#/definitions/url"},"mmsi":{"description":"MMSI number of the vessel, if available.","$ref":"definitions.json#/definitions/mmsi"},"mothershipMmsi":{"description":"MMSI number of the mothership of this vessel, if available.","$ref":"definitions.json#/definitions/mmsi"},"uuid":{"description":"A unique Signal K flavoured maritime resource identifier, assigned by the server.","$ref":"definitions.json#/definitions/uuid","example":"urn:mrn:signalk:uuid:b7590868-1d62-47d9-989c-32321b349fb9"},"name":{"type":"string","description":"The common name of the vessel","example":"Motu"},"flag":{"type":"string","description":"The country of ship registration, or flag state of the vessel","example":"NZ"},"port":{"type":"string","description":"The home port of the vessel","example":"Nelson"},"registrations":{"type":"object","description":"The various registrations of the vessel.","example":"eg for a New Zealand Part B recreational vessel: 'NZ654'","properties":{"imo":{"type":"string","description":"The IMO number of the vessel.","pattern":"^IMO [0-9]{7,7}$","example":"IMO 9074729","maxLength":11,"minLength":11},"national":{"type":"object","description":"The national registration number of the vessel.","patternProperties":{"(^[A-Za-z0-9_-]+$)":{"description":"This regex pattern is used for validating the identifier for the registration","properties":{"country":{"type":"string","description":"The ISO 3166-2 country code.","example":"NZ","maxLength":2,"minLength":2},"registration":{"type":"string","description":"The registration code","example":"NZ654"},"description":{"type":"string","description":"The registration description","example":"New Zealand Part B recreational vessel"}}}}},"local":{"type":"object","description":"A local or state registration number of the vessel.","patternProperties":{"(^[A-Za-z0-9_-]+$)":{"description":"This regex pattern is used for validating the identifier for the registration","properties":{"registration":{"type":"string","description":"The registration code","example":"NZCG-2345"},"description":{"type":"string","description":"The registration description","example":"Nelson Coast Guard Membership"}}}}},"other":{"type":"object","description":"Other registration or permits for the vessel.","patternProperties":{"(^[A-Za-z0-9_-]+$)":{"description":"This regex pattern is used for validating the identifier for the registration","properties":{"registration":{"type":"string","description":"The registration code","example":"DOC-2345"},"description":{"type":"string","description":"The registration description","example":"Tasmanian National Parks Access Permit 2015"}}}}}}},"communication":{"description":"Communication data including Radio, Telephone, E-Mail, etc.","$ref":"groups/communication.json#"},"environment":{"description":"Environmental data measured locally including Depth, Wind, Temp, etc.","$ref":"groups/environment.json#"},"navigation":{"description":"Navigation data including Position, Course to next WP information, etc.","$ref":"groups/navigation.json#"},"propulsion":{"type":"object","title":"propulsion","description":"Engine data, each engine identified by a unique name i.e. Port_Engine","$ref":"groups/propulsion.json#"},"electrical":{"type":"object","title":"electrical","description":"Electrical data, each electrical device indentified by a unique name i.e. Battery_1","$ref":"groups/electrical.json#"},"notifications":{"type":"object","title":"notifications","description":"Notifications currently raised. Major categories have well-defined names, but the tree can be extended by any hierarchical structure","properties":{"mob":{"description":"Man overboard","$ref":"groups/notifications.json#/definitions/notification"},"fire":{"description":"Fire onboard","$ref":"groups/notifications.json#/definitions/notification"},"sinking":{"description":"Vessel is sinking","$ref":"groups/notifications.json#/definitions/notification"},"flooding":{"description":"Vessel is flooding","$ref":"groups/notifications.json#/definitions/notification"},"collision":{"description":"In collision with another vessel or object","$ref":"groups/notifications.json#/definitions/notification"},"grounding":{"description":"Vessel grounding","$ref":"groups/notifications.json#/definitions/notification"},"listing":{"description":"Vessel is listing","$ref":"groups/notifications.json#/definitions/notification"},"adrift":{"description":"Vessel is adrift","$ref":"groups/notifications.json#/definitions/notification"},"piracy":{"description":"Under attack or danger from pirates","$ref":"groups/notifications.json#/definitions/notification"},"abandon":{"description":"Abandon ship","$ref":"groups/notifications.json#/definitions/notification"}},"patternProperties":{"(^((?!^mob$|^fire$|^sinking$|^flooding$|^collision$|^grounding$|^listing$|^adrift$|^piracy$|^abandon$)[A-Za-z0-9-])+$)":{"description":"This regex pattern is used for validation of the path of the alarm","oneOf":[{"$ref":"groups/notifications.json#/definitions/notificationBranch","example":"propulsion"},{"$ref":"groups/notifications.json#/definitions/notification"}]}},"additionalProperties":false},"steering":{"description":"Vessel steering data for steering controls (not Autopilot 'Nav Data')","$ref":"groups/steering.json#"},"tanks":{"type":"object","title":"tanks","description":"Tank data, each tank indentified by a unique name i.e. FreshWater_2","$ref":"groups/tanks.json#"},"design":{"description":"Design/dimensional data of this vessel","$ref":"groups/design.json#"},"sails":{"description":"Sails data","$ref":"groups/sails.json#"},"sensors":{"type":"object","title":"sensors","description":"Sensors, their state, and data.","patternProperties":{"(^[A-Za-z0-9]+$)":{"description":"This regex pattern is used for validation UUID identifier for the sensor","$ref":"groups/sensors.json#"}}},"performance":{"description":"Performance Sailing data including VMG, Polar Speed, tack angle, etc.","$ref":"groups/performance.json#"}}}
 
 /***/ },
-/* 173 */
+/* 172 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13912,7 +13887,7 @@ function isFDQN(str, options) {
 module.exports = exports['default'];
 
 /***/ },
-/* 174 */
+/* 173 */
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13937,7 +13912,7 @@ function toDate(date) {
 module.exports = exports['default'];
 
 /***/ },
-/* 175 */
+/* 174 */
 /***/ function(module, exports) {
 
 "use strict";
@@ -13965,7 +13940,7 @@ function toString(input) {
 module.exports = exports['default'];
 
 /***/ },
-/* 176 */
+/* 175 */
 /***/ function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*
@@ -15651,6 +15626,31 @@ return tv4; // used by _header.js to globalise.
 }));
 
 /***/ },
+/* 176 */
+/***/ function(module, exports) {
+
+var g;
+
+// This works in non-strict mode
+g = (function() { return this; })();
+
+try {
+	// This works if eval is allowed (see CSP)
+	g = g || Function("return this")() || (1,eval)("this");
+} catch(e) {
+	// This works if the window reference is available
+	if(typeof window === "object")
+		g = window;
+}
+
+// g can still be undefined, but nothing to do about it...
+// We return undefined, instead of nothing here, so it's
+// easier to handle this case. if(!global) { ...}
+
+module.exports = g;
+
+
+/***/ },
 /* 177 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -15658,32 +15658,32 @@ return tv4; // used by _header.js to globalise.
 'use strict';
 
 module.exports = {
-  'ALK': __webpack_require__(80),
-  'APB': __webpack_require__(81),
-  'DBT': __webpack_require__(82),
-  'DPT': __webpack_require__(83),
-  'DSC': __webpack_require__(84),
-  'GGA': __webpack_require__(85),
-  'GLL': __webpack_require__(86),
-  'HDG': __webpack_require__(87),
-  'HDM': __webpack_require__(88),
-  'HDT': __webpack_require__(89),
-  'KEP': __webpack_require__(90),
-  'MTW': __webpack_require__(91),
-  'MWV': __webpack_require__(92),
-  'RMB': __webpack_require__(93),
-  'RMC': __webpack_require__(94),
-  'ROT': __webpack_require__(95),
-  'RPM': __webpack_require__(96),
-  'VDM': __webpack_require__(61),
-  'VDO': __webpack_require__(97),
-  'VDR': __webpack_require__(98),
-  'VHW': __webpack_require__(99),
-  'VLW': __webpack_require__(100),
-  'VPW': __webpack_require__(101),
-  'VTG': __webpack_require__(102),
-  'VWR': __webpack_require__(103),
-  'ZDA': __webpack_require__(104)
+  'ALK': __webpack_require__(79),
+  'APB': __webpack_require__(80),
+  'DBT': __webpack_require__(81),
+  'DPT': __webpack_require__(82),
+  'DSC': __webpack_require__(83),
+  'GGA': __webpack_require__(84),
+  'GLL': __webpack_require__(85),
+  'HDG': __webpack_require__(86),
+  'HDM': __webpack_require__(87),
+  'HDT': __webpack_require__(88),
+  'KEP': __webpack_require__(89),
+  'MTW': __webpack_require__(90),
+  'MWV': __webpack_require__(91),
+  'RMB': __webpack_require__(92),
+  'RMC': __webpack_require__(93),
+  'ROT': __webpack_require__(94),
+  'RPM': __webpack_require__(95),
+  'VDM': __webpack_require__(60),
+  'VDO': __webpack_require__(96),
+  'VDR': __webpack_require__(97),
+  'VHW': __webpack_require__(98),
+  'VLW': __webpack_require__(99),
+  'VPW': __webpack_require__(100),
+  'VTG': __webpack_require__(101),
+  'VWR': __webpack_require__(102),
+  'ZDA': __webpack_require__(103)
 };
 
 /***/ },
@@ -15716,31 +15716,31 @@ var _ = __webpack_require__(223);
 var FullSignalK = __webpack_require__(367);
 
 var subSchemas = {
-  'notifications': __webpack_require__(161),
-  'communication': __webpack_require__(156),
-  'design': __webpack_require__(157),
-  'navigation': __webpack_require__(160),
-  'electrical': __webpack_require__(158),
-  'environment': __webpack_require__(159),
-  'performance': __webpack_require__(162),
-  'propulsion': __webpack_require__(163),
-  'resources': __webpack_require__(164),
-  'sails': __webpack_require__(165),
-  'sensors': __webpack_require__(166),
-  'sources': __webpack_require__(167),
-  'steering': __webpack_require__(168),
-  'tanks': __webpack_require__(169)
+  'notifications': __webpack_require__(160),
+  'communication': __webpack_require__(155),
+  'design': __webpack_require__(156),
+  'navigation': __webpack_require__(159),
+  'electrical': __webpack_require__(157),
+  'environment': __webpack_require__(158),
+  'performance': __webpack_require__(161),
+  'propulsion': __webpack_require__(162),
+  'resources': __webpack_require__(163),
+  'sails': __webpack_require__(164),
+  'sensors': __webpack_require__(165),
+  'sources': __webpack_require__(166),
+  'steering': __webpack_require__(167),
+  'tanks': __webpack_require__(168)
 };
 
 function getTv4() {
-  var tv4 = __webpack_require__(176);
-  var vesselSchema = __webpack_require__(172);
+  var tv4 = __webpack_require__(175);
+  var vesselSchema = __webpack_require__(171);
   tv4.addSchema('https://signalk.org/specification/1.0.0/schemas/vessel.json', vesselSchema);
-  var aircraftSchema = __webpack_require__(153);
+  var aircraftSchema = __webpack_require__(152);
   tv4.addSchema('https://signalk.org/specification/1.0.0/schemas/aircraft.json', aircraftSchema);
-  var atonSchema = __webpack_require__(79);
+  var atonSchema = __webpack_require__(78);
   tv4.addSchema('https://signalk.org/specification/1.0.0/schemas/aton.json', atonSchema);
-  var sarSchema = __webpack_require__(170);
+  var sarSchema = __webpack_require__(169);
   tv4.addSchema('https://signalk.org/specification/1.0.0/schemas/sar.json', sarSchema);
   var definitions = __webpack_require__(57);
   tv4.addSchema('https://signalk.org/specification/1.0.0/schemas/definitions.json', definitions);
@@ -15750,7 +15750,7 @@ function getTv4() {
   }
 
   // HACK! two different IDs should not point to the same schema
-  var externalGeometry = __webpack_require__(155);
+  var externalGeometry = __webpack_require__(154);
   tv4.addSchema('https://signalk.org/specification/1.0.0/schemas/external/geojson/geometry.json', externalGeometry);
   tv4.addSchema('http://json-schema.org/geojson/geometry.json', externalGeometry);
 
@@ -15760,7 +15760,7 @@ function getTv4() {
 }
 
 function validateFull(tree) {
-  var signalkSchema = __webpack_require__(171);
+  var signalkSchema = __webpack_require__(170);
 
   var tv4 = getTv4();
   var valid = getTv4().validateMultiple(tree, signalkSchema, true, true);
@@ -15772,8 +15772,8 @@ function validateFull(tree) {
 }
 
 function validateDelta(delta, ignoreContext) {
-  var tv4 = __webpack_require__(176);
-  var deltaSchema = __webpack_require__(154);
+  var tv4 = __webpack_require__(175);
+  var deltaSchema = __webpack_require__(153);
   var definitions = __webpack_require__(57);
   tv4.addSchema('https://signalk.org/specification/1.0.0/schemas/definitions.json', definitions);
 
@@ -15785,7 +15785,7 @@ function validateDelta(delta, ignoreContext) {
 }
 
 function validateWithSchema(msg, schemaName) {
-  var tv4 = __webpack_require__(176);
+  var tv4 = __webpack_require__(175);
   var schema = __webpack_require__(370)("./" + schemaName);
   var valid = tv4.validateResult(msg, schema, true, true);
   return valid;
@@ -15991,7 +15991,7 @@ module.exports.getAISShipTypeName = function (id) {
 };
 
 module.exports.getAtonTypeName = function (id) {
-  var the_enum = __webpack_require__(79).properties.atonType.allOf[1].properties.value.allOf[1].enum;
+  var the_enum = __webpack_require__(78).properties.atonType.allOf[1].properties.value.allOf[1].enum;
   var res = the_enum.find(function (item) {
     return item.id == id;
   });
@@ -16097,7 +16097,7 @@ module.exports = function (that, callbackfn, aLen, memo, isRight) {
 'use strict';
 var aFunction = __webpack_require__(13);
 var isObject = __webpack_require__(6);
-var invoke = __webpack_require__(133);
+var invoke = __webpack_require__(132);
 var arraySlice = [].slice;
 var factories = {};
 
@@ -16133,8 +16133,8 @@ var redefineAll = __webpack_require__(45);
 var ctx = __webpack_require__(23);
 var anInstance = __webpack_require__(41);
 var forOf = __webpack_require__(37);
-var $iterDefine = __webpack_require__(69);
-var step = __webpack_require__(135);
+var $iterDefine = __webpack_require__(68);
+var step = __webpack_require__(134);
 var setSpecies = __webpack_require__(46);
 var DESCRIPTORS = __webpack_require__(10);
 var fastKey = __webpack_require__(39).fastKey;
@@ -16386,7 +16386,7 @@ module.exports = {
 "use strict";
 'use strict';
 // https://tc39.github.io/proposal-flatMap/#sec-FlattenIntoArray
-var isArray = __webpack_require__(66);
+var isArray = __webpack_require__(65);
 var isObject = __webpack_require__(6);
 var toLength = __webpack_require__(11);
 var ctx = __webpack_require__(23);
@@ -16430,7 +16430,7 @@ module.exports = flattenIntoArray;
 /***/ function(module, exports, __webpack_require__) {
 
 module.exports = !__webpack_require__(10) && !__webpack_require__(7)(function () {
-  return Object.defineProperty(__webpack_require__(128)('div'), 'a', { get: function () { return 7; } }).a != 7;
+  return Object.defineProperty(__webpack_require__(127)('div'), 'a', { get: function () { return 7; } }).a != 7;
 });
 
 
@@ -16469,7 +16469,7 @@ module.exports = function (iterator, fn, value, entries) {
 /***/ function(module, exports, __webpack_require__) {
 
 // 20.2.2.16 Math.fround(x)
-var sign = __webpack_require__(137);
+var sign = __webpack_require__(136);
 var pow = Math.pow;
 var EPSILON = pow(2, -52);
 var EPSILON32 = pow(2, -23);
@@ -16533,7 +16533,7 @@ module.exports = Math.scale || function scale(x, inLow, inHigh, outLow, outHigh)
 
 var dP = __webpack_require__(9);
 var gOPD = __webpack_require__(19);
-var ownKeys = __webpack_require__(141);
+var ownKeys = __webpack_require__(140);
 var toIObject = __webpack_require__(15);
 
 module.exports = function define(target, mixin) {
@@ -16596,8 +16596,8 @@ module.exports.f = function getOwnPropertyNames(it) {
 
 var has = __webpack_require__(17);
 var toIObject = __webpack_require__(15);
-var arrayIndexOf = __webpack_require__(62)(false);
-var IE_PROTO = __webpack_require__(144)('IE_PROTO');
+var arrayIndexOf = __webpack_require__(61)(false);
+var IE_PROTO = __webpack_require__(143)('IE_PROTO');
 
 module.exports = function (object, names) {
   var O = toIObject(object);
@@ -16642,7 +16642,7 @@ module.exports = function (isEntries) {
 var $parseFloat = __webpack_require__(5).parseFloat;
 var $trim = __webpack_require__(50).trim;
 
-module.exports = 1 / $parseFloat(__webpack_require__(148) + '-0') !== -Infinity ? function parseFloat(str) {
+module.exports = 1 / $parseFloat(__webpack_require__(147) + '-0') !== -Infinity ? function parseFloat(str) {
   var string = $trim(String(str), 3);
   var result = $parseFloat(string);
   return result === 0 && string.charAt(0) == '-' ? -0 : result;
@@ -16655,7 +16655,7 @@ module.exports = 1 / $parseFloat(__webpack_require__(148) + '-0') !== -Infinity 
 
 var $parseInt = __webpack_require__(5).parseInt;
 var $trim = __webpack_require__(50).trim;
-var ws = __webpack_require__(148);
+var ws = __webpack_require__(147);
 var hex = /^[-+]?0[xX]/;
 
 module.exports = $parseInt(ws + '08') !== 8 || $parseInt(ws + '0x16') !== 22 ? function parseInt(str, radix) {
@@ -16671,7 +16671,7 @@ module.exports = $parseInt(ws + '08') !== 8 || $parseInt(ws + '0x16') !== 22 ? f
 "use strict";
 'use strict';
 var path = __webpack_require__(202);
-var invoke = __webpack_require__(133);
+var invoke = __webpack_require__(132);
 var aFunction = __webpack_require__(13);
 module.exports = function (/* ...pargs */) {
   var fn = aFunction(this);
@@ -16722,7 +16722,7 @@ module.exports = function (exec) {
 
 var anObject = __webpack_require__(4);
 var isObject = __webpack_require__(6);
-var newPromiseCapability = __webpack_require__(139);
+var newPromiseCapability = __webpack_require__(138);
 
 module.exports = function (C, x) {
   anObject(C);
@@ -16740,7 +16740,7 @@ module.exports = function (C, x) {
 
 // https://github.com/tc39/proposal-string-pad-start-end
 var toLength = __webpack_require__(11);
-var repeat = __webpack_require__(147);
+var repeat = __webpack_require__(146);
 var defined = __webpack_require__(27);
 
 module.exports = function (that, maxLength, fillString, left) {
@@ -16806,7 +16806,7 @@ var validate = __webpack_require__(51);
 var MAP = 'Map';
 
 // 23.1 Map Objects
-module.exports = __webpack_require__(63)(MAP, function (get) {
+module.exports = __webpack_require__(62)(MAP, function (get) {
   return function Map() { return get(this, arguments.length > 0 ? arguments[0] : undefined); };
 }, {
   // 23.1.3.6 Map.prototype.get(key)
@@ -16828,7 +16828,7 @@ module.exports = __webpack_require__(63)(MAP, function (get) {
 // 21.2.5.3 get RegExp.prototype.flags()
 if (__webpack_require__(10) && /./g.flags != 'g') __webpack_require__(9).f(RegExp.prototype, 'flags', {
   configurable: true,
-  get: __webpack_require__(65)
+  get: __webpack_require__(64)
 });
 
 
@@ -16843,7 +16843,7 @@ var validate = __webpack_require__(51);
 var SET = 'Set';
 
 // 23.2 Set Objects
-module.exports = __webpack_require__(63)(SET, function (get) {
+module.exports = __webpack_require__(62)(SET, function (get) {
   return function Set() { return get(this, arguments.length > 0 ? arguments[0] : undefined); };
 }, {
   // 23.2.3.1 Set.prototype.add(value)
@@ -16862,7 +16862,7 @@ module.exports = __webpack_require__(63)(SET, function (get) {
 var each = __webpack_require__(26)(0);
 var redefine = __webpack_require__(21);
 var meta = __webpack_require__(39);
-var assign = __webpack_require__(140);
+var assign = __webpack_require__(139);
 var weak = __webpack_require__(186);
 var isObject = __webpack_require__(6);
 var fails = __webpack_require__(7);
@@ -16896,7 +16896,7 @@ var methods = {
 };
 
 // 23.3 WeakMap Objects
-var $WeakMap = module.exports = __webpack_require__(63)(WEAK_MAP, wrapper, methods, weak, true, true);
+var $WeakMap = module.exports = __webpack_require__(62)(WEAK_MAP, wrapper, methods, weak, true, true);
 
 // IE11 WeakMap frozen keys fix
 if (fails(function () { return new $WeakMap().set((Object.freeze || Object)(tmp), 7).get(tmp) != 7; })) {
@@ -29961,7 +29961,7 @@ module.exports = {"$schema":"http://json-schema.org/draft-04/schema#","id":"/","
   }
 }.call(this));
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(361)(module), __webpack_require__(60)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(361)(module), __webpack_require__(176)))
 
 /***/ },
 /* 224 */
@@ -41977,7 +41977,7 @@ var _isByteLength = __webpack_require__(350);
 
 var _isByteLength2 = _interopRequireDefault(_isByteLength);
 
-var _isFQDN = __webpack_require__(173);
+var _isFQDN = __webpack_require__(172);
 
 var _isFQDN2 = _interopRequireDefault(_isFQDN);
 
@@ -42900,7 +42900,7 @@ function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(60), __webpack_require__(35)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(176), __webpack_require__(35)))
 
 /***/ },
 /* 361 */
@@ -42933,100 +42933,100 @@ module.exports = function(module) {
 /***/ function(module, exports, __webpack_require__) {
 
 var map = {
-	"./ALK": 80,
-	"./ALK.js": 80,
-	"./APB": 81,
-	"./APB.js": 81,
-	"./DBT": 82,
-	"./DBT.js": 82,
-	"./DPT": 83,
-	"./DPT.js": 83,
-	"./DSC": 84,
-	"./DSC.js": 84,
-	"./GGA": 85,
-	"./GGA.js": 85,
-	"./GLL": 86,
-	"./GLL.js": 86,
-	"./HDG": 87,
-	"./HDG.js": 87,
-	"./HDM": 88,
-	"./HDM.js": 88,
-	"./HDT": 89,
-	"./HDT.js": 89,
-	"./KEP": 90,
-	"./KEP.js": 90,
-	"./MTW": 91,
-	"./MTW.js": 91,
-	"./MWV": 92,
-	"./MWV.js": 92,
-	"./RMB": 93,
-	"./RMB.js": 93,
-	"./RMC": 94,
-	"./RMC.js": 94,
-	"./ROT": 95,
-	"./ROT.js": 95,
-	"./RPM": 96,
-	"./RPM.js": 96,
-	"./VDM": 61,
-	"./VDM.js": 61,
-	"./VDO": 97,
-	"./VDO.js": 97,
-	"./VDR": 98,
-	"./VDR.js": 98,
-	"./VHW": 99,
-	"./VHW.js": 99,
-	"./VLW": 100,
-	"./VLW.js": 100,
-	"./VPW": 101,
-	"./VPW.js": 101,
-	"./VTG": 102,
-	"./VTG.js": 102,
-	"./VWR": 103,
-	"./VWR.js": 103,
-	"./ZDA": 104,
-	"./ZDA.js": 104,
+	"./ALK": 79,
+	"./ALK.js": 79,
+	"./APB": 80,
+	"./APB.js": 80,
+	"./DBT": 81,
+	"./DBT.js": 81,
+	"./DPT": 82,
+	"./DPT.js": 82,
+	"./DSC": 83,
+	"./DSC.js": 83,
+	"./GGA": 84,
+	"./GGA.js": 84,
+	"./GLL": 85,
+	"./GLL.js": 85,
+	"./HDG": 86,
+	"./HDG.js": 86,
+	"./HDM": 87,
+	"./HDM.js": 87,
+	"./HDT": 88,
+	"./HDT.js": 88,
+	"./KEP": 89,
+	"./KEP.js": 89,
+	"./MTW": 90,
+	"./MTW.js": 90,
+	"./MWV": 91,
+	"./MWV.js": 91,
+	"./RMB": 92,
+	"./RMB.js": 92,
+	"./RMC": 93,
+	"./RMC.js": 93,
+	"./ROT": 94,
+	"./ROT.js": 94,
+	"./RPM": 95,
+	"./RPM.js": 95,
+	"./VDM": 60,
+	"./VDM.js": 60,
+	"./VDO": 96,
+	"./VDO.js": 96,
+	"./VDR": 97,
+	"./VDR.js": 97,
+	"./VHW": 98,
+	"./VHW.js": 98,
+	"./VLW": 99,
+	"./VLW.js": 99,
+	"./VPW": 100,
+	"./VPW.js": 100,
+	"./VTG": 101,
+	"./VTG.js": 101,
+	"./VWR": 102,
+	"./VWR.js": 102,
+	"./ZDA": 103,
+	"./ZDA.js": 103,
 	"./index": 177,
 	"./index.js": 177,
-	"./seatalk/0x00": 105,
-	"./seatalk/0x00.js": 105,
-	"./seatalk/0x10": 106,
-	"./seatalk/0x10.js": 106,
-	"./seatalk/0x11": 107,
-	"./seatalk/0x11.js": 107,
-	"./seatalk/0x20": 108,
-	"./seatalk/0x20.js": 108,
-	"./seatalk/0x21": 109,
-	"./seatalk/0x21.js": 109,
-	"./seatalk/0x22": 110,
-	"./seatalk/0x22.js": 110,
-	"./seatalk/0x25": 111,
-	"./seatalk/0x25.js": 111,
-	"./seatalk/0x26": 112,
-	"./seatalk/0x26.js": 112,
-	"./seatalk/0x27": 113,
-	"./seatalk/0x27.js": 113,
-	"./seatalk/0x50": 114,
-	"./seatalk/0x50.js": 114,
-	"./seatalk/0x51": 115,
-	"./seatalk/0x51.js": 115,
-	"./seatalk/0x52": 116,
-	"./seatalk/0x52.js": 116,
-	"./seatalk/0x53": 117,
-	"./seatalk/0x53.js": 117,
-	"./seatalk/0x54": 118,
-	"./seatalk/0x54.js": 118,
-	"./seatalk/0x56": 119,
-	"./seatalk/0x56.js": 119,
-	"./seatalk/0x57": 120,
-	"./seatalk/0x57.js": 120,
-	"./seatalk/0x84": 121,
-	"./seatalk/0x84.js": 121,
-	"./seatalk/0x99": 122,
-	"./seatalk/0x99.js": 122,
-	"./seatalk/0x9C": 123,
-	"./seatalk/0x9C.js": 123,
-	"./seatalk/index": 124,
-	"./seatalk/index.js": 124,
+	"./seatalk/0x00": 104,
+	"./seatalk/0x00.js": 104,
+	"./seatalk/0x10": 105,
+	"./seatalk/0x10.js": 105,
+	"./seatalk/0x11": 106,
+	"./seatalk/0x11.js": 106,
+	"./seatalk/0x20": 107,
+	"./seatalk/0x20.js": 107,
+	"./seatalk/0x21": 108,
+	"./seatalk/0x21.js": 108,
+	"./seatalk/0x22": 109,
+	"./seatalk/0x22.js": 109,
+	"./seatalk/0x25": 110,
+	"./seatalk/0x25.js": 110,
+	"./seatalk/0x26": 111,
+	"./seatalk/0x26.js": 111,
+	"./seatalk/0x27": 112,
+	"./seatalk/0x27.js": 112,
+	"./seatalk/0x50": 113,
+	"./seatalk/0x50.js": 113,
+	"./seatalk/0x51": 114,
+	"./seatalk/0x51.js": 114,
+	"./seatalk/0x52": 115,
+	"./seatalk/0x52.js": 115,
+	"./seatalk/0x53": 116,
+	"./seatalk/0x53.js": 116,
+	"./seatalk/0x54": 117,
+	"./seatalk/0x54.js": 117,
+	"./seatalk/0x56": 118,
+	"./seatalk/0x56.js": 118,
+	"./seatalk/0x57": 119,
+	"./seatalk/0x57.js": 119,
+	"./seatalk/0x84": 120,
+	"./seatalk/0x84.js": 120,
+	"./seatalk/0x99": 121,
+	"./seatalk/0x99.js": 121,
+	"./seatalk/0x9C": 122,
+	"./seatalk/0x9C.js": 122,
+	"./seatalk/index": 123,
+	"./seatalk/index.js": 123,
 	"./supported.txt": 366
 };
 function webpackContext(req) {
@@ -43900,14 +43900,14 @@ function coerce(val) {
 /***/ function(module, exports, __webpack_require__) {
 
 var map = {
-	"./aircraft": 153,
-	"./aircraft.json": 153,
-	"./aton": 79,
-	"./aton.json": 79,
+	"./aircraft": 152,
+	"./aircraft.json": 152,
+	"./aton": 78,
+	"./aton.json": 78,
 	"./definitions": 57,
 	"./definitions.json": 57,
-	"./delta": 154,
-	"./delta.json": 154,
+	"./delta": 153,
+	"./delta.json": 153,
 	"./discovery": 216,
 	"./discovery.json": 216,
 	"./external/geojson/README.txt": 371,
@@ -43917,48 +43917,48 @@ var map = {
 	"./external/geojson/crs.json": 218,
 	"./external/geojson/geojson": 219,
 	"./external/geojson/geojson.json": 219,
-	"./external/geojson/geometry": 155,
-	"./external/geojson/geometry.json": 155,
-	"./groups/communication": 156,
-	"./groups/communication.json": 156,
-	"./groups/design": 157,
-	"./groups/design.json": 157,
-	"./groups/electrical": 158,
-	"./groups/electrical.json": 158,
-	"./groups/environment": 159,
-	"./groups/environment.json": 159,
-	"./groups/navigation": 160,
-	"./groups/navigation.json": 160,
-	"./groups/notifications": 161,
-	"./groups/notifications.json": 161,
-	"./groups/performance": 162,
-	"./groups/performance.json": 162,
-	"./groups/propulsion": 163,
-	"./groups/propulsion.json": 163,
-	"./groups/resources": 164,
-	"./groups/resources.json": 164,
-	"./groups/sails": 165,
-	"./groups/sails.json": 165,
-	"./groups/sensors": 166,
-	"./groups/sensors.json": 166,
-	"./groups/sources": 167,
-	"./groups/sources.json": 167,
-	"./groups/steering": 168,
-	"./groups/steering.json": 168,
-	"./groups/tanks": 169,
-	"./groups/tanks.json": 169,
+	"./external/geojson/geometry": 154,
+	"./external/geojson/geometry.json": 154,
+	"./groups/communication": 155,
+	"./groups/communication.json": 155,
+	"./groups/design": 156,
+	"./groups/design.json": 156,
+	"./groups/electrical": 157,
+	"./groups/electrical.json": 157,
+	"./groups/environment": 158,
+	"./groups/environment.json": 158,
+	"./groups/navigation": 159,
+	"./groups/navigation.json": 159,
+	"./groups/notifications": 160,
+	"./groups/notifications.json": 160,
+	"./groups/performance": 161,
+	"./groups/performance.json": 161,
+	"./groups/propulsion": 162,
+	"./groups/propulsion.json": 162,
+	"./groups/resources": 163,
+	"./groups/resources.json": 163,
+	"./groups/sails": 164,
+	"./groups/sails.json": 164,
+	"./groups/sensors": 165,
+	"./groups/sensors.json": 165,
+	"./groups/sources": 166,
+	"./groups/sources.json": 166,
+	"./groups/steering": 167,
+	"./groups/steering.json": 167,
+	"./groups/tanks": 168,
+	"./groups/tanks.json": 168,
 	"./hello": 220,
 	"./hello.json": 220,
 	"./messages/subscribe": 221,
 	"./messages/subscribe.json": 221,
 	"./messages/unsubscribe": 222,
 	"./messages/unsubscribe.json": 222,
-	"./sar": 170,
-	"./sar.json": 170,
-	"./signalk": 171,
-	"./signalk.json": 171,
-	"./vessel": 172,
-	"./vessel.json": 172
+	"./sar": 169,
+	"./sar.json": 169,
+	"./signalk": 170,
+	"./signalk.json": 170,
+	"./vessel": 171,
+	"./vessel.json": 171
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -44146,7 +44146,7 @@ function fromByteArray (uint8) {
 /***/ function(module, exports, __webpack_require__) {
 
 var isObject = __webpack_require__(6);
-var isArray = __webpack_require__(66);
+var isArray = __webpack_require__(65);
 var SPECIES = __webpack_require__(8)('species');
 
 module.exports = function (original) {
@@ -44218,7 +44218,7 @@ module.exports = function (hint) {
 
 // all enumerable object keys, includes symbols
 var getKeys = __webpack_require__(33);
-var gOPS = __webpack_require__(72);
+var gOPS = __webpack_require__(71);
 var pIE = __webpack_require__(54);
 module.exports = function (it) {
   var result = getKeys(it);
@@ -44287,7 +44287,7 @@ $export($export.G + $export.F, {
 var ctx = __webpack_require__(23);
 var $export = __webpack_require__(0);
 var createDesc = __webpack_require__(40);
-var assign = __webpack_require__(140);
+var assign = __webpack_require__(139);
 var create = __webpack_require__(32);
 var getPrototypeOf = __webpack_require__(20);
 var getKeys = __webpack_require__(33);
@@ -44296,8 +44296,8 @@ var keyOf = __webpack_require__(377);
 var aFunction = __webpack_require__(13);
 var forOf = __webpack_require__(37);
 var isIterable = __webpack_require__(208);
-var $iterCreate = __webpack_require__(68);
-var step = __webpack_require__(135);
+var $iterCreate = __webpack_require__(67);
+var step = __webpack_require__(134);
 var isObject = __webpack_require__(6);
 var toIObject = __webpack_require__(15);
 var DESCRIPTORS = __webpack_require__(10);
@@ -44474,7 +44474,7 @@ module.exports = __webpack_require__(14).getIterator = function (it) {
 
 "use strict";
 'use strict';
-__webpack_require__(69)(Number, 'Number', function (iterated) {
+__webpack_require__(68)(Number, 'Number', function (iterated) {
   this._l = +iterated;
   this._i = 0;
 }, function () {
@@ -44533,7 +44533,7 @@ $export($export.S + $export.F, 'Object', {
 
 // https://github.com/benjamingr/RexExp.escape
 var $export = __webpack_require__(0);
-var $re = __webpack_require__(142)(/[\\^$*+?.()|[\]{}]/g, '\\$&');
+var $re = __webpack_require__(141)(/[\\^$*+?.()|[\]{}]/g, '\\$&');
 
 $export($export.S, 'RegExp', { escape: function escape(it) { return $re(it); } });
 
@@ -44545,7 +44545,7 @@ $export($export.S, 'RegExp', { escape: function escape(it) { return $re(it); } }
 "use strict";
 'use strict';
 var $export = __webpack_require__(0);
-var $re = __webpack_require__(142)(/[&<>"']/g, {
+var $re = __webpack_require__(141)(/[&<>"']/g, {
   '&': '&amp;',
   '<': '&lt;',
   '>': '&gt;',
@@ -44563,7 +44563,7 @@ $export($export.P + $export.F, 'String', { escapeHTML: function escapeHTML() { r
 "use strict";
 'use strict';
 var $export = __webpack_require__(0);
-var $re = __webpack_require__(142)(/&(?:amp|lt|gt|quot|apos);/g, {
+var $re = __webpack_require__(141)(/&(?:amp|lt|gt|quot|apos);/g, {
   '&amp;': '&',
   '&lt;': '<',
   '&gt;': '>',
@@ -44610,7 +44610,7 @@ $export($export.P + $export.F * !__webpack_require__(25)([].every, true), 'Array
 // 22.1.3.6 Array.prototype.fill(value, start = 0, end = this.length)
 var $export = __webpack_require__(0);
 
-$export($export.P, 'Array', { fill: __webpack_require__(125) });
+$export($export.P, 'Array', { fill: __webpack_require__(124) });
 
 __webpack_require__(36)('fill');
 
@@ -44702,12 +44702,12 @@ var ctx = __webpack_require__(23);
 var $export = __webpack_require__(0);
 var toObject = __webpack_require__(12);
 var call = __webpack_require__(190);
-var isArrayIter = __webpack_require__(134);
+var isArrayIter = __webpack_require__(133);
 var toLength = __webpack_require__(11);
-var createProperty = __webpack_require__(127);
+var createProperty = __webpack_require__(126);
 var getIterFn = __webpack_require__(55);
 
-$export($export.S + $export.F * !__webpack_require__(70)(function (iter) { Array.from(iter); }), 'Array', {
+$export($export.S + $export.F * !__webpack_require__(69)(function (iter) { Array.from(iter); }), 'Array', {
   // 22.1.2.1 Array.from(arrayLike, mapfn = undefined, thisArg = undefined)
   from: function from(arrayLike /* , mapfn = undefined, thisArg = undefined */) {
     var O = toObject(arrayLike);
@@ -44743,7 +44743,7 @@ $export($export.S + $export.F * !__webpack_require__(70)(function (iter) { Array
 "use strict";
 'use strict';
 var $export = __webpack_require__(0);
-var $indexOf = __webpack_require__(62)(false);
+var $indexOf = __webpack_require__(61)(false);
 var $native = [].indexOf;
 var NEGATIVE_ZERO = !!$native && 1 / [1].indexOf(1, -0) < 0;
 
@@ -44765,7 +44765,7 @@ $export($export.P + $export.F * (NEGATIVE_ZERO || !__webpack_require__(25)($nati
 // 22.1.2.2 / 15.4.3.2 Array.isArray(arg)
 var $export = __webpack_require__(0);
 
-$export($export.S, 'Array', { isArray: __webpack_require__(66) });
+$export($export.S, 'Array', { isArray: __webpack_require__(65) });
 
 
 /***/ },
@@ -44840,7 +44840,7 @@ $export($export.P + $export.F * !__webpack_require__(25)([].map, true), 'Array',
 "use strict";
 'use strict';
 var $export = __webpack_require__(0);
-var createProperty = __webpack_require__(127);
+var createProperty = __webpack_require__(126);
 
 // WebKit Array.of isn't generic
 $export($export.S + $export.F * __webpack_require__(7)(function () {
@@ -44900,7 +44900,7 @@ $export($export.P + $export.F * !__webpack_require__(25)([].reduce, true), 'Arra
 "use strict";
 'use strict';
 var $export = __webpack_require__(0);
-var html = __webpack_require__(131);
+var html = __webpack_require__(130);
 var cof = __webpack_require__(24);
 var toAbsoluteIndex = __webpack_require__(47);
 var toLength = __webpack_require__(11);
@@ -45171,7 +45171,7 @@ $export($export.S + $export.F * !($atanh && 1 / $atanh(-0) < 0), 'Math', {
 
 // 20.2.2.9 Math.cbrt(x)
 var $export = __webpack_require__(0);
-var sign = __webpack_require__(137);
+var sign = __webpack_require__(136);
 
 $export($export.S, 'Math', {
   cbrt: function cbrt(x) {
@@ -45215,7 +45215,7 @@ $export($export.S, 'Math', {
 
 // 20.2.2.14 Math.expm1(x)
 var $export = __webpack_require__(0);
-var $expm1 = __webpack_require__(136);
+var $expm1 = __webpack_require__(135);
 
 $export($export.S + $export.F * ($expm1 != Math.expm1), 'Math', { expm1: $expm1 });
 
@@ -45329,7 +45329,7 @@ $export($export.S, 'Math', {
 // 20.2.2.28 Math.sign(x)
 var $export = __webpack_require__(0);
 
-$export($export.S, 'Math', { sign: __webpack_require__(137) });
+$export($export.S, 'Math', { sign: __webpack_require__(136) });
 
 
 /***/ },
@@ -45338,7 +45338,7 @@ $export($export.S, 'Math', { sign: __webpack_require__(137) });
 
 // 20.2.2.30 Math.sinh(x)
 var $export = __webpack_require__(0);
-var expm1 = __webpack_require__(136);
+var expm1 = __webpack_require__(135);
 var exp = Math.exp;
 
 // V8 near Chromium 38 has a problem with very small numbers
@@ -45359,7 +45359,7 @@ $export($export.S + $export.F * __webpack_require__(7)(function () {
 
 // 20.2.2.33 Math.tanh(x)
 var $export = __webpack_require__(0);
-var expm1 = __webpack_require__(136);
+var expm1 = __webpack_require__(135);
 var exp = Math.exp;
 
 $export($export.S, 'Math', {
@@ -45394,7 +45394,7 @@ $export($export.S, 'Math', {
 var global = __webpack_require__(5);
 var has = __webpack_require__(17);
 var cof = __webpack_require__(24);
-var inheritIfRequired = __webpack_require__(132);
+var inheritIfRequired = __webpack_require__(131);
 var toPrimitive = __webpack_require__(30);
 var fails = __webpack_require__(7);
 var gOPN = __webpack_require__(44).f;
@@ -45576,7 +45576,7 @@ $export($export.S + $export.F * (Number.parseInt != $parseInt), 'Number', { pars
 var $export = __webpack_require__(0);
 var toInteger = __webpack_require__(29);
 var aNumberValue = __webpack_require__(179);
-var repeat = __webpack_require__(147);
+var repeat = __webpack_require__(146);
 var $toFixed = 1.0.toFixed;
 var floor = Math.floor;
 var data = [0, 0, 0, 0, 0, 0];
@@ -45720,7 +45720,7 @@ $export($export.P + $export.F * ($fails(function () {
 // 19.1.3.1 Object.assign(target, source)
 var $export = __webpack_require__(0);
 
-$export($export.S + $export.F, 'Object', { assign: __webpack_require__(140) });
+$export($export.S + $export.F, 'Object', { assign: __webpack_require__(139) });
 
 
 /***/ },
@@ -45907,7 +45907,7 @@ __webpack_require__(28)('seal', function ($seal) {
 
 // 19.1.3.19 Object.setPrototypeOf(O, proto)
 var $export = __webpack_require__(0);
-$export($export.S, 'Object', { setPrototypeOf: __webpack_require__(143).set });
+$export($export.S, 'Object', { setPrototypeOf: __webpack_require__(142).set });
 
 
 /***/ },
@@ -45962,12 +45962,12 @@ var isObject = __webpack_require__(6);
 var aFunction = __webpack_require__(13);
 var anInstance = __webpack_require__(41);
 var forOf = __webpack_require__(37);
-var speciesConstructor = __webpack_require__(76);
-var task = __webpack_require__(149).set;
-var microtask = __webpack_require__(138)();
-var newPromiseCapabilityModule = __webpack_require__(139);
+var speciesConstructor = __webpack_require__(75);
+var task = __webpack_require__(148).set;
+var microtask = __webpack_require__(137)();
+var newPromiseCapabilityModule = __webpack_require__(138);
 var perform = __webpack_require__(203);
-var userAgent = __webpack_require__(78);
+var userAgent = __webpack_require__(77);
 var promiseResolve = __webpack_require__(204);
 var PROMISE = 'Promise';
 var TypeError = global.TypeError;
@@ -46194,7 +46194,7 @@ $export($export.S + $export.F * (LIBRARY || !USE_NATIVE), PROMISE, {
     return promiseResolve(LIBRARY && this === Wrapper ? $Promise : this, x);
   }
 });
-$export($export.S + $export.F * !(USE_NATIVE && __webpack_require__(70)(function (iter) {
+$export($export.S + $export.F * !(USE_NATIVE && __webpack_require__(69)(function (iter) {
   $Promise.all(iter)['catch'](empty);
 })), PROMISE, {
   // 25.4.4.1 Promise.all(iterable)
@@ -46377,7 +46377,7 @@ var Enumerate = function (iterated) {
   var key;
   for (key in iterated) keys.push(key);
 };
-__webpack_require__(68)(Enumerate, 'Object', function () {
+__webpack_require__(67)(Enumerate, 'Object', function () {
   var that = this;
   var keys = that._k;
   var key;
@@ -46491,7 +46491,7 @@ $export($export.S, 'Reflect', {
 // 26.1.11 Reflect.ownKeys(target)
 var $export = __webpack_require__(0);
 
-$export($export.S, 'Reflect', { ownKeys: __webpack_require__(141) });
+$export($export.S, 'Reflect', { ownKeys: __webpack_require__(140) });
 
 
 /***/ },
@@ -46522,7 +46522,7 @@ $export($export.S, 'Reflect', {
 
 // 26.1.14 Reflect.setPrototypeOf(target, proto)
 var $export = __webpack_require__(0);
-var setProto = __webpack_require__(143);
+var setProto = __webpack_require__(142);
 
 if (setProto) $export($export.S, 'Reflect', {
   setPrototypeOf: function setPrototypeOf(target, proto) {
@@ -46581,11 +46581,11 @@ $export($export.S, 'Reflect', { set: set });
 /***/ function(module, exports, __webpack_require__) {
 
 var global = __webpack_require__(5);
-var inheritIfRequired = __webpack_require__(132);
+var inheritIfRequired = __webpack_require__(131);
 var dP = __webpack_require__(9).f;
 var gOPN = __webpack_require__(44).f;
-var isRegExp = __webpack_require__(67);
-var $flags = __webpack_require__(65);
+var isRegExp = __webpack_require__(66);
+var $flags = __webpack_require__(64);
 var $RegExp = global.RegExp;
 var Base = $RegExp;
 var proto = $RegExp.prototype;
@@ -46630,7 +46630,7 @@ __webpack_require__(46)('RegExp');
 /***/ function(module, exports, __webpack_require__) {
 
 // @@match logic
-__webpack_require__(64)('match', 1, function (defined, MATCH, $match) {
+__webpack_require__(63)('match', 1, function (defined, MATCH, $match) {
   // 21.1.3.11 String.prototype.match(regexp)
   return [function match(regexp) {
     'use strict';
@@ -46646,7 +46646,7 @@ __webpack_require__(64)('match', 1, function (defined, MATCH, $match) {
 /***/ function(module, exports, __webpack_require__) {
 
 // @@replace logic
-__webpack_require__(64)('replace', 2, function (defined, REPLACE, $replace) {
+__webpack_require__(63)('replace', 2, function (defined, REPLACE, $replace) {
   // 21.1.3.14 String.prototype.replace(searchValue, replaceValue)
   return [function replace(searchValue, replaceValue) {
     'use strict';
@@ -46664,7 +46664,7 @@ __webpack_require__(64)('replace', 2, function (defined, REPLACE, $replace) {
 /***/ function(module, exports, __webpack_require__) {
 
 // @@search logic
-__webpack_require__(64)('search', 1, function (defined, SEARCH, $search) {
+__webpack_require__(63)('search', 1, function (defined, SEARCH, $search) {
   // 21.1.3.15 String.prototype.search(regexp)
   return [function search(regexp) {
     'use strict';
@@ -46680,9 +46680,9 @@ __webpack_require__(64)('search', 1, function (defined, SEARCH, $search) {
 /***/ function(module, exports, __webpack_require__) {
 
 // @@split logic
-__webpack_require__(64)('split', 2, function (defined, SPLIT, $split) {
+__webpack_require__(63)('split', 2, function (defined, SPLIT, $split) {
   'use strict';
-  var isRegExp = __webpack_require__(67);
+  var isRegExp = __webpack_require__(66);
   var _split = $split;
   var $push = [].push;
   var $SPLIT = 'split';
@@ -46760,7 +46760,7 @@ __webpack_require__(64)('split', 2, function (defined, SPLIT, $split) {
 'use strict';
 __webpack_require__(210);
 var anObject = __webpack_require__(4);
-var $flags = __webpack_require__(65);
+var $flags = __webpack_require__(64);
 var DESCRIPTORS = __webpack_require__(10);
 var TO_STRING = 'toString';
 var $toString = /./[TO_STRING];
@@ -46847,7 +46847,7 @@ __webpack_require__(22)('bold', function (createHTML) {
 "use strict";
 'use strict';
 var $export = __webpack_require__(0);
-var $at = __webpack_require__(145)(false);
+var $at = __webpack_require__(144)(false);
 $export($export.P, 'String', {
   // 21.1.3.3 String.prototype.codePointAt(pos)
   codePointAt: function codePointAt(pos) {
@@ -46865,11 +46865,11 @@ $export($export.P, 'String', {
 'use strict';
 var $export = __webpack_require__(0);
 var toLength = __webpack_require__(11);
-var context = __webpack_require__(146);
+var context = __webpack_require__(145);
 var ENDS_WITH = 'endsWith';
 var $endsWith = ''[ENDS_WITH];
 
-$export($export.P + $export.F * __webpack_require__(130)(ENDS_WITH), 'String', {
+$export($export.P + $export.F * __webpack_require__(129)(ENDS_WITH), 'String', {
   endsWith: function endsWith(searchString /* , endPosition = @length */) {
     var that = context(this, searchString, ENDS_WITH);
     var endPosition = arguments.length > 1 ? arguments[1] : undefined;
@@ -46962,10 +46962,10 @@ $export($export.S + $export.F * (!!$fromCodePoint && $fromCodePoint.length != 1)
 // 21.1.3.7 String.prototype.includes(searchString, position = 0)
 'use strict';
 var $export = __webpack_require__(0);
-var context = __webpack_require__(146);
+var context = __webpack_require__(145);
 var INCLUDES = 'includes';
 
-$export($export.P + $export.F * __webpack_require__(130)(INCLUDES), 'String', {
+$export($export.P + $export.F * __webpack_require__(129)(INCLUDES), 'String', {
   includes: function includes(searchString /* , position = 0 */) {
     return !!~context(this, searchString, INCLUDES)
       .indexOf(searchString, arguments.length > 1 ? arguments[1] : undefined);
@@ -46993,10 +46993,10 @@ __webpack_require__(22)('italics', function (createHTML) {
 
 "use strict";
 'use strict';
-var $at = __webpack_require__(145)(true);
+var $at = __webpack_require__(144)(true);
 
 // 21.1.3.27 String.prototype[@@iterator]()
-__webpack_require__(69)(String, 'String', function (iterated) {
+__webpack_require__(68)(String, 'String', function (iterated) {
   this._t = String(iterated); // target
   this._i = 0;                // next index
 // 21.1.5.2.1 %StringIteratorPrototype%.next()
@@ -47057,7 +47057,7 @@ var $export = __webpack_require__(0);
 
 $export($export.P, 'String', {
   // 21.1.3.13 String.prototype.repeat(count)
-  repeat: __webpack_require__(147)
+  repeat: __webpack_require__(146)
 });
 
 
@@ -47084,11 +47084,11 @@ __webpack_require__(22)('small', function (createHTML) {
 'use strict';
 var $export = __webpack_require__(0);
 var toLength = __webpack_require__(11);
-var context = __webpack_require__(146);
+var context = __webpack_require__(145);
 var STARTS_WITH = 'startsWith';
 var $startsWith = ''[STARTS_WITH];
 
-$export($export.P + $export.F * __webpack_require__(130)(STARTS_WITH), 'String', {
+$export($export.P + $export.F * __webpack_require__(129)(STARTS_WITH), 'String', {
   startsWith: function startsWith(searchString /* , position = 0 */) {
     var that = context(this, searchString, STARTS_WITH);
     var index = toLength(Math.min(arguments.length > 1 ? arguments[1] : undefined, that.length));
@@ -47170,14 +47170,14 @@ var $export = __webpack_require__(0);
 var redefine = __webpack_require__(21);
 var META = __webpack_require__(39).KEY;
 var $fails = __webpack_require__(7);
-var shared = __webpack_require__(75);
+var shared = __webpack_require__(74);
 var setToStringTag = __webpack_require__(49);
 var uid = __webpack_require__(48);
 var wks = __webpack_require__(8);
 var wksExt = __webpack_require__(207);
-var wksDefine = __webpack_require__(151);
+var wksDefine = __webpack_require__(150);
 var enumKeys = __webpack_require__(376);
-var isArray = __webpack_require__(66);
+var isArray = __webpack_require__(65);
 var anObject = __webpack_require__(4);
 var isObject = __webpack_require__(6);
 var toIObject = __webpack_require__(15);
@@ -47312,7 +47312,7 @@ if (!USE_NATIVE) {
   $DP.f = $defineProperty;
   __webpack_require__(44).f = gOPNExt.f = $getOwnPropertyNames;
   __webpack_require__(54).f = $propertyIsEnumerable;
-  __webpack_require__(72).f = $getOwnPropertySymbols;
+  __webpack_require__(71).f = $getOwnPropertySymbols;
 
   if (DESCRIPTORS && !__webpack_require__(38)) {
     redefine(ObjectProto, 'propertyIsEnumerable', $propertyIsEnumerable, true);
@@ -47404,14 +47404,14 @@ setToStringTag(global.JSON, 'JSON', true);
 "use strict";
 'use strict';
 var $export = __webpack_require__(0);
-var $typed = __webpack_require__(77);
-var buffer = __webpack_require__(150);
+var $typed = __webpack_require__(76);
+var buffer = __webpack_require__(149);
 var anObject = __webpack_require__(4);
 var toAbsoluteIndex = __webpack_require__(47);
 var toLength = __webpack_require__(11);
 var isObject = __webpack_require__(6);
 var ArrayBuffer = __webpack_require__(5).ArrayBuffer;
-var speciesConstructor = __webpack_require__(76);
+var speciesConstructor = __webpack_require__(75);
 var $ArrayBuffer = buffer.ArrayBuffer;
 var $DataView = buffer.DataView;
 var $isView = $typed.ABV && ArrayBuffer.isView;
@@ -47455,8 +47455,8 @@ __webpack_require__(46)(ARRAY_BUFFER);
 /***/ function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
-$export($export.G + $export.W + $export.F * !__webpack_require__(77).ABV, {
-  DataView: __webpack_require__(150).DataView
+$export($export.G + $export.W + $export.F * !__webpack_require__(76).ABV, {
+  DataView: __webpack_require__(149).DataView
 });
 
 
@@ -47570,7 +47570,7 @@ var validate = __webpack_require__(51);
 var WEAK_SET = 'WeakSet';
 
 // 23.4 WeakSet Objects
-__webpack_require__(63)(WEAK_SET, function (get) {
+__webpack_require__(62)(WEAK_SET, function (get) {
   return function WeakSet() { return get(this, arguments.length > 0 ? arguments[0] : undefined); };
 }, {
   // 23.4.3.1 WeakSet.prototype.add(value)
@@ -47592,7 +47592,7 @@ var flattenIntoArray = __webpack_require__(187);
 var toObject = __webpack_require__(12);
 var toLength = __webpack_require__(11);
 var aFunction = __webpack_require__(13);
-var arraySpeciesCreate = __webpack_require__(126);
+var arraySpeciesCreate = __webpack_require__(125);
 
 $export($export.P, 'Array', {
   flatMap: function flatMap(callbackfn /* , thisArg */) {
@@ -47621,7 +47621,7 @@ var flattenIntoArray = __webpack_require__(187);
 var toObject = __webpack_require__(12);
 var toLength = __webpack_require__(11);
 var toInteger = __webpack_require__(29);
-var arraySpeciesCreate = __webpack_require__(126);
+var arraySpeciesCreate = __webpack_require__(125);
 
 $export($export.P, 'Array', {
   flatten: function flatten(/* depthArg = 1 */) {
@@ -47645,7 +47645,7 @@ __webpack_require__(36)('flatten');
 'use strict';
 // https://github.com/tc39/Array.prototype.includes
 var $export = __webpack_require__(0);
-var $includes = __webpack_require__(62)(true);
+var $includes = __webpack_require__(61)(true);
 
 $export($export.P, 'Array', {
   includes: function includes(el /* , fromIndex = 0 */) {
@@ -47662,7 +47662,7 @@ __webpack_require__(36)('includes');
 
 // https://github.com/rwaldron/tc39-notes/blob/master/es6/2014-09/sept-25.md#510-globalasap-for-enqueuing-a-microtask
 var $export = __webpack_require__(0);
-var microtask = __webpack_require__(138)();
+var microtask = __webpack_require__(137)();
 var process = __webpack_require__(5).process;
 var isNode = __webpack_require__(24)(process) == 'process';
 
@@ -47704,7 +47704,7 @@ $export($export.G, { global: __webpack_require__(5) });
 /***/ function(module, exports, __webpack_require__) {
 
 // https://tc39.github.io/proposal-setmap-offrom/#sec-map.from
-__webpack_require__(73)('Map');
+__webpack_require__(72)('Map');
 
 
 /***/ },
@@ -47712,7 +47712,7 @@ __webpack_require__(73)('Map');
 /***/ function(module, exports, __webpack_require__) {
 
 // https://tc39.github.io/proposal-setmap-offrom/#sec-map.of
-__webpack_require__(74)('Map');
+__webpack_require__(73)('Map');
 
 
 /***/ },
@@ -47918,7 +47918,7 @@ var aFunction = __webpack_require__(13);
 var $defineProperty = __webpack_require__(9);
 
 // B.2.2.2 Object.prototype.__defineGetter__(P, getter)
-__webpack_require__(10) && $export($export.P + __webpack_require__(71), 'Object', {
+__webpack_require__(10) && $export($export.P + __webpack_require__(70), 'Object', {
   __defineGetter__: function __defineGetter__(P, getter) {
     $defineProperty.f(toObject(this), P, { get: aFunction(getter), enumerable: true, configurable: true });
   }
@@ -47937,7 +47937,7 @@ var aFunction = __webpack_require__(13);
 var $defineProperty = __webpack_require__(9);
 
 // B.2.2.3 Object.prototype.__defineSetter__(P, setter)
-__webpack_require__(10) && $export($export.P + __webpack_require__(71), 'Object', {
+__webpack_require__(10) && $export($export.P + __webpack_require__(70), 'Object', {
   __defineSetter__: function __defineSetter__(P, setter) {
     $defineProperty.f(toObject(this), P, { set: aFunction(setter), enumerable: true, configurable: true });
   }
@@ -47965,10 +47965,10 @@ $export($export.S, 'Object', {
 
 // https://github.com/tc39/proposal-object-getownpropertydescriptors
 var $export = __webpack_require__(0);
-var ownKeys = __webpack_require__(141);
+var ownKeys = __webpack_require__(140);
 var toIObject = __webpack_require__(15);
 var gOPD = __webpack_require__(19);
-var createProperty = __webpack_require__(127);
+var createProperty = __webpack_require__(126);
 
 $export($export.S, 'Object', {
   getOwnPropertyDescriptors: function getOwnPropertyDescriptors(object) {
@@ -48000,7 +48000,7 @@ var getPrototypeOf = __webpack_require__(20);
 var getOwnPropertyDescriptor = __webpack_require__(19).f;
 
 // B.2.2.4 Object.prototype.__lookupGetter__(P)
-__webpack_require__(10) && $export($export.P + __webpack_require__(71), 'Object', {
+__webpack_require__(10) && $export($export.P + __webpack_require__(70), 'Object', {
   __lookupGetter__: function __lookupGetter__(P) {
     var O = toObject(this);
     var K = toPrimitive(P, true);
@@ -48025,7 +48025,7 @@ var getPrototypeOf = __webpack_require__(20);
 var getOwnPropertyDescriptor = __webpack_require__(19).f;
 
 // B.2.2.5 Object.prototype.__lookupSetter__(P)
-__webpack_require__(10) && $export($export.P + __webpack_require__(71), 'Object', {
+__webpack_require__(10) && $export($export.P + __webpack_require__(70), 'Object', {
   __lookupSetter__: function __lookupSetter__(P) {
     var O = toObject(this);
     var K = toPrimitive(P, true);
@@ -48062,7 +48062,7 @@ $export($export.S, 'Object', {
 var $export = __webpack_require__(0);
 var global = __webpack_require__(5);
 var core = __webpack_require__(14);
-var microtask = __webpack_require__(138)();
+var microtask = __webpack_require__(137)();
 var OBSERVABLE = __webpack_require__(8)('observable');
 var aFunction = __webpack_require__(13);
 var anObject = __webpack_require__(4);
@@ -48268,7 +48268,7 @@ __webpack_require__(46)('Observable');
 var $export = __webpack_require__(0);
 var core = __webpack_require__(14);
 var global = __webpack_require__(5);
-var speciesConstructor = __webpack_require__(76);
+var speciesConstructor = __webpack_require__(75);
 var promiseResolve = __webpack_require__(204);
 
 $export($export.P + $export.R, 'Promise', { 'finally': function (onFinally) {
@@ -48293,7 +48293,7 @@ $export($export.P + $export.R, 'Promise', { 'finally': function (onFinally) {
 'use strict';
 // https://github.com/tc39/proposal-promise-try
 var $export = __webpack_require__(0);
-var newPromiseCapability = __webpack_require__(139);
+var newPromiseCapability = __webpack_require__(138);
 var perform = __webpack_require__(203);
 
 $export($export.S, 'Promise', { 'try': function (callbackfn) {
@@ -48479,7 +48479,7 @@ $metadata.exp({ metadata: function metadata(metadataKey, metadataValue) {
 /***/ function(module, exports, __webpack_require__) {
 
 // https://tc39.github.io/proposal-setmap-offrom/#sec-set.from
-__webpack_require__(73)('Set');
+__webpack_require__(72)('Set');
 
 
 /***/ },
@@ -48487,7 +48487,7 @@ __webpack_require__(73)('Set');
 /***/ function(module, exports, __webpack_require__) {
 
 // https://tc39.github.io/proposal-setmap-offrom/#sec-set.of
-__webpack_require__(74)('Set');
+__webpack_require__(73)('Set');
 
 
 /***/ },
@@ -48508,7 +48508,7 @@ $export($export.P + $export.R, 'Set', { toJSON: __webpack_require__(185)('Set') 
 'use strict';
 // https://github.com/mathiasbynens/String.prototype.at
 var $export = __webpack_require__(0);
-var $at = __webpack_require__(145)(true);
+var $at = __webpack_require__(144)(true);
 
 $export($export.P, 'String', {
   at: function at(pos) {
@@ -48527,8 +48527,8 @@ $export($export.P, 'String', {
 var $export = __webpack_require__(0);
 var defined = __webpack_require__(27);
 var toLength = __webpack_require__(11);
-var isRegExp = __webpack_require__(67);
-var getFlags = __webpack_require__(65);
+var isRegExp = __webpack_require__(66);
+var getFlags = __webpack_require__(64);
 var RegExpProto = RegExp.prototype;
 
 var $RegExpStringIterator = function (regexp, string) {
@@ -48536,7 +48536,7 @@ var $RegExpStringIterator = function (regexp, string) {
   this._s = string;
 };
 
-__webpack_require__(68)($RegExpStringIterator, 'RegExp String', function next() {
+__webpack_require__(67)($RegExpStringIterator, 'RegExp String', function next() {
   var match = this._r.exec(this._s);
   return { value: match, done: match === null };
 });
@@ -48563,7 +48563,7 @@ $export($export.P, 'String', {
 // https://github.com/tc39/proposal-string-pad-start-end
 var $export = __webpack_require__(0);
 var $pad = __webpack_require__(205);
-var userAgent = __webpack_require__(78);
+var userAgent = __webpack_require__(77);
 
 // https://github.com/zloirock/core-js/issues/280
 $export($export.P + $export.F * /Version\/10\.\d+(\.\d+)? Safari\//.test(userAgent), 'String', {
@@ -48582,7 +48582,7 @@ $export($export.P + $export.F * /Version\/10\.\d+(\.\d+)? Safari\//.test(userAge
 // https://github.com/tc39/proposal-string-pad-start-end
 var $export = __webpack_require__(0);
 var $pad = __webpack_require__(205);
-var userAgent = __webpack_require__(78);
+var userAgent = __webpack_require__(77);
 
 // https://github.com/zloirock/core-js/issues/280
 $export($export.P + $export.F * /Version\/10\.\d+(\.\d+)? Safari\//.test(userAgent), 'String', {
@@ -48624,14 +48624,14 @@ __webpack_require__(50)('trimRight', function ($trim) {
 /* 572 */
 /***/ function(module, exports, __webpack_require__) {
 
-__webpack_require__(151)('asyncIterator');
+__webpack_require__(150)('asyncIterator');
 
 
 /***/ },
 /* 573 */
 /***/ function(module, exports, __webpack_require__) {
 
-__webpack_require__(151)('observable');
+__webpack_require__(150)('observable');
 
 
 /***/ },
@@ -48649,7 +48649,7 @@ $export($export.S, 'System', { global: __webpack_require__(5) });
 /***/ function(module, exports, __webpack_require__) {
 
 // https://tc39.github.io/proposal-setmap-offrom/#sec-weakmap.from
-__webpack_require__(73)('WeakMap');
+__webpack_require__(72)('WeakMap');
 
 
 /***/ },
@@ -48657,7 +48657,7 @@ __webpack_require__(73)('WeakMap');
 /***/ function(module, exports, __webpack_require__) {
 
 // https://tc39.github.io/proposal-setmap-offrom/#sec-weakmap.of
-__webpack_require__(74)('WeakMap');
+__webpack_require__(73)('WeakMap');
 
 
 /***/ },
@@ -48665,7 +48665,7 @@ __webpack_require__(74)('WeakMap');
 /***/ function(module, exports, __webpack_require__) {
 
 // https://tc39.github.io/proposal-setmap-offrom/#sec-weakset.from
-__webpack_require__(73)('WeakSet');
+__webpack_require__(72)('WeakSet');
 
 
 /***/ },
@@ -48673,14 +48673,14 @@ __webpack_require__(73)('WeakSet');
 /***/ function(module, exports, __webpack_require__) {
 
 // https://tc39.github.io/proposal-setmap-offrom/#sec-weakset.of
-__webpack_require__(74)('WeakSet');
+__webpack_require__(73)('WeakSet');
 
 
 /***/ },
 /* 579 */
 /***/ function(module, exports, __webpack_require__) {
 
-var $iterators = __webpack_require__(152);
+var $iterators = __webpack_require__(151);
 var getKeys = __webpack_require__(33);
 var redefine = __webpack_require__(21);
 var global = __webpack_require__(5);
@@ -48745,7 +48745,7 @@ for (var collections = getKeys(DOMIterables), i = 0; i < collections.length; i++
 /***/ function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(0);
-var $task = __webpack_require__(149);
+var $task = __webpack_require__(148);
 $export($export.G + $export.B, {
   setImmediate: $task.set,
   clearImmediate: $task.clear
@@ -48759,7 +48759,7 @@ $export($export.G + $export.B, {
 // ie9- setTimeout & setInterval additional parameters fix
 var global = __webpack_require__(5);
 var $export = __webpack_require__(0);
-var userAgent = __webpack_require__(78);
+var userAgent = __webpack_require__(77);
 var slice = [].slice;
 var MSIE = /MSIE .\./.test(userAgent); // <- dirty ie9- check
 var wrap = function (set) {
@@ -48881,7 +48881,7 @@ __webpack_require__(393);
 __webpack_require__(396);
 __webpack_require__(395);
 __webpack_require__(410);
-__webpack_require__(152);
+__webpack_require__(151);
 __webpack_require__(482);
 __webpack_require__(487);
 __webpack_require__(210);
@@ -52307,7 +52307,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _toDate = __webpack_require__(174);
+var _toDate = __webpack_require__(173);
 
 var _toDate2 = _interopRequireDefault(_toDate);
 
@@ -52351,7 +52351,7 @@ var _isIP = __webpack_require__(355);
 
 var _isIP2 = _interopRequireDefault(_isIP);
 
-var _isFQDN = __webpack_require__(173);
+var _isFQDN = __webpack_require__(172);
 
 var _isFQDN2 = _interopRequireDefault(_isFQDN);
 
@@ -52559,7 +52559,7 @@ var _normalizeEmail = __webpack_require__(643);
 
 var _normalizeEmail2 = _interopRequireDefault(_normalizeEmail);
 
-var _toString = __webpack_require__(175);
+var _toString = __webpack_require__(174);
 
 var _toString2 = _interopRequireDefault(_toString);
 
@@ -52654,7 +52654,7 @@ var _assertString = __webpack_require__(2);
 
 var _assertString2 = _interopRequireDefault(_assertString);
 
-var _toString = __webpack_require__(175);
+var _toString = __webpack_require__(174);
 
 var _toString2 = _interopRequireDefault(_toString);
 
@@ -52730,7 +52730,7 @@ var _assertString = __webpack_require__(2);
 
 var _assertString2 = _interopRequireDefault(_assertString);
 
-var _toDate = __webpack_require__(174);
+var _toDate = __webpack_require__(173);
 
 var _toDate2 = _interopRequireDefault(_toDate);
 
@@ -52883,7 +52883,7 @@ var _assertString = __webpack_require__(2);
 
 var _assertString2 = _interopRequireDefault(_assertString);
 
-var _toDate = __webpack_require__(174);
+var _toDate = __webpack_require__(173);
 
 var _toDate2 = _interopRequireDefault(_toDate);
 
@@ -53529,7 +53529,7 @@ var _assertString = __webpack_require__(2);
 
 var _assertString2 = _interopRequireDefault(_assertString);
 
-var _toString = __webpack_require__(175);
+var _toString = __webpack_require__(174);
 
 var _toString2 = _interopRequireDefault(_toString);
 
@@ -54072,7 +54072,7 @@ var _assertString = __webpack_require__(2);
 
 var _assertString2 = _interopRequireDefault(_assertString);
 
-var _isFQDN = __webpack_require__(173);
+var _isFQDN = __webpack_require__(172);
 
 var _isFQDN2 = _interopRequireDefault(_isFQDN);
 
@@ -54709,7 +54709,7 @@ module.exports = function isBuffer(arg) {
 /* 655 */
 /***/ function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function(global) {
+
 __webpack_require__(365)
 
 var Buffer = __webpack_require__(59).Buffer
@@ -54763,26 +54763,23 @@ var parse = function(sentence){
 	 //print("JS:NMEA: unsupported sentence "+sentence);
 	  return "Error:NMEA: unsupported sentence "+sentence;
   }
-  var parser = mappings[id](this, {
-    id: id,
-    sentence: sentence,
-    parts: split,
-    tags: tags
-  });
-  var result;
-  parser.then(function (data) {
-	  //print(JSON.stringify(transformSource(data, id, talker)))
-	  	result= JSON.stringify(transformSource(data, id, talker))
-	    
-	  })
-	  .catch(function (error) {
-		  //print('JS:Error:')
-	  	result= "Error:NMEA:"+JSON.stringify(error);
-	    
-	  })
+  //print('JS:Debug:'+JSON.stringify(mappings[id]));
+  if (typeof mappings[id] === 'function') {
+      var result = mappings[id]({
+        id: id,
+        sentence: sentence,
+        parts: split,
+        tags: tags
+      });
+      //print('JS:Debug:'+JSON.stringify(result));
+      //print('JS:Debug:'+JSON.stringify(transformSource(data, id, talker)))
+      return JSON.stringify(transformSource(result, id, talker));
+    } else {
+      return null;
+    }
   
   
-  global.nashornEventLoop.process();
+ // global.nashornEventLoop.process();
 
   return result
 }
@@ -54792,7 +54789,6 @@ module.exports = {
 		parse : parse
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(60)))
 
 /***/ }
 /******/ ]);

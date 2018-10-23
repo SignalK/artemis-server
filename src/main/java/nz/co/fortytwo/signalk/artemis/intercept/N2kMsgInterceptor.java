@@ -28,9 +28,12 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self_str;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.io.File;
+import java.io.IOException;
 
+import javax.script.Bindings;
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
+import javax.script.ScriptException;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ActiveMQExceptionType;
@@ -49,6 +52,7 @@ import com.coveo.nashorn_modules.FilesystemFolder;
 import com.coveo.nashorn_modules.Folder;
 import com.coveo.nashorn_modules.ResourceFolder;
 
+import jdk.nashorn.api.scripting.NashornScriptEngine;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
@@ -64,6 +68,7 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 public class N2kMsgInterceptor extends JsBaseInterceptor implements Interceptor {
 
 	private static Logger logger = LogManager.getLogger(N2kMsgInterceptor.class);
+	private ThreadLocal<Bindings> engineHolder;
 	
 	@SuppressWarnings("restriction")
 	public N2kMsgInterceptor() throws Exception {
@@ -83,17 +88,26 @@ public class N2kMsgInterceptor extends JsBaseInterceptor implements Interceptor 
 		
 		if(logger.isDebugEnabled())logger.debug("Starting nashorn env from: {}", rootFolder.getPath());
 		
-		engineHolder = ThreadLocal.withInitial(() -> getEngine());
+		engine = getEngine();
 		
-		if(logger.isDebugEnabled())logger.debug("Load parser: {}", "n2k-signalk/dist/bundle.js");
+		engineHolder = ThreadLocal.withInitial(() -> {
+				return engine.createBindings();
+			
+		});
 		
-		engineHolder.get().eval(IOUtils.toString(getIOStream("n2k-signalk/dist/bundle.js")));
-		
-		if(logger.isDebugEnabled())logger.debug("Parser: {}",getN2kMapper());
 	
 	}
 
-	
+	protected NashornScriptEngine getEngine() throws IOException, ScriptException, NoSuchMethodException {
+		
+		if(logger.isDebugEnabled())logger.debug("Load parser: {}", "n2k-signalk/dist/bundle.js");
+		
+		engine.eval(IOUtils.toString(getIOStream("n2k-signalk/dist/bundle.js")));
+		
+		if(logger.isDebugEnabled())logger.debug("N2K mapper: {}",engine.get("n2kMapper"));	
+		return engine;
+		
+	}
 
 	@Override
 	public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException {
@@ -117,7 +131,7 @@ public class N2kMsgInterceptor extends JsBaseInterceptor implements Interceptor 
 					if (logger.isDebugEnabled())
 						logger.debug("Processing N2K: {}",bodyStr);
 
-					Object result = ((Invocable) engineHolder.get()).invokeMethod(getN2kMapper(),"toDelta", bodyStr);
+					Object result = ((Invocable) engineHolder.get()).invokeMethod(engineHolder.get().get("n2kMapper"),"toDelta", bodyStr);
 
 					if (logger.isDebugEnabled())
 						logger.debug("Processed N2K: {} ",result);
@@ -147,9 +161,5 @@ public class N2kMsgInterceptor extends JsBaseInterceptor implements Interceptor 
 		return true;
 	}
 
-
-	private Object getN2kMapper() {
-		return engineHolder.get().get("n2kMapper");
-	}
 
 }
