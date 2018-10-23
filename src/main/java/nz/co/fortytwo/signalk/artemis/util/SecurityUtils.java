@@ -111,7 +111,7 @@ public final class SecurityUtils {
 				.setSubject(username)
 				.setClaims(claims)
 				.setIssuedAt(DateTime.now().toDate())
-				.setExpiration(DateTime.now().plusHours(1).toDate())
+				.setExpiration(DateTime.now().plusHours(24).toDate())
 				.signWith(SignatureAlgorithm.HS512, key)
 				.compact();
 		// Return the issued token
