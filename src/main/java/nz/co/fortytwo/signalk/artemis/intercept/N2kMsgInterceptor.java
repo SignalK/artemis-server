@@ -141,9 +141,8 @@ public class N2kMsgInterceptor extends JsBaseInterceptor implements Interceptor 
 						return true;
 					}
 					Json json = Json.read(result.toString());
-					if(!json.has("delta"))return false;
-					
-					json = json.at("delta");
+					if(!json.isObject())return true;
+							
 					json.set(SignalKConstants.CONTEXT, vessels + dot + Util.fixSelfKey(self_str));
 					
 					message.putStringProperty(Config.AMQ_CONTENT_TYPE, Config.JSON_DELTA);
