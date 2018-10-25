@@ -159,8 +159,8 @@ public class NMEAMsgInterceptor extends JsBaseInterceptor implements Interceptor
 					if (logger.isDebugEnabled())
 						logger.debug("Processed NMEA:[" + result + "]");
 
-					if (result==null || StringUtils.isBlank(result.toString())|| result.toString().startsWith("Error")) {
-						logger.error(bodyStr + "," + result);
+					if (result==null || StringUtils.isBlank(result.toString())|| result.toString().startsWith("WARN")) {
+						logger.warn(bodyStr + "," + result);
 						return true;
 					}
 					Json json = Json.read(result.toString());

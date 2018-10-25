@@ -50,7 +50,7 @@ var parse = function(sentence){
   this.session = 0;
   if(mappings[id]==undefined){
 	 //print("JS:NMEA: unsupported sentence "+sentence);
-	  return "Error:NMEA: unsupported sentence "+sentence;
+	  return "WARN:NMEA: unsupported sentence "+sentence;
   }
   //print('JS:Debug:'+JSON.stringify(mappings[id]));
   if (typeof mappings[id] === 'function') {
