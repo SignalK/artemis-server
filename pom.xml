@@ -221,11 +221,8 @@
 			<artifactId>swagger-jaxrs2-servlet-initializer</artifactId>
 			<version>2.0.5</version>
 		</dependency>
-		<!-- <dependency> -->
-		<!-- <groupId>io.swagger</groupId> -->
-		<!-- <artifactId>swagger-jersey2-jaxrs</artifactId> -->
-		<!-- <version>${swagger-version}</version> -->
-		<!-- </dependency> -->
+
+
 		<!-- https://mvnrepository.com/artifact/com.sun.jersey/jersey-servlet -->
 		<dependency>
 			<groupId>org.glassfish.jersey.core</groupId>
@@ -243,13 +240,7 @@
 			<artifactId>jersey-media-json-jackson</artifactId>
 			<version>${jersey.version}</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/com.sun.jersey.contribs/jersey-contribs -->
-		<!-- <dependency> -->
-		<!-- <groupId>com.sun.jersey.contribs</groupId> -->
-		<!-- <artifactId>jersey-contribs</artifactId> -->
-		<!-- <version>${jersey.version}</version> -->
-		<!-- <type>pom</type> -->
-		<!-- </dependency> -->
+
 		<dependency>
 			<groupId>javax.ws.rs</groupId>
 			<artifactId>javax.ws.rs-api</artifactId>
@@ -321,7 +312,7 @@
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.11</version>
-<!-- 			<scope>test</scope> -->
+			<!-- <scope>test</scope> -->
 		</dependency>
 		<dependency>
 			<groupId>org.asynchttpclient</groupId>
@@ -341,7 +332,18 @@
 			<version>2.2.8</version>
 			<scope>test</scope>
 		</dependency>
-
+		<dependency>
+			<groupId>com.intuit.karate</groupId>
+			<artifactId>karate-apache</artifactId>
+			<version>0.8.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.intuit.karate</groupId>
+			<artifactId>karate-junit4</artifactId>
+			<version>0.8.0</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
@@ -354,28 +356,28 @@
 					<target>1.8</target>
 				</configuration>
 			</plugin>
-			
-<!-- 			<plugin> -->
-<!-- 				<groupId>org.jsonschema2pojo</groupId> -->
-<!-- 				<artifactId>jsonschema2pojo-maven-plugin</artifactId> -->
-<!-- 				<version>0.5.1</version> -->
-<!-- 				<configuration> -->
-<!-- 					<sourceType>json</sourceType> -->
-<!-- 					<sourceDirectory>${basedir}/../specification/samples</sourceDirectory> -->
-<!-- 					<targetPackage>org.signalk.schema</targetPackage> -->
-<!-- 					<includeAccessors>false</includeAccessors> -->
-<!-- 					<generateBuilders>true</generateBuilders> -->
-<!-- 					<outputDirectory>${basedir}/src/main/java</outputDirectory> -->
-<!-- 					<useCommonsLang3>true</useCommonsLang3> -->
-<!-- 				</configuration> -->
-<!-- 				<executions> -->
-<!-- 					<execution> -->
-<!-- 						<goals> -->
-<!-- 							<goal>generate</goal> -->
-<!-- 						</goals> -->
-<!-- 					</execution> -->
-<!-- 				</executions> -->
-<!-- 			</plugin> -->
+
+			<!-- <plugin> -->
+			<!-- <groupId>org.jsonschema2pojo</groupId> -->
+			<!-- <artifactId>jsonschema2pojo-maven-plugin</artifactId> -->
+			<!-- <version>0.5.1</version> -->
+			<!-- <configuration> -->
+			<!-- <sourceType>json</sourceType> -->
+			<!-- <sourceDirectory>${basedir}/../specification/samples</sourceDirectory> -->
+			<!-- <targetPackage>org.signalk.schema</targetPackage> -->
+			<!-- <includeAccessors>false</includeAccessors> -->
+			<!-- <generateBuilders>true</generateBuilders> -->
+			<!-- <outputDirectory>${basedir}/src/main/java</outputDirectory> -->
+			<!-- <useCommonsLang3>true</useCommonsLang3> -->
+			<!-- </configuration> -->
+			<!-- <executions> -->
+			<!-- <execution> -->
+			<!-- <goals> -->
+			<!-- <goal>generate</goal> -->
+			<!-- </goals> -->
+			<!-- </execution> -->
+			<!-- </executions> -->
+			<!-- </plugin> -->
 
 
 			<plugin>

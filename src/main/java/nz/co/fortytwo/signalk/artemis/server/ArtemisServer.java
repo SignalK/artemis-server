@@ -125,10 +125,6 @@ public final class ArtemisServer {
 		}
 		
 		addShutdownHook(this);
-	
-		//swagger
-		buildSwagger();
-		
 		
 		server = new Nettosphere.Builder().config(
 				new org.atmosphere.nettosphere.Config.Builder()
@@ -147,11 +143,7 @@ public final class ArtemisServer {
 						.initParam("org.atmosphere.cpr.Broadcaster.writeTimeout", "30000")
 						.initParam("org.atmosphere.cpr.broadcasterLifeCyclePolicy","EMPTY_DESTROY")
 						.initParam("org.atmosphere.websocket.WebSocketProcessor","nz.co.fortytwo.signalk.artemis.server.SignalkWebSocketProcessor")
-						//.resource("/signalk/*",AtmosphereServlet.class)
-						//.resource("/*",FileSystemResourceServlet.class)
-						//swagger
-						//.initParam("openApi.configuration.resourcePackages", "nz.co.fortytwo.signalk.artemis.service")
-						//.resource("/swagger/*",OpenApiServlet.class)
+						
 						.port(8080)
 						.host("0.0.0.0")
 					.build()
@@ -334,20 +326,7 @@ public final class ArtemisServer {
 		return txtSet;
 	}
 	
-	private static void buildSwagger()
-    {
-        // This configures Swagger
-//        BeanConfig beanConfig = new BeanConfig();
-//        beanConfig.setVersion( "1.0.0" );
-//        beanConfig.setResourcePackage("nz.co.fortytwo.signalk.artemis.service");
-//        
-//        beanConfig.setScan( true );
-//        beanConfig.setBasePath( "/" );
-//        beanConfig.setDescription( "Manages webapp lifecycle in a signalk web server" );
-//        beanConfig.setTitle( "Signalk Webapp Management API" );
-        
-		
-    }
+	
 
 	static {
         System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");

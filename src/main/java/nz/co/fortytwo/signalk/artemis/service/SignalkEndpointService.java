@@ -30,12 +30,11 @@ public class SignalkEndpointService {
 	    @ApiResponse(responseCode = "500", description = "Internal server error")
 	    })
 	@GET
-	@Produces(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON+";charset=UTF-8")
 	public Response onGet(@Context HttpServletRequest req) {
 		try {
 			return Response.status(HttpStatus.SC_OK)
-			.entity(Config.getDiscoveryMsg(req.getLocalName()).toString())
-			.type(MediaType.APPLICATION_JSON).build();
+			.entity(Config.getDiscoveryMsg(req.getLocalName()).toString()).build();
 			
 		} catch (Exception e) {
 			logger.error(e,e);
