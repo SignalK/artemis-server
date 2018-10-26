@@ -10,6 +10,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URL;
 
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
@@ -97,7 +98,7 @@ public class AppsService extends BaseApiService {
 	    })
 	public Response install(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
 			@Parameter(description = "Name of webapp as found on npmjs.com", example="@signalk/freeboard-sk") @QueryParam("appName") String appName, 
-			@Parameter(description = "Version of webapp as found on npmjs.com", example="0.0.4") @QueryParam("appVersion") String appVersion) {
+			@Parameter(description = "Version of webapp as found on npmjs.com", example="1.0.0") @QueryParam("appVersion") String appVersion) {
 		try {
 			Thread t = new Thread() {
 
@@ -120,24 +121,6 @@ public class AppsService extends BaseApiService {
 		}
 	}
 
-	@GET
-	@Operation(summary = "Update a webapp@version", description = "Removes any current version and install the new webapp@version")
-	@ApiResponses ({
-	    @ApiResponse(responseCode = "200", description = "Successful update of appName@appVersion"),
-	    @ApiResponse(responseCode = "500", description = "Internal server error"),
-	    @ApiResponse(responseCode = "403", description = "No permission")
-	    })
-	@Path("update")
-	public Response update(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
-			@Parameter(description = "Name of webapp as found on npmjs.com", example="@signalk/freeboard-sk") @QueryParam("appName") String appName, 
-			@Parameter(description = "Version of webapp as found on npmjs.com", example="0.0.4") @QueryParam("appVersion") String appVersion) {
-			String delName = appName.contains("/")?StringUtils.substringAfter(appName, "/"): appName ;
-			Response resp = remove(cookie, delName);
-		if(HttpStatus.SC_OK != resp.getStatus()) {
-			return resp;
-		}
-		return install(cookie, appName, appVersion);
-	}
 
 	@GET
 	@Operation(summary = "Removes a webapp", description = "Removes the webapp")
@@ -148,7 +131,7 @@ public class AppsService extends BaseApiService {
 	    })
 	@Path("remove")
 	public Response remove(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
-			@Parameter(description = "Name of webapp without scope (@../)", example="freeboard-sk") @QueryParam("appName") String appName) {
+			@Parameter(description = "Name of webapp", example="@signalk/freeboard-sk") @QueryParam("appName") String appName) {
 		try {
 			File appDir = new File(staticDir, appName);
 			if(appDir.isFile()) {
@@ -171,7 +154,7 @@ public class AppsService extends BaseApiService {
 
 	@GET
 	@Path("search")
-	@Operation(summary = "Search for a webapp", description = "Returns a list of avaliable signalk webapps from npmjs.org.")
+	@Operation(summary = "Search for a webapp", description = "Returns a list of availible signalk webapps from npmjs.org.")
 	@ApiResponses ({
 	    @ApiResponse(responseCode = "200", description = "Successful removal of appName"),
 	    @ApiResponse(responseCode = "500", description = "Internal server error"),
@@ -179,9 +162,9 @@ public class AppsService extends BaseApiService {
 	    })
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response search(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
-			@Parameter(description = "Npm tag, usually 'signalk-webapp'", example="signalk-webapp")@QueryParam("keyword") String keyword) {
+			@Parameter(description = "Npm tag, default 'signalk-webapp'", example="signalk-webapp")@QueryParam("keyword") String keyword) {
 		try (final AsyncHttpClient c = asyncHttpClient();) {
-			Json json = Util.getUrlAsJson(c, "https://api.npms.io/v2/search?size=250&q=keywords:signalk-webapp");
+			Json json = Util.getUrlAsJson(c, "https://api.npms.io/v2/search?size=250&q=keywords:"+StringUtils.defaultString(keyword, "signalk-webapp"));
 
 			return Response.status(HttpStatus.SC_OK).entity(json.at("results").toString()).build();
 
@@ -193,6 +176,7 @@ public class AppsService extends BaseApiService {
 
 	private void runNpmInstall(final File output, File destDir, String name, String version) throws Exception {
 		destDir.mkdirs();
+		logger.debug("Beginning install for \" + name + \"@\" + version");
 		FileUtils.writeStringToFile(output, "\nBeginning install for " + name + "@" + version, true);
 		// npm --save install ' + `${name}@${version}
 
@@ -201,35 +185,23 @@ public class AppsService extends BaseApiService {
 		//download
 		File tmp = File.createTempFile(name, ".tgz", download);
 		
-		try (final AsyncHttpClient client = asyncHttpClient();
-				FileOutputStream out = new FileOutputStream(tmp);) {
+		try (final AsyncHttpClient client = asyncHttpClient();) {
 
 			Json json = Util.getUrlAsJson(client, "https://registry.npmjs.org/"+name);
 			String url = json.at("versions").at(version).at("dist").at("tarball").asString();
 			FileUtils.writeStringToFile(output, "\nDownloading " + url, true);
 			
-			
-			AsyncCompletionHandler<Response> asyncHandler = new AsyncCompletionHandler<Response>() {
-
-				   @Override
-				   public State onBodyPartReceived(final HttpResponseBodyPart content)
-				     throws Exception {
-				       out.write(content.getBodyPartBytes());
-				       return State.CONTINUE;
-				   }
-				
-					@Override
-					public Response onCompleted(org.asynchttpclient.Response response) throws Exception {
-						return Response.status(HttpStatus.SC_OK).build();
-					}
-				};
-
-				client.prepareGet(url).execute(asyncHandler).get();
+			FileUtils.copyURLToFile(
+					  new URL(url), 
+					  tmp, 
+					  30000, 
+					  30000);
 				
 			//unpack
+			logger.debug("Unpacking " + name + "@" + version);
 			FileUtils.writeStringToFile(output, "\nUnpacking " + name + "@" + version, true);
 			unpack(tmp, name,staticDir);
-			
+	        logger.debug("Install completed successfully!");
 			FileUtils.writeStringToFile(output, "\nDONE: Install ended sucessfully", true);
 		} catch (Exception e) {
 			try {
@@ -244,7 +216,7 @@ public class AppsService extends BaseApiService {
 	}
 
 	private void unpack(File tmp, String name, File staticDir) throws FileNotFoundException, IOException {
-		 
+		 //npm apps will be tarred into 'node_modules/app_name/dist/, need to remove node_modules/
 		try (FileInputStream in = new FileInputStream(tmp);
 				 GzipCompressorInputStream gzipIn = new GzipCompressorInputStream(in);
 				 TarArchiveInputStream tarIn = new TarArchiveInputStream(gzipIn)) {
@@ -257,7 +229,7 @@ public class AppsService extends BaseApiService {
 	        while ((entry = (TarArchiveEntry) tarIn.getNextEntry()) != null) {
 	            /** If the entry is a directory, create the directory. **/
 	            if (entry.isDirectory()) {
-	                File f = new File(appDir,entry.getName());
+	                File f = new File(appDir,truncate(entry.getName()));
 	                boolean created = f.mkdir();
 	                if (!created) {
 	                	logger.debug("Unable to create directory '{}', during extraction of archive contents.\n",
@@ -266,7 +238,7 @@ public class AppsService extends BaseApiService {
 	            } else {
 	                int count;
 	                byte data[] = new byte[BUFFER_SIZE];
-	                File f = new File(appDir,entry.getName());
+	                File f = new File(appDir,truncate(entry.getName()));
 	                f.getParentFile().mkdirs();
 	                try (FileOutputStream fos = new FileOutputStream(f);
 	                		BufferedOutputStream dest = new BufferedOutputStream(fos, BUFFER_SIZE)) {
@@ -280,5 +252,9 @@ public class AppsService extends BaseApiService {
 	        logger.debug("Untar completed successfully!");
 	    }
 		
+	}
+
+	private String truncate(String name) {
+		return StringUtils.removeStart(name, "node_modules/");
 	}
 }
