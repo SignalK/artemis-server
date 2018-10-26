@@ -22,39 +22,45 @@ public class SessionInterceptor extends BaseInterceptor implements Interceptor {
 
 	@Override
 	public boolean intercept(final Packet packet, final RemotingConnection connection) throws ActiveMQException {
-	    System.out.println("SessionInterceptor gets called!");
+
+		System.out.println("SessionInterceptor gets called!");
 		System.out.println("Packet: " + packet.getClass().getName());
 		System.out.println("Packet: " + packet.toString());
 		// System.out.println("RemotingConnection: " +
 		// connection.getRemoteAddress());
 		// System.out.println("TransportConnection: " +
 		// connection.getTransportConnection().toString());
-		// System.out.println("Sessions
-		// count:"+ArtemisServer.embedded.getActiveMQServer().getSessions().size());
-		 if(isResponse(packet))return true;
-		
+
+		if (logger.isInfoEnabled())
+			logger.info("Sessions count: {}", ArtemisServer.embedded.getActiveMQServer().getSessions().size());
+
+		if(isResponse(packet))
+			 return true;
+
 		if (packet instanceof SessionSendMessage) {
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
-			
+
 			Message msg = realPacket.getMessage();
-			
+
 			if(msg.getStringProperty(Config.MSG_SRC_BUS)==null)
 				msg.putStringProperty(Config.MSG_SRC_BUS, connection.getRemoteAddress());
 			if(msg.getStringProperty(Config.MSG_SRC_TYPE)==null)
 				msg.putStringProperty(Config.MSG_SRC_TYPE, connection.getClientID());
-			
+
 			for (ServerSession s : ArtemisServer.getActiveMQServer().getSessions(connection.getID().toString())) {
 				if (s.getConnectionID().equals(connection.getID())) {
 					if (logger.isDebugEnabled())
 						logger.debug("Session is: {}, name: {}",s.getConnectionID(),s.getName());
 					msg.putStringProperty(Config.AMQ_SESSION_ID, s.getName());
-				} else {
+				}
+				else {
 					if (logger.isDebugEnabled())
 						logger.debug("Session not found for: {}, name: {}",s.getConnectionID() ,s.getName());
 				}
 			}
 
-		} else {
+		}
+		else {
 			if (logger.isDebugEnabled())
 				logger.debug("Packet is:{}, contents:{}",packet.getClass(), packet.toString());
 		}

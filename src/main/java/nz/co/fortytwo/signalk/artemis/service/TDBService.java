@@ -7,6 +7,10 @@ import mjson.Json;
 
 public interface TDBService {
 
+	public static TDBService setUpTDb(String dbName) {
+		return null;
+	}
+	
 	public void setUpTDb();
 	
 	public void setWrite(boolean write);
@@ -26,7 +30,7 @@ public interface TDBService {
 	 * @param db
 	 * @return
 	 */
-	public NavigableMap<String, Json> loadData(NavigableMap<String, Json> map, String table, Map<String,String> query);
+	public NavigableMap<String, Json> loadData(NavigableMap<String, Json> map, String table, Map<String,String> query, boolean parameters);
 
 	public NavigableMap<String, Json> loadSources(NavigableMap<String, Json> map, Map<String,String> query);
 

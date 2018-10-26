@@ -4,6 +4,7 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.ALL;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONFIG;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT_FULL;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT_DELTA;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.GET;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PATH;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.aircraft;
@@ -13,7 +14,10 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.resources;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sar;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sources;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
-
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.uuid;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.skey;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PARAMETERS;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -46,7 +50,7 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 *
 * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
 * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-* 
+*
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
@@ -63,42 +67,44 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 
 /**
  * Converts SignalK GET interceptor
- * 
+ *
  * @author robert
- * 
+ *
  */
 
 public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 
-	
+
 	private static Logger logger = LogManager.getLogger(GetMsgInterceptor.class);
-	
-	
+	private boolean fullOutput=true;
+
+
 	/**
 	 * Reads Delta GET message and returns the result in full format. Does nothing if json
 	 * is not a GET, and returns the original message
-	 * 
+	 *
 	 * @param node
 	 * @return
 	 */
 
 	@Override
-	public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException {
-		
-		if(isResponse(packet))return true;
-		
+	public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException
+	{
+		if(isResponse(packet))
+			return true;
+
 		if (packet instanceof SessionSendMessage) {
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
 
 			ICoreMessage message = realPacket.getMessage();
-			
+
 			if (!Config.JSON_DELTA.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))
 				return true;
-		
+
 			Json node = Util.readBodyBuffer(message);
 			String correlation = message.getStringProperty(Config.AMQ_CORR_ID);
 			String destination = message.getStringProperty(Config.AMQ_REPLY_Q);
-			
+
 			// deal with diff format
 			if (node.has(CONTEXT) && (node.has(GET))) {
 				if (logger.isDebugEnabled())
@@ -110,12 +116,12 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 				}
 				String root = StringUtils.substringBefore(ctx,dot);
 				root = Util.sanitizeRoot(root);
-				
-				
+
+
 				//limit to explicit series
-				if (!vessels.equals(root) 
-					&& !CONFIG.equals(root) 
-					&& !sources.equals(root) 
+				if (!vessels.equals(root)
+					&& !CONFIG.equals(root)
+					&& !sources.equals(root)
 					&& !resources.equals(root)
 					&& !aircraft.equals(root)
 					&& !sar.equals(root)
@@ -130,84 +136,109 @@ public class GetMsgInterceptor extends BaseInterceptor implements Interceptor {
 					}
 				}
 				String qUuid = StringUtils.substringAfter(ctx,dot);
-				if(StringUtils.isBlank(qUuid))qUuid="*";
+				if(StringUtils.isBlank(qUuid))
+					qUuid="*";
 				ArrayList<String> fullPaths=new ArrayList<>();
-				
+
+				Map<String, String> queryMap = new HashMap<>();
 				try {
 					NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
-					for(Json p: node.at(GET).asJsonList()){
-						String path = p.at(PATH).asString();
-						path=Util.sanitizePath(path);
-						fullPaths.add(Util.sanitizeRoot(ctx+dot+path));
-						StringBuffer sql=new StringBuffer();
-						path=Util.regexPath(path).toString();
-						Map<String, String> queryMap = new HashMap<>();
-						if(StringUtils.isNotBlank(qUuid))queryMap.put("skey",path);
-						if(StringUtils.isBlank(path))queryMap.put("uuid",Util.regexPath(qUuid).toString());
-						switch (root) {
+					boolean parametersExsist = false;
+					fullOutput=true;
+
+					queryMap.put(uuid ,Util.regexPath(qUuid).toString());
+
+					for(Json p: node.at(GET).asJsonList()) {
+						if (p.at(PATH) != null) {
+							String path = p.at(PATH).asString();
+							path=Util.sanitizePath(path);
+							fullPaths.add(Util.sanitizeRoot(ctx+dot+path));
+							path=Util.regexPath(path).toString();
+							if(StringUtils.isNotBlank(qUuid))
+								queryMap.put(skey,path);
+						}
+						else if (p.at(PARAMETERS) != null) {
+							p.at(PARAMETERS).asMap().forEach((k,v) -> {
+									queryMap.put(k, String.valueOf(v));
+							});
+							parametersExsist = true;
+							fullOutput=false;
+						}
+						else {
+							logger.error ("Error: Get: has neither path nor paramaters key --> {}", node.at(GET).toString());
+						}
+					}
+					switch (root) {
 						case CONFIG:
-							influx.loadConfig(map, queryMap);
+							tdbService.loadConfig(map, queryMap);
 							break;
 						case resources:
-							influx.loadResources(map, queryMap);
+							tdbService.loadResources(map, queryMap);
 							break;
 						case sources:
-						influx.loadSources(map, queryMap);
+							tdbService.loadSources(map, queryMap);
 							break;
 						case vessels:
-							influx.loadData(map, vessels, queryMap);
+							tdbService.loadData(map, vessels, queryMap, parametersExsist);
 							break;
 						case aircraft:
-							influx.loadData(map, aircraft, queryMap);
+							tdbService.loadData(map, aircraft, queryMap, parametersExsist);
 							break;
 						case sar:
-							influx.loadData(map, sar, queryMap);
+							tdbService.loadData(map, sar, queryMap, parametersExsist);
 							break;
 						case aton:
-							influx.loadData(map, aton, queryMap);
+							tdbService.loadData(map, aton, queryMap, parametersExsist);
 							break;
 						case ALL:
-							influx.loadData(map, vessels, null);
+							tdbService.loadData(map, vessels, null, parametersExsist);
 							//loadAllDataFromInflux(map,aircraft);
 							//loadAllDataFromInflux(map,sar);
 							//loadAllDataFromInflux(map,aton);
 						default:
 						}
-						
-						if (logger.isDebugEnabled())
-							logger.debug("GET sql : {}", sql);
+//						if (logger.isDebugEnabled())
+//							logger.debug("GET sql : {}", sql);
+//					}
+
+					if (logger.isDebugEnabled())
+						logger.debug("GET  token: {}, map : {}",jwtToken, map);
+
+					
+					Json json = null;
+					if (fullOutput)
+						json = SignalkMapConvertor.mapToFull(map,jwtToken);
+					else {
+//						qUuid = StringUtils.substringAfter(ctx,dot);
+						json = SignalkMapConvertor.mapToUpdatesDeltaEx(map, queryMap);
+						json.set(CONTEXT, ctx);
 					}
-					
-					if (logger.isDebugEnabled())logger.debug("GET  token: {}, map : {}",jwtToken, map);
-					
-					Json json = SignalkMapConvertor.mapToFull(map,jwtToken);
-					
-					if (logger.isDebugEnabled())logger.debug("GET json : {}", json);
-					
 					String fullPath = StringUtils.getCommonPrefix(fullPaths.toArray(new String[]{}));
 					//fullPath=StringUtils.remove(fullPath,".*");
 					//fullPath=StringUtils.removeEnd(fullPath,".");
-					
-					// for REST we only send back the sub-node, so find it
-					if (logger.isDebugEnabled())logger.debug("GET node : {}", fullPath);
-					
-					if (StringUtils.isNotBlank(fullPath) && !root.startsWith(CONFIG) && !root.startsWith(ALL))
-						json = Util.findNodeMatch(json, fullPath);
-					
-					sendReply(map.getClass().getSimpleName(),destination,FORMAT_FULL,correlation,json);
 
-					
-				} catch (Exception e) {
+					// for REST we only send back the sub-node, so find it
+					if (logger.isDebugEnabled()) {
+						logger.debug("GET node(a.k.a fullPath) : {}", fullPath);
+						logger.debug("GET json : {}", json);
+					}
+
+					if (StringUtils.isNotBlank(fullPath) && !root.startsWith(CONFIG) && !root.startsWith(ALL)) {
+						if (fullOutput)
+							json = Util.findNodeMatch(json, fullPath);
+					}
+					if (fullOutput)
+						sendReply(map.getClass().getSimpleName(),destination,FORMAT_FULL,correlation,json);
+					else
+						sendReply(map.getClass().getSimpleName(),destination,FORMAT_DELTA,correlation,json);
+
+				}
+				catch (Exception e) {
 					logger.error(e, e);
 					throw new ActiveMQException(ActiveMQExceptionType.INTERNAL_ERROR, e.getMessage(), e);
 				}
-
 			}
 		}
 		return true;
-
 	}
-
-	
-
 }

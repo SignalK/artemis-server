@@ -140,7 +140,17 @@ public class SignalKConstants {
 	//public static final String SRC = "src";
 	//public static final String PGN = "pgn";
 	//public static final String value = "value";
-
+	public static final String PARAMETERS = "parameters";
+	public static final String TIME = "time";
+	public static final String FROMTIME = "fromTime";
+	public static final String TOTIME = "toTime";
+	public static final String TIMEPERIOD = "timePeriod";
+	public static final String RESOLUTION = "timeIncrement";
+	public static final String SORT_ORDER = "sort";
+	public static final String DEFAULT_TIMEPERIOD = "2h";
+	public static final String DEFAULT_TIMEPERIOD_MAX = "4h";
+	public static final String DEFAULT_RESOLUTION= "10m";
+	
 	public static final String PATH = "path";
 	public static final String PERIOD = "period";
 	public static final String MIN_PERIOD = "minPeriod";
@@ -160,6 +170,7 @@ public class SignalKConstants {
 	public static final String SIGNALK_DISCOVERY = "/signalk";
 	public static final String SIGNALK_AUTH = "/signalk/v1/auth";
 	public static final String SIGNALK_API = "/signalk/v1/api";
+	public static final String SIGNALK_HISTORY_API = "/signalk/v1/history/api";
 	public static final String SIGNALK_WS = "/signalk/v1/stream";
 	public static final String SIGNALK_INSTALL = "/signalk/v1/install";
 	public static final String SIGNALK_UPGRADE = "/signalk/v1/upgrade";
@@ -171,10 +182,10 @@ public class SignalKConstants {
 	public static final String _SIGNALK_HTTP_TCP_LOCAL = "_signalk-http._tcp.local.";
 	public static final String _SIGNALK_WS_TCP_LOCAL = "_signalk-ws._tcp.local.";
 	//public static final String name = "name";
-	//public static final String mmsi = "mmsi";
 
 	public static final String url="url";
 	public static final String uuid="uuid";
+	public static final String skey="skey";
 	public static final String vessels_id = "vessels.*";
 	public static final String pgn = "pgn";
 

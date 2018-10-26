@@ -93,7 +93,7 @@ public class DeltaMsgInterceptor extends BaseInterceptor implements Interceptor 
 			if (isDelta(node)) {
 				try {
 					NavigableMap<String, Json> map = processDelta(node);
-					if (!influx.getWrite()) {
+					if (!tdbService.getWrite()) {
 						// set the time if we can
 						// vessels.urn:mrn:signalk:uuid:80a3bcf0-d1a5-467e-9cd9-35c1760bb2d3.navigation.datetime.values.NMEA0183.SERIAL.value
 						String uuid = Config.getConfigProperty(ConfigConstants.UUID);
@@ -112,7 +112,7 @@ public class DeltaMsgInterceptor extends BaseInterceptor implements Interceptor 
 
 									logger.info("Executed date setting command: {}", cmd);
 
-									influx.setWrite(true);
+									tdbService.setWrite(true);
 								}
 							}
 						}

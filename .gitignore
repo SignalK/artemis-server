@@ -8,3 +8,5 @@
 /signalk-static
 /.settings/
 
+/bin/
+src/main/java/nz/co/fortytwo/signalk/artemis/service/SignalkApiService copy.java

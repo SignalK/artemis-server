@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -53,17 +54,18 @@ public class ChartService  {
 
 	private static Logger logger = LogManager.getLogger(ChartService.class);
 	//private static boolean reloaded = false;
-	protected static TDBService influx = new InfluxDbService();
+	protected static TDBService tdbService = null;
 
-	public ChartService() {
-		
+	public ChartService() throws Exception {
+		tdbService = TDBServiceFactory.getService(Config.dbName, Config.dbType);
 	}
 
-	
+
 	@POST
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	//@Produces("application/json")
-//	@ApiOperation(value = "Upload a  TMS chart", notes = "Accepts a zipfile created by https://github.com/rob42/freeboard-installer ", response = String.class)
+    //	@ApiOperation(value = "Upload a  TMS chart", notes = "Accepts a zipfile created by https://github.com/rob42/freeboard-installer ", response = String.class)
+
 	public Response post(FormDataMultiPart form) throws Exception {
 		if(logger.isDebugEnabled())logger.debug("Uploading file..");
 		List<String> contentRange = form.getHeaders().get("Content-Range");
@@ -75,7 +77,7 @@ public class ChartService  {
 			return Response.status(HttpStatus.SC_BAD_REQUEST).entity(fileName +": Only zip files allowed!").build();
 		}
 		File dest = new File(Config.getConfigProperty(STATIC_DIR) + Config.getConfigProperty(MAP_DIR) + fileName);
-		
+
 		if(contentRange!=null&& contentRange.get(0)!=null){
 			String range = contentRange.get(0);
 			range=StringUtils.remove(range,"bytes ");
@@ -83,7 +85,7 @@ public class ChartService  {
 			range=StringUtils.substringBefore(range,"/");
 			long start = Long.valueOf(range.split("-")[0]);
 			long end = Long.valueOf(range.split("-")[1]);
-			
+
 			java.nio.file.Path destFile=Paths.get(dest.toURI());
 			if(start==0){
 				if(logger.isDebugEnabled())logger.debug("Uploading new file: {}, size:{}", dest.getAbsoluteFile(),total);
@@ -105,21 +107,27 @@ public class ChartService  {
 		Json f = Json.object();
 		f.set("name", fileName);
 		f.set("size", dest.length());
-		
+
 
 		return Response.status(200).entity(f.toString()).build();
 
 	}
 
 	public static void reloadCharts() throws Exception {
-		
+
 		logger.info("Reload charts at startup");
 		String staticDir = Config.getConfigProperty(STATIC_DIR);
 		if (!staticDir.endsWith("/")) {
 			staticDir = staticDir + "/";
 		}
 		NavigableMap<String, Json> map = getCharts();
-		
+		Map<String, String> query = new HashMap<>();
+		query.put("skey", "charts");
+		// get current charts
+
+		tdbService= (tdbService==null) ? TDBServiceFactory.getService(Config.dbName, Config.dbType) : tdbService;
+
+		tdbService.loadResources(map, query);
 		logger.info("Existing charts: Quan:{}", map.size() / 2);
 		logger.debug("Existing charts: Quan:{} : {}", map.size() / 2, map);
 		File mapDir = new File(staticDir + Config.getConfigProperty(MAP_DIR));
@@ -142,7 +150,6 @@ public class ChartService  {
 						logger.warn(e.getMessage());
 					}
 				}
-
 			}
 		}
 		logger.info("Chart resources updated");
@@ -163,16 +170,18 @@ public class ChartService  {
 		return null;
 	}
 
-
-	public static NavigableMap<String, Json> getCharts() {
+	public static NavigableMap<String, Json> getCharts() throws Exception
+	{
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
 		Map<String, String> query = new HashMap<>();
 		query.put("skey", "charts");
 		// get current charts
-		influx.loadResources(map, query);
+		
+		tdbService= (tdbService==null) ? TDBServiceFactory.getService(Config.dbName, Config.dbType) : tdbService;
+
+		tdbService.loadResources(map, query);
 		return map;
 	}
-
 
 	private void install(File zipFile) throws Exception {
 		if (!zipFile.getName().endsWith(".zip"))
@@ -244,22 +253,6 @@ public class ChartService  {
 		}
 	}
 
-	/*
-	 * {
-			"MBTILES_01": {  //artemis uses uri format, since we could get charts from many sources we dont want name collisions
-				"identifier": "MBTILES_01",  
-				"name": "MBTILES_01",
-				"description": "NORTH ALASKA",
-				"bounds": [-202.5, 56.1700229829, -112.5, 75.4971573189],  //need to add
-				"minzoom": 3,  //need to add
-				"maxzoom": 19, //need to add
-				"format": "png", //need to add
-				"type": "tilelayer", // we should reference a std here, there are lots of formats
-				"tilemapUrl": "/signalk/v1/api/resources/charts/MBTILES_01/{z}/{x}/{y}", //artemis returns the dir, not the extension. Probably the extension here makes sense, more control to the chart maker.
-				"scale": "250000"
-			}
-		}
-		*/
 	private static Json createChartMsg(String key, String f, String title, String scale, int minZoom, int maxZoom, double[] bounds) {
 		Json val = Json.object();
 		
@@ -300,11 +293,11 @@ public class ChartService  {
 			logger.debug("Created new chart msg:{}", msg);
 		return msg;
 	}
-
+	
 	private void sendChartMessage(String body) throws Exception {
 		Util.sendRawMessage(Config.getConfigProperty(Config.ADMIN_USER),
 				Config.getConfigProperty(Config.ADMIN_PWD), body);
-		
+
 	}
 
 }

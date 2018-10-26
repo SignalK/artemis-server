@@ -5,6 +5,7 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.GET;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PATH;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PUT;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SORT_ORDER;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UNKNOWN;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.attr;
@@ -18,14 +19,26 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.values;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.version;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.uuid;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.skey;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PARAMETERS;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
+import java.util.NavigableSet;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.stream.Collectors;
+
+import javax.json.JsonArray;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -232,6 +245,9 @@ public class SignalkMapConvertor {
 
 	public static Json mapToFull(NavigableMap<String, Json> map, ArrayList<String> allowed) throws Exception {
 
+		if (logger.isDebugEnabled())
+			logger.debug("Convert Map to full");
+
 		Json root = Json.object();
 		if (map == null)
 			return root;
@@ -262,6 +278,7 @@ public class SignalkMapConvertor {
 			String path = StringUtils.substringBefore(entry.getKey(), dot + values + dot);
 			if (logger.isDebugEnabled())
 				logger.debug("Add key: {}, value: {}", entry.getKey(), val.toString());
+			
 			if (val.isObject() && val.has(sentence)) {
 				Util.setJson(root, path + dot + sentence, val.at(sentence).dup());
 				continue;
@@ -269,6 +286,13 @@ public class SignalkMapConvertor {
 			Util.setJson(root, path, val.dup());
 		}
 		return root;
+	}
+
+	public static Json mapToUpdatesDeltaEx(NavigableMap<String, Json> map, Map<String, String>qryParamsMap) {
+		if (logger.isDebugEnabled())
+			logger.debug("mapToUpdatesDeltaEx");
+		Map<String, Map<String, List<Json>>> deltaMap = mapToDeltaMapEx(map, qryParamsMap);
+		return generateDeltaEx(deltaMap, UPDATES);
 	}
 
 	public static Json mapToUpdatesDelta(NavigableMap<String, Json> map) {
@@ -304,6 +328,7 @@ public class SignalkMapConvertor {
 
 			if (logger.isDebugEnabled())
 				logger.debug("message = {} : {}", eKey, eValue);
+			
 			String ctx = Util.getContext(eKey);
 			Map<String, Map<String, Map<String, List<Entry<String, Json>>>>> ctxMap = msgs.get(ctx);
 			if (ctxMap == null) {
@@ -343,6 +368,86 @@ public class SignalkMapConvertor {
 		return msgs;
 	}
 
+	public static Map<String, Map<String, List<Json>>> mapToDeltaMapEx (NavigableMap<String, Json> map,Map<String, String>qryParamsMap) {
+
+		// ClientMessage msgReceived = null;
+//		Map<String, Map<String, Map<String, Map<String, List<Entry<String, Json>>>>>> msgs = new HashMap<>();
+//		Map<String, Map<String, List<Entry<String, Json>>>> updates = new HashMap<String, Map<String, List<Entry<String, Json>>>> ();
+		Map<String, Map<String, List<Json>>> updates = new HashMap<String, Map<String, List<Json>>> ();
+
+		if (map == null)
+			return updates;		
+
+		/**
+		 * Group all lists by individual timestamps
+		 */
+		map.forEach((eKey, eValue) -> {
+			
+//		for (Entry<String, Json> entry : map.entrySet()) {
+//			Json eValue = entry.getValue();
+//			String eKey = entry.getKey();
+//			for (Entry<String, Json> entry : eValue.entrySet()) {
+			
+//			String context=eKey;
+//			String uuid = eValue.at("context").asString();
+			Json listOfValues = eValue.at(values); // list of applicable values
+			
+			listOfValues.forEach((_l) -> {
+				String _timestamp = _l.at(timestamp).asString();
+				String _path = _l.at(PATH).asString();
+				String _srcRef= _l.at(sourceRef).asString();
+				Json _value=_l.at(value).isObject() == true ? _l.at(value) : Json.make(_l.at(value));
+				Json _singleEntry = Json.object();
+				
+				_singleEntry.set(PATH,  _path);
+				_singleEntry.set(value,  _value);
+				
+				/**
+				 * Add single value to the timestamp_source map
+				 */
+				String mapName=_timestamp; //+dot+_srcRef;
+				
+				Map<String, List<Json>>valuesByTimeStamp = updates.get(mapName);
+				if (valuesByTimeStamp != null) {
+					// List of values for given srcRef
+					List<Json> srcRefListValues = valuesByTimeStamp.get(_srcRef);
+					if (srcRefListValues == null) {
+						srcRefListValues = new ArrayList<Json>(3);
+						valuesByTimeStamp.put(_srcRef, srcRefListValues);
+					}
+					srcRefListValues.add(_singleEntry);
+				}
+				else {
+					List<Json> srcRefListValues =new ArrayList<Json>(3);
+					srcRefListValues.add(_singleEntry);
+
+					valuesByTimeStamp = new HashMap<String, List<Json>>();
+					valuesByTimeStamp.put(_srcRef, srcRefListValues);
+					
+					updates.put(mapName, valuesByTimeStamp);
+				}
+			});
+		});	
+		
+		String sortOrder = ((sortOrder = qryParamsMap.get(SORT_ORDER)) == null) ? "asc" : sortOrder;
+
+		Map<String, Map<String, List<Json>>> msgs=null;
+		
+		if (sortOrder.equals("asc")) 
+			msgs = updates.entrySet().stream()
+	                .sorted(Map.Entry.comparingByKey())
+	                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+	                        (oldValue, newValue) -> oldValue, LinkedHashMap::new));
+		else
+			msgs = updates.entrySet().stream()
+	                .sorted(Map.Entry.comparingByKey(Comparator.reverseOrder()))
+	                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+	                        (oldValue, newValue) -> oldValue, LinkedHashMap::new));
+		
+//		System.out.println(msgs);
+		return msgs;
+	}
+
 	/**
 	 * Input is a list of message wrapped in a stack of hashMaps, eg Key=context
 	 * Key=timestamp key=source List(messages) The method iterates through and
@@ -354,8 +459,10 @@ public class SignalkMapConvertor {
 	 */
 	public static Json generateDelta(Map<String, Map<String, Map<String, Map<String, List<Entry<String, Json>>>>>> msgs,
 			String deltatype) {
-		if (logger.isDebugEnabled())
-			logger.debug("Delta map: {}", msgs);
+		if (logger.isDebugEnabled()) {
+			logger.debug("Convert Delta map: {}", msgs);
+			logger.debug("Delta type: {}", deltatype);
+		}	
 		Json delta = Json.object();
 
 		if (msgs == null || msgs.size() == 0)
@@ -423,6 +530,42 @@ public class SignalkMapConvertor {
 			delta.set(CONTEXT, ctx);
 		}
 
+		return delta;
+	}
+	/**
+	 * Input is a list of message wrapped in a stack of hashMaps, eg Key=context
+	 * Key=timestamp key=source List(messages) The method iterates through and
+	 * creates the deltas as a Json array, one Json delta per context.
+	 * 
+	 * @param msgs
+	 * @param deltatype
+	 * @return
+	 */
+	public static Json generateDeltaEx(Map<String, Map<String, List<Json>>> msgs, String deltatype) {
+		if (logger.isDebugEnabled())
+			logger.debug("Delta map: {}", msgs);
+		Json delta = Json.object();
+
+		if (msgs == null || msgs.size() == 0)
+			return delta;
+
+		Json updatesArray = Json.array();
+		delta.set(deltatype, updatesArray);
+		
+		msgs.forEach((ts, srcRefs) -> {
+			
+			srcRefs.forEach((_srcRef, _values) -> {
+				if (logger.isDebugEnabled())
+					logger.debug("timestamp:{} sourceRef: {} values {}", ts, _srcRef, _values);
+
+				Json jValues = Json.object();
+				jValues.set(timestamp, ts);				
+				jValues.set(sourceRef, _srcRef);
+				jValues.set(values,  _values);
+				updatesArray.add(jValues);
+				System.out.println(updatesArray);
+			});
+		});
 		return delta;
 	}
 

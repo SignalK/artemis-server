@@ -54,6 +54,8 @@ import nz.co.fortytwo.signalk.artemis.event.PathEvent;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.service.TDBService;
+import nz.co.fortytwo.signalk.artemis.service.TDBServiceFactory;
+import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
@@ -69,8 +71,9 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
  */
 public class Subscription {
 	private static Logger logger = LogManager.getLogger(Subscription.class);
-	private static TDBService influx = new InfluxDbService();
-
+//	private static TDBService influx = new InfluxDbService();
+	TDBService tdbService = null;
+	
 	String sessionId = null;
 	String path = null;
 	long period = -1;
@@ -94,6 +97,9 @@ public class Subscription {
 
 	public Subscription(String sessionId, String destination, String user, String password, String path, long period,
 			long minPeriod, String format, String policy, String correlation) throws Exception {
+		
+		tdbService = TDBServiceFactory.getService(Config.dbName, Config.dbType);
+		
 		this.sessionId = sessionId;
 
 		this.path = Util.sanitizePath(path);
@@ -132,7 +138,7 @@ public class Subscription {
 					// uuid='urn:mrn:imo:mmsi:209023000' AND skey=~/nav.*cou/
 					// group by skey,uuid,sourceRef,owner,grp order by time desc
 					// limit 1
-					influx.loadData(rslt, table, map);
+					tdbService.loadData(rslt, table, map, false);
 					if (logger.isDebugEnabled())
 						logger.debug("rslt map = {}" , rslt);
 					Json json = null;

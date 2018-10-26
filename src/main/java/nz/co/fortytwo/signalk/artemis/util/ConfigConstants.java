@@ -27,7 +27,8 @@ public class ConfigConstants {
 
 	public static final String VERSION = "config.server.version";
 	public static final String DB_NAME = "signalk";
-
+	public static final String INFLUX_DB = "InfluxDb";
+	
 	public static final String UUID = "config.server.vessel.uuid";
 	public static final String FLAG = "config.server.vessel.flag";
 	public static final String MMSI = "config.server.vessel.mmsi";

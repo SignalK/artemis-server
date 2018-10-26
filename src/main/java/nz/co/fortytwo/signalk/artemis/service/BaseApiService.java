@@ -8,6 +8,7 @@ import java.io.IOException;
 
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ActiveMQIllegalStateException;
@@ -74,6 +75,27 @@ public class BaseApiService {
 		// make log name
 		File output = new File(installLogDir, logFile);
 		return output;
+	}
+
+	protected String getToken(HttpServletRequest req) {
+		// assume we might have a cookie token
+		for (javax.servlet.http.Cookie c : req.getCookies()) {
+			if (logger.isDebugEnabled())
+				logger.debug("Cookie: {}, {}", c.getName(), c.getValue());
+			if (AUTH_COOKIE_NAME.equals(c.getName())) {
+				return c.getValue();
+			}
+		}
+		return null;
+	}
+	
+	protected String addToken(String body, HttpServletRequest req) {
+		String jwtToken = getToken(req);
+		if(StringUtils.isNotBlank(jwtToken)){
+			//add it to the body
+			return Json.read(body).set(SignalKConstants.TOKEN, jwtToken).toString();
+		}
+		return body;
 	}
 
 	protected String getToken(Cookie cookie) {

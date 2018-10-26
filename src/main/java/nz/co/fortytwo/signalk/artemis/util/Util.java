@@ -31,9 +31,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
+import javax.json.JsonArray;
 import javax.servlet.ServletInputStream;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
@@ -54,6 +58,8 @@ import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.Response;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
 import io.netty.handler.codec.http.cookie.Cookie;
@@ -73,6 +79,11 @@ public class Util {
 	private static ServerLocator nettyLocator;
 	private static ServerLocator inVmLocator;
 	protected static Pattern selfMatch = Pattern.compile("\\.self\\.|\\.self$");
+	
+	protected static final DateTimeFormatter dtf_general = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
+	protected static final DateTimeFormatter dtf_us = DateTimeFormat.forPattern("yyyy-dd-MM HH:mm:ss");
+	protected static final Locale currentLocale = Locale.getDefault();
+
 
 	static {
 		try {
@@ -103,8 +114,13 @@ public class Util {
 	}
 
 	public static Json getWelcomeMsg() {
-		return getWelcomeMsg(null, null);
+		Json msg = Json.object();
+		msg.set(version, Config.getVersion());
+		msg.set(timestamp, getIsoTimeString());
+		msg.set(self_str, Config.getConfigProperty(ConfigConstants.UUID));
+		return msg;
 	}
+	
 	public static Json getWelcomeMsg(String startTime, Double playbackRate) {
 		//TODO: add history playbackRate and startTime
 		/*
@@ -134,7 +150,6 @@ public class Util {
 		msg.set("roles", Json.read("[\"master\",\"main\"]"));
 		return msg;
 	}
-
 	/**
 	 * Convert a speed in knots to meters/sec
 	 *
@@ -232,16 +247,39 @@ public class Util {
 
 	}
 
+	public static Json getJsonGetRequest(String path, String token, Map<String, String> params) {
+		path=Util.sanitizePath(path);
+		String ctx = Util.getContext(path);
+		return getJsonGetRequest(ctx, StringUtils.substringAfter(path, ctx + dot), token, params);
+
+	}
+
 	public static Json getJsonGetRequest(String context, String path, String token) {
 		Json json = Json.read("{\"context\":\"" + context + "\",\"get\": []}");
 		json.set(SignalKConstants.TOKEN, token);
 		Json sub = Json.object();
 		sub.set("path", StringUtils.defaultIfBlank(path, "*"));
-		json.at("get").add(sub);
+//		json.at("get").add(sub);
+		json.at(SignalKConstants.GET).add(sub);
 		if (logger.isDebugEnabled())logger.debug("Created json sub: {}", json);
 		return json;
 	}
 
+	public static Json getJsonGetRequest(String context, String path, String token, Map<String, String> params) {
+		
+		Json json = getJsonGetRequest(context, path, token);
+		Json _params=Json.object();
+		
+		if (params != null) {
+			params.forEach((k,v) -> {
+					_params.set(k, v);
+			});
+		}
+
+		Json sub = Json.object();
+		json.at(SignalKConstants.GET).add(sub.set(SignalKConstants.PARAMETERS, _params));
+		return json;
+	}
 
 
 	public static  String sanitizeRoot(String root) {
@@ -263,7 +301,10 @@ public class Util {
 		if (newPath.startsWith(dot)) {
 			newPath = newPath.substring(1);
 		}
-		if (newPath.endsWith(".") || newPath.endsWith("*") || newPath.endsWith("?")) {
+		if (newPath.endsWith(".*")) {
+			newPath = newPath.substring(0, newPath.length() - 2);
+		}
+		else if (newPath.endsWith(".") || newPath.endsWith("*") || newPath.endsWith("?")) {
 			newPath = newPath.substring(0, newPath.length() - 1);
 		}
 
@@ -348,20 +389,45 @@ public class Util {
 		}
 		return path;
 	}
-
-	public static Json getJson(Json parent, String key) {
+	/**
+	 * Works in 2 modes 1. for Json object and second for Json array
+	 * @param parent
+	 * @param key
+	 * @param timeStamp
+	 * @return
+	 */
+	public static Json getJson(Json parent, String key, String timeStamp) {
 		String[] path = StringUtils.split(key, ".");
 		Json node = parent;
-		for (int i = 0; i < path.length; i++) {
-			if (!node.has(path[i])) {
-				node.set(path[i], Json.object());
+		if (! parent.isArray()) {
+			for (int i = 0; i < path.length; i++) {
+				if (!node.has(path[i])) {
+					node.set(path[i], Json.object());
+				}
+				node = node.at(path[i]);
 			}
-			node = node.at(path[i]);
+			return node;
 		}
-		return node;
-
+		else {
+			Json _n = parent;						
+			List<Json> _l = _n.asJsonList();
+			
+//			System.out.println(_l);
+			if (_l == null || _l.isEmpty())
+				return null;
+			else {
+				for (int i = 0; i < _l.size();i++) {
+					Json _el = _l.get(i);
+					if (_el != null) {
+						Json ts = _el.at(timestamp);
+						if (ts.asString().equals(timeStamp))
+							return _el;
+					}
+				}
+				return null;
+			}
+		}
 	}
-
 
 	/**
 	 * Recursive findNode(). Returns null if not found
@@ -373,22 +439,27 @@ public class Util {
 	 * @param fullPath
 	 * @return
 	 */
-	public static Json findNodeMatch(Json node, String fullPath) {
+	public static Json findNodeMatch(Json node, String fullPath)
+	{
 		String[] paths = fullPath.split("\\.");
 		// Json endNode = null;
 		for (int x = 0; x < paths.length; x++) {
 			if (logger.isDebugEnabled())
 				logger.debug("findNode: {}", paths[x]);
-			if (StringUtils.isNotBlank(paths[x])&&!node.isObject()) return node;
-			if (StringUtils.isNotBlank(paths[x])&&node.has(paths[x])) {
+			
+			if (StringUtils.isNotBlank(paths[x]) && !node.isObject())
+				return node;
+			if (StringUtils.isNotBlank(paths[x]) && node.has(paths[x])) {
 				if (x == paths.length - 1) {
 					return node.at(paths[x]);
-				} else {
+				} 
+				else {
 					node = node.at(paths[x]);
 				}
-			} else {
+			} 
+			else {
 				for (String k : node.asJsonMap().keySet()) {
-					if (StringUtils.isNotBlank(paths[x]) && Util.regexPath(paths[x]).matcher(k).find()){
+					if (StringUtils.isNotBlank(paths[x]) && Util.regexPath(paths[x]).matcher(k).find()) {
 						if (x == paths.length - 1 || !node.isObject()) {
 							return node;
 						} else {
@@ -403,6 +474,11 @@ public class Util {
 
 	public static long getMillisFromIsoTime(String iso) {
 		return ISODateTimeFormat.dateTimeParser().withZoneUTC().parseMillis(iso);
+	}
+
+	public static long getMillisFromTime(String tim) 
+	{
+		return dtf_general.parseDateTime(tim).getMillis();
 	}
 
 	public static String getIsoTimeString() {
@@ -537,6 +613,7 @@ public class Util {
 		logger.debug("Created json sub: " + json);
 		return json;
 	}
+	
 
 	public static Json getUrlAsJson(AsyncHttpClient c,String url) throws Exception {
 		return Json.read(getUrlAsString(c,url, null, null));
@@ -548,25 +625,43 @@ public class Util {
 	public static String getUrlAsString(AsyncHttpClient c,String url) throws Exception {
 		return getUrlAsString(c,url, null,null);
 	}
-	public static String getUrlAsString(AsyncHttpClient c, String url, String user, String pass) throws Exception {
-			// get a sessionid
-			Response r2 = null;
-			if(user!=null){
-				r2 = c.prepareGet(url).setCookies(getCookies(user, pass)).execute().get();
-			}else{
-				r2 = c.prepareGet(url).execute().get();
-			}
-			
-			String response = r2.getResponseBody();
-			logger.debug("Endpoint string:" + response);
-			return response;
-	}
+
+	public static String getUrlAsString(AsyncHttpClient c, String url, String user, String pass) throws Exception
+	{
+		// get a sessionid
+		Response r2 = null;
+		if (user != null) {
+			r2 = c.prepareGet(url).setCookies(getCookies(user, pass)).execute().get();
+		} 
+		else {
+			r2 = c.prepareGet(url).execute().get();
+		}
+		
+		String response = r2.getResponseBody();
+		logger.debug("Endpoint string:" + response);
+		return response;
+    }
 	
 	public static Collection<Cookie> getCookies(String user, String pass) throws Exception {
 		String jwtToken = SecurityUtils.authenticateUser(user, pass);
 		Collection<Cookie> cookies = new ArrayList<>();
 		cookies.add(new DefaultCookie(SecurityUtils.AUTH_COOKIE_NAME, jwtToken));
 		return cookies;
+	}
+	
+	public static synchronized String mangleRequestParams(Map<String, String[]> parameterMap) {
+		if (parameterMap != null) {
+			StringBuffer sb = new StringBuffer();
+			sb.append(",");
+			
+			parameterMap.forEach((k,v) -> {
+					sb.append(k).append("_").append(v[0]).append("+");
+//					sb.append(k).append("=").append(v[0]).append("&");
+			});
+
+			return sb.toString().substring(0, sb.length()-1);
+		}
+		return "";
 	}
 }
 

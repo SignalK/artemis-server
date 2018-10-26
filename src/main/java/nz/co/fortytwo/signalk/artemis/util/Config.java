@@ -19,10 +19,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.influxdb.BatchOptions;
 
+import io.jsonwebtoken.impl.crypto.MacProvider;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.service.TDBService;
+import nz.co.fortytwo.signalk.artemis.service.TDBServiceFactory;
 
 /**
  * Listen to the config.* queues and cache the results for easy access.
@@ -30,6 +33,7 @@ import nz.co.fortytwo.signalk.artemis.service.TDBService;
  * @author robert
  *
  */
+
 public class Config {
 
 	public static final String ADMIN_USER = "config.server.admin.user";
@@ -39,14 +43,19 @@ public class Config {
 
 //	private static ConfigListener listener;
 	private static NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
-	private static TDBService influx = new InfluxDbService();
+		
+	public static String dbName = "signalk";
+	public static String dbType = "InfluxDb";
 	
+	private static TDBService influx = null;
+		
 	private static Config config = null;
 
 	static {
 		try {
-			map = Config.loadConfig(map);
 			config = new Config();
+			// GD map = Config.loadConfig(map);			
+			// GD map.put(ConfigConstants.CLOCK_SOURCE, Json.make(Config.getCLockSource()));
 			//security.addAttributes(map);
 			//influx.save(map);
 		} catch (Exception e) {
@@ -97,9 +106,28 @@ public class Config {
 		return config;
 	}
 
-	private Map<String, Json> getMap() {
+	public Map<String, Json> getMap() {
 		return map;
 	}
+
+	/**
+	 * @return the influx
+	 * @throws Exception 
+	 */
+	public static TDBService getTDBService(String dbName, String dbType) throws Exception
+	{
+		influx = TDBServiceFactory.getService(dbName, dbType);
+		
+		try {
+			influx = TDBServiceFactory.getService(dbName, dbType);		
+		}
+		catch(Throwable t) {
+			logger.error("Can not get TBDService for {} {}. Message: {}", dbName, dbType, t.getLocalizedMessage() );
+		}
+
+		return influx;
+	}
+
 
 	public static void setProperty(String property, Json value){
 		map.put(property, value);
@@ -136,6 +164,20 @@ public class Config {
 		reply.set("server",server);
 		return reply;
 	}
+	
+	public static String getCLockSource() 
+	{
+		String[] os=System.getProperty("os.name").split(" ",2);
+		switch (os[0]) {
+			case "Mac" :
+			case "Windows" :
+			case "Linux" :
+			case "FreeBSD" :
+				return "system";
+			default:
+				return "gps";
+		}
+	}
 
 	/**
 	 * Config defaults
@@ -148,7 +190,7 @@ public class Config {
 		model.put(ConfigConstants.WEBSOCKET_PORT, Json.make(8080));
 		model.put(ConfigConstants.REST_PORT, Json.make(8080));
 		model.put(ConfigConstants.STORAGE_ROOT, Json.make("./storage/"));
-		model.put(ConfigConstants.STATIC_DIR, Json.make("./signalk-static/"));
+		model.put(ConfigConstants.STATIC_DIR, Json.make("./signalk-static/")); 
 		model.put(ConfigConstants.MAP_DIR, Json.make("./mapcache/"));
 		model.put(ConfigConstants.DEMO, Json.make(false));
 		model.put(ConfigConstants.STREAM_URL, Json.make("motu.log"));
@@ -168,8 +210,10 @@ public class Config {
 		model.put(ConfigConstants.UDP_NMEA_PORT, Json.make(55556));
 		model.put(ConfigConstants.STOMP_PORT, Json.make(61613));
 		model.put(ConfigConstants.MQTT_PORT, Json.make(1883));
-		model.put(ConfigConstants.CLOCK_SOURCE, Json.make("gps"));
-
+		
+		model.put(ConfigConstants.CLOCK_SOURCE, Json.make(Config.getCLockSource()));		
+//		model.put(ConfigConstants.CLOCK_SOURCE, Json.make("gps"));
+		
 		model.put(ConfigConstants.HAWTIO_PORT, Json.make(8000));
 		model.put(ConfigConstants.HAWTIO_AUTHENTICATE, Json.make(false));
 		model.put(ConfigConstants.HAWTIO_CONTEXT, Json.make("/hawtio"));
@@ -222,6 +266,7 @@ public class Config {
 	public static NavigableMap<String, Json> loadConfig(NavigableMap<String, Json> model) throws IOException {
 		
 		logger.info("Loading config defaults");
+		model.put(ConfigConstants.CLOCK_SOURCE, Json.make(Config.getCLockSource()));
 		Config.setDefaults(model);
 		logger.info("Loading saved config");
 		influx.loadConfig(model,null );

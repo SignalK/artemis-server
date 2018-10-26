@@ -3,6 +3,15 @@ package nz.co.fortytwo.signalk.artemis.intercept;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
+import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
+import nz.co.fortytwo.signalk.artemis.service.TDBService;
+import nz.co.fortytwo.signalk.artemis.service.TDBServiceFactory;
+import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
+import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
+import nz.co.fortytwo.signalk.artemis.util.Util;
+
 import org.apache.activemq.artemis.api.core.ICoreMessage;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
@@ -17,6 +26,7 @@ import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.service.TDBService;
+import nz.co.fortytwo.signalk.artemis.service.TDBServiceFactory;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
@@ -24,42 +34,57 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class BaseInterceptor {
 	private static Logger logger = LogManager.getLogger(BaseInterceptor.class);
-	protected static TDBService influx = new InfluxDbService();
+//	protected static TDBService influx = new InfluxDbService();
+	protected static TDBService tdbService = null;
+
 	protected static ClientSession txSession;
 	protected static ClientProducer producer;
 
+	public BaseInterceptor ()
+	{
+		try {
+			tdbService = TDBServiceFactory.getService(Config.dbName, Config.dbType);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			logger.error("FAILED: Can not connect to {} type {}.", Config.dbName, Config.dbType);
+			logger.error("  {}", e.getLocalizedMessage());
+			logger.error(e.getStackTrace());
+		}
+	}
 	protected void init() {
 		try{
+
 			txSession = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
 					Config.getConfigProperty(Config.ADMIN_PWD));
 			producer = txSession.createProducer();
 
 			txSession.start();
-			
+
 			if(Config.getConfigProperty(ConfigConstants.CLOCK_SOURCE).equals("system")) {
-				influx.setWrite(true);
+				tdbService.setWrite(true);
 			}
-			}catch(Exception e){
-				logger.error(e,e);
-			}
+		}
+		catch(Exception e){
+			logger.error(e.getLocalizedMessage(),e);
+		}
 	}
 
 	protected boolean isDelta(Json node){
 		return Util.isDelta(node);
 	}
-	
+
 	protected boolean isSubscribe(Json node){
 		return Util.isSubscribe(node);
 	}
-	
+
 	protected boolean isFullFormat(Json node) {
 		return Util.isFullFormat(node);
 	}
-	
+
 	protected boolean isN2k(Json node) {
 		return Util.isN2k(node);
 	}
-	
+
 	public void convertSource(Json j, String srcBus, String msgType) {
 		Json srcJson = Util.convertSourceToRef(j,srcBus,msgType);
 		saveSource(srcJson);
@@ -79,13 +104,14 @@ public class BaseInterceptor {
 	protected void sendReply(String simpleName, String destination, String format, Json json, ServerSession s) throws Exception {
 		sendReply(String.class.getSimpleName(),destination,format,null,json);
 	}
-	
+
 	protected void  sendReply(String simpleName, String destination, String format, String correlation, Json json) throws Exception {
 		if(txSession==null){
 			init();
 		}
-		if(json==null || json.isNull())json=Json.object();
-		
+		if(json==null || json.isNull())
+			json=Json.object();
+
 		ClientMessage txMsg = null;
 		synchronized (txSession) {
 			txMsg = txSession.createMessage(false);
@@ -106,18 +132,19 @@ public class BaseInterceptor {
 			producer.send("outgoing.reply." +destination,txMsg);
 		}
 	}
-	
+
 	protected void saveMap(NavigableMap<String, Json> map) {
-		influx.save(map);
+		tdbService.save(map);
 	}
-	
+
 	protected void saveSource(Json srcJson) {
-		if(srcJson==null)return;
+		if(srcJson==null)
+			return;
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
 		SignalkMapConvertor.parseFull(srcJson,map, "");
 		saveMap(map);
 	}
-	
+
 	protected boolean isResponse(Packet packet) {
 		if (packet.isResponse())
 			return true;

@@ -35,8 +35,10 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants._SIGNALK_WS_T
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Properties;
 
 import javax.jmdns.JmmDNS;
@@ -77,7 +79,7 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 public final class ArtemisServer {
 
 	private static Logger logger;
-	private static EmbeddedActiveMQ embedded;
+	public static EmbeddedActiveMQ embedded;
 	private static Nettosphere server;
 	private JmmDNS jmdns;
 
@@ -96,7 +98,11 @@ public final class ArtemisServer {
 		init();
 	}
 	
+	@SuppressWarnings("static-access")
 	private void init() throws Exception{
+		
+		long startTm = (new Date()).getTime();
+				
 		Properties props = System.getProperties();
 		props.setProperty("java.net.preferIPv4Stack", "true");
 		props.setProperty("log4j.configurationFile", "./conf/log4j2.json");
@@ -106,7 +112,10 @@ public final class ArtemisServer {
 		
 		ensureSecurityConf();
 		
-		Config.getInstance();
+		Config config = Config.getInstance();
+		config.getTDBService(Config.dbName, Config.dbType);
+		config.loadConfig((NavigableMap<String, Json>)config.getMap());
+		
 
 		embedded = new EmbeddedActiveMQ();
 		embedded.start();
@@ -125,11 +134,11 @@ public final class ArtemisServer {
 		}
 		
 		addShutdownHook(this);
-	
+		
 		//swagger
 		buildSwagger();
-		
-		
+				
+	
 		server = new Nettosphere.Builder().config(
 				new org.atmosphere.nettosphere.Config.Builder()
 						.supportChunking(true)
@@ -139,6 +148,7 @@ public final class ArtemisServer {
 						.initParam(ApplicationConfig.PROPERTY_SESSION_SUPPORT, "true")
 						.initParam(ApplicationConfig.ANALYTICS, "false")
 						.initParam("jersey.config.server.provider.packages","nz.co.fortytwo.signalk.artemis,io.swagger.jaxrs.listing")
+						.initParam("jersey.config.server.provider.packages","nz.co.fortytwo.signalk.artemis")
 						.initParam("jersey.config.server.provider.classnames","org.glassfish.jersey.media.multipart.MultiPartFeature")
 						.initParam("org.atmosphere.cpr.broadcaster.shareableThreadPool","true")
 						.initParam("org.atmosphere.cpr.broadcaster.maxProcessingThreads", "10")
@@ -152,13 +162,14 @@ public final class ArtemisServer {
 						//swagger
 						//.initParam("openApi.configuration.resourcePackages", "nz.co.fortytwo.signalk.artemis.service")
 						//.resource("/swagger/*",OpenApiServlet.class)
+						//.resource(AuthenticationFilter.class)
 						.port(8080)
 						.host("0.0.0.0")
 					.build()
 				).build();
 		
 		server.start();
-		
+	
 		skServer = new NettyServer(null, OUTPUT_TCP);
 		skServer.setTcpPort(Config.getConfigPropertyInt(TCP_PORT));
 		skServer.setUdpPort(Config.getConfigPropertyInt(UDP_PORT));
@@ -173,6 +184,10 @@ public final class ArtemisServer {
 
 		startMdns();
 		ChartService.reloadCharts();
+		long endTm = (new Date()).getTime();
+		
+		System.out.println("SignalK Artemis server started in "+String.valueOf(endTm-startTm)+"ms. Listening port 8080.");
+
 	}
 
 
@@ -348,7 +363,7 @@ public final class ArtemisServer {
         
 		
     }
-
+	
 	static {
         System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
         System.setProperty("java.net.preferIPv4Stack", "true");
@@ -358,7 +373,12 @@ public final class ArtemisServer {
     }
 	
 	public static void main(String[] args) throws Exception {
-
+//		Properties props = System.getProperties();
+//		props.setProperty("java.net.preferIPv4Stack", "true");
+//		//props.setProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager");
+//		props.setProperty("log4j.configurationFile", "./conf/log4j2.json");
+//		props.setProperty("org.apache.logging.log4j.simplelog.StatusLogger.level","TRACE");
+//		System.setProperties(props);
 		
 		PropertyConfigurator.configure("./conf/log4j2.json");
 		InternalLoggerFactory.setDefaultFactory(Log4J2LoggerFactory.INSTANCE);
@@ -370,11 +390,8 @@ public final class ArtemisServer {
 		}
 		// this will force a reconfiguration
 		context.setConfigLocation(file.toURI());		
-		
+
 		new ArtemisServer();
 
 	}
-	
-	
-
 }
