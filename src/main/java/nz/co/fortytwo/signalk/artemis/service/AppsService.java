@@ -156,7 +156,7 @@ public class AppsService extends BaseApiService {
 	@Path("search")
 	@Operation(summary = "Search for a webapp", description = "Returns a list of availible signalk webapps from npmjs.org.")
 	@ApiResponses ({
-	    @ApiResponse(responseCode = "200", description = "Successful removal of appName"),
+	    @ApiResponse(responseCode = "200", description = "Successful retrieval of data"),
 	    @ApiResponse(responseCode = "500", description = "Internal server error"),
 	    @ApiResponse(responseCode = "403", description = "No permission")
 	    })
