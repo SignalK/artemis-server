@@ -36,12 +36,13 @@ public class AuthenticationInterceptor extends AtmosphereInterceptorAdapter impl
 				logger.debug("[{}] receive: {}:{}", r.getRequest().getRemoteAddr(), entry.getKey(), entry.getValue());
 			}
 		}
-
+		if (r.getRequest().getPathInfo().startsWith("/signalk/v1/api/")){
+			return Action.CONTINUE;
+		}
 		// check for secure path
-		if (!(r.getRequest().getPathInfo().startsWith("/signalk/v1/api/")
-				|| r.getRequest().getPathInfo().startsWith("/signalk/v1/logger")
+		if (!(r.getRequest().getPathInfo().startsWith("/signalk/v1/logger")
 				|| r.getRequest().getPathInfo().startsWith("/config")
-				|| r.getRequest().getPathInfo().startsWith("/signalk/apps")
+				|| r.getRequest().getPathInfo().startsWith("/signalk/v1/apps")
 				|| r.getRequest().getPathInfo().startsWith("/signalk/v1/security"))) {
 			return Action.CONTINUE;
 		}

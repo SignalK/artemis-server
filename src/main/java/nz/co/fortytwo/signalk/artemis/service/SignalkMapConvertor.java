@@ -262,7 +262,9 @@ public class SignalkMapConvertor {
 			String path = StringUtils.substringBefore(entry.getKey(), dot + values + dot);
 			String ref = StringUtils.substringAfter(entry.getKey(), dot + values + dot);
 			if(StringUtils.isNotBlank(ref)){
-				val.set(sourceRef, ref);
+				if(!StringUtils.startsWith(path, sources)) { 
+					val.set(sourceRef, ref);
+				}
 			}
 			if (logger.isDebugEnabled())
 				logger.debug("Add key: {}, value: {}", entry.getKey(), val.toString());
