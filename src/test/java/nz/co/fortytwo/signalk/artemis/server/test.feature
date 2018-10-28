@@ -15,15 +15,15 @@ Background:
 			  },
 			  endpoints: {
 			    v1: {
+			      signalk-http: '#string',
+			      signalk-ws: '#string',
+			      version: '#string',
 			      signalk-tcp: '##string',
 			      signalk-udp: '##string',
 			      nmea-tcp: '##string',
 			      nmea-udp: '##string',
-			      signalk-http: '#string',
 			      mqtt: '##string',
-			      signalk-ws: '#string',
-			      stomp: '##string',
-			      version: '#string'
+			      stomp: '##string'
 			    }
 			  }
 			}
