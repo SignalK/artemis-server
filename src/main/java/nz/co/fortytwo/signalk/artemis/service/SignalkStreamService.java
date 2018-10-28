@@ -29,6 +29,8 @@ import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.cpr.AtmosphereResourceSession;
 import org.atmosphere.cpr.AtmosphereResourceSessionFactory;
 import org.atmosphere.websocket.WebSocket;
+import org.signalk.schema.Endpoints;
+import org.signalk.schema.Update;
 import org.signalk.schema.subscribe.SignalkSubscribe;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -53,7 +55,11 @@ public class SignalkStreamService extends BaseApiService {
 	
 	@Operation(summary = "Request a websocket stream", description = "Submit a Signalk path and receive a stream of UPDATE messages. ")
 	@ApiResponses ({
-	    @ApiResponse(responseCode = "101", description = "Switching to websocket"),
+	    @ApiResponse(responseCode = "101", description = "Switching to websocket",
+	    		content = @Content(
+                        mediaType = "application/json",
+                        schema = @Schema(implementation = Update.class)
+                )),
 	    @ApiResponse(responseCode = "500", description = "Internal server error"),
 	    @ApiResponse(responseCode = "403", description = "No permission")
 	    })
@@ -93,7 +99,11 @@ public class SignalkStreamService extends BaseApiService {
 
 	@Operation(summary = "Request a websocket stream", description = "Post a Signalk SUBSCRIBE message and receive a stream of UPDATE messages. ")
 	@ApiResponses ({
-	    @ApiResponse(responseCode = "101", description = "Switching to websocket"),
+	    @ApiResponse(responseCode = "101", description = "Switching to websocket",
+	    		content = @Content(
+                        mediaType = "application/json",
+                        schema = @Schema(implementation = Update.class)
+                )),
 	    @ApiResponse(responseCode = "500", description = "Internal server error"),
 	    @ApiResponse(responseCode = "403", description = "No permission")
 	    })

@@ -1,0 +1,19 @@
+{
+  "server": {
+    "id": "artemis-java-server",
+    "version": "1.0.0"
+  },
+  "endpoints": {
+    "v1": {
+      "signalk-tcp": "tcp://localhost:55555",
+      "signalk-udp": "udp://localhost:55554",
+      "nmea-tcp": "tcp://localhost:55557",
+      "nmea-udp": "udp://localhost:55556",
+      "signalk-http": "http://localhost:8080/signalk/v1/api/",
+      "mqtt": "mqtt://localhost:1883",
+      "signalk-ws": "ws://localhost:8080/signalk/v1/stream",
+      "stomp": "stomp+nio://localhost:61613",
+      "version": "1.0.0"
+    }
+  }
+}

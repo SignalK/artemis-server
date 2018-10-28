@@ -1,0 +1,20 @@
+{
+  "courseOverGroundTrue": {
+    "value": 4.877148062886551,
+    "timestamp": "2018-10-19T01:15:10.000Z",
+    "$source": "NMEA0183.SERIAL"
+  },
+  "speedOverGround": {
+    "value": 0.24693339588979363,
+    "timestamp": "2018-10-19T01:15:10.000Z",
+    "$source": "NMEA0183.SERIAL"
+  },
+  "position": {
+    "value": {
+      "latitude": -41.29366666666667,
+      "longitude": 173.24707333333333
+    },
+    "timestamp": "2018-10-19T01:15:10.000Z",
+    "$source": "NMEA0183.SERIAL"
+  }
+}

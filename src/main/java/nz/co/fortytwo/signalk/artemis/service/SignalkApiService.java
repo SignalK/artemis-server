@@ -1,9 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SIGNALK_API;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SK_TOKEN;
-
-import java.io.IOException;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
@@ -13,32 +10,29 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.atmosphere.annotation.Suspend;
 import org.atmosphere.cpr.AtmosphereResource;
-import org.atmosphere.cpr.AtmosphereResourceEvent;
-import org.atmosphere.websocket.WebSocketEventListenerAdapter;
+import org.signalk.schema.FullApi;
+import org.signalk.schema.NavigationApi;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
-import nz.co.fortytwo.signalk.artemis.util.Util;
 
 @Path("/signalk/v1/api/")
 @Tag(name = "REST API")
@@ -68,7 +62,7 @@ public class SignalkApiService extends BaseApiService {
 	    @ApiResponse(responseCode = "200", description = "OK", 
 	    		content = @Content(
                         mediaType = MediaType.TEXT_PLAIN, 
-                        examples = @ExampleObject(name = "self", value = "\"urn:mrn:signalk:uuid:c0d79334-4e25-4245-8892-54e8ccc8021d\"")                       		
+                        schema = @Schema(example="\"vessels.urn:mrn:signalk:uuid:a8fb07c0-1ffd-4663-899c-f16c2baf8270\"")                       		
                         )
                 ),
 	    @ApiResponse(responseCode = "500", description = "Internal server error"),
@@ -95,7 +89,8 @@ public class SignalkApiService extends BaseApiService {
 	@ApiResponses ({
 	    @ApiResponse(responseCode = "200", description = "OK", 
 	    		content = @Content(
-                        mediaType = "application/json"                        		
+                        mediaType = "application/json",
+                        		schema = @Schema(implementation = FullApi.class)
                         )
                 ),
 	    @ApiResponse(responseCode = "500", description = "Internal server error"),
@@ -118,7 +113,8 @@ public class SignalkApiService extends BaseApiService {
 	@ApiResponses ({
 	    @ApiResponse(responseCode = "200", description = "OK", 
 	    		content = @Content(
-                        mediaType = "application/json"                        		
+                        mediaType = "application/json",
+                        schema = @Schema(implementation = NavigationApi.class)
                         )
                 ),
 	    @ApiResponse(responseCode = "500", description = "Internal server error"),

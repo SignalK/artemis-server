@@ -1,0 +1,144 @@
+{
+	"context": "vessels.urn:mrn:signalk:uuid:a8fb07c0-1ffd-4663-899c-f16c2baf8270",
+	"updates": [
+		{
+			"values": [
+				{
+					"path": "navigation.speedOverGround",
+					"value": 0.24693339588979363
+				},
+				{
+					"path": "navigation.datetime",
+					"value": "2018-10-19T01:15:10.000Z"
+				},
+				{
+					"path": "navigation.position",
+					"value": {
+						"latitude": -41.29366666666667,
+						"longitude": 173.24707333333333
+					}
+				},
+				{
+					"path": "navigation.courseOverGroundTrue",
+					"value": 4.877148062886551
+				},
+				{
+					"path": "navigation.magneticVariation",
+					"value": 0
+				},
+				{
+					"path": "navigation.magneticVariationAgeOfService",
+					"value": 1539911710
+				}
+			],
+			"timestamp": "2018-10-19T01:15:10.000Z",
+			"$source": "NMEA0183.SERIAL"
+		},
+		{
+			"values": [
+				{
+					"path": "navigation.headingMagnetic",
+					"value": 4.92
+				}
+			],
+			"timestamp": "2018-10-19T01:16:01.438Z",
+			"$source": "/dev/ttyACM3.pesky.IMU"
+		},
+		{
+			"values": [
+				{
+					"path": "navigation.gnss.differentialAge",
+					"value": 0
+				},
+				{
+					"path": "navigation.gnss.horizontalDilution",
+					"value": 1
+				},
+				{
+					"path": "navigation.gnss.differentialReference",
+					"value": 0
+				},
+				{
+					"path": "navigation.gnss.satellites",
+					"value": 5
+				},
+				{
+					"path": "navigation.gnss.antennaAltitude",
+					"value": 28
+				},
+				{
+					"path": "navigation.gnss.methodQuality",
+					"value": "GNSS Fix"
+				}
+			],
+			"timestamp": "2018-10-19T01:15:06.000Z",
+			"$source": "NMEA0183.SERIAL"
+		},
+		{
+			"values": [
+				{
+					"path": "navigation.gnss.geoidalSeparation",
+					"value": 170918
+				}
+			],
+			"timestamp": "2018-09-17T08:19:47.000Z",
+			"$source": "NMEA0183.SERIAL"
+		},
+		{
+			"values": [
+				{
+					"path": "uuid",
+					"value": "urn:mrn:signalk:uuid:a8fb07c0-1ffd-4663-899c-f16c2baf8270"
+				}
+			],
+			"timestamp": "none",
+			"$source": "none"
+		},
+		{
+			"values": [
+				{
+					"path": "environment.outside.pressure",
+					"value": 102640.0
+				},
+				{
+					"path": "navigation.attitude",
+					"value": {
+						"roll": -0.1,
+						"pitch": -0.01,
+						"yaw": 4.92
+					}
+				},
+				{
+					"path": "environment.inside.temperature",
+					"value": 330.5
+				}
+			],
+			"timestamp": "2018-10-19T01:16:01.441Z",
+			"$source": "/dev/ttyACM3.pesky.IMU"
+		},
+		{
+			"values": [
+				{
+					"path": "environment.wind.angleApparent",
+					"value": -1.5707963271535559
+				},
+				{
+					"path": "environment.wind.speedApparent",
+					"value": 0
+				}
+			],
+			"timestamp": "2018-10-19T01:15:11.752Z",
+			"$source": "NMEA0183.SERIAL"
+		},
+		{
+			"values": [
+				{
+					"path": "navigation.rateOfTurn",
+					"value": 0.0
+				}
+			],
+			"timestamp": "2018-10-19T01:16:01.440Z",
+			"$source": "/dev/ttyACM3.pesky.IMU"
+		}
+	]
+}
