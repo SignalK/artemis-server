@@ -10,7 +10,7 @@ var loadHook = function(hook){
 	//findHooks
 	var subhook = require('./hooks-es5/'+hook);
 	mappings[hook] = subhook
-	print('JS:Loading NMEA sentence:'+hook)
+	//print('JS:Loading NMEA sentence:'+hook)
 }
 
 print("JS:Parser instantiated!")

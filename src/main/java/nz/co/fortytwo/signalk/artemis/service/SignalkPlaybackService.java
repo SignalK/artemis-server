@@ -28,6 +28,7 @@ import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.cpr.AtmosphereResourceSession;
 import org.atmosphere.cpr.AtmosphereResourceSessionFactory;
 import org.atmosphere.websocket.WebSocket;
+import org.signalk.schema.Update;
 import org.signalk.schema.subscribe.SignalkSubscribe;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,7 +43,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 @Path("/signalk/v1/playback")
-@Tag(name = "Websocket Stream API")
+@Tag(name = "Websocket Playback API")
 public class SignalkPlaybackService extends BaseApiService {
 
 	
@@ -54,9 +55,9 @@ public class SignalkPlaybackService extends BaseApiService {
 	@ApiResponses ({
 	    @ApiResponse(responseCode = "101", description = "Switching to websocket", 
 	    		content = @Content(
-                        mediaType = "application/json"                        		
-                        )
-                ),
+                        mediaType = "application/json",
+                        schema = @Schema(implementation = Update.class)
+                )),
 	    @ApiResponse(responseCode = "501", description = "History not implemented"),
 	    @ApiResponse(responseCode = "500", description = "Internal server error"),
 	    @ApiResponse(responseCode = "403", description = "No permission")
@@ -82,9 +83,10 @@ public class SignalkPlaybackService extends BaseApiService {
 	@Operation(summary = "Request a websocket stream", description = "Post a Signalk SUBSCRIBE message with startTime and playbackRate to replay history.  ")
 	@ApiResponses ({
 	    @ApiResponse(responseCode = "101", description = "Switching to websocket", 
-	    		content = {@Content(mediaType = MediaType.APPLICATION_JSON, 
-	    			examples = @ExampleObject(name="update", value = "{\"test\"}"))
-	    				}),
+	    		content = @Content(
+                        mediaType = "application/json",
+                        schema = @Schema(implementation = Update.class)
+                )),
 	    @ApiResponse(responseCode = "500", description = "Internal server error"),
 	    @ApiResponse(responseCode = "403", description = "No permission")
 	    })

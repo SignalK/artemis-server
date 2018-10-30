@@ -32,7 +32,7 @@ Functionality
 		Formats:
 			Signalk delta
 			Signalk full
-			NMEA 0183
+			NMEA 0183 (STALK not enabled)
 			Canboat format N2K
 		Transports:	
 			HTTP
@@ -46,7 +46,7 @@ Functionality
 		/signalk/v1/snapshot
 		/signalk/v1/playback
 		/signalk/v1/history(prototye)
-		/signalk/v1/webapps(prototye)
+		/signalk/v1/webapps(prototype)
 	REST API docs:
 		/docs/ (Swagger/OpenAPI3)
 				

@@ -54721,7 +54721,7 @@ var loadHook = function(hook){
 	//findHooks
 	var subhook = __webpack_require__(362)("./"+hook);
 	mappings[hook] = subhook
-	print('JS:Loading NMEA sentence:'+hook)
+	//print('JS:Loading NMEA sentence:'+hook)
 }
 
 print("JS:Parser instantiated!")
@@ -54761,7 +54761,7 @@ var parse = function(sentence){
   this.session = 0;
   if(mappings[id]==undefined){
 	 //print("JS:NMEA: unsupported sentence "+sentence);
-	  return "Error:NMEA: unsupported sentence "+sentence;
+	  return "WARN:NMEA: unsupported sentence "+sentence;
   }
   //print('JS:Debug:'+JSON.stringify(mappings[id]));
   if (typeof mappings[id] === 'function') {

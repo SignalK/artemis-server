@@ -27,12 +27,15 @@ import org.atmosphere.annotation.Suspend;
 import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.cpr.AtmosphereResourceEvent;
 import org.atmosphere.websocket.WebSocketEventListenerAdapter;
+import org.signalk.schema.FullApi;
+import org.signalk.schema.NavigationApi;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -41,7 +44,7 @@ import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 @Path("/signalk/v1/snapshot/")
-@Tag(name = "REST API")
+@Tag(name = "REST Snapshot API")
 public class SignalkSnapshotService extends BaseApiService {
 
 	
@@ -66,7 +69,7 @@ public class SignalkSnapshotService extends BaseApiService {
 		}
 	}
 
-	@Operation(summary = "Request self uuid", description = "Returns the uuid of this vessel. Optionally supply time to obtain the historic value. ")
+	@Operation(summary = "Request self uuid", description = "Returns the uuid of this vessel at 'time' to obtain the historic value.  ")
 	@ApiResponses ({
 	    @ApiResponse(responseCode = "200", description = "OK", 
 	    		content = @Content(
@@ -74,7 +77,7 @@ public class SignalkSnapshotService extends BaseApiService {
                         examples = @ExampleObject(name = "self", value = "\"urn:mrn:signalk:uuid:c0d79334-4e25-4245-8892-54e8ccc8021d\"")                       		
                         )
                 ),
-	    @ApiResponse(responseCode = "501", description = "History not implemented if time parameter is understood but not implemented"),
+	    @ApiResponse(responseCode = "501", description = "Snapshot not implemented if time parameter is understood but not implemented"),
 	    @ApiResponse(responseCode = "500", description = "Internal server error"),
 	    @ApiResponse(responseCode = "403", description = "No permission"),
 	    @ApiResponse(responseCode = "400", description = "Bad request if time parameter is not understood")
@@ -97,11 +100,12 @@ public class SignalkSnapshotService extends BaseApiService {
 	 * @param path
 	 * @throws Exception
 	 */
-	@Operation(summary = "Request all signalk data", description = "Returns the full signalk data tree as json in full format. Optionally supply time to obtain the historic value. ")
+	@Operation(summary = "Request all signalk data", description = "Returns the full signalk data tree as json in full format, valid at 'time' to obtain the historic value. ")
 	@ApiResponses ({
 	    @ApiResponse(responseCode = "200", description = "OK", 
 	    		content = @Content(
-                        mediaType = "application/json"                        		
+                        mediaType = "application/json",
+                        		schema = @Schema(implementation = FullApi.class)
                         )
                 ),
 	    @ApiResponse(responseCode = "501", description = "History not implemented if time parameter is understood but not implemented"),
@@ -123,11 +127,12 @@ public class SignalkSnapshotService extends BaseApiService {
 	 * @param path
 	 * @throws Exception
 	 */
-	@Operation(summary = "Request signalk data at path", description = "Returns the signalk data tree found at path as json in full format. Optionally supply time to obtain the historic value. ")
+	@Operation(summary = "Request signalk data at path", description = "Returns the signalk data tree found at path as json in full format at 'time' to obtain the historic value. ")
 	@ApiResponses ({
 	    @ApiResponse(responseCode = "200", description = "OK", 
 	    		content = @Content(
-                        mediaType = "application/json"                        		
+                        mediaType = "application/json",
+                        schema = @Schema(implementation = NavigationApi.class)
                         )
                 ),
 	    @ApiResponse(responseCode = "501", description = "History not implemented if time parameter is understood but not implemented"),
