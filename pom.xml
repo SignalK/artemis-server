@@ -357,28 +357,28 @@
 				</configuration>
 			</plugin>
 
-			<plugin>
-				<groupId>org.jsonschema2pojo</groupId>
-				<artifactId>jsonschema2pojo-maven-plugin</artifactId>
-				<version>0.5.1</version>
-				<configuration>
-					<sourceType>json</sourceType>
-<!-- 					<sourceDirectory>${basedir}/../specification/samples</sourceDirectory> -->
-					<sourceDirectory>${basedir}/src/test/resources/swagger</sourceDirectory>
-					<targetPackage>org.signalk.schema</targetPackage>
-					<includeAccessors>false</includeAccessors>
-					<generateBuilders>true</generateBuilders>
-					<outputDirectory>${basedir}/src/main/java</outputDirectory>
-					<useCommonsLang3>true</useCommonsLang3>
-				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
+<!-- Use this to generate pojo files for swagger docs -->
+<!-- 			<plugin> -->
+<!-- 				<groupId>org.jsonschema2pojo</groupId> -->
+<!-- 				<artifactId>jsonschema2pojo-maven-plugin</artifactId> -->
+<!-- 				<version>0.5.1</version> -->
+<!-- 				<configuration> -->
+<!-- 					<sourceType>json</sourceType> -->
+<!-- 					<sourceDirectory>${basedir}/src/test/resources/swagger</sourceDirectory> -->
+<!-- 					<targetPackage>org.signalk.schema</targetPackage> -->
+<!-- 					<includeAccessors>false</includeAccessors> -->
+<!-- 					<generateBuilders>true</generateBuilders> -->
+<!-- 					<outputDirectory>${basedir}/src/main/java</outputDirectory> -->
+<!-- 					<useCommonsLang3>true</useCommonsLang3> -->
+<!-- 				</configuration> -->
+<!-- 				<executions> -->
+<!-- 					<execution> -->
+<!-- 						<goals> -->
+<!-- 							<goal>generate</goal> -->
+<!-- 						</goals> -->
+<!-- 					</execution> -->
+<!-- 				</executions> -->
+<!-- 			</plugin> -->
 
 
 			<plugin>

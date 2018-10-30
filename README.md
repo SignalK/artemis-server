@@ -11,7 +11,7 @@ In a signalk world there should be no dependency except on signalk message and A
 
 The Artemis server has several architectural features of note:
 
-1) Java is natively multi-threaded, Artemis uses Java 8+ aysnc IO, lamdbas and streams processing to transprently spread workloads across available CPU's. Hence a slow, blocking or failed operation will only stall one CPU, with others able to repair things.  Node (javascript) is single threaded, so only one CPU does the work, and if one process blocks, the server can stall.
+1) Java is natively multi-threaded, Artemis uses Java 8+ non-blocking aysnc IO, lamdbas and streams processing to transprently spread workloads across available CPU's. Hence a slow, blocking or failed operation will only stall one CPU, with others able to repair things.  Node (javascript) is single threaded, so only one CPU does the work, and if one process blocks, the server can stall.
 
 2) The underlying transport is Activemq Artemis (hence the name!). https://activemq.apache.org/artemis/  Its a state-of-the-art async messaging server, with full support for most common protocols (AMQP,JMS,MQTT.COAP,STOMP, etc) and provides a highly redundant message layer for processing and routing imessages. This can scale horizontally to massive workloads, aka marinetraffic.com. The difference between a messaging layer and a pipeline (node-server) is that the messaging layer buffers messages in a queue between the processing steps. So the steps can execute at their own speed, and slow steps can be parallelised. Intermittent connections or periodic processes are naturally handled by the queue. If you optionally make a queue persistent, then no message will be lost even on reboot.
 
@@ -40,7 +40,24 @@ Functionality
 			TCP
 			UDP
 			serial connections
+	Supports:
+		Message types (on all transports):
+			UPDATES
+			GET
+			PUT
+			POST
+			LIST
+			SUBSCRIBE
+			UNSUBSCRIBE
+		Resources:
+			tracks
+			routes
+			waypoints
+			charts
+	Persistence:
+		Uses Time-series database to store all data and history
 	REST APIs:
+		/signalk/authenticate
 		/signalk/v1/api
 		/signalk/v1/stream
 		/signalk/v1/snapshot
@@ -49,22 +66,33 @@ Functionality
 		/signalk/v1/webapps(prototype)
 	REST API docs:
 		/docs/ (Swagger/OpenAPI3)
-				
 	Charts:
-		upload
-	UI:
-		Server config
-		Users/Groups
-		Logging management
-		Logs
-		Shutdown/Restart
-		
+		Openstreetmap (online) 
+		OSM (Open Sea Map) (online)
+		World base map. (offline)
+		Upload processed BSB/KAP API (UI via signalk-java page) (offline)
+		Maptiles?
+	Management:
+		Install apps (UI via signalk-java page)
+		Server config API (UI via signalk-java page)
+		Users/Groups API (UI via signalk-java page)
+		Logging management API (UI via signalk-java page)
+		View Logs API (UI via signalk-java page)
+		Shutdown/Restart API (UI via signalk-java page)
+		Runtime inspection: JMX, jolokia, hawtio (also supports remote access)
 	TODO:
 		Test, test, more tests...
+		Zeroconf
+		Alarms
+		apis:
+			/signalk/v1/access/requests
+		True wind calc
+		Local declination
+		NMEA output
+		SSL
 		Enable MQTT/STOMP/COAP
-		manage apps (api is done)
-		menu to apps
-		Better UI
+		auto rendered menu to apps
+		Better server UI
 
 It assumes influx db is running on localhost:8086
 
@@ -80,6 +108,17 @@ Installation
 The artemis server is normally installed as the server part of signalk-java (https://github.com/SignalK/signalk-java) project, which includes the supporting web interface and misc config UI etc.
 
 The default signalk-java installs the old java server, to get this new version see signalk-java README
+
+Using JMX/Jolokia Diagnostics (via Hawtio)
+==========================================
+
+Download the stand-alone hawtio.jar file from http://hawt.io and save to a local dir ([HAWTIO_DIR]).
+Start the hawtio-app with port 8888. eg `java -jar [HAWTIO_DIR]/hawtio-app-1.4.65.jar -p 8888`
+Open web browser to `http://localhost:8888/hawtio/`
+
+Look in the aretmis server start.log for the line `Jolokia: Agent started with URL http://192.168.43.246:8780/jolokia/`
+Enter connection data to the artemis server: `http://192.168.43.246:8780/jolokia/` and connect.
+
 
 Development
 ===========

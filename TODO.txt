@@ -1,19 +1,4 @@
-Done:
-	websockets
-	delta
-	full
-	0183
-	N2K
-	AIS
-	TCP
-	UDP
-	source to srcRef
-	serial input
-	subscriptions
-	REST GET/PUT/POST API
-	charts (upload)
-	UI
-	log conf
+
 TODO:
     apis:
 		/signalk/v1/access/requests
@@ -31,11 +16,6 @@ TODO:
 	convert self back to urn on reply
 	
 	Alarms
-	Resources
-		tracks
-		routes
-		waypoints
-	
 	Declination
 
 	Git
@@ -44,9 +24,4 @@ TODO:
 	MQTT
 	STOMP
 
-Document install 
-	clean up logrotate so it doesnt eat all disk space. 
-	   add maxsize 128M
-	   
-	Add telegraf and setup telegraf.conf
 
