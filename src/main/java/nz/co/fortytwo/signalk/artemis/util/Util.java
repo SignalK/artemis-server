@@ -588,5 +588,17 @@ public class Util {
 		cookies.add(new DefaultCookie(SecurityUtils.AUTH_COOKIE_NAME, jwtToken));
 		return cookies;
 	}
+	  /**
+     * Round to specified decimals
+     *
+     * @param val
+     * @param places
+     * @return
+     */
+    public static double round(double val, int places) {
+        double scale = Math.pow(10, places);
+        long iVal = Math.round(val * scale);
+        return iVal / scale;
+    }
 }
 

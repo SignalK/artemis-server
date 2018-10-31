@@ -38,6 +38,9 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javax.jmdns.JmmDNS;
 import javax.jmdns.ServiceInfo;
@@ -61,6 +64,7 @@ import org.atmosphere.nettosphere.Nettosphere;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Log4J2LoggerFactory;
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.scheduled.DeclinationUpdater;
 import nz.co.fortytwo.signalk.artemis.serial.SerialPortManager;
 import nz.co.fortytwo.signalk.artemis.service.ChartService;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
@@ -80,7 +84,7 @@ public final class ArtemisServer {
 	private static EmbeddedActiveMQ embedded;
 	private static Nettosphere server;
 	private JmmDNS jmdns;
-
+	private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 	private nz.co.fortytwo.signalk.artemis.serial.SerialPortManager serialPortManager;
 	private nz.co.fortytwo.signalk.artemis.server.NettyServer skServer;
 	private nz.co.fortytwo.signalk.artemis.server.NettyServer nmeaServer;
@@ -164,9 +168,17 @@ public final class ArtemisServer {
 		}
 
 		startMdns();
+		startScheduledServices();
 		ChartService.reloadCharts();
 	}
 
+
+	private void startScheduledServices() {
+		logger.info("Starting scheduled services");
+		//declination
+		final Runnable declination = new DeclinationUpdater();
+		scheduler.scheduleAtFixedRate(declination, 1, 1, TimeUnit.HOURS);
+	}
 
 	private void ensureSecurityConf() {
 		File secureConf = new File("./conf/security-conf.json");
@@ -293,6 +305,7 @@ public final class ArtemisServer {
 
 			@Override
 			public void run() {
+				logger.info("Starting Zeroconf discovery agent");
 				jmdns = JmmDNS.Factory.getInstance();
 
 				jmdns.registerServiceType(_SIGNALK_WS_TCP_LOCAL);
