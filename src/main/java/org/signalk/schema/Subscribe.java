@@ -1,7 +1,9 @@
 
-package org.signalk.schema.discovery;
+package org.signalk.schema;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
@@ -15,33 +17,25 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
-    "version",
-    "signalk-http",
-    "signalk-ws"
+    "context",
+    "subscribe"
 })
-public class V1_ {
+public class Subscribe {
 
-    @JsonProperty("version")
-    public String version;
-    @JsonProperty("signalk-http")
-    public String signalkHttp;
-    @JsonProperty("signalk-ws")
-    public String signalkWs;
+    @JsonProperty("context")
+    public String context;
+    @JsonProperty("subscribe")
+    public List<Subscribe_> subscribe = new ArrayList<Subscribe_>();
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
-    public V1_ withVersion(String version) {
-        this.version = version;
+    public Subscribe withContext(String context) {
+        this.context = context;
         return this;
     }
 
-    public V1_ withSignalkHttp(String signalkHttp) {
-        this.signalkHttp = signalkHttp;
-        return this;
-    }
-
-    public V1_ withSignalkWs(String signalkWs) {
-        this.signalkWs = signalkWs;
+    public Subscribe withSubscribe(List<Subscribe_> subscribe) {
+        this.subscribe = subscribe;
         return this;
     }
 
@@ -55,19 +49,19 @@ public class V1_ {
         this.additionalProperties.put(name, value);
     }
 
-    public V1_ withAdditionalProperty(String name, Object value) {
+    public Subscribe withAdditionalProperty(String name, Object value) {
         this.additionalProperties.put(name, value);
         return this;
     }
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this).append("version", version).append("signalkHttp", signalkHttp).append("signalkWs", signalkWs).append("additionalProperties", additionalProperties).toString();
+        return new ToStringBuilder(this).append("context", context).append("subscribe", subscribe).append("additionalProperties", additionalProperties).toString();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder().append(signalkHttp).append(additionalProperties).append(version).append(signalkWs).toHashCode();
+        return new HashCodeBuilder().append(context).append(additionalProperties).append(subscribe).toHashCode();
     }
 
     @Override
@@ -75,11 +69,11 @@ public class V1_ {
         if (other == this) {
             return true;
         }
-        if ((other instanceof V1_) == false) {
+        if ((other instanceof Subscribe) == false) {
             return false;
         }
-        V1_ rhs = ((V1_) other);
-        return new EqualsBuilder().append(signalkHttp, rhs.signalkHttp).append(additionalProperties, rhs.additionalProperties).append(version, rhs.version).append(signalkWs, rhs.signalkWs).isEquals();
+        Subscribe rhs = ((Subscribe) other);
+        return new EqualsBuilder().append(context, rhs.context).append(additionalProperties, rhs.additionalProperties).append(subscribe, rhs.subscribe).isEquals();
     }
 
 }

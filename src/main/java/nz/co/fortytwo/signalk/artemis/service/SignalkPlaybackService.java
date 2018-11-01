@@ -4,10 +4,6 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT_DELTA;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.POLICY_IDEAL;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SK_TOKEN;
 
-import java.io.IOException;
-import java.util.Timer;
-import java.util.TimerTask;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
@@ -20,22 +16,17 @@ import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.atmosphere.annotation.Suspend;
 import org.atmosphere.cpr.AtmosphereResource;
-import org.atmosphere.cpr.AtmosphereResourceSession;
-import org.atmosphere.cpr.AtmosphereResourceSessionFactory;
-import org.atmosphere.websocket.WebSocket;
+import org.signalk.schema.Subscribe;
 import org.signalk.schema.Update;
-import org.signalk.schema.subscribe.SignalkSubscribe;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -95,7 +86,7 @@ public class SignalkPlaybackService extends BaseApiService {
 	@Produces(MediaType.APPLICATION_JSON)
 	@POST
 	public String postPlayback(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
-			@Parameter( name="body", description = "A signalk SUBSCRIBE message",schema = @Schema(implementation=SignalkSubscribe.class)) String body) {
+			@Parameter( name="body", description = "A signalk SUBSCRIBE message",schema = @Schema(implementation=Subscribe.class)) String body) {
 		
 			return getWebsocket(resource, body,cookie);
 		
