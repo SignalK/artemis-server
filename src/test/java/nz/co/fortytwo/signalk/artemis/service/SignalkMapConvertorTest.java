@@ -41,6 +41,23 @@ public class SignalkMapConvertorTest {
 		if(in.has("version"))out.delAt("version");
 		assertTrue(compareFull(out,in));
 	}
+	@Test
+	public void shouldConvertFullWithMeta() throws Exception {
+		String body = FileUtils.readFileToString(new File("./src/test/resources/samples/full/docs-data_model_metadata.json"));
+		Json in = Json.read(body);
+		NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();
+		SignalkMapConvertor.parseFull(in, map, "");
+		ArrayList<String> allowed =  new ArrayList<>();
+		allowed.add("all");
+		Json out = SignalkMapConvertor.mapToFull(map,allowed);
+		logger.debug(in);
+		logger.debug(out);
+		if(in.has("self"))in.delAt("self");
+		if(in.has("version"))in.delAt("version");
+		if(in.has("self"))out.delAt("self");
+		if(in.has("version"))out.delAt("version");
+		assertTrue(compareFull(out,in));
+	}
 	
 	@Test
 	public void shouldConvertUpdate() throws IOException {

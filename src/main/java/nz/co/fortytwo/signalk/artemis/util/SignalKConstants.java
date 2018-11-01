@@ -554,7 +554,7 @@ public class SignalKConstants {
 	public static final String nav_speedThroughWaterTransverse="navigation.speedThroughWaterTransverse";
 	public static final String nav_stwDisplayUnit="navigation.speedThroughWater.meta.unit";
 
-	public static final String nav_state="navigation.state";
+	public static final String nav_state="navigation.state";*/
 	public static final String notifications="notifications";
 	public static final String notifications_abandon="notifications.abandon";
 	public static final String notifications_adrift="notifications.adrift";
@@ -566,6 +566,7 @@ public class SignalKConstants {
 	public static final String notifications_mob="notifications.mob";
 	public static final String notifications_piracy="notifications.piracy";
 	public static final String notifications_sinking="notifications.sinking";
+	/*
 	public static final String performance="performance";
 	public static final String performance_beatAngle="performance.beatAngle";
 	public static final String performance_beatAngleTargetSpeed="performance.beatAngleTargetSpeed";

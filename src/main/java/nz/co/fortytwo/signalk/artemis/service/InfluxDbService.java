@@ -506,8 +506,13 @@ public class InfluxDbService implements TDBService {
 		if(k.contains("._attr")){
 			return;
 		}
-		
-		String srcRef = (v.isObject() && v.has(sourceRef) ? v.at(sourceRef).asString() : StringUtils.substringAfter(k,dot+values+dot));
+		String srcRef = null;
+		if(v.isObject() && v.has(sourceRef)) {
+			srcRef=v.at(sourceRef).asString();
+		}else {
+			srcRef=StringUtils.substringAfter(k,dot+values+dot);
+			if(srcRef.contains(dot+meta+dot))srcRef=StringUtils.substringBefore(srcRef, dot+meta);
+		}
 		if(StringUtils.isBlank(srcRef))srcRef="self";
 		long tStamp = (v.isObject() && v.has(timestamp) ? Util.getMillisFromIsoTime(v.at(timestamp).asString())
 				: System.currentTimeMillis());

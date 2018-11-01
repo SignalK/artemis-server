@@ -39,8 +39,10 @@ Functionality
 			Websockets
 			TCP
 			UDP
-			serial connections
+			Serial connections
 	Supports:
+		Zeroconf/mDNS/BonJour
+		Calculates declination
 		Message types (on all transports):
 			UPDATES
 			GET
@@ -82,12 +84,10 @@ Functionality
 		Runtime inspection: JMX, jolokia, hawtio (also supports remote access)
 	TODO:
 		Test, test, more tests...
-		Zeroconf
 		Alarms
 		apis:
 			/signalk/v1/access/requests
 		True wind calc
-		Local declination
 		NMEA output
 		SSL
 		Enable MQTT/STOMP/COAP

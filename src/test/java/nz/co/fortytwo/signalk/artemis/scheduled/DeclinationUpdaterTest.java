@@ -30,12 +30,13 @@ public class DeclinationUpdaterTest {
 	private static final String SELF_UUID = "705f5f1a-efaf-44aa-9cb8-a0fd6305567c";
 	private static Logger logger = LogManager.getLogger(DeclinationUpdaterTest.class);
 	private InfluxDbService influx;
-	//private JsonSerializer ser = new JsonSerializer();
+	
 	@Before
 	public void setUpInfluxDb() throws IOException {
 		logger.debug("Start influxdb client");
 		InfluxDbService.setDbName(BaseServerTest.SIGNALK_TEST_DB);
 		influx = new InfluxDbService(BaseServerTest.SIGNALK_TEST_DB);
+		influx.setWrite(true);
 		NavigableMap<String, Json> map = getJsonMap("./src/test/resources/samples/full/docs-data_model.json");
 		
 		//save and flush

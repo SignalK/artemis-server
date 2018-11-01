@@ -1,6 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONFIG;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.GET;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PATH;
@@ -60,7 +60,6 @@ public class SignalkMapConvertor {
 				map.put(prefix + key, val);
 				continue;
 			}
-			
 			//value object we save in .values.sourceref.
 			if (val.has(value)) {
 				String srcRef = null;
@@ -89,6 +88,8 @@ public class SignalkMapConvertor {
 					if (logger.isDebugEnabled())
 						logger.debug("put: {}:{}", prefix + key + dot + values + dot + srcRef, tmpVal);
 				}
+				//sourceRef is wrong for meta
+				if(val.has(meta)) parseFull(val.at(meta), map, prefix + key + dot + values+dot+ srcRef+dot+meta+dot);
 				if(val.has(values)) parseFull(val.at(values), map, prefix + key + dot + values+dot);
 				continue;
 			}
@@ -260,11 +261,19 @@ public class SignalkMapConvertor {
 			Json val = entry.getValue();
 			
 			String path = StringUtils.substringBefore(entry.getKey(), dot + values + dot);
-			String ref = StringUtils.substringAfter(entry.getKey(), dot + values + dot);
-			if(StringUtils.isNotBlank(ref)){
-				if(!StringUtils.startsWith(path, sources)) { 
-					val.set(sourceRef, ref);
+			
+			if(!entry.getKey().contains(meta)) {
+				String ref = StringUtils.substringAfter(entry.getKey(), dot + values + dot);
+				if(ref.contains(dot+meta+dot))ref=StringUtils.substringBefore(ref, dot+meta+dot);
+				if(StringUtils.isNotBlank(ref)){
+					if(!StringUtils.startsWith(path, sources)) { 
+						if (logger.isDebugEnabled())
+							logger.debug("Add source: {} to value: {}", ref, val);
+						val.set(sourceRef, ref);
+					}
 				}
+			}else {
+				path= path + dot +meta+ dot+StringUtils.substringAfter(entry.getKey(), dot+meta+dot);
 			}
 			if (logger.isDebugEnabled())
 				logger.debug("Add key: {}, value: {}", entry.getKey(), val.toString());
