@@ -45,9 +45,9 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class BaseApiService {
 
-	protected static ClientProducer producer;
+	protected static ThreadLocal<ClientProducer> producer=new ThreadLocal<>();
 
-	protected static ClientSession txSession;
+	protected static ThreadLocal<ClientSession> txSession=new ThreadLocal<>();
 
 	protected String tempQ;
 
@@ -122,9 +122,9 @@ public class BaseApiService {
 		if (logger.isDebugEnabled())
 			logger.debug("Incoming msg: {}, {}", correlation, body);
 		ClientMessage message = null;
-		synchronized (txSession) {
-			message = txSession.createMessage(false);
-		}
+
+		message = txSession.get().createMessage(false);
+
 		message.getBodyBuffer().writeString(body);
 		message.putStringProperty(Config.AMQ_REPLY_Q, getTempQ());
 		if (correlation != null) {
@@ -134,10 +134,10 @@ public class BaseApiService {
 		return correlation;
 	}
 
-	private synchronized void send(SimpleString queue, ClientMessage message) throws ActiveMQException {
-		synchronized (txSession) {
+	private void send(SimpleString queue, ClientMessage message) throws ActiveMQException {
+		
 			getProducer().send(queue, message);
-		}
+		
 
 	}
 
@@ -269,20 +269,20 @@ public class BaseApiService {
 			if (logger.isDebugEnabled())
 				logger.debug("Close consumer: {}", tempQ);
 			try {
-				synchronized (txSession) {
+
 					getConsumer().close();
 					try {
-						if (txSession != null && !txSession.isClosed()
-								&& txSession.queueQuery(new SimpleString(getTempQ())).getConsumerCount() == 0) {
+						if (txSession.get() != null && !txSession.get().isClosed()
+								&& txSession.get().queueQuery(new SimpleString(getTempQ())).getConsumerCount() == 0) {
 							if (logger.isDebugEnabled())
 								logger.debug("Delete queue: {}", tempQ);
-							txSession.deleteQueue(getTempQ());
+							txSession.get().deleteQueue(getTempQ());
 						}
 					} catch (ActiveMQNonExistentQueueException | ActiveMQIllegalStateException e) {
 						if (logger.isDebugEnabled())
 							logger.debug(e.getMessage());
 					}
-				}
+				
 			} catch (ActiveMQException e) {
 				logger.warn(e, e);
 			}
@@ -293,32 +293,32 @@ public class BaseApiService {
 
 	public ClientSession getTxSession() {
 
-		if (txSession == null) {
+		if (txSession.get() == null) {
 			if (logger.isDebugEnabled())
 				logger.debug("Start amq session: {}", getTempQ());
 			try {
-				txSession = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
-						Config.getConfigProperty(Config.ADMIN_PWD));
+				txSession.set(Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
+						Config.getConfigProperty(Config.ADMIN_PWD)));
 			} catch (Exception e) {
 				logger.error(e, e);
 			}
 		}
-		return txSession;
+		return txSession.get();
 	}
 
 	public ClientProducer getProducer() {
-		if (producer == null && getTxSession() != null && !getTxSession().isClosed()) {
+		if (producer.get() == null && getTxSession() != null && !getTxSession().isClosed()) {
 			if (logger.isDebugEnabled())
 				logger.debug("Start producer: {}", getTempQ());
+			
 			try {
-				synchronized (txSession) {
-					producer = getTxSession().createProducer();
-				}
+				producer.set(getTxSession().createProducer());
 			} catch (ActiveMQException e) {
-				logger.error(e, e);
+				logger.error(e,e);
 			}
+
 		}
-		return producer;
+		return producer.get();
 
 	}
 
@@ -329,18 +329,18 @@ public class BaseApiService {
 				logger.debug("Start consumer: {}", getTempQ());
 			try {
 				try {
-					synchronized (txSession) {
+					
 						getTxSession().createTemporaryQueue("outgoing.reply." + getTempQ(), RoutingType.ANYCAST,
 								getTempQ());
-					}
+				
 				} catch (ActiveMQQueueExistsException e) {
 					if (logger.isDebugEnabled())
 						logger.debug(e.getMessage());
 				}
-				synchronized (txSession) {
-					consumer = getTxSession().createConsumer(getTempQ());
-					getTxSession().start();
-				}
+				
+				consumer = getTxSession().createConsumer(getTempQ());
+				getTxSession().start();
+				
 			} catch (ActiveMQException e) {
 				logger.error(e, e);
 			}

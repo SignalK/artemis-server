@@ -25,16 +25,16 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 public class BaseInterceptor {
 	private static Logger logger = LogManager.getLogger(BaseInterceptor.class);
 	protected static TDBService influx = new InfluxDbService();
-	protected static ClientSession txSession;
-	protected static ClientProducer producer;
+	protected static ThreadLocal<ClientSession> txSession = new ThreadLocal<>();
+	protected static ThreadLocal<ClientProducer> producer = new ThreadLocal<>();
 
 	protected void init() {
 		try{
-			txSession = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
-					Config.getConfigProperty(Config.ADMIN_PWD));
-			producer = txSession.createProducer();
+			txSession.set(Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
+					Config.getConfigProperty(Config.ADMIN_PWD)));
+			producer.set(txSession.get().createProducer());
 
-			txSession.start();
+			txSession.get().start();
 			
 			if(Config.getConfigProperty(ConfigConstants.CLOCK_SOURCE).equals("system")) {
 				influx.setWrite(true);
@@ -81,15 +81,13 @@ public class BaseInterceptor {
 	}
 	
 	protected void  sendReply(String simpleName, String destination, String format, String correlation, Json json) throws Exception {
-		if(txSession==null){
+		if(txSession.get()==null){
 			init();
 		}
 		if(json==null || json.isNull())json=Json.object();
 		
-		ClientMessage txMsg = null;
-		synchronized (txSession) {
-			txMsg = txSession.createMessage(false);
-		}
+		ClientMessage txMsg =  txSession.get().createMessage(false);
+		
 		//txMsg.putStringProperty(Config.JAVA_TYPE, type);
 		if(correlation!=null)
 			txMsg.putStringProperty(Config.AMQ_CORR_ID, correlation);
@@ -102,13 +100,44 @@ public class BaseInterceptor {
 		txMsg.getBodyBuffer().writeString(json.toString());
 		if (logger.isDebugEnabled())
 			logger.debug("Msg body = {}",json.toString());
-		synchronized (txSession) {
-			producer.send("outgoing.reply." +destination,txMsg);
+		producer.get().send("outgoing.reply." +destination,txMsg);
+		
+	}
+	
+	protected void  sendInternal(String key, Json json) throws Exception {
+		if(txSession.get()==null){
+			init();
 		}
+		if(json==null || json.isNull()) {
+			json=Json.object();
+		}
+		
+		ClientMessage txMsg = null;
+		
+		txMsg = txSession.get().createMessage(false);
+		
+		//txMsg.putStringProperty(Config.JAVA_TYPE, type);
+		txMsg.putStringProperty(Config.AMQ_INFLUX_KEY, key);
+		
+		txMsg.setExpiration(System.currentTimeMillis()+5000);
+		txMsg.getBodyBuffer().writeString(json.toString());
+		if (logger.isDebugEnabled())
+			logger.debug("Msg body internal = {}",json.toString());
+		
+		producer.get().send("internal.event",txMsg);
+		
 	}
 	
 	protected void saveMap(NavigableMap<String, Json> map) {
 		influx.save(map);
+		//try send to topic instead
+//		map.forEach((k,j) -> {
+//			try {
+//				sendInternal(k, j);
+//			} catch (Exception e) {
+//				logger.error(e,e);
+//			}
+//		});
 	}
 	
 	protected void saveSource(Json srcJson) {

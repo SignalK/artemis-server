@@ -307,13 +307,9 @@ public class Util {
 
 	public static void sendMessage(ClientSession session, ClientProducer producer, String address, String body)
 			throws ActiveMQException {
-		synchronized (session) {
 			ClientMessage msg = session.createMessage(true);
 			msg.getBodyBuffer().writeString(body);
 			producer.send(address, msg);
-		}
-		
-
 	}
 
 	public static Pattern regexPath(String newPath) {

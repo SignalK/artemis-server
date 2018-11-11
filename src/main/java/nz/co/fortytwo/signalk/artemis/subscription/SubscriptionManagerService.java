@@ -54,8 +54,8 @@ public class SubscriptionManagerService{
 
 	private static Logger logger = LogManager.getLogger(SubscriptionManagerService.class);
 	
-	protected ClientSession txSession;
-	protected ClientProducer producer;
+	protected ThreadLocal<ClientSession> txSession = new ThreadLocal<>();
+	protected ThreadLocal<ClientProducer> producer  = new ThreadLocal<>();
 	private Timer timer;
 	protected ConcurrentLinkedQueue<Subscription> subscriptions = new ConcurrentLinkedQueue<Subscription>();
 	
@@ -182,10 +182,8 @@ public class SubscriptionManagerService{
 		if (json == null || json.isNull())
 			json = Json.object();
 		//ClientMessage txMsg = new ClientMessageImpl((byte) 0, false, 5000, System.currentTimeMillis(), (byte) 4, ActiveMQClient.DEFAULT_INITIAL_MESSAGE_PACKET_SIZE);
-		ClientMessage txMsg = null;
-		synchronized (txSession) {
-			txMsg = getTxSession().createMessage(false);
-		}
+		ClientMessage txMsg = getTxSession().createMessage(false);
+		
 		if (correlation != null)
 			txMsg.putStringProperty(Config.AMQ_CORR_ID, correlation);
 		txMsg.putStringProperty(Config.AMQ_SUB_DESTINATION, destination);
@@ -196,17 +194,16 @@ public class SubscriptionManagerService{
 		if (logger.isDebugEnabled())
 			logger.debug("Sending to {}, Msg body = {}", destination, json.toString());
 
-		synchronized (txSession) {
-			getProducer().send(new SimpleString("outgoing.reply." +destination), txMsg);
-		}
+		
+		getProducer().send(new SimpleString("outgoing.reply." +destination), txMsg);
+	
 
 	}
 
 	public void createTempQueue(String destination) {
 		try {
-			synchronized (txSession) {
-				getTxSession().createTemporaryQueue("outgoing.reply." + destination, RoutingType.ANYCAST, destination);
-			}
+			getTxSession().createTemporaryQueue("outgoing.reply." + destination, RoutingType.ANYCAST, destination);
+			
 			if (logger.isDebugEnabled())logger.debug("created temp queue: {}", destination);
 		} catch (ActiveMQQueueExistsException e) {
 			logger.debug(e);
@@ -217,16 +214,16 @@ public class SubscriptionManagerService{
 	
 	protected void closeSession() {
 
-		if (producer != null) {
+		if (producer.get() != null) {
 			try {
-				producer.close();
+				producer.get().close();
 			} catch (ActiveMQException e) {
 				logger.warn(e, e);
 			}
 		}
-		if (txSession != null) {
+		if (txSession.get() != null) {
 			try {
-				txSession.close();
+				txSession.get().close();
 			} catch (ActiveMQException e) {
 				logger.warn(e, e);
 			}
@@ -250,23 +247,23 @@ public class SubscriptionManagerService{
 	}
 
 	public ClientSession getTxSession() throws ActiveMQException {
-		if(txSession==null || txSession.isClosed()){
+		if(txSession.get()==null || txSession.get().isClosed()){
 			try {
-				txSession = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
-						Config.getConfigProperty(Config.ADMIN_PWD));
+				txSession.set(Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
+						Config.getConfigProperty(Config.ADMIN_PWD)));
 			} catch (Exception e) {
 				throw new ActiveMQException(e.getMessage());
 			}
-			txSession.start();
+			txSession.get().start();
 		}
-		return txSession;
+		return txSession.get();
 	}
 
 	public ClientProducer getProducer() throws ActiveMQException {
-		if(producer==null || producer.isClosed()){
-			producer = getTxSession().createProducer();
+		if(producer.get()==null || producer.get().isClosed()){
+			producer.set(getTxSession().createProducer());
 		}
-		return producer;
+		return producer.get();
 	}
 
 	public void schedule(TimerTask task, long period) {

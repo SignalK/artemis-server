@@ -43,6 +43,7 @@ Functionality
 	Supports:
 		Zeroconf/mDNS/BonJour
 		Calculates declination
+		Meta data on values
 		Message types (on all transports):
 			UPDATES
 			GET
@@ -84,10 +85,12 @@ Functionality
 		Runtime inspection: JMX, jolokia, hawtio (also supports remote access)
 	TODO:
 		Test, test, more tests...
-		Alarms
+		Events
+			Alarms
+			True wind calc
 		apis:
 			/signalk/v1/access/requests
-		True wind calc
+		
 		NMEA output
 		SSL
 		Enable MQTT/STOMP/COAP
@@ -99,7 +102,7 @@ It assumes influx db is running on localhost:8086
 REST API docs
 -------------
 
-Swagger REST API docs are now available at http://localhost:8080/docs/
+Swagger REST API docs and live testing is available at http://localhost:8080/docs/
 
 
 Installation

@@ -84,6 +84,7 @@ public class Config {
 	public static final String INTERNAL_IP = "INTERNAL_IP";
 	public static final String EXTERNAL_IP = "EXTERNAL_IP";
 	public static final String AMQ_SUB_DESTINATION = "AMQ_SUB_DESTINATION";
+	public static final String AMQ_INFLUX_KEY="AMQ_INFLUX_KEY";
 
 	public static final String INCOMING_RAW = "incoming.raw";
 	

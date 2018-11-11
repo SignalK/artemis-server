@@ -17,6 +17,7 @@
 
 		<persistence-enabled>false</persistence-enabled>
 		<graceful-shutdown-timeout>5000</graceful-shutdown-timeout>
+		<journal-sync-non-transactional>false</journal-sync-non-transactional>
 		<connectors>
 			<connector name="in-vm">vm://0</connector>
 			<connector name="netty">tcp://localhost:61617</connector>
@@ -44,6 +45,12 @@
 				<auto-delete-queues>true</auto-delete-queues>
 				<expiry-delay>5000</expiry-delay>
 			</address-setting>
+			<address-setting match="internal.#">
+				<auto-create-queues>true</auto-create-queues>
+				<default-address-routing-type>ANYCAST</default-address-routing-type>
+				<auto-delete-queues>true</auto-delete-queues>
+				<expiry-delay>5000</expiry-delay>
+			</address-setting>
 		</address-settings>
 		<queues>
 			<queue name="incoming.raw">
@@ -53,6 +60,10 @@
 
 			<queue name="outgoing.reply">
 				<address>outgoing.reply</address>
+				<durable>false</durable>
+			</queue>
+			<queue name="internal.event">
+				<address>internal.event</address>
 				<durable>false</durable>
 			</queue>
 		</queues>

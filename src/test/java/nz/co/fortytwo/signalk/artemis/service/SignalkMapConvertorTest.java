@@ -49,6 +49,7 @@ public class SignalkMapConvertorTest {
 		SignalkMapConvertor.parseFull(in, map, "");
 		ArrayList<String> allowed =  new ArrayList<>();
 		allowed.add("all");
+		logger.debug("Map:"+map);
 		Json out = SignalkMapConvertor.mapToFull(map,allowed);
 		logger.debug(in);
 		logger.debug(out);
