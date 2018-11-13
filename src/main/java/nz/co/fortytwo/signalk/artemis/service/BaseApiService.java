@@ -123,7 +123,7 @@ public class BaseApiService {
 			logger.debug("Incoming msg: {}, {}", correlation, body);
 		ClientMessage message = null;
 
-		message = txSession.get().createMessage(false);
+		message = getTxSession().createMessage(false);
 
 		message.getBodyBuffer().writeString(body);
 		message.putStringProperty(Config.AMQ_REPLY_Q, getTempQ());

@@ -21,7 +21,7 @@
  * limitations under the License.
  *
  */
-package nz.co.fortytwo.signalk.artemis.intercept;
+package nz.co.fortytwo.signalk.artemis.transformer;
 
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -29,13 +29,16 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ICoreMessage;
 import org.apache.activemq.artemis.api.core.Interceptor;
+import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.core.protocol.core.Packet;
 import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendMessage;
+import org.apache.activemq.artemis.core.server.transformer.Transformer;
 import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.intercept.BaseInterceptor;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
@@ -47,43 +50,38 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
  * @author robert
  * 
  */
-public class FullMsgInterceptor extends BaseInterceptor implements Interceptor {
+public class FullMsgTransformer extends BaseInterceptor implements Transformer {
 
-	private static Logger logger = LogManager.getLogger(FullMsgInterceptor.class);
+	private static Logger logger = LogManager.getLogger(FullMsgTransformer.class);
 	
-	public FullMsgInterceptor() {
+	public FullMsgTransformer() {
 		super();
 	}
 
+	
 	@Override
-	public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException {
-		if(isResponse(packet))return true;
-		if (packet instanceof SessionSendMessage) {
-			SessionSendMessage realPacket = (SessionSendMessage) packet;
-
-			ICoreMessage message = realPacket.getMessage();
-			
-			if(!Config.JSON_FULL.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))return true;
-			
-			Json node = Util.readBodyBuffer(message);
-			
-			// deal with full format
-			if (isFullFormat(node)) {
-				if (logger.isDebugEnabled())
-					logger.debug("processing full {} ", node);
-				try {
-					NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
-					SignalkMapConvertor.parseFull(node,map,"");
-					saveMap(map);
-					return true;
-				} catch (Exception e) {
-					logger.error(e,e);
-				}
-				
-			}
+	public Message transform(Message message) {
 		
+		//if(!Config.JSON_FULL.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))return true;
+		
+		Json node = Util.readBodyBuffer( message.toCore());
+		
+		// deal with full format
+		if (isFullFormat(node)) {
+			if (logger.isDebugEnabled())
+				logger.debug("processing full {} ", node);
+			try {
+				NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
+				SignalkMapConvertor.parseFull(node,map,"");
+				if (logger.isDebugEnabled())
+					logger.debug("map size: {} ", map.size());
+				sendKvMap(message, map);
+			} catch (Exception e) {
+				logger.error(e,e);
+			}
+			
 		}
-		return true;
+		return message;
 	}
 
 	

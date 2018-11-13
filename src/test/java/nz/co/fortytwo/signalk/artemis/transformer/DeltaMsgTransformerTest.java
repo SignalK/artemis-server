@@ -1,7 +1,8 @@
-package nz.co.fortytwo.signalk.artemis.intercept;
+package nz.co.fortytwo.signalk.artemis.transformer;
 
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.values;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -21,12 +22,13 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.intercept.BaseMsgInterceptorTest;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 
-public class DeltaMsgInterceptorTest  extends BaseMsgInterceptorTest {
+public class DeltaMsgTransformerTest  extends BaseMsgInterceptorTest {
 
-	private static Logger logger = LogManager.getLogger(DeltaMsgInterceptor.class);
+	private static Logger logger = LogManager.getLogger(DeltaMsgTransformerTest.class);
 	private Json update = Json.read("{\"context\":\"vessels.urn:mrn:imo:mmsi:234567890\",\"updates\":[{\"$source\":\"NMEA2000.N2000-01\",\"timestamp\":\"2010-01-07T07:18:44.000Z\",\"values\":[{\"path\":\"propulsion.0.revolutions\",\"value\":16.341667},{\"path\":\"propulsion.0.boostPressure\",\"value\":45500.0}]}]}");
 	private Json put = Json.read("{\"context\":\"vessels.urn:mrn:imo:mmsi:234567890\",\"put\":[{\"path\":\"propulsion.0.boostPressure\",\"value\":45500.0,\"timestamp\":\"2018-08-08T02:48:28.885Z\"}]}");
 	private Json config = Json.read("{\"context\":\"vessels.urn:mrn:imo:mmsi:234567890\",\"config\":[{\"$source\":\"NMEA2000.N2000-01\",\"timestamp\":\"2010-01-07T07:18:44.000Z\",\"values\":[{\"path\":\"propulsion.0.boostPressure\",\"value\":45500.0}]}]}");
@@ -35,11 +37,11 @@ public class DeltaMsgInterceptorTest  extends BaseMsgInterceptorTest {
     public EasyMockRule rule = new EasyMockRule(this);
 
     @Mock
-    private DeltaMsgInterceptor interceptor;// 1
+    private DeltaMsgTransformer transformer;// 1
 
     @Before
     public void before(){
-    	interceptor = partialMockBuilder(DeltaMsgInterceptor.class)
+    	transformer = partialMockBuilder(DeltaMsgTransformer.class)
 	    	.addMockedMethod("saveMap")
     			.createMock(); 
     }
@@ -47,15 +49,12 @@ public class DeltaMsgInterceptorTest  extends BaseMsgInterceptorTest {
 	public void shouldProcessUpdate() throws ActiveMQException {
 		
 		NavigableMap<String, Json> map = SignalkMapConvertor.parseDelta(update, new ConcurrentSkipListMap<String,Json>());
-		
-		interceptor.saveMap(map);
+		ClientMessage message = getClientMessage(update.toString(), Config.JSON_DELTA, false); 
+		transformer.sendKvMap(message, map);
 		
 		replayAll();
 		
-		ClientMessage message = getClientMessage(update.toString(), Config.JSON_DELTA, false); 
-		SessionSendMessage packet = new SessionSendMessage((CoreMessage) message);
-
-		assertTrue(interceptor.intercept(packet, null));
+		assertNull(transformer.transform(message));
 		
 		verifyAll();
 	}
@@ -81,14 +80,12 @@ public class DeltaMsgInterceptorTest  extends BaseMsgInterceptorTest {
 		
 		NavigableMap<String, Json> map = SignalkMapConvertor.parseDelta(put, new ConcurrentSkipListMap<String,Json>());
 
-		interceptor.saveMap(map);
+		ClientMessage message = getClientMessage(put.toString(), Config.JSON_DELTA, false); 
+		transformer.sendKvMap(message, map);
 		
 		replayAll();
 		
-		ClientMessage message = getClientMessage(put.toString(), Config.JSON_DELTA, false); 
-		SessionSendMessage packet = new SessionSendMessage((CoreMessage) message);
-
-		assertTrue(interceptor.intercept(packet, null));
+		assertNull(transformer.transform(message));
 		
 		verifyAll();
 	}
@@ -96,39 +93,27 @@ public class DeltaMsgInterceptorTest  extends BaseMsgInterceptorTest {
 	public void shouldProcessConfig() throws ActiveMQException {
 		NavigableMap<String, Json> map = SignalkMapConvertor.parseDelta(config, new ConcurrentSkipListMap<String,Json>());
 
-		interceptor.saveMap(map);
-		
-		replayAll();
-		
 		ClientMessage message = getClientMessage(config.toString(), Config.JSON_DELTA, false); 
-		SessionSendMessage packet = new SessionSendMessage((CoreMessage) message);
-
-		assertTrue(interceptor.intercept(packet, null));
+		transformer.sendKvMap(message, map);
 		
-		verifyAll();
-	}
-	@Test
-	public void shouldAvoidReply() throws ActiveMQException {
-	
 		replayAll();
 		
-		ClientMessage message = getClientMessage(update.toString(), Config.JSON_DELTA, true); 
-		SessionSendMessage packet = new SessionSendMessage((CoreMessage) message);
-
-		assertTrue(interceptor.intercept(packet, null));
-	
+		assertNull(transformer.transform(message));
+		
 		verifyAll();
 	}
+	
 	
 	@Test
 	public void shouldAvoidFullFormat() throws ActiveMQException {
 	
 		replayAll();
+		NavigableMap<String, Json> map = SignalkMapConvertor.parseDelta(config, new ConcurrentSkipListMap<String,Json>());
+		ClientMessage message = getClientMessage(config.toString(), Config.JSON_FULL, false); 
+		transformer.sendKvMap(message, map);
 		
-		ClientMessage message = getClientMessage(update.toString(), Config.JSON_FULL, true); 
-		SessionSendMessage packet = new SessionSendMessage((CoreMessage) message);
 
-		assertTrue(interceptor.intercept(packet, null));
+		assertNull(transformer.transform(message));
 		
 		verifyAll();
 	}
@@ -139,10 +124,10 @@ public class DeltaMsgInterceptorTest  extends BaseMsgInterceptorTest {
 		
 		NavigableMap<String, Json> map = SignalkMapConvertor.parseDelta(update, new ConcurrentSkipListMap<String,Json>());
 		Json full = SignalkMapConvertor.mapToFull(map);
-		ClientMessage message = getClientMessage(full.toString(), Config.JSON_DELTA, true); 
-		SessionSendMessage packet = new SessionSendMessage((CoreMessage) message);
-
-		assertTrue(interceptor.intercept(packet, null));
+		ClientMessage message = getClientMessage(full.toString(), Config.JSON_FULL, false); 
+		transformer.sendKvMap(message, map);
+		
+		assertNull(transformer.transform(message));
 		
 		verifyAll();
 	}

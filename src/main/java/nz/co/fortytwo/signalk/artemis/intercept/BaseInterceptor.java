@@ -3,7 +3,9 @@ package nz.co.fortytwo.signalk.artemis.intercept;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
+import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ICoreMessage;
+import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
@@ -33,8 +35,6 @@ public class BaseInterceptor {
 			txSession.set(Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
 					Config.getConfigProperty(Config.ADMIN_PWD)));
 			producer.set(txSession.get().createProducer());
-
-			txSession.get().start();
 			
 			if(Config.getConfigProperty(ConfigConstants.CLOCK_SOURCE).equals("system")) {
 				influx.setWrite(true);
@@ -44,8 +44,40 @@ public class BaseInterceptor {
 			}
 	}
 
+	public ClientSession getTxSession() {
+
+		if (txSession.get() == null) {
+			try {
+				txSession.set(Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
+						Config.getConfigProperty(Config.ADMIN_PWD)));
+
+			} catch (Exception e) {
+				logger.error(e, e);
+			}
+		}
+		return txSession.get();
+	}
+
+	public ClientProducer getProducer() {
+		if (producer.get() == null && getTxSession() != null && !getTxSession().isClosed()) {
+			
+			try {
+				producer.set(getTxSession().createProducer());
+			} catch (ActiveMQException e) {
+				logger.error(e,e);
+			}
+
+		}
+		return producer.get();
+
+	}
+	
 	protected boolean isDelta(Json node){
 		return Util.isDelta(node);
+	}
+	
+	protected boolean isGet(Json node){
+		return Util.isGet(node);
 	}
 	
 	protected boolean isSubscribe(Json node){
@@ -103,41 +135,55 @@ public class BaseInterceptor {
 		producer.get().send("outgoing.reply." +destination,txMsg);
 		
 	}
-	
-	protected void  sendInternal(String key, Json json) throws Exception {
-		if(txSession.get()==null){
-			init();
-		}
-		if(json==null || json.isNull()) {
-			json=Json.object();
-		}
+	protected void sendKvJson(Message message, Json json) {
+		NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();
+		SignalkMapConvertor.parseDelta(json, map);
+		sendKvMap(message, map);
 		
-		ClientMessage txMsg = null;
 		
-		txMsg = txSession.get().createMessage(false);
+	}
+	public void sendKvMap(Message message, NavigableMap<String, Json> map) {
+		map.forEach((k,j) -> {
+			try {
+				sendKvMessage(message, k,j);
+			} catch (Exception e) {
+				logger.error(e,e);
+			}
+		});
 		
-		//txMsg.putStringProperty(Config.JAVA_TYPE, type);
-		txMsg.putStringProperty(Config.AMQ_INFLUX_KEY, key);
+	}
+	protected void sendKvMessage(Message origMessage, String k, Json j) throws ActiveMQException {
+		ClientMessage txMsg = getTxSession().createMessage(false);
+		txMsg.copyHeadersAndProperties(origMessage);
+		
+		txMsg.putStringProperty(Config.AMQ_INFLUX_KEY, k);
 		
 		txMsg.setExpiration(System.currentTimeMillis()+5000);
-		txMsg.getBodyBuffer().writeString(json.toString());
+		txMsg.getBodyBuffer().writeString(j.toString());
 		if (logger.isDebugEnabled())
-			logger.debug("Msg body internal = {}",json.toString());
+			logger.debug("Msg body signalk.kv: {} = {}",k, j.toString());
 		
-		producer.get().send("internal.event",txMsg);
+		getProducer().send(Config.INTERNAL_KV,txMsg);
+		
+	}
+	
+	protected void sendRawMessage(Message origMessage, String body) throws ActiveMQException {
+		ClientMessage txMsg = getTxSession().createMessage(false);
+		txMsg.copyHeadersAndProperties(origMessage);
+		
+		txMsg.removeProperty(Config.AMQ_CONTENT_TYPE);
+		
+		txMsg.setExpiration(System.currentTimeMillis()+5000);
+		txMsg.getBodyBuffer().writeString(body);
+		if (logger.isDebugEnabled())
+			logger.debug("Msg body incoming.raw: {}",body);
+		
+		getProducer().send(Config.INCOMING_RAW,txMsg);
 		
 	}
 	
 	protected void saveMap(NavigableMap<String, Json> map) {
 		influx.save(map);
-		//try send to topic instead
-//		map.forEach((k,j) -> {
-//			try {
-//				sendInternal(k, j);
-//			} catch (Exception e) {
-//				logger.error(e,e);
-//			}
-//		});
 	}
 	
 	protected void saveSource(Json srcJson) {

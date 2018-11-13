@@ -1,4 +1,4 @@
-package nz.co.fortytwo.signalk.artemis.intercept;
+package nz.co.fortytwo.signalk.artemis.transformer;
 
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT;
@@ -14,14 +14,17 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UNSUBSCRIBE;
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ICoreMessage;
 import org.apache.activemq.artemis.api.core.Interceptor;
+import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.core.protocol.core.Packet;
 import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendMessage;
+import org.apache.activemq.artemis.core.server.transformer.Transformer;
 import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.intercept.BaseInterceptor;
 import nz.co.fortytwo.signalk.artemis.subscription.Subscription;
 import nz.co.fortytwo.signalk.artemis.subscription.SubscriptionManagerFactory;
 import nz.co.fortytwo.signalk.artemis.util.Config;
@@ -58,9 +61,9 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
  * 
  */
 
-public class SubscribeMsgInterceptor extends BaseInterceptor implements Interceptor {
+public class SubscribeMsgTransformer extends BaseInterceptor implements Transformer {
 
-	private static Logger logger = LogManager.getLogger(SubscribeMsgInterceptor.class);
+	private static Logger logger = LogManager.getLogger(SubscribeMsgTransformer.class);
 
 	/**
 	 * Reads Subscribe format JSON and creates a subscription. Does nothing if json
@@ -71,68 +74,56 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 	 */
 
 	@Override
-	public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException {
-		if (isResponse(packet))
-			return true;
+	public Message transform(Message message) {
+		
+		
+		if (logger.isTraceEnabled())
+			logger.trace("Processing: {}", message);
+		Json node = Util.readBodyBuffer(message.toCore());
 
-		if (packet instanceof SessionSendMessage) {
-			SessionSendMessage realPacket = (SessionSendMessage) packet;
-
-			ICoreMessage message = realPacket.getMessage();
-
-			if (!Config.JSON_SUBSCRIBE.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))
-				return true;
-
-			if (logger.isTraceEnabled())
-				logger.trace("Processing: {}", message);
-			Json node = Util.readBodyBuffer(message);
-
-			// deal with diff format
-			if (isSubscribe(node)) {
-				if (node.has(SUBSCRIBE)) {
-					if (logger.isDebugEnabled())
-						logger.debug("Processing SUBSCRIBE: {}", message);
-					String ctx = node.at(CONTEXT).asString();
-					ctx = Util.fixSelfKey(ctx);
-					ctx = StringUtils.removeEnd(ctx, ".");
-					Json subscribe = node.at(SUBSCRIBE);
-					if (!subscribe.isNull()) {
-						try {
-							parseSubscribe(node, subscribe, ctx, message);
-						} catch (Exception e) {
-							logger.error(e, e);
-						}
-						if (logger.isDebugEnabled())
-							logger.debug("SubscribeMsg processed subscribe {}", node);
+		// deal with diff format
+		if (isSubscribe(node)) {
+			if (node.has(SUBSCRIBE)) {
+				if (logger.isDebugEnabled())
+					logger.debug("Processing SUBSCRIBE: {}", message);
+				String ctx = node.at(CONTEXT).asString();
+				ctx = Util.fixSelfKey(ctx);
+				ctx = StringUtils.removeEnd(ctx, ".");
+				Json subscribe = node.at(SUBSCRIBE);
+				if (!subscribe.isNull()) {
+					try {
+						parseSubscribe(node, subscribe, ctx, message.toCore());
+					} catch (Exception e) {
+						logger.error(e, e);
 					}
-				}
-
-				if (node.has(UNSUBSCRIBE)) {
 					if (logger.isDebugEnabled())
-						logger.debug("Processing UNSUBSCRIBE: {}", message);
-					String ctx = node.at(CONTEXT).asString();
-					ctx = Util.fixSelfKey(ctx);
-					ctx = StringUtils.removeEnd(ctx, ".");
-					Json unsubscribe = node.at(UNSUBSCRIBE);
-					if (!unsubscribe.isNull()) {
-						try {
-							parseUnSubscribe(node, unsubscribe, ctx, message);
-						} catch (Exception e) {
-							logger.error(e, e);
-						}
-
-						if (logger.isDebugEnabled())
-							logger.debug("SubscribeMsg processed unsubscribe {}", node);
-					}
+						logger.debug("SubscribeMsg processed subscribe {}", node);
 				}
-				
+			}
+
+			if (node.has(UNSUBSCRIBE)) {
+				if (logger.isDebugEnabled())
+					logger.debug("Processing UNSUBSCRIBE: {}", message);
+				String ctx = node.at(CONTEXT).asString();
+				ctx = Util.fixSelfKey(ctx);
+				ctx = StringUtils.removeEnd(ctx, ".");
+				Json unsubscribe = node.at(UNSUBSCRIBE);
+				if (!unsubscribe.isNull()) {
+					try {
+						parseUnSubscribe(node, unsubscribe, ctx, message.toCore());
+					} catch (Exception e) {
+						logger.error(e, e);
+					}
+
+					if (logger.isDebugEnabled())
+						logger.debug("SubscribeMsg processed unsubscribe {}", node);
+				}
 			}
 			
 		}
-		return true;
-
+		return message;
 	}
-
+	
 	private void parseUnSubscribe(Json node, Json subscriptions, String ctx, ICoreMessage message) throws Exception {
 		if (subscriptions != null) {
 			// MQTT and STOMP wont have created proper session links
@@ -254,5 +245,6 @@ public class SubscribeMsgInterceptor extends BaseInterceptor implements Intercep
 		return sub;
 
 	}
+
 
 }

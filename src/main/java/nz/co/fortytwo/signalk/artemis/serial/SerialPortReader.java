@@ -244,7 +244,7 @@ public class SerialPortReader {
 					if (enableSerial && session != null && !session.isClosed()) {
 						ClientMessage txMsg = session.createMessage(true);
 						txMsg.getBodyBuffer().writeString(buffer);
-						txMsg.putStringProperty(SignalKConstants.MSG_SRC_BUS, portName);
+						txMsg.putStringProperty(Config.MSG_SRC_BUS, portName);
 						txMsg.putStringProperty(Config.MSG_SRC_TYPE, Config.SERIAL);
 						producer.send(new SimpleString(Config.INCOMING_RAW), txMsg);
 						if (logger.isDebugEnabled())

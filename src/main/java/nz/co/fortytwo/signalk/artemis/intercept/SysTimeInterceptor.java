@@ -7,6 +7,7 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
+import java.io.IOException;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
@@ -14,6 +15,7 @@ import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ActiveMQExceptionType;
 import org.apache.activemq.artemis.api.core.ICoreMessage;
 import org.apache.activemq.artemis.api.core.Interceptor;
+import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.core.protocol.core.Packet;
 import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendMessage;
 import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
@@ -51,19 +53,19 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 */
 
 /**
- * Converts SignalK delta format to map format
+ * Reads key and if its self.navigation.datetime it sets the server time
  * 
  * @author robert
  * 
  */
 
-public class DeltaMsgInterceptor extends BaseInterceptor implements Interceptor {
+public class SysTimeInterceptor extends BaseInterceptor implements Interceptor {
 
-	private static Logger logger = LogManager.getLogger(DeltaMsgInterceptor.class);
+	private static Logger logger = LogManager.getLogger(SysTimeInterceptor.class);
 
 	/**
-	 * Reads Delta format JSON and inserts in the influxdb. Does nothing if json is
-	 * not an update, and returns the original message
+	 * Reads key and if its self.navigation.datetime it sets the server time and makes the influxdb writable.
+	 * Used when the RPi has no rtc, and we get system time from GPS.
 	 * 
 	 * @param node
 	 * @return
@@ -71,72 +73,40 @@ public class DeltaMsgInterceptor extends BaseInterceptor implements Interceptor 
 
 	@Override
 	public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException {
+		if (influx.getWrite())return true;
 		if (isResponse(packet))
 			return true;
-
+		
 		if (packet instanceof SessionSendMessage) {
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
 
 			ICoreMessage message = realPacket.getMessage();
-
-			if (!Config.JSON_DELTA.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))
+			String timeKey = vessels+dot+Config.getConfigProperty(ConfigConstants.UUID)+dot + nav_datetime;
+			
+			if (!timeKey.equals(message.getStringProperty(Config.AMQ_INFLUX_KEY)))
 				return true;
-
-			Json node = Util.readBodyBuffer(message);
-			if (node.has(GET))
-				return true;
-
-			if (logger.isDebugEnabled())
-				logger.debug("Delta msg: {}", node.toString());
-
-			// deal with diff format
-			if (isDelta(node)) {
-				try {
-					NavigableMap<String, Json> map = processDelta(node);
-					if (!influx.getWrite()) {
-						// set the time if we can
-						// vessels.urn:mrn:signalk:uuid:80a3bcf0-d1a5-467e-9cd9-35c1760bb2d3.navigation.datetime.values.NMEA0183.SERIAL.value
-						String uuid = Config.getConfigProperty(ConfigConstants.UUID);
-						
-						for (String key : map.keySet()) {
-							if (logger.isDebugEnabled())
-								logger.debug("Check key: {} starts with {}", key, vessels+dot+uuid+dot + nav_datetime);
-							if (key.startsWith(vessels+dot+uuid+dot + nav_datetime)||key.startsWith(vessels+dot+self+dot + nav_datetime)) {
-								Json time = map.get(key);
-								if (time != null && !time.isNull()) {
-									// set system time
-									// sudo date -s 2018-08-11T17:52:51+12:00
-									String cmd = "sudo date -s " + time.at(value).asString();
-									logger.info("Executing date setting command: {}", cmd);
-									Runtime.getRuntime().exec(cmd.split(" "));
-
-									logger.info("Executed date setting command: {}", cmd);
-
-									influx.setWrite(true);
-								}
-							}
-						}
+			
+			
+			
+				Json time = Util.readBodyBuffer(message);
+				if (time != null && !time.isNull()) {
+					// set system time
+					// sudo date -s 2018-08-11T17:52:51+12:00
+					String cmd = "sudo date -s " + time.at(value).asString();
+					logger.info("Executing date setting command: {}", cmd);
+					try {
+						Runtime.getRuntime().exec(cmd.split(" "));
+						logger.info("Executed date setting command: {}", cmd);
+						influx.setWrite(true);
+					} catch (IOException e) {
+						logger.error(e,e);
 					}
-					saveMap(map);
-					return true;
-				} catch (Exception e) {
-					logger.error(e, e);
-					throw new ActiveMQException(ActiveMQExceptionType.INTERNAL_ERROR, e.getMessage(), e);
 				}
-			}
 
 		}
 		return true;
 
 	}
 
-	protected NavigableMap<String, Json> processDelta(Json node) {
-		if (logger.isDebugEnabled())
-			logger.debug("Saving delta: {}", node.toString());
-		NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
-		SignalkMapConvertor.parseDelta(node, map);
-		return map;
-
-	}
 
 }

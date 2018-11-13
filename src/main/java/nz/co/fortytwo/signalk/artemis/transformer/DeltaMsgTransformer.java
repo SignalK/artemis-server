@@ -16,6 +16,7 @@ import org.apache.activemq.artemis.api.core.ActiveMQExceptionType;
 import org.apache.activemq.artemis.api.core.ICoreMessage;
 import org.apache.activemq.artemis.api.core.Interceptor;
 import org.apache.activemq.artemis.api.core.Message;
+import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.core.protocol.core.Packet;
 import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendMessage;
 import org.apache.activemq.artemis.core.server.transformer.Transformer;
@@ -66,7 +67,7 @@ public class DeltaMsgTransformer extends BaseInterceptor implements Transformer 
 	private static Logger logger = LogManager.getLogger(DeltaMsgTransformer.class);
 
 	/**
-	 * Reads Delta format JSON and creates a . Does nothing if json is
+	 * Reads Delta format JSON and creates a kv message pairs. Does nothing if json is
 	 * not an update, and returns the original message
 	 * 
 	 * @param node
@@ -85,49 +86,15 @@ public class DeltaMsgTransformer extends BaseInterceptor implements Transformer 
 			if (isDelta(node)) {
 				//try {
 					NavigableMap<String, Json> map = processDelta(node);
-					if (!influx.getWrite()) {
-						// set the time if we can
-						// vessels.urn:mrn:signalk:uuid:80a3bcf0-d1a5-467e-9cd9-35c1760bb2d3.navigation.datetime.values.NMEA0183.SERIAL.value
-						String uuid = Config.getConfigProperty(ConfigConstants.UUID);
-						
-						for (String key : map.keySet()) {
-							if (logger.isDebugEnabled())
-								logger.debug("Check key: {} starts with {}", key, vessels+dot+uuid+dot + nav_datetime);
-							if (key.startsWith(vessels+dot+uuid+dot + nav_datetime)||key.startsWith(vessels+dot+self+dot + nav_datetime)) {
-								Json time = map.get(key);
-								if (time != null && !time.isNull()) {
-									// set system time
-									// sudo date -s 2018-08-11T17:52:51+12:00
-									String cmd = "sudo date -s " + time.at(value).asString();
-									logger.info("Executing date setting command: {}", cmd);
-									try {
-										Runtime.getRuntime().exec(cmd.split(" "));
-										logger.info("Executed date setting command: {}", cmd);
-										influx.setWrite(true);
-									} catch (IOException e) {
-										logger.error(e,e);
-									}
-								}
-							}
-						}
-					}
-					//saveMap(map);
 					
-					map.forEach((k,j) -> {
-						try {
-							sendInternal(k, j);
-						} catch (Exception e) {
-							logger.error(e,e);
-						}
-					});
-					return message;
-//				} catch (Exception e) {
-//					logger.error(e, e);
-//					throw new ActiveMQException(ActiveMQExceptionType.INTERNAL_ERROR, e.getMessage(), e);
-//				}
+					sendKvMap(message, map);
+				
+
 			}
 			return message;
 	}
+
+	
 
 	protected NavigableMap<String, Json> processDelta(Json node) {
 		if (logger.isDebugEnabled())

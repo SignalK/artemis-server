@@ -24,10 +24,6 @@
  */
 package nz.co.fortytwo.signalk.artemis.subscription;
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.source;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sourceRef;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.timestamp;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.util.ArrayList;
@@ -46,11 +42,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.eventbus.Subscribe;
 
 import io.netty.util.internal.ConcurrentSet;
 import mjson.Json;
-import nz.co.fortytwo.signalk.artemis.event.PathEvent;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.service.TDBService;
@@ -379,28 +373,7 @@ public class Subscription {
 		return paths;
 	}
 
-	/**
-	 * Listens for node changes in the server and adds them if they match the
-	 * subscription
-	 * 
-	 * @param pathEvent
-	 */
-	@Subscribe
-	public void recordEvent(PathEvent pathEvent) {
-		if (pathEvent == null)
-			return;
-		if (pathEvent.getPath() == null)
-			return;
-		if (path.endsWith(dot + source) && path.endsWith(dot + timestamp) && path.contains(dot + source + dot)
-				&& path.endsWith(dot + sourceRef)) {
-			return;
-		}
-		if (logger.isDebugEnabled())
-			logger.debug("{} received event {}", this.hashCode(),pathEvent.getPath());
-		if (isSubscribed(pathEvent.getPath())) {
-			subscribedPaths.add(pathEvent.getPath());
-		}
-	}
+	
 
 	public void setRouteId(String routeId) {
 		this.routeId = routeId;

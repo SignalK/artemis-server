@@ -31,11 +31,14 @@ public class GarbageInterceptor extends BaseInterceptor implements Interceptor {
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
 
 			ICoreMessage msg = realPacket.getMessage();
+			if(msg.getStringProperty(Config.AMQ_CONTENT_TYPE)!=null) {
+				return true;
+			}
 			
 			String msgType = getContentType(msg);
 			if (logger.isDebugEnabled())
 				logger.debug("Msg type is: {}", msgType);
-
+			
 			if (msgType != null) {
 				msg.putStringProperty(Config.AMQ_CONTENT_TYPE, msgType);
 			} else {
@@ -79,7 +82,8 @@ public class GarbageInterceptor extends BaseInterceptor implements Interceptor {
 				}
 				if (isFullFormat(node))
 					return Config.JSON_FULL;
-				
+				if (isGet(node))
+					return Config.JSON_GET;
 				if (isDelta(node))
 					return Config.JSON_DELTA;
 				if (isSubscribe(node))

@@ -1,4 +1,4 @@
-package nz.co.fortytwo.signalk.artemis.intercept;
+package nz.co.fortytwo.signalk.artemis.transformer;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,12 +16,13 @@ import org.apache.logging.log4j.Logger;
 
 import jdk.nashorn.api.scripting.NashornScriptEngine;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
+import nz.co.fortytwo.signalk.artemis.intercept.BaseInterceptor;
 
 
 
-public class JsBaseInterceptor extends BaseInterceptor {
+public class JsBaseTransformer extends BaseInterceptor {
 	
-	private static Logger logger = LogManager.getLogger(NMEAMsgInterceptor.class);
+	private static Logger logger = LogManager.getLogger(NMEAMsgTransformer.class);
 	
 	protected static NashornScriptEngine engine;
 	private static ScheduledExecutorService globalScheduledThreadPool = Executors.newScheduledThreadPool(20);

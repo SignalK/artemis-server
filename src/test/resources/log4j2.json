@@ -64,6 +64,10 @@
 				"level": "warn"
 			},
 			{
+				"name": "nz.co.fortytwo.signalk.artemis.intercept.DeltaMsgInterceptor",
+				"level": "debug"
+			},
+			{
 				"name": "nz.co.fortytwo.signalk.artemis.intercept.UpdateMsgInterceptor",
 				"level": "warn"
 			},
@@ -118,7 +122,7 @@
 			},
 			{
 				"name": "nz.co.fortytwo.signalk.artemis.service.InfluxDbService",
-				"level": "debug"
+				"level": "warn"
 			},
 			{
 				"name": "nz.co.fortytwo.signalk.artemis.server.BaseServerTest",
@@ -146,6 +150,10 @@
 			},
 			{
 				"name": "nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertorTest",
+				"level": "debug"
+			},
+			{
+				"name": "nz.co.fortytwo.signalk.artemis.transformer",
 				"level": "debug"
 			},
 			

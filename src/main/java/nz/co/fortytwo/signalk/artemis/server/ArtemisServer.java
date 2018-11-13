@@ -64,6 +64,7 @@ import org.atmosphere.nettosphere.Nettosphere;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Log4J2LoggerFactory;
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.handler.InfluxDbHandler;
 import nz.co.fortytwo.signalk.artemis.scheduled.DeclinationUpdater;
 import nz.co.fortytwo.signalk.artemis.serial.SerialPortManager;
 import nz.co.fortytwo.signalk.artemis.service.ChartService;
@@ -90,6 +91,7 @@ public final class ArtemisServer {
 	private nz.co.fortytwo.signalk.artemis.server.NettyServer nmeaServer;
 	private ClientSession session;
 	private ClientConsumer consumer;
+	private InfluxDbHandler influxHandler;
 
 	public ArtemisServer() throws Exception {
 		init();
@@ -117,6 +119,7 @@ public final class ArtemisServer {
 		
 		//start incoming message consumer
 		startIncomingConsumer();
+		startKvHandlers();
 		
 		// start serial?
 		if(Config.getConfigPropertyBoolean(ENABLE_SERIAL)){
@@ -221,6 +224,12 @@ public final class ArtemisServer {
 			session.start();
 			
 	}
+	
+	private void startKvHandlers() throws Exception {
+		
+		influxHandler = new InfluxDbHandler();
+		influxHandler.startConsumer();
+	}
 
 	private static void addShutdownHook(final ArtemisServer server) {
 		Runtime.getRuntime().addShutdownHook(new Thread("shutdown-hook") {
@@ -233,6 +242,7 @@ public final class ArtemisServer {
 	}
 
 	public void stop() {
+		stopKvHandlers();
 		if(consumer!=null) {
 			try {
 				consumer.close();
@@ -278,6 +288,13 @@ public final class ArtemisServer {
 			logger.error(e.getMessage(), e);
 		}
 
+	}
+
+	private void stopKvHandlers() {
+		if(influxHandler!=null) {
+			influxHandler.stop();
+		}
+		
 	}
 
 	public static ActiveMQServer getActiveMQServer() {

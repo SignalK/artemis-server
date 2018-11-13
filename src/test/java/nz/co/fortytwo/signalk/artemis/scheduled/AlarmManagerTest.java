@@ -21,7 +21,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import mjson.Json;
-import nz.co.fortytwo.signalk.artemis.event.AlarmManager;
+import nz.co.fortytwo.signalk.artemis.handler.AlarmManager;
 import nz.co.fortytwo.signalk.artemis.server.BaseServerTest;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;

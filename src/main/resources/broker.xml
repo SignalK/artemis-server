@@ -10,8 +10,10 @@
 	OF ANY KIND, either express or implied. See the License for the specific 
 	language governing permissions and limitations under the License. -->
 
-<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns="urn:activemq" xsi:schemaLocation="urn:activemq /schema/artemis-server.xsd">
+<configuration
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="urn:activemq"
+	xsi:schemaLocation="urn:activemq /schema/artemis-server.xsd">
 
 	<core xmlns="urn:activemq:core">
 
@@ -27,11 +29,10 @@
 		<acceptors>
 			<acceptor name="in-vm">vm://0</acceptor>
 			<acceptor name="netty">tcp://localhost:61617//</acceptor>
-<!-- <acceptor name="mqtt">tcp://0.0.0.0:1883?tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=MQTT</acceptor>
-   <acceptor name="mqtts">tcp://0.0.0.0:8883?tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=MQTT;sslEnabled=true;keyStorePath=/opt/keystore.jks;keyStorePassword=password</acceptor>
--->
+			<!-- <acceptor name="mqtt">tcp://0.0.0.0:1883?tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=MQTT</acceptor> 
+				<acceptor name="mqtts">tcp://0.0.0.0:8883?tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=MQTT;sslEnabled=true;keyStorePath=/opt/keystore.jks;keyStorePassword=password</acceptor> -->
 		</acceptors>
-		
+
 		<address-settings>
 			<address-setting match="incoming.#">
 				<auto-create-queues>true</auto-create-queues>
@@ -51,6 +52,18 @@
 				<auto-delete-queues>true</auto-delete-queues>
 				<expiry-delay>5000</expiry-delay>
 			</address-setting>
+			<address-setting match="internal.kv">
+				<auto-create-queues>true</auto-create-queues>
+				<default-address-routing-type>MULTICAST</default-address-routing-type>
+				<auto-delete-queues>true</auto-delete-queues>
+				<expiry-delay>5000</expiry-delay>
+			</address-setting>
+			<address-setting match="internal.discard">
+				<auto-create-queues>true</auto-create-queues>
+				<default-address-routing-type>MULTICAST</default-address-routing-type>
+				<auto-delete-queues>true</auto-delete-queues>
+				<expiry-delay>500</expiry-delay>
+			</address-setting>
 		</address-settings>
 		<queues>
 			<queue name="incoming.raw">
@@ -62,8 +75,12 @@
 				<address>outgoing.reply</address>
 				<durable>false</durable>
 			</queue>
-			<queue name="internal.event">
-				<address>internal.event</address>
+			<queue name="internal.kv">
+				<address>internal.kv</address>
+				<durable>false</durable>
+			</queue>
+			<queue name="internal.discard">
+				<address>internal.kv</address>
 				<durable>false</durable>
 			</queue>
 		</queues>
@@ -73,26 +90,76 @@
 			</class-name>
 			<class-name>nz.co.fortytwo.signalk.artemis.intercept.GarbageInterceptor
 			</class-name>
-			<class-name>nz.co.fortytwo.signalk.artemis.intercept.NMEAMsgInterceptor
+			<class-name>nz.co.fortytwo.signalk.artemis.intercept.SysTimeInterceptor
 			</class-name>
-			<class-name>nz.co.fortytwo.signalk.artemis.intercept.N2kMsgInterceptor
-			</class-name>
-			<class-name>nz.co.fortytwo.signalk.artemis.intercept.FullMsgInterceptor
-			</class-name>
-			<class-name>nz.co.fortytwo.signalk.artemis.intercept.SubscribeMsgInterceptor
+			<class-name>nz.co.fortytwo.signalk.artemis.intercept.FullSourceInterceptor
 			</class-name>
 			<class-name>nz.co.fortytwo.signalk.artemis.intercept.DeltaSourceInterceptor
 			</class-name>
-			<class-name>nz.co.fortytwo.signalk.artemis.intercept.DeltaMsgInterceptor
-			</class-name>
-			<class-name>nz.co.fortytwo.signalk.artemis.intercept.GetMsgInterceptor
-			</class-name>
+
 		</remoting-incoming-interceptors>
-			<!-- outgoing -->
-<!-- 		<remoting-outgoing-interceptors> -->
-<!-- 			<class-name>nz.co.fortytwo.signalk.artemis.intercept.MapToDeltaInterceptor</class-name> -->
-<!-- 			<class-name>nz.co.fortytwo.signalk.artemis.intercept.MapToFullInterceptor</class-name> -->
-<!-- 		</remoting-outgoing-interceptors> -->
+		<!-- outgoing -->
+		<!-- <remoting-outgoing-interceptors> -->
+		<!-- <class-name>nz.co.fortytwo.signalk.artemis.intercept.MapToDeltaInterceptor</class-name> -->
+		<!-- <class-name>nz.co.fortytwo.signalk.artemis.intercept.MapToFullInterceptor</class-name> -->
+		<!-- </remoting-outgoing-interceptors> -->
+		<diverts>
+			<divert name="raw-get-divert">
+				<address>incoming.raw</address>
+				<forwarding-address>internal.discard</forwarding-address>
+				<filter string="AMQ_content_type='JSON_GET'" />
+				<transformer-class-name>
+					nz.co.fortytwo.signalk.artemis.transformer.GetMsgTransformer
+				</transformer-class-name>
+				<exclusive>true</exclusive>
+			</divert>
+			<divert name="raw-subscribe-divert">
+				<address>incoming.raw</address>
+				<forwarding-address>internal.discard</forwarding-address>
+				<filter string="AMQ_content_type='JSON_SUBSCRIBE'" />
+				<transformer-class-name>
+					nz.co.fortytwo.signalk.artemis.transformer.SubscribeMsgTransformer
+				</transformer-class-name>
+				<exclusive>true</exclusive>
+			</divert>
+			<divert name="raw-nmea-divert">
+				<address>incoming.raw</address>
+				<forwarding-address>internal.discard</forwarding-address>
+				<filter string="AMQ_content_type='0183'" />
+				<transformer-class-name>
+					nz.co.fortytwo.signalk.artemis.transformer.NMEAMsgTransformer
+				</transformer-class-name>
+				<exclusive>true</exclusive>
+			</divert>
+			<divert name="raw-n2k-divert">
+				<address>incoming.raw</address>
+				<forwarding-address>internal.discard</forwarding-address>
+				<filter string="AMQ_content_type='N2K'" />
+				<transformer-class-name>
+					nz.co.fortytwo.signalk.artemis.transformer.N2kMsgTransformer
+				</transformer-class-name>
+				<exclusive>true</exclusive>
+			</divert>
+			<divert name="raw-full-divert">
+				<address>incoming.raw</address>
+				<forwarding-address>internal.discard</forwarding-address>
+				<filter string="AMQ_content_type='JSON_FULL'" />
+				<transformer-class-name>
+					nz.co.fortytwo.signalk.artemis.transformer.FullMsgTransformer
+				</transformer-class-name>
+				<exclusive>true</exclusive>
+			</divert>
+			<divert name="raw-delta-divert">
+				<address>incoming.raw</address>
+				<forwarding-address>internal.discard</forwarding-address>
+				<filter string="AMQ_content_type='JSON_DELTA'" />
+				<transformer-class-name>
+					nz.co.fortytwo.signalk.artemis.transformer.DeltaMsgTransformer
+				</transformer-class-name>
+				<exclusive>true</exclusive>
+			</divert>
+		</diverts>
+
 
 		<!-- Other config -->
 		<security-enabled>false</security-enabled>
@@ -110,7 +177,7 @@
 				<permission type="consume" roles="guest" />
 				<permission type="send" roles="guest" />
 			</security-setting>
-			
+
 		</security-settings>
 
 	</core>

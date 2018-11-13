@@ -60,6 +60,7 @@ public class Config {
 	public static final String JSON = "JSON";
 	public static final String JSON_FULL = "JSON_FULL";
 	public static final String JSON_DELTA = "JSON_DELTA";
+	public static final String JSON_GET = "JSON_GET";
 	public static final String JSON_MAP = "JSON_MAP";
 	public static final String JSON_SUBSCRIBE = "JSON_SUBSCRIBE";
 	public static final String _0183 = "0183";
@@ -87,6 +88,7 @@ public class Config {
 	public static final String AMQ_INFLUX_KEY="AMQ_INFLUX_KEY";
 
 	public static final String INCOMING_RAW = "incoming.raw";
+	public static final String INTERNAL_KV = "internal.kv";
 	
 
 	protected Config() {

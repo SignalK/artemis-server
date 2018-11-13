@@ -1,4 +1,4 @@
-package nz.co.fortytwo.signalk.artemis.event;
+package nz.co.fortytwo.signalk.artemis.handler;
 
 
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;

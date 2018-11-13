@@ -109,13 +109,13 @@ public class SignalKConstants {
 	public static final String MSG_TYPE = "MSG_TYPE";
 	public static final String SERIAL = "SERIAL";
 	public static final String DEMO = "DEMO";
-	public static final String EXTERNAL_IP = "EXTERNAL_IP";
-	public static final String INTERNAL_IP = "INTERNAL_IP";
+	//public static final String EXTERNAL_IP = "EXTERNAL_IP";
+	//public static final String INTERNAL_IP = "INTERNAL_IP";
 
-	public static final String MSG_SERIAL_PORT = "MSG_SERIAL_PORT";
-	public static final String MSG_SRC_BUS = "MSG_SRC_BUS";
-	public static final String MSG_SRC_IP = "MSG_SRC_IP";
-	public static final String MSG_SRC_IP_PORT = "MSG_SRC_IP_PORT";
+	//public static final String MSG_SERIAL_PORT = "MSG_SERIAL_PORT";
+	//public static final String MSG_SRC_BUS = "MSG_SRC_BUS";
+	//public static final String MSG_SRC_IP = "MSG_SRC_IP";
+	//public static final String MSG_SRC_IP_PORT = "MSG_SRC_IP_PORT";
 	public static final String MSG_APPROVAL = "MSG_APPROVAL";
 	public static final String REQUIRED = "REQUIRED";
 	public static final String CONFIG_ACTION = "CONFIG_ACTION";

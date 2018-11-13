@@ -491,7 +491,7 @@ public class Util {
 	public static boolean isDelta(Json node) {
 		if(node==null)return false;
 		// deal with diff format
-		if (node.has(CONTEXT) && (node.has(UPDATES) || node.has(PUT) ||node.has(GET) || node.has(CONFIG))) return true;
+		if (node.has(CONTEXT) && (node.has(UPDATES) || node.has(PUT) || node.has(CONFIG))) return true;
 		return false;
 	}
 	
@@ -499,6 +499,12 @@ public class Util {
 		if(node==null)return false;
 		// deal with diff format
 		if (node.has(CONTEXT) && (node.has(SUBSCRIBE) || node.has(UNSUBSCRIBE))) return true;
+		return false;
+	}
+	public static boolean isGet(Json node) {
+		if(node==null)return false;
+		// deal with diff format
+		if (node.has(CONTEXT) && node.has(GET)) return true;
 		return false;
 	}
 	public static boolean isN2k(Json node) {

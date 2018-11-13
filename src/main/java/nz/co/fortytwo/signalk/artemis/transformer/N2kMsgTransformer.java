@@ -21,7 +21,7 @@
  * limitations under the License.
  *
  */
-package nz.co.fortytwo.signalk.artemis.intercept;
+package nz.co.fortytwo.signalk.artemis.transformer;
 
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self_str;
@@ -29,6 +29,8 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.NavigableMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import javax.script.Bindings;
 import javax.script.Invocable;
@@ -39,8 +41,10 @@ import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ActiveMQExceptionType;
 import org.apache.activemq.artemis.api.core.ICoreMessage;
 import org.apache.activemq.artemis.api.core.Interceptor;
+import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.core.protocol.core.Packet;
 import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendMessage;
+import org.apache.activemq.artemis.core.server.transformer.Transformer;
 import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.IOUtils;
@@ -54,6 +58,7 @@ import com.coveo.nashorn_modules.ResourceFolder;
 
 import jdk.nashorn.api.scripting.NashornScriptEngine;
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
@@ -65,13 +70,13 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
  * 
  */
 
-public class N2kMsgInterceptor extends JsBaseInterceptor implements Interceptor {
+public class N2kMsgTransformer extends JsBaseTransformer implements Transformer {
 
-	private static Logger logger = LogManager.getLogger(N2kMsgInterceptor.class);
+	private static Logger logger = LogManager.getLogger(N2kMsgTransformer.class);
 	private ThreadLocal<Bindings> engineHolder;
 	
 	@SuppressWarnings("restriction")
-	public N2kMsgInterceptor() throws Exception {
+	public N2kMsgTransformer() throws Exception {
 		super();
 	
 		String resourceDir = getClass().getClassLoader().getResource("n2k-signalk/dist/bundle.js").toString();
@@ -109,56 +114,44 @@ public class N2kMsgInterceptor extends JsBaseInterceptor implements Interceptor 
 		
 	}
 
+
 	@Override
-	public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException {
-		if (isResponse(packet))
-			return true;
+	public Message transform(Message message) {
+		String bodyStr = Util.readBodyBufferToString(message.toCore()).trim();
+		if (logger.isDebugEnabled())
+			logger.debug("N2K Message: {}", bodyStr);
+		
+		if (StringUtils.isNotBlank(bodyStr) ) {
+			try {
+				if (logger.isDebugEnabled())
+					logger.debug("Processing N2K: {}",bodyStr);
 
-		if (packet instanceof SessionSendMessage) {
-			SessionSendMessage realPacket = (SessionSendMessage) packet;
+				Object result = ((Invocable) engineHolder.get()).invokeMethod(engineHolder.get().get("n2kMapper"),"toDelta", bodyStr);
 
-			ICoreMessage message = realPacket.getMessage();
+				if (logger.isDebugEnabled())
+					logger.debug("Processed N2K: {} ",result);
 
-			if (!Config.N2K.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))
-				return true;
-			
-			String bodyStr = Util.readBodyBufferToString(message).trim();
-			if (logger.isDebugEnabled())
-				logger.debug("N2K Message: {}", bodyStr);
-			
-			if (StringUtils.isNotBlank(bodyStr) ) {
-				try {
-					if (logger.isDebugEnabled())
-						logger.debug("Processing N2K: {}",bodyStr);
-
-					Object result = ((Invocable) engineHolder.get()).invokeMethod(engineHolder.get().get("n2kMapper"),"toDelta", bodyStr);
-
-					if (logger.isDebugEnabled())
-						logger.debug("Processed N2K: {} ",result);
-
-					if (result == null || StringUtils.isBlank(result.toString()) || result.toString().startsWith("Error")) {
-						logger.error("{},{}", bodyStr, result);
-						return true;
-					}
-					Json json = Json.read(result.toString());
-					if(!json.isObject())return true;
-							
-					json.set(SignalKConstants.CONTEXT, vessels + dot + Util.fixSelfKey(self_str));
-					
-					message.putStringProperty(Config.AMQ_CONTENT_TYPE, Config.JSON_DELTA);
-					message.getBodyBuffer().clear();
-					message.getBodyBuffer().writeString(json.toString());
-					if (logger.isDebugEnabled())
-						logger.debug("Converted N2K msg: {}", json.toString());
-				} catch (Exception e) {
-					logger.error(e, e);
-					throw new ActiveMQException(ActiveMQExceptionType.INTERNAL_ERROR, e.getMessage(), e);
+				if (result == null || StringUtils.isBlank(result.toString()) || result.toString().startsWith("Error")) {
+					logger.error("{},{}", bodyStr, result);
+					return message;
 				}
-				return true;
+				Json json = Json.read(result.toString());
+				if(!json.isObject())return message;
+						
+				json.set(SignalKConstants.CONTEXT, vessels + dot + Util.fixSelfKey(self_str));
+				
+				if (logger.isDebugEnabled())
+					logger.debug("Converted N2K msg: {}", json.toString());
+				sendKvJson(message,json);
+			} catch (Exception e) {
+				logger.error(e, e);
+				
 			}
 		}
-		return true;
+		return message;
 	}
+
+	
 
 
 }
