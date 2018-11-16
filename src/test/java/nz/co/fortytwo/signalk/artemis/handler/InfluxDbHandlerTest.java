@@ -1,5 +1,7 @@
 package nz.co.fortytwo.signalk.artemis.handler;
 
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_wind_angleApparent;
+
 import javax.ws.rs.core.MediaType;
 
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
@@ -33,9 +35,7 @@ public class InfluxDbHandlerTest extends BaseMsgInterceptorTest {
 		
 		replayAll();
 		
-		ClientMessage message = getClientMessage(json.toString(), MediaType.APPLICATION_JSON, false);
-		message.putStringProperty(Config.AMQ_INFLUX_KEY, "vessels.urn:mrn:signalk:uuid:a8fb07c0-1ffd-4663-899c-f16c2baf8270.environment.wind.angleApparent.values.unknown");
-		handler.consume(message);
+		handler.consume(getMessage("{\"value\":-1.5707963271535559,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",env_wind_angleApparent,"unknown"));
 		verifyAll();
 	}
 	
@@ -46,9 +46,7 @@ public class InfluxDbHandlerTest extends BaseMsgInterceptorTest {
 		
 		replayAll();
 		
-		ClientMessage message = getClientMessage(json.toString(), MediaType.APPLICATION_JSON, false);
-		message.putStringProperty(Config.AMQ_INFLUX_KEY, "vessels.urn:mrn:signalk:uuid:a8fb07c0-1ffd-4663-899c-f16c2baf8270.environment.wind.angleApparent.values.unknown");
-		handler.consume(message);
+		handler.consume(getMessage(Json.nil().toString(),env_wind_angleApparent,"unknown"));
 		verifyAll();
 	}
 	
@@ -60,9 +58,7 @@ public class InfluxDbHandlerTest extends BaseMsgInterceptorTest {
 		
 		replayAll();
 		
-		ClientMessage message = getClientMessage(null, MediaType.APPLICATION_JSON, false);
-		message.putStringProperty(Config.AMQ_INFLUX_KEY, "vessels.urn:mrn:signalk:uuid:a8fb07c0-1ffd-4663-899c-f16c2baf8270.environment.wind.angleApparent.values.unknown");
-		handler.consume(message);
+		handler.consume(getMessage(null,env_wind_angleApparent,"unknown"));
 		verifyAll();
 	}
 

@@ -34,42 +34,28 @@ public class TrueWindHandlerTest extends BaseMsgInterceptorTest {
     	handler = partialMockBuilder(TrueWindHandler.class)
 	    	.addMockedMethod("send")
     			.createMock(); 
+    	handler.setUuid(uuid);
     }
 	@Test
 	public void shouldStoreKey() throws ActiveMQException {
-		Json json = Json.read("{\"value\":3.2,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}");
-		String uuid = Config.getConfigProperty(ConfigConstants.UUID);
-		handler.setUuid(uuid);
-		ClientMessage out = getClientMessage(json.toString(), MediaType.APPLICATION_JSON, false);
-		out.putStringProperty(Config.AMQ_INFLUX_KEY, "vessels.urn:mrn:signalk:uuid:a8fb07c0-1ffd-4663-899c-f16c2baf8270."+nav_speedOverGround+".values.unknown");
-		handler.send(out,"vessels."+uuid+dot+env_wind_angleTrueGround+".values.internal",-1.8736811954966175d);
-		handler.send(out,"vessels."+uuid+dot+env_wind_angleTrueWater+".values.internal",-1.8736811954966175d);
+		
+		
+		ClientMessage out = getMessage("{\"value\":3.2,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}", nav_speedOverGround, "unknown");
+		
+		handler.send(out,"vessels."+uuid+dot+env_wind_angleTrueGround+".values.internal",-2.405335224770098d);
+		handler.send(out,"vessels."+uuid+dot+env_wind_angleTrueWater+".values.internal",-2.405335224770098d);
 		//handler.send(out,"vessels."+uuid+dot+env_wind_directionTrue+".values.internal",4.409504111682969d);
-		handler.send(out,"vessels."+uuid+dot+env_wind_speedTrue+".values.internal",3.2d);
+		handler.send(out,"vessels."+uuid+dot+env_wind_speedTrue+".values.internal",4.318564577108545d);
 		
 		replayAll();
-//		AMQ_INFLUX_KEY+" LIKE '"+vessels+dot+self+dot+env_wind_angleApparent+"%' OR "
-//		+AMQ_INFLUX_KEY+" LIKE '"+vessels+dot+self+dot+env_wind_speedApparent+"%'OR "
-//		+AMQ_INFLUX_KEY+" LIKE '"+vessels+dot+self+dot+nav_speedOverGround+"%'OR "
-//		+AMQ_INFLUX_KEY+" LIKE '"+vessels+dot+self+dot+nav_courseOverGroundTrue+"%'OR "
-//		+AMQ_INFLUX_KEY+" LIKE '"+vessels+dot+self+dot+env_wind_speedApparent+"%'");
 		
 		//self, we process
-		json = Json.read("{\"value\":-1.5707963271535559,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}");
-		ClientMessage message = getClientMessage(json.toString(), MediaType.APPLICATION_JSON, false);
-		message.putStringProperty(Config.AMQ_INFLUX_KEY, "vessels.urn:mrn:signalk:uuid:a8fb07c0-1ffd-4663-899c-f16c2baf8270.environment.wind.angleApparent.values.unknown");
-		handler.consume(message);
+		handler.consume(getMessage("{\"value\":-1.5707963271535559,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",env_wind_angleApparent,"unknown"));
 		
 		//speed
-		json = Json.read("{\"value\":2.9,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}");
-		
-		message.putStringProperty(Config.AMQ_INFLUX_KEY, "vessels.urn:mrn:signalk:uuid:a8fb07c0-1ffd-4663-899c-f16c2baf8270.environment.wind.speedApparent.values.unknown");
-		handler.consume(message);
+		handler.consume(getMessage("{\"value\":2.9,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",env_wind_speedApparent,"unknown"));
 		
 		//sog
-		//json = Json.read("{\"value\":3.2,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}");
-		//message = getClientMessage(json.toString(), MediaType.APPLICATION_JSON, false);
-		//message.putStringProperty(Config.AMQ_INFLUX_KEY, "vessels.urn:mrn:signalk:uuid:a8fb07c0-1ffd-4663-899c-f16c2baf8270."+nav_speedOverGround+".values.unknown");
 		handler.consume(out);
 		
 		verifyAll();
@@ -77,48 +63,34 @@ public class TrueWindHandlerTest extends BaseMsgInterceptorTest {
 	
 	@Test
 	public void shouldStoreAnotherKey() throws ActiveMQException {
-		Json json = Json.read("{\"value\":3.2,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}");
-		String uuid = Config.getConfigProperty(ConfigConstants.UUID);
-		handler.setUuid(uuid);
-		ClientMessage out = getClientMessage(json.toString(), MediaType.APPLICATION_JSON, false);
-		out.putStringProperty(Config.AMQ_INFLUX_KEY, "vessels.urn:mrn:signalk:uuid:a8fb07c0-1ffd-4663-899c-f16c2baf8270."+nav_speedOverGround+".values.unknown");
-		handler.send(out,"vessels."+uuid+dot+env_wind_angleTrueGround+".values.internal",-1.8736811954966175d);
-		handler.send(out,"vessels."+uuid+dot+env_wind_angleTrueWater+".values.internal",-1.8736811954966175d);
-		handler.send(out,"vessels."+uuid+dot+env_wind_speedTrue+".values.internal",3.2d);
+	
 		
-		handler.send(out,"vessels."+uuid+dot+env_wind_angleTrueGround+".values.internal",-2.3561944903716743d);
-		handler.send(out,"vessels."+uuid+dot+env_wind_angleTrueWater+".values.internal",-2.3561944903716743d);
-		handler.send(out,"vessels."+uuid+dot+env_wind_speedTrue+".values.internal",4.525483400405457d);
+		ClientMessage out = getMessage("{\"value\":3.2,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}", nav_speedOverGround, "unknown");
+		out.putStringProperty(Config.AMQ_INFLUX_KEY, "vessels.urn:mrn:signalk:uuid:a8fb07c0-1ffd-4663-899c-f16c2baf8270."+nav_speedOverGround+".values.unknown");
+		
+		ClientMessage out1 = getMessage("{\"value\":1.5,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}", nav_speedOverGround, "unknown");
+		out1.putStringProperty(Config.AMQ_INFLUX_KEY, "vessels.urn:mrn:signalk:uuid:a8fb07c0-1ffd-4663-899c-f16c2baf8270."+nav_speedOverGround+".values.unknown");
+		
+		handler.send(out,"vessels."+uuid+dot+env_wind_angleTrueGround+".values.internal",-2.405335224770098d);
+		handler.send(out,"vessels."+uuid+dot+env_wind_angleTrueWater+".values.internal",-2.405335224770098d);
+		handler.send(out,"vessels."+uuid+dot+env_wind_speedTrue+".values.internal",4.318564577108545d);
+		
+		handler.send(out1,"vessels."+uuid+dot+env_wind_angleTrueGround+".values.internal",-2.0481417094515253d);
+		handler.send(out1,"vessels."+uuid+dot+env_wind_angleTrueWater+".values.internal",-2.0481417094515253d);
+		handler.send(out1,"vessels."+uuid+dot+env_wind_speedTrue+".values.internal",3.264965543940752d);
 		
 		replayAll();
-//		AMQ_INFLUX_KEY+" LIKE '"+vessels+dot+self+dot+env_wind_angleApparent+"%' OR "
-//		+AMQ_INFLUX_KEY+" LIKE '"+vessels+dot+self+dot+env_wind_speedApparent+"%'OR "
-//		+AMQ_INFLUX_KEY+" LIKE '"+vessels+dot+self+dot+nav_speedOverGround+"%'OR "
-//		+AMQ_INFLUX_KEY+" LIKE '"+vessels+dot+self+dot+nav_courseOverGroundTrue+"%'OR "
-//		+AMQ_INFLUX_KEY+" LIKE '"+vessels+dot+self+dot+env_wind_speedApparent+"%'");
-		
 		//self, we process
-		json = Json.read("{\"value\":-1.5707963271535559,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}");
-		ClientMessage message = getClientMessage(json.toString(), MediaType.APPLICATION_JSON, false);
-		message.putStringProperty(Config.AMQ_INFLUX_KEY, "vessels.urn:mrn:signalk:uuid:a8fb07c0-1ffd-4663-899c-f16c2baf8270.environment.wind.angleApparent.values.unknown");
-		handler.consume(message);
+		handler.consume(getMessage("{\"value\":-1.5707963271535559,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",env_wind_angleApparent,"unknown"));
 		
 		//speed
-		json = Json.read("{\"value\":2.9,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}");
-		
-		message.putStringProperty(Config.AMQ_INFLUX_KEY, "vessels.urn:mrn:signalk:uuid:a8fb07c0-1ffd-4663-899c-f16c2baf8270.environment.wind.speedApparent.values.unknown");
-		handler.consume(message);
+		handler.consume(getMessage("{\"value\":2.9,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",env_wind_speedApparent,"unknown"));
+				
 		
 		//sog
-		//json = Json.read("{\"value\":3.2,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}");
-		//message = getClientMessage(json.toString(), MediaType.APPLICATION_JSON, false);
-		//message.putStringProperty(Config.AMQ_INFLUX_KEY, "vessels.urn:mrn:signalk:uuid:a8fb07c0-1ffd-4663-899c-f16c2baf8270."+nav_speedOverGround+".values.unknown");
 		handler.consume(out);
 		
-		json = Json.read("{\"value\":1.5,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}");
-		
-		out.putStringProperty(Config.AMQ_INFLUX_KEY, "vessels.urn:mrn:signalk:uuid:a8fb07c0-1ffd-4663-899c-f16c2baf8270.environment.wind.speedApparent.values.unknown");
-		handler.consume(out);
+		handler.consume(out1);
 		
 		verifyAll();
 	}
@@ -134,17 +106,11 @@ public class TrueWindHandlerTest extends BaseMsgInterceptorTest {
 //		+AMQ_INFLUX_KEY+" LIKE '"+vessels+dot+self+dot+env_wind_speedApparent+"%'");
 		
 		//self, we process
-		Json json = Json.read("{\"value\":-1.5707963271535559,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}");
-		ClientMessage message = getClientMessage(json.toString(), MediaType.APPLICATION_JSON, false);
-		message.putStringProperty(Config.AMQ_INFLUX_KEY, "vessels.urn:mrn:signalk:uuid:a8fb07c0-1ffd-4663-899c-f16c2baf8270.environment.wind.angleApparent.values.unknown");
-		handler.consume(message);
+		handler.consume(getMessage("{\"value\":-1.5707963271535559,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",env_wind_angleApparent,"unknown"));
 		
 		//speed
-		json = Json.read("{\"value\":2.9,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}");
-		
-		message.putStringProperty(Config.AMQ_INFLUX_KEY, "vessels.urn:mrn:signalk:uuid:a8fb07c0-1ffd-4663-899c-f16c2baf8270.environment.wind.speedApparent.values.unknown");
-		handler.consume(message);
-		
+		handler.consume(getMessage("{\"value\":2.9,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",env_wind_speedApparent,"unknown"));
+				
 		
 		verifyAll();
 	}

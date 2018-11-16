@@ -44,6 +44,7 @@ Functionality
 		Zeroconf/mDNS/BonJour
 		Calculates declination
 		Meta data on values
+		True wind calcs
 		Message types (on all transports):
 			UPDATES
 			GET
@@ -87,7 +88,7 @@ Functionality
 		Test, test, more tests...
 		Events
 			Alarms
-			True wind calc
+			
 		apis:
 			/signalk/v1/access/requests
 		

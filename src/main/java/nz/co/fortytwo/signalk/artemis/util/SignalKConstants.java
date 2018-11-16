@@ -92,7 +92,8 @@ public class SignalKConstants {
 	public static final String key= "key";
 	public static final String currentTrack = "currentTrack";
 
-
+	public static final String skey= "skey";
+	
 	public static final String websocketUrl="signalk-ws";
 	public static final String restUrl="signalk-http";
 
@@ -444,7 +445,7 @@ public class SignalKConstants {
 	public static final String flag="flag";
 	public static final String mmsi="mmsi";
 	public static final String name="name";
-	public static final String nav="navigation";
+	public static final String nav="navigation";*/
 	public static final String nav_anchor="navigation.anchor";
 	public static final String nav_anchor_currentRadius="navigation.anchor.currentRadius";
 	public static final String nav_anchor_maxRadius="navigation.anchor.maxRadius";
@@ -452,6 +453,7 @@ public class SignalKConstants {
 	public static final String nav_anchor_position_altitude="navigation.anchor.position.altitude";
 	public static final String nav_anchor_position_latitude="navigation.anchor.position.latitude";
 	public static final String nav_anchor_position_longitude="navigation.anchor.position.longitude";
+	/*
 	public static final String nav_attitude="navigation.attitude";
 	public static final String nav_attitude_pitch="navigation.attitude.pitch";
 	public static final String nav_attitude_roll="navigation.attitude.roll";
@@ -531,11 +533,12 @@ public class SignalKConstants {
 	public static final String nav_log="navigation.log";
 	public static final String nav_logTrip="navigation.logTrip";
 	public static final String nav_magneticVariation="navigation.magneticVariation";
-	public static final String nav_magneticVariationAgeOfService="navigation.magneticVariationAgeOfService";
+	public static final String nav_magneticVariationAgeOfService="navigation.magneticVariationAgeOfService";*/
 	public static final String nav_position="navigation.position";
 	public static final String nav_position_altitude="navigation.position.altitude";
 	public static final String nav_position_latitude="navigation.position.latitude";
 	public static final String nav_position_longitude="navigation.position.longitude";
+	/*
 	public static final String nav_racing="navigation.racing";
 	public static final String nav_racing_distanceLayline="navigation.racing.distanceLayline";
 	public static final String nav_racing_distanceStartline="navigation.racing.distanceStartline";

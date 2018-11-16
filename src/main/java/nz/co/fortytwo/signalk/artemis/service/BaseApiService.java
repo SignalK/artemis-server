@@ -113,6 +113,16 @@ public class BaseApiService {
 		}
 		return body;
 	}
+	
+	protected String addToken(Json body, Cookie cookie) {
+
+		String jwtToken = getToken(cookie);
+		if (StringUtils.isNotBlank(jwtToken)) {
+			// add it to the body
+			return body.set(SignalKConstants.TOKEN, jwtToken).toString();
+		}
+		return body.toString();
+	}
 
 	protected String sendMessage(String body) throws ActiveMQException {
 		return sendMessage(body, UUID.randomUUID().toString());
@@ -379,14 +389,7 @@ public class BaseApiService {
 		path=StringUtils.defaultIfBlank(path,"*");
 		if (logger.isDebugEnabled())
 			logger.debug("get raw: {}",path);
-		
-		path = StringUtils.removeStart(path,SIGNALK_API);
-		path = StringUtils.removeStart(path,"/");
-		path = path.replace('/', '.');
-
-		
-		// handle /vessels.* etc
-		path = Util.fixSelfKey(path);
+		path=sanitizeApiPath(path);
 		if (logger.isDebugEnabled())
 			logger.debug("get path: {}",path);
 		//String jwtToken = (String) resource.getRequest().getAttribute(SignalKConstants.JWT_TOKEN);
@@ -401,6 +404,18 @@ public class BaseApiService {
 		
 	}
 	
+	protected String sanitizeApiPath(String path) {
+
+		path = StringUtils.removeStart(path,SIGNALK_API);
+		path = StringUtils.removeStart(path,"/");
+		path = path.replace('/', '.');
+
+		
+		// handle /vessels.* etc
+		path = Util.fixSelfKey(path);
+		return path;
+	}
+
 	protected String getWebsocket(AtmosphereResource resource, String body, Cookie cookie) {
 		try {
 			String correlationId = "stream-" + resource.uuid(); // UUID.randomUUID().toString();

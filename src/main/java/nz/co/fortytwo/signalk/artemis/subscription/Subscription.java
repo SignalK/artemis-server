@@ -24,6 +24,7 @@
  */
 package nz.co.fortytwo.signalk.artemis.subscription;
 
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.skey;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.util.ArrayList;
@@ -112,7 +113,7 @@ public class Subscription {
 		}
 		
 		map.put("uuid", uuidPattern.toString());
-		map.put("skey", pathPattern.toString());
+		map.put(skey, pathPattern.toString());
 		
 		SubscriptionManagerFactory.getInstance().createTempQueue(destination);
 		task = new TimerTask() {

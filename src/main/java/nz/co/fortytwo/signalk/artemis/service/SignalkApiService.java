@@ -1,6 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SK_TOKEN;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
@@ -31,8 +31,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
+import nz.co.fortytwo.signalk.artemis.util.Util;
 
 @Path("/signalk/v1/api/")
 @Tag(name = "REST API")
@@ -175,14 +177,17 @@ public class SignalkApiService extends BaseApiService {
 	    })
 	@Consumes(MediaType.APPLICATION_JSON)
 	@PUT
+	@Path( "{path:[^?]*}")
 	public Response put(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
+			@Parameter( description = "A signalk path", example="/vessel/self/navigation") @PathParam(value = "path") String path,
 			@Parameter( name="body", description = "A signalk message") String body) {
 		//requestId, context, state, code (result), message (optional)
 		try {
 			if (logger.isDebugEnabled())
-				logger.debug("Post:" + body);
-		
-			sendMessage(addToken(body, cookie));
+				logger.debug("Put:" + body);
+			//make a full message now
+			Json msg = Util.getJsonPutRequest(sanitizeApiPath(path),Json.read(body));
+			sendMessage(addToken(msg, cookie));
 			return Response.status(HttpStatus.SC_ACCEPTED).build();
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);

@@ -1,6 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.scheduled;
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
@@ -53,7 +53,7 @@ public class DeclinationUpdaterTest {
 		logger.debug("start");
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
 		Map<String, String> queryMap = new HashMap<>();
-		queryMap.put("skey",Util.regexPath(nav+dot+"position").toString());
+		queryMap.put(skey,Util.regexPath(nav+dot+"position").toString());
 		queryMap.put("uuid",Util.regexPath(SELF_UUID).toString());
 		influx.loadData(map, vessels, queryMap);
 		logger.debug(map);
@@ -63,7 +63,7 @@ public class DeclinationUpdaterTest {
 		
 		map = new ConcurrentSkipListMap<>();
 		queryMap.clear();
-		queryMap.put("skey",Util.regexPath(nav+dot+"magneticVariation").toString());
+		queryMap.put(skey,Util.regexPath(nav+dot+"magneticVariation").toString());
 		queryMap.put("uuid",Util.regexPath(SELF_UUID).toString());
 		influx.loadData(map, vessels, queryMap);
 		logger.debug(map);

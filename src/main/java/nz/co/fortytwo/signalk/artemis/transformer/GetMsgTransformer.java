@@ -11,6 +11,7 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.aton;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.resources;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sar;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.skey;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sources;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
@@ -20,15 +21,8 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
-import org.apache.activemq.artemis.api.core.ActiveMQException;
-import org.apache.activemq.artemis.api.core.ActiveMQExceptionType;
-import org.apache.activemq.artemis.api.core.ICoreMessage;
-import org.apache.activemq.artemis.api.core.Interceptor;
 import org.apache.activemq.artemis.api.core.Message;
-import org.apache.activemq.artemis.core.protocol.core.Packet;
-import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendMessage;
 import org.apache.activemq.artemis.core.server.transformer.Transformer;
-import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -138,7 +132,7 @@ public class GetMsgTransformer extends BaseInterceptor implements Transformer {
 					
 					path=Util.regexPath(path).toString();
 					Map<String, String> queryMap = new HashMap<>();
-					if(StringUtils.isNotBlank(qUuid))queryMap.put("skey",path);
+					if(StringUtils.isNotBlank(qUuid))queryMap.put(skey,path);
 					if(StringUtils.isBlank(path))queryMap.put("uuid",Util.regexPath(qUuid).toString());
 					switch (root) {
 					case CONFIG:

@@ -17,10 +17,15 @@ import org.atmosphere.cpr.AtmosphereResource;
 import mjson.Json;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.*;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.timestamp;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
 
 import java.util.UUID;
 
+import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
+import nz.co.fortytwo.signalk.artemis.service.TDBService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 /**
@@ -39,7 +44,14 @@ public abstract class BaseHandler {
 
 	protected ClientConsumer consumer;
 	
+	protected static TDBService influx = new InfluxDbService();
+	
 	protected String filter=null;
+	protected String uuid;
+	
+	public BaseHandler() {
+		uuid = Config.getConfigProperty(ConfigConstants.UUID);
+	}
 
 	protected void initSession(String filter) throws Exception {
 		if (logger.isDebugEnabled())
@@ -65,6 +77,17 @@ public abstract class BaseHandler {
 		
 	}
 	public abstract void consume(Message message);
+	
+	protected void send(Message message, String key, double d) throws ActiveMQException {
+    	if (logger.isDebugEnabled())
+			logger.debug("Sending: key: {}, value: {}", key, d);
+		Json json = Json.object().set(value, d).set(timestamp, Util.getIsoTimeString());
+		if (logger.isDebugEnabled())
+			logger.debug("Sending: key: {}, value: {}", key, json);
+    	sendKvMessage(message, key, json);
+    	
+	}
+	
 	/**
 	 *  Will start a consumer and call the consume(message) method for each matching message
 	 *  
@@ -185,5 +208,9 @@ public abstract class BaseHandler {
 			}
 		}
 		
+	}
+	
+	protected void setUuid(String uuid) {
+		this.uuid = uuid;
 	}
 }

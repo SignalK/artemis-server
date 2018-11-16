@@ -63,7 +63,7 @@ public class DeclinationUpdater implements Runnable {
 		logger.debug("Declination  calculation fired ");
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
 		Map<String, String> queryMap = new HashMap<>();
-		queryMap.put("skey",Util.regexPath(nav+dot+"position").toString());
+		queryMap.put(skey,Util.regexPath(nav+dot+"position").toString());
 		queryMap.put("uuid",Util.regexPath(uuid).toString());
 		influx.loadData(map, vessels, queryMap);
 		logger.debug("Position: {}", map);
@@ -90,7 +90,7 @@ public class DeclinationUpdater implements Runnable {
 			}
 			map.clear();
 			queryMap.clear();
-			queryMap.put("skey",Util.regexPath(nav+dot+"magneticVariation").toString());
+			queryMap.put(skey,Util.regexPath(nav+dot+"magneticVariation").toString());
 			queryMap.put("uuid",Util.regexPath(uuid).toString());
 			influx.loadData(map, vessels, queryMap);
 			logger.debug(map);

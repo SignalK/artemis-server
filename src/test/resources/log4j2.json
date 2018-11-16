@@ -82,8 +82,8 @@
 					"level": "error"
 				},
 				{
-					"name": "nz.co.fortytwo.signalk.artemis.util.Util",
-					"level": "warn"
+					"name": "nz.co.fortytwo.signalk.artemis.util",
+					"level": "debug"
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.server.SerialPortReader",

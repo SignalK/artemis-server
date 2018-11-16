@@ -2,6 +2,12 @@ package nz.co.fortytwo.signalk.artemis.handler;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_INFLUX_KEY;
 import static nz.co.fortytwo.signalk.artemis.util.Config.INTERNAL_KV;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.apache.activemq.artemis.api.core.Message;
 import org.apache.logging.log4j.LogManager;
@@ -43,13 +49,17 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
  * 
  */
 
-public class InfluxDbHandler extends BaseHandler{
+public class AlarmHandler extends BaseHandler{
 	
-	private static Logger logger = LogManager.getLogger(InfluxDbHandler.class);
+	private static Logger logger = LogManager.getLogger(AlarmHandler.class);
+
+	private static NavigableMap<String, Json> alarmMap;
 	
-	public InfluxDbHandler() {
+	public AlarmHandler() {
 		super();
 		try {
+			//load all keys with alarms
+			alarmMap = loadAlarms(influx);
 			initSession(null);
 		} catch (Exception e) {
 			logger.error(e,e);
@@ -57,20 +67,31 @@ public class InfluxDbHandler extends BaseHandler{
 	}
 
 	
+	private NavigableMap<String, Json> loadAlarms(TDBService influx) {
+		NavigableMap<String, Json> map=new ConcurrentSkipListMap<String, Json>();
+		Map<String, String> query= new HashMap<>();
+		query.put(skey, "meta");
+		return influx.loadData(map, vessels, query);
+		
+	}
+
+
 	public void consume(Message message) {
 		
 			String key = message.getStringProperty(AMQ_INFLUX_KEY);
+			if(!alarmMap.containsKey(key))return;
+			
 			Json node = Util.readBodyBuffer(message.toCore());
 			
 			if (logger.isDebugEnabled())
-				logger.debug("Saving key: {} : {}", key, node);
-			save(key, node);
+				logger.debug("Checking alarm for key: {} : {}", key, node);
+			check(key, node);
 
 	}
 
 
-	protected void save(String key, Json node) {
-		influx.save(key, node);
+	protected void check(String key, Json node) {
+		//influx.save(key, node);
 		
 	}
 

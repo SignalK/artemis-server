@@ -70,7 +70,7 @@ public class Util {
 	public static final String SIGNALK_RESOURCES_SAVE_FILE = "./conf/resources.json";
 	public static final String SIGNALK_SOURCES_SAVE_FILE = "./conf/sources.json";
 	//private static boolean timeSet = false;
-
+	public static final double R = 6372800; // In meters
 	private static ServerLocator nettyLocator;
 	private static ServerLocator inVmLocator;
 	protected static Pattern selfMatch = Pattern.compile("\\.self\\.|\\.self$");
@@ -250,11 +250,39 @@ public class Util {
 			sub.set("time", StringUtils.defaultIfBlank(time, time));
 		}
 		json.at("get").add(sub);
-		if (logger.isDebugEnabled())logger.debug("Created json sub: {}", json);
+		if (logger.isDebugEnabled())logger.debug("Created json get: {}", json);
+		return json;
+	}
+	
+	public static Json getJsonPutRequest( String path, Json body) {
+		if(body==null)return null;
+		String context=Util.getContext(path);
+		path = path.substring(context.length()+1, path.length());
+		
+		Json json = Json.read("{\"context\":\"" + context + "\",\"put\": []}");
+		
+		Json sub = Json.object();
+		sub.set("path", StringUtils.defaultIfBlank(path, "*"));
+		sub.set(value, body.at(value));
+		sub.set(timestamp, Util.getIsoTimeString());
+		
+			
+		json.at("put").add(sub);
+		if (logger.isDebugEnabled())logger.debug("Created json put: {}", json);
 		return json;
 	}
 
+	public static double haversineMeters(double lat, double lon, double anchorLat, double anchorLon) {
+		double dLat = Math.toRadians(anchorLat - lat);
+		double dLon = Math.toRadians(anchorLon - lon);
+		lat = Math.toRadians(lat);
+		anchorLat = Math.toRadians(anchorLat);
 
+		double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+				+ Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat) * Math.cos(anchorLat);
+		double c = 2 * Math.asin(Math.sqrt(a));
+		return R * c;
+	}
 
 	public static  String sanitizeRoot(String root) {
 		if(StringUtils.isBlank(root)) root = ALL;

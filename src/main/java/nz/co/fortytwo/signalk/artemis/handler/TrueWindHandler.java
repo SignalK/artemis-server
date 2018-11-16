@@ -4,17 +4,18 @@ import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_INFLUX_KEY;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.TWO_PI;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_wind_angleApparent;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_wind_angleTrueGround;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_wind_angleTrueWater;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_wind_directionMagnetic;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_wind_directionTrue;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_wind_speedApparent;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_wind_speedTrue;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_courseOverGroundMagnetic;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_courseOverGroundTrue;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_speedOverGround;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.timestamp;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels_dot_self_dot;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.Message;
@@ -66,14 +67,12 @@ public class TrueWindHandler extends BaseHandler{
 	private Double vesselSpeed;
 	private Double apparentDirection;
 	private Double apparentWindSpeed;
-	private String uuid;
-
 	
 
 	public TrueWindHandler() {
 		super();
 		try {
-			uuid = Config.getConfigProperty(ConfigConstants.UUID);
+		
 			if (logger.isDebugEnabled())
 				logger.debug("Initialising for : {} ",uuid );
 			//environment.wind.angleApparent
@@ -93,6 +92,7 @@ public class TrueWindHandler extends BaseHandler{
 		
 			
 			String key = message.getStringProperty(AMQ_INFLUX_KEY);
+			if(key.contains(dot+meta+dot))return;
 			Json node = Util.readBodyBuffer(message.toCore());
 			
 			if (logger.isDebugEnabled())
@@ -167,15 +167,7 @@ public class TrueWindHandler extends BaseHandler{
 
     }
 
-    protected void send(Message message, String key, double d) throws ActiveMQException {
-    	if (logger.isDebugEnabled())
-			logger.debug("Sending: key: {}, value: {}", key, d);
-		Json json = Json.object().set(value, d).set(timestamp, Util.getIsoTimeString());
-		if (logger.isDebugEnabled())
-			logger.debug("Sending: key: {}, value: {}", key, json);
-    	sendKvMessage(message, key, json);
-    	
-	}
+    
 
 
 	/**
@@ -249,9 +241,7 @@ public class TrueWindHandler extends BaseHandler{
         return windCalc;
     }
     
-    protected void setUuid(String uuid) {
-		this.uuid = uuid;
-	}
+    
 
 
 }

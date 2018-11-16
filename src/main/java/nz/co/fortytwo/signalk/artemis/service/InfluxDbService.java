@@ -9,6 +9,7 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.resources;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sar;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self_str;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sentence;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.skey;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sourceRef;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sources;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.timestamp;
@@ -212,7 +213,7 @@ public class InfluxDbService implements TDBService {
 				if(s==null)return;
 				
 				Map<String, String> tagMap = s.getTags();
-				String key = s.getName() + dot + s.getTags().get("skey");
+				String key = s.getName() + dot + s.getTags().get(skey);
 				
 				Json val = getJsonValue(s,0);
 				if(key.contains(".values.")){
@@ -287,7 +288,7 @@ public class InfluxDbService implements TDBService {
 				if(s==null)return;
 				
 				Map<String, String> tagMap = s.getTags();
-				String key = s.getName() + dot + tagMap.get("skey");
+				String key = s.getName() + dot + tagMap.get(skey);
 				
 				Json val = getJsonValue(s,0);
 				
@@ -316,7 +317,7 @@ public class InfluxDbService implements TDBService {
 					if(s==null)return;
 					
 					Map<String, String> tagMap = s.getTags();
-					String key = s.getName()+dot+tagMap.get("uuid")+dot+tagMap.get("skey");
+					String key = s.getName()+dot+tagMap.get("uuid")+dot+tagMap.get(skey);
 					
 					Json val = getJsonValue(s,0);
 					
@@ -436,7 +437,7 @@ public class InfluxDbService implements TDBService {
 				if (logger.isDebugEnabled())logger.debug("Load source: {}",s);
 				if (s == null)return;
 				
-				String key = s.getName() + dot + s.getTags().get("skey");
+				String key = s.getName() + dot + s.getTags().get(skey);
 				if (logger.isDebugEnabled())logger.debug("Load source map: {} = {}",()->key,()->getJsonValue(s,0));
 				map.put(key, getJsonValue(s,0));
 				
@@ -679,7 +680,7 @@ public class InfluxDbService implements TDBService {
 				if (logger.isDebugEnabled())logger.debug("extractValue without subkey: {}",node);
 			}
 //			if (StringUtils.isNotBlank(srcref)) {
-//				String skey = s.getTags().get("skey");
+//				String skey = s.getTags().get(skey);
 //				//if we have a 'value' copy it into values.srcRef.{} too
 //				if (logger.isDebugEnabled())logger.debug("extractValue skey: {}",skey);
 //				if(!skey.contains(dot+values+dot) && parent.has(value)){
@@ -742,19 +743,19 @@ public class InfluxDbService implements TDBService {
 						.tag("sourceRef", sourceRef)
 						.tag("uuid", path[1])
 						.tag(InfluxDbService.PRIMARY_VALUE, isPrimary(key,sourceRef).toString())
-						.tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)));
+						.tag(skey, String.join(".", ArrayUtils.subarray(path, 1, path.length)));
 				influxDB.write(addPoint(point, field, val));
 				break;
 			case sources:
 				point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS)
 						.tag("sourceRef", path[1])
-						.tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)));
+						.tag(skey, String.join(".", ArrayUtils.subarray(path, 1, path.length)));
 				influxDB.write(addPoint(point, field, val));
 				break;
 			case CONFIG:
 				point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS)
 						.tag("uuid", path[1])
-						.tag("skey", String.join(".", ArrayUtils.subarray(path, 1, path.length)));
+						.tag(skey, String.join(".", ArrayUtils.subarray(path, 1, path.length)));
 				influxDB.write(addPoint(point, field, val));
 				//also update the config map
 				Config.setProperty(String.join(".", path), Json.make(val));
@@ -784,7 +785,7 @@ public class InfluxDbService implements TDBService {
 				.tag("sourceRef", sourceRef)
 				.tag("uuid", path[1])
 				.tag(InfluxDbService.PRIMARY_VALUE, primary.toString())
-				.tag("skey", String.join(".", ArrayUtils.subarray(path, 2, path.length)));
+				.tag(skey, String.join(".", ArrayUtils.subarray(path, 2, path.length)));
 		influxDB.write(addPoint(point, field, val));
 		
 	}
@@ -807,7 +808,7 @@ public class InfluxDbService implements TDBService {
 					if(s==null)return;
 					
 					Map<String, String> tagMap = s.getTags();
-					String key = s.getName()+dot+tagMap.get("uuid")+dot+StringUtils.substringBeforeLast(tagMap.get("skey"),dot+value);
+					String key = s.getName()+dot+tagMap.get("uuid")+dot+StringUtils.substringBeforeLast(tagMap.get(skey),dot+value);
 					primaryMap.put(StringUtils.substringBefore(key,dot+values+dot), tagMap.get("sourceRef"));
 					if(logger.isTraceEnabled())logger.trace("Primary map: {}={}",key,tagMap.get("sourceRef"));
 				});
