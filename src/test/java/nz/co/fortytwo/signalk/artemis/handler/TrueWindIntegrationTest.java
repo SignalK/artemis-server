@@ -25,7 +25,7 @@ public class TrueWindIntegrationTest extends BaseServerTest{
 	
 	@Test
 	public void shouldReadKvQueue() throws Exception {
-		readPartialKeys("admin", 2);
+		readPartialKeys("admin", 10);
 	}
 	
 	
@@ -35,10 +35,10 @@ public class TrueWindIntegrationTest extends BaseServerTest{
 				ClientProducer producer = session.createProducer();	
 				ClientConsumer consumer = session.createConsumer(Config.INTERNAL_KV);){
 
-		//"$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78"
+		//"$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,56.4,011113,,,A*78"
 		//"$IIMWV,041.5,R,24.3,N,A*08"	
 			
-			sendMessage(session, producer, "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78");
+			sendMessage(session, producer, "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,56.4,011113,,,A*78");
 			sendMessage(session, producer, "$IIMWV,041.5,R,24.3,N,A*08");
 			
 			logger.debug("Input sent");

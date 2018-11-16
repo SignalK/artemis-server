@@ -1,6 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.handler;
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_wind_directionTrue;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_wind_speedTrue;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_speedOverGround;
@@ -20,13 +20,14 @@ import org.junit.Test;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.intercept.BaseMsgInterceptorTest;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 
 public class TrueWindHandlerTest extends BaseMsgInterceptorTest {
 	@Rule
     public EasyMockRule rule = new EasyMockRule(this);
 
     @Mock
-    private TrueWindHandler handler;// 1
+    private TrueWindHandler handler;
 
     @Before
     public void before(){
@@ -37,12 +38,14 @@ public class TrueWindHandlerTest extends BaseMsgInterceptorTest {
 	@Test
 	public void shouldStoreKey() throws ActiveMQException {
 		Json json = Json.read("{\"value\":3.2,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}");
-		
+		String uuid = Config.getConfigProperty(ConfigConstants.UUID);
+		handler.setUuid(uuid);
 		ClientMessage out = getClientMessage(json.toString(), MediaType.APPLICATION_JSON, false);
 		out.putStringProperty(Config.AMQ_INFLUX_KEY, "vessels.urn:mrn:signalk:uuid:a8fb07c0-1ffd-4663-899c-f16c2baf8270."+nav_speedOverGround+".values.unknown");
-		handler.send(out,"vessels."+self+dot+env_wind_directionTrue+".values.self",4.409504111682969d);
-		
-		handler.send(out,"vessels."+self+dot+env_wind_speedTrue+".values.self",3.2d);
+		handler.send(out,"vessels."+uuid+dot+env_wind_angleTrueGround+".values.internal",-1.8736811954966175d);
+		handler.send(out,"vessels."+uuid+dot+env_wind_angleTrueWater+".values.internal",-1.8736811954966175d);
+		//handler.send(out,"vessels."+uuid+dot+env_wind_directionTrue+".values.internal",4.409504111682969d);
+		handler.send(out,"vessels."+uuid+dot+env_wind_speedTrue+".values.internal",3.2d);
 		
 		replayAll();
 //		AMQ_INFLUX_KEY+" LIKE '"+vessels+dot+self+dot+env_wind_angleApparent+"%' OR "
@@ -75,14 +78,17 @@ public class TrueWindHandlerTest extends BaseMsgInterceptorTest {
 	@Test
 	public void shouldStoreAnotherKey() throws ActiveMQException {
 		Json json = Json.read("{\"value\":3.2,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}");
-		
+		String uuid = Config.getConfigProperty(ConfigConstants.UUID);
+		handler.setUuid(uuid);
 		ClientMessage out = getClientMessage(json.toString(), MediaType.APPLICATION_JSON, false);
 		out.putStringProperty(Config.AMQ_INFLUX_KEY, "vessels.urn:mrn:signalk:uuid:a8fb07c0-1ffd-4663-899c-f16c2baf8270."+nav_speedOverGround+".values.unknown");
-		handler.send(out,"vessels."+self+dot+env_wind_directionTrue+".values.self",4.409504111682969d);
-		handler.send(out,"vessels."+self+dot+env_wind_speedTrue+".values.self",3.2d);
+		handler.send(out,"vessels."+uuid+dot+env_wind_angleTrueGround+".values.internal",-1.8736811954966175d);
+		handler.send(out,"vessels."+uuid+dot+env_wind_angleTrueWater+".values.internal",-1.8736811954966175d);
+		handler.send(out,"vessels."+uuid+dot+env_wind_speedTrue+".values.internal",3.2d);
 		
-		handler.send(out,"vessels."+self+dot+env_wind_directionTrue+".values.self",3.926990816807912d);
-		handler.send(out,"vessels."+self+dot+env_wind_speedTrue+".values.self",4.525483400405457d);
+		handler.send(out,"vessels."+uuid+dot+env_wind_angleTrueGround+".values.internal",-2.3561944903716743d);
+		handler.send(out,"vessels."+uuid+dot+env_wind_angleTrueWater+".values.internal",-2.3561944903716743d);
+		handler.send(out,"vessels."+uuid+dot+env_wind_speedTrue+".values.internal",4.525483400405457d);
 		
 		replayAll();
 //		AMQ_INFLUX_KEY+" LIKE '"+vessels+dot+self+dot+env_wind_angleApparent+"%' OR "

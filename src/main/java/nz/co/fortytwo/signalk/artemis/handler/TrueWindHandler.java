@@ -2,7 +2,7 @@ package nz.co.fortytwo.signalk.artemis.handler;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_INFLUX_KEY;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.TWO_PI;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_wind_angleApparent;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_wind_directionTrue;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_wind_speedApparent;
@@ -61,10 +61,14 @@ public class TrueWindHandler extends BaseHandler{
 	
 	private static Logger logger = LogManager.getLogger(TrueWindHandler.class);
 	
+	private Double cog;
+	private Double cogm;
 	private Double vesselSpeed;
 	private Double apparentDirection;
 	private Double apparentWindSpeed;
 	private String uuid;
+
+	
 
 	public TrueWindHandler() {
 		super();
@@ -77,6 +81,7 @@ public class TrueWindHandler extends BaseHandler{
 			initSession(AMQ_INFLUX_KEY+" LIKE '"+vessels+dot+uuid+dot+env_wind_speedApparent+"%' OR "
 						+AMQ_INFLUX_KEY+" LIKE '"+vessels+dot+uuid+dot+env_wind_angleApparent+"%'OR "
 						+AMQ_INFLUX_KEY+" LIKE '"+vessels+dot+uuid+dot+nav_speedOverGround+"%'OR "
+						+AMQ_INFLUX_KEY+" LIKE '"+vessels+dot+uuid+dot+nav_courseOverGroundMagnetic+"%'OR "
 						+AMQ_INFLUX_KEY+" LIKE '"+vessels+dot+uuid+dot+nav_courseOverGroundTrue+"%'");
 		} catch (Exception e) {
 			logger.error(e,e);
@@ -99,10 +104,13 @@ public class TrueWindHandler extends BaseHandler{
 			}
 			if(key.contains(env_wind_speedApparent))apparentWindSpeed=node.at(value).asDouble();
 			if(key.contains(nav_speedOverGround))vesselSpeed=node.at(value).asDouble();
+			if(key.contains(nav_courseOverGroundTrue))cog=node.at(value).asDouble();
+			if(key.contains(nav_courseOverGroundMagnetic))cogm=node.at(value).asDouble();
 			
 			if (logger.isDebugEnabled())
 				logger.debug("Calculating on apparent angle: {}, apparentSpeed : {}, vesselSpeed: {}", apparentDirection, apparentWindSpeed, vesselSpeed);
-            if (apparentWindSpeed != null && apparentDirection != null && vesselSpeed != null) {
+            
+			if (apparentWindSpeed != null && apparentDirection != null && vesselSpeed != null) {
             	execute(message);
             }
 	}
@@ -126,15 +134,29 @@ public class TrueWindHandler extends BaseHandler{
                 }
                 if (windCalc != null) {
                 	logger.debug("Sending: {}", windCalc);
+                	
                     if (!Double.isNaN(windCalc[1])) {
                     	logger.debug("Sending TWD: {}", windCalc);
+                    	double bowWind = windCalc[1]<Math.PI?windCalc[1]: -(TWO_PI - windCalc[1]) ;
+                    	
                         //map.put(Constants.WIND_DIR_TRUE, round(trueDirection, 2));
-                        send(message, vessels+dot+uuid+dot+ env_wind_directionTrue+".values.internal", windCalc[1]);
+                        send(message, vessels+dot+uuid+dot+ env_wind_angleTrueGround+".values.internal", bowWind);
+                        //TODO: adjust for waterOverGround
+                        send(message, vessels+dot+uuid+dot+ env_wind_angleTrueWater+".values.internal", bowWind);
+                        if(cog!=null) {
+                        	//adjust for vessel heading
+                            send(message, vessels+dot+uuid+dot+ env_wind_directionTrue+".values.internal", (cog+windCalc[1]) % TWO_PI);
+                        }
+                        if(cogm!=null) {
+                        	//adjust for vessel heading
+                            send(message, vessels+dot+uuid+dot+ env_wind_directionMagnetic+".values.internal", (cogm+windCalc[1]) % TWO_PI);
+                        }
                     }
                     if (!Double.isNaN(windCalc[0])) {
                         //map.put(Constants.WIND_SPEED_TRUE, round(trueWindSpeed, 2));
                     	send(message, vessels+dot+uuid+dot + env_wind_speedTrue+".values.internal", windCalc[0]);
                     }
+                    
                 }
 
             
@@ -226,5 +248,10 @@ public class TrueWindHandler extends BaseHandler{
         windCalc[0] = trueWindSpeed;
         return windCalc;
     }
+    
+    protected void setUuid(String uuid) {
+		this.uuid = uuid;
+	}
+
 
 }
