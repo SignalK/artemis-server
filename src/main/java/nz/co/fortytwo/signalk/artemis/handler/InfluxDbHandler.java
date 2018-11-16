@@ -65,9 +65,15 @@ public class InfluxDbHandler extends BaseHandler{
 			Json node = Util.readBodyBuffer(message.toCore());
 			
 			if (logger.isDebugEnabled())
-				logger.debug("Saving key: {} : {}", key, node.toString());
-			influx.save(key, node);
+				logger.debug("Saving key: {} : {}", key, node);
+			save(key, node);
 
+	}
+
+
+	protected void save(String key, Json node) {
+		influx.save(key, node);
+		
 	}
 
 

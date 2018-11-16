@@ -429,7 +429,7 @@ public class SignalKConstants {
 	public static final String env_water_liveWell="environment.water.liveWell";
 	public static final String env_water_liveWell_temperature="environment.water.liveWell.temperature";
 	public static final String env_water_salinity="environment.water.salinity";
-	public static final String env_water_temperature="environment.water.temperature";
+	public static final String env_water_temperature="environment.water.temperature";*/
 	public static final String env_wind="environment.wind";
 	public static final String env_wind_angleApparent="environment.wind.angleApparent";
 	public static final String env_wind_angleTrueGround="environment.wind.angleTrueGround";
@@ -440,6 +440,7 @@ public class SignalKConstants {
 	public static final String env_wind_speedApparent="environment.wind.speedApparent";
 	public static final String env_wind_speedOverGround="environment.wind.speedOverGround";
 	public static final String env_wind_speedTrue="environment.wind.speedTrue";
+	/*
 	public static final String flag="flag";
 	public static final String mmsi="mmsi";
 	public static final String name="name";
@@ -480,8 +481,8 @@ public class SignalKConstants {
 	public static final String nav_courseGreatCircle_previousPoint_position="navigation.courseGreatCircle.previousPoint.position";
 	public static final String nav_courseGreatCircle_previousPoint_position_latitude="navigation.courseGreatCircle.previousPoint.position.latitude";
 	public static final String nav_courseGreatCircle_previousPoint_position_longitude="navigation.courseGreatCircle.previousPoint.position.longitude";
-	public static final String nav_courseOverGroundMagnetic="navigation.courseOverGroundMagnetic";
 	*/
+	public static final String nav_courseOverGroundMagnetic="navigation.courseOverGroundMagnetic";
 	public static final String nav_courseOverGroundTrue="navigation.courseOverGroundTrue";
 	/*
 	public static final String nav_courseRhumbline="navigation.courseRhumbline";

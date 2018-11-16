@@ -14,7 +14,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.atmosphere.cpr.AtmosphereResource;
 
+import mjson.Json;
+
 import static nz.co.fortytwo.signalk.artemis.util.Config.*;
+
+import java.util.UUID;
+
+import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 /**
@@ -27,9 +33,9 @@ public abstract class BaseHandler {
 	
 	private static Logger logger = LogManager.getLogger(BaseHandler.class);
 	
-	protected static ThreadLocal<ClientProducer> producer=new ThreadLocal<>();
+	protected  ThreadLocal<ClientProducer> producer=new ThreadLocal<>();
 
-	protected static ThreadLocal<ClientSession> txSession=new ThreadLocal<>();
+	protected  ThreadLocal<ClientSession> txSession=new ThreadLocal<>();
 
 	protected ClientConsumer consumer;
 	
@@ -44,6 +50,20 @@ public abstract class BaseHandler {
 		getConsumer(filter);
 	}
 	
+	protected void sendKvMessage(Message origMessage, String k, Json j) throws ActiveMQException {
+		ClientMessage txMsg = getTxSession().createMessage(false);
+		txMsg.copyHeadersAndProperties(origMessage);
+		txMsg.setRoutingType(RoutingType.MULTICAST);
+		txMsg.putStringProperty(Config.AMQ_INFLUX_KEY, k);
+		
+		txMsg.setExpiration(System.currentTimeMillis()+5000);
+		txMsg.getBodyBuffer().writeString(j.toString());
+		if (logger.isDebugEnabled())
+			logger.debug("Msg body signalk.kv: {} = {}",k, j.toString());
+		
+		getProducer().send(Config.INTERNAL_KV,txMsg);
+		
+	}
 	public abstract void consume(Message message);
 	/**
 	 *  Will start a consumer and call the consume(message) method for each matching message
@@ -79,22 +99,7 @@ public abstract class BaseHandler {
 		}
 		return false;
 	}
-	private void closeSession() {
-
-		if (getConsumer(filter) != null) {
-			if (logger.isDebugEnabled())
-				logger.debug("Close consumer: {}", INTERNAL_KV);
-			try {
-
-					getConsumer(filter).close();
-				
-			} catch (ActiveMQException e) {
-				logger.warn(e, e);
-			}
-
-		}
-
-	}
+	
 
 	public ClientSession getTxSession() {
 
@@ -136,13 +141,15 @@ public abstract class BaseHandler {
 	public ClientConsumer getConsumer(String filter) {
 
 		if (consumer == null && getTxSession() != null && !getTxSession().isClosed()) {
+			String uuid = INTERNAL_KV+"."+UUID.randomUUID().toString();
 			if (logger.isDebugEnabled())
-				logger.debug("Start consumer: {}", INTERNAL_KV);
+				logger.debug("Start consumer: {}", uuid);
 			try {
+				getTxSession().createQueue(INTERNAL_KV, RoutingType.MULTICAST, uuid);
 				if(StringUtils.isBlank(filter)) {
-					consumer = getTxSession().createConsumer(INTERNAL_KV);
+					consumer = getTxSession().createConsumer(uuid);
 				}else {
-					consumer = getTxSession().createConsumer(INTERNAL_KV, filter);
+					consumer = getTxSession().createConsumer(uuid, filter);
 				}
 				getTxSession().start();
 				

@@ -46,6 +46,7 @@ import javax.jmdns.JmmDNS;
 import javax.jmdns.ServiceInfo;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
+import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.client.ClientConsumer;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
@@ -65,6 +66,7 @@ import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Log4J2LoggerFactory;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.handler.InfluxDbHandler;
+import nz.co.fortytwo.signalk.artemis.handler.TrueWindHandler;
 import nz.co.fortytwo.signalk.artemis.scheduled.DeclinationUpdater;
 import nz.co.fortytwo.signalk.artemis.serial.SerialPortManager;
 import nz.co.fortytwo.signalk.artemis.service.ChartService;
@@ -92,6 +94,7 @@ public final class ArtemisServer {
 	private ClientSession session;
 	private ClientConsumer consumer;
 	private InfluxDbHandler influxHandler;
+	private TrueWindHandler trueWindHandler;
 
 	public ArtemisServer() throws Exception {
 		init();
@@ -205,9 +208,10 @@ public final class ArtemisServer {
 	}
 
 	private void startIncomingConsumer() throws Exception {
-		
-			session = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),Config.getConfigProperty(Config.ADMIN_PWD));
-			consumer = session.createConsumer(Config.INCOMING_RAW);
+			if(session==null)
+				session = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),Config.getConfigProperty(Config.ADMIN_PWD));
+			if(consumer==null)
+				consumer = session.createConsumer(Config.INCOMING_RAW);
 			consumer.setMessageHandler(new MessageHandler() {
 				
 				@Override
@@ -229,6 +233,8 @@ public final class ArtemisServer {
 		
 		influxHandler = new InfluxDbHandler();
 		influxHandler.startConsumer();
+		trueWindHandler = new TrueWindHandler();
+		trueWindHandler.startConsumer();
 	}
 
 	private static void addShutdownHook(final ArtemisServer server) {
@@ -293,6 +299,9 @@ public final class ArtemisServer {
 	private void stopKvHandlers() {
 		if(influxHandler!=null) {
 			influxHandler.stop();
+		}
+		if(trueWindHandler!=null) {
+			trueWindHandler.stop();
 		}
 		
 	}

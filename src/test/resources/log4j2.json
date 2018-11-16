@@ -1,14 +1,13 @@
 {
 	"configuration": {
-
 		"status": "error",
-		"monitorInterval":"30",
+		"monitorInterval": "30",
 		"properties": {
-			"property": [{
+			"property": [
+				{
 					"name": "Directory",
 					"value": "./logs"
 				},
-
 				{
 					"name": "FileName",
 					"value": "signalk.log"
@@ -40,177 +39,179 @@
 			}
 		},
 		"loggers": {
-
 			"root": {
 				"level": "error",
-				"appender-ref": [{
-					"ref": "STDOUT"
-				}, {
-					"ref": "File"
-				}]
+				"appender-ref": [
+					{
+						"ref": "STDOUT"
+					},
+					{
+						"ref": "File"
+					}
+				]
 			},
 			"logger": [
-			{
-				"name": "nz.co.fortytwo.signalk.artemis.intercept",
-				"level": "warn"
-			},
-			{
-				"name": "nz.co.fortytwo.signalk",
-				"level": "warn"
-			},
-			
-			{
-				"name": "nz.co.fortytwo.signalk.artemis.intercept.MapToDeltaInterceptor",
-				"level": "warn"
-			},
-			{
-				"name": "nz.co.fortytwo.signalk.artemis.intercept.DeltaMsgInterceptor",
-				"level": "debug"
-			},
-			{
-				"name": "nz.co.fortytwo.signalk.artemis.intercept.UpdateMsgInterceptor",
-				"level": "warn"
-			},
-			
-			{
-				"name": "nz.co.fortytwo.signalk.artemis.util.Config",
-				"level": "error"
-			},
-			{
-				"name": "nz.co.fortytwo.signalk.artemis.util.Util",
-				"level": "warn"
-			},
-			{
-				"name": "nz.co.fortytwo.signalk.artemis.server.SerialPortReader",
-				"level": "error"
-			},
-			{
-				"name": "nz.co.fortytwo.signalk.artemis.server.SerialPortManager",
-				"level": "error"
-			},
-			{
-				"name": "nz.co.fortytwo.signalk.artemis.service",
-				"level": "warn"
-			},
-			{
-				"name": "nz.co.fortytwo.signalk.artemis.server.ArtemisUdpNettyHandler",
-				"level": "error"
-			},
-			{
-				"name": "nz.co.fortytwo.signalk.artemis.server.ArtemisTcpNettyHandler",
-				"level": "debug"
-			},
-			{
-         		"name": "nz.co.fortytwo.signalk.artemis.server.Subscription",
-         		"level": "error",
-         		"additivity": true,
-         		"appender-ref": []
-    		},
-    		{
-				"name": "nz.co.fortytwo.signalk.artemis.service.SignalkStreamService",
-				"level": "error"
-			},
-			{
-				"name": "nz.co.fortytwo.signalk.artemis.service.BaseApiService",
-				"level": "error"
-			},
-    		{
-     		   	"name": "nz.co.fortytwo.signalk.artemis.server.SubscriptionManagerService",
-     		   	"level": "error",
-      		  	"additivity": true,
-      		  	"appender-ref": []
-			},
-			{
-				"name": "nz.co.fortytwo.signalk.artemis.service.InfluxDbService",
-				"level": "warn"
-			},
-			{
-				"name": "nz.co.fortytwo.signalk.artemis.server.BaseServerTest",
-				"level": "debug"
-			},
-			{
-				"name": "nz.co.fortytwo.signalk.artemis.server.SubscribeWsTest",
-				"level": "debug"
-			},
-			{
-				"name": "nz.co.fortytwo.signalk.artemis.server.NMEAParserTest",
-				"level": "debug"
-			},
-			{
-				"name": "nz.co.fortytwo.signalk.artemis.server.SubscribeTest",
-				"level": "debug"
-			},
-			{
-				"name": "nz.co.fortytwo.signalk.artemis.server.UdpSubscribeTest",
-				"level": "debug"
-			},
-			{
-				"name": "nz.co.fortytwo.signalk.artemis.server.TcpSubscribeTest",
-				"level": "debug"
-			},
-			{
-				"name": "nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertorTest",
-				"level": "debug"
-			},
-			{
-				"name": "nz.co.fortytwo.signalk.artemis.transformer",
-				"level": "debug"
-			},
-			
-			{
-				"name": "org.atmosphere.nettosphere.BridgeRuntime",
-				"level": "warn"
-			},
-			
-			{
-				"name": "org.atmosphere.nettosphere",
-				"level": "warn"
-			},
-			
-			{
-				"name": "io.netty",
-				"level": "warn"
-			},
-			
-			{
-				"name": "org.apache.activemq.artemis",
-				"level": "error"
-			},
-			{
-				"name": "nz.co.fortytwo.signalk.artemis.intercept.BaseInterceptor",
-				"level": "debug"
-			},
-			
-			{
-				"name": "nz.co.fortytwo.signalk.artemis.intercept.GetMsgInterceptor",
-				"level": "debug"
-			},
-			{
-				"name": "nz.co.fortytwo.signalk.artemis.scheduled.DeclinationUpdaterTest",
-				"level": "debug"
-			},
-			{
-				"name": "nz.co.fortytwo.signalk.artemis.scheduled.DeclinationUpdater",
-				"level": "debug"
-			},
-			{
-                    "name": "nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor",
-                    "level": "DEBUG",
-                    "additivity": true,
-                    "appender-ref": []
-                },
-            {
-                    "name": "nz.co.fortytwo.signalk.artemis.util.SecurityUtils",
-                    "level": "DEBUG",
-                    "additivity": true,
-                    "appender-ref": []
-                },
-            {
-                "name": "nz.co.fortytwo.signalk.artemis.server.InfluxDbTest",
-                "level": "DEBUG",
-                "additivity": true,
-                "appender-ref": []
-            }]
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.intercept",
+					"level": "warn"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk",
+					"level": "warn"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.handler",
+					"level": "DEBUG",
+					"additivity": true,
+					"appender-ref": []
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.intercept.MapToDeltaInterceptor",
+					"level": "warn"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.intercept.DeltaMsgInterceptor",
+					"level": "debug"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.intercept.UpdateMsgInterceptor",
+					"level": "warn"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.util.Config",
+					"level": "error"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.util.Util",
+					"level": "warn"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.server.SerialPortReader",
+					"level": "error"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.server.SerialPortManager",
+					"level": "error"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.service",
+					"level": "warn"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.server.ArtemisUdpNettyHandler",
+					"level": "error"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.server.ArtemisTcpNettyHandler",
+					"level": "debug"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.server.Subscription",
+					"level": "error",
+					"additivity": true,
+					"appender-ref": []
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.service.SignalkStreamService",
+					"level": "error"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.service.BaseApiService",
+					"level": "error"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.server.SubscriptionManagerService",
+					"level": "error",
+					"additivity": true,
+					"appender-ref": []
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.service.InfluxDbService",
+					"level": "warn"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.server.BaseServerTest",
+					"level": "debug"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.server.SubscribeWsTest",
+					"level": "debug"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.server.NMEAParserTest",
+					"level": "debug"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.server.SubscribeTest",
+					"level": "debug"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.server.UdpSubscribeTest",
+					"level": "debug"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.server.TcpSubscribeTest",
+					"level": "debug"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertorTest",
+					"level": "debug"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.transformer",
+					"level": "debug"
+				},
+				{
+					"name": "org.atmosphere.nettosphere.BridgeRuntime",
+					"level": "warn"
+				},
+				{
+					"name": "org.atmosphere.nettosphere",
+					"level": "warn"
+				},
+				{
+					"name": "io.netty",
+					"level": "warn"
+				},
+				{
+					"name": "org.apache.activemq.artemis",
+					"level": "error"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.intercept.BaseInterceptor",
+					"level": "debug"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.intercept.GetMsgInterceptor",
+					"level": "debug"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.scheduled.DeclinationUpdaterTest",
+					"level": "debug"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.scheduled.DeclinationUpdater",
+					"level": "debug"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor",
+					"level": "DEBUG",
+					"additivity": true,
+					"appender-ref": []
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.util.SecurityUtils",
+					"level": "DEBUG",
+					"additivity": true,
+					"appender-ref": []
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.server.InfluxDbTest",
+					"level": "DEBUG",
+					"additivity": true,
+					"appender-ref": []
+				}
+			]
 		}
 	}
 }

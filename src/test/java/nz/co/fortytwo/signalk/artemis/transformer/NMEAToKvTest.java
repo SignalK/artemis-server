@@ -6,6 +6,7 @@ import java.io.File;
 import java.util.List;
 
 import org.apache.activemq.artemis.api.core.RoutingType;
+import org.apache.activemq.artemis.api.core.client.ClientConsumer;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
@@ -32,7 +33,8 @@ public class NMEAToKvTest extends BaseServerTest{
 
 	private void readPartialKeys(String user, int expected) throws Exception{
 		try (ClientSession session = Util.getLocalhostClientSession("admin", "admin");
-				ClientProducer producer = session.createProducer();	){
+				ClientProducer producer = session.createProducer();
+				ClientConsumer consumer = session.createConsumer(Config.INTERNAL_KV);){
 			session.start();
 		
 			sendMessage(session, producer, "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78");
@@ -40,7 +42,7 @@ public class NMEAToKvTest extends BaseServerTest{
 			logger.debug("Input sent");
 		
 			logger.debug("Receive started");
-			List<ClientMessage> replies = listen(session, Config.INTERNAL_KV, 3, 10);
+			List<ClientMessage> replies = listen(session,consumer, Config.INTERNAL_KV, 3, 10);
 			//assertEquals(expected, replies.size());
 			logger.debug("Received {} replies", replies.size());
 			replies.forEach((m)->{

@@ -24,7 +24,8 @@ public class BaseMsgInterceptorTest extends EasyMockSupport {
 		ClientMessage message = new ClientMessageImpl((byte) 0, false, 0, System.currentTimeMillis(), (byte) 4, 1024);
 		if(reply)message.putBooleanProperty(SignalKConstants.REPLY,reply);
 		message.putStringProperty(Config.AMQ_CONTENT_TYPE, contentType);
-		message.getBodyBuffer().writeString(body);
+		if(body!=null)
+			message.getBodyBuffer().writeString(body);
 		return message;
 	}
 

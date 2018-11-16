@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ICoreMessage;
 import org.apache.activemq.artemis.api.core.Message;
+import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
@@ -27,8 +28,8 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 public class BaseInterceptor {
 	private static Logger logger = LogManager.getLogger(BaseInterceptor.class);
 	protected static TDBService influx = new InfluxDbService();
-	protected static ThreadLocal<ClientSession> txSession = new ThreadLocal<>();
-	protected static ThreadLocal<ClientProducer> producer = new ThreadLocal<>();
+	protected  ThreadLocal<ClientSession> txSession = new ThreadLocal<>();
+	protected  ThreadLocal<ClientProducer> producer = new ThreadLocal<>();
 
 	protected void init() {
 		try{
@@ -157,7 +158,7 @@ public class BaseInterceptor {
 		txMsg.copyHeadersAndProperties(origMessage);
 		
 		txMsg.putStringProperty(Config.AMQ_INFLUX_KEY, k);
-		
+		txMsg.setRoutingType(RoutingType.MULTICAST);
 		txMsg.setExpiration(System.currentTimeMillis()+5000);
 		txMsg.getBodyBuffer().writeString(j.toString());
 		if (logger.isDebugEnabled())

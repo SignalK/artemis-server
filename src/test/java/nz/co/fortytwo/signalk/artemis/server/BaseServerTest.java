@@ -96,14 +96,12 @@ public class BaseServerTest {
 		return cookies;
 	}
 	protected List<ClientMessage> listen( ClientSession session, String tempQ, long timeout) throws ActiveMQException, InterruptedException {
-		return listen(session, tempQ, timeout, 2);
+		return listen(session, session.createConsumer(tempQ), tempQ, timeout, 2);
 	}
-	protected List<ClientMessage> listen( ClientSession session, String tempQ, long timeout, int expected) throws ActiveMQException, InterruptedException {
+	protected List<ClientMessage> listen( ClientSession session, ClientConsumer consumer, String tempQ, long timeout, int expected) throws ActiveMQException, InterruptedException {
 		logger.debug("Receive starting for {}", tempQ);
 		List<ClientMessage> replies = new ArrayList<>();
 		CountDownLatch latch = new CountDownLatch(expected);
-		
-		ClientConsumer consumer = session.createConsumer(tempQ);
 		
 		consumer.setMessageHandler(new MessageHandler() {
 			
@@ -122,7 +120,7 @@ public class BaseServerTest {
 				} 
 			}
 		});
-		
+		session.start();
 		latch.await(timeout, TimeUnit.SECONDS);
 		logger.debug("Receive complete for {}", tempQ);
 	

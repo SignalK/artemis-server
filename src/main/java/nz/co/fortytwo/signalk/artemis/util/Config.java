@@ -89,6 +89,7 @@ public class Config {
 
 	public static final String INCOMING_RAW = "incoming.raw";
 	public static final String INTERNAL_KV = "internal.kv";
+	public static final String INTERNAL_DISCARD = "internal.discard";
 	
 
 	protected Config() {
