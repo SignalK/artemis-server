@@ -45,6 +45,7 @@ Functionality
 		Calculates declination
 		Meta data on values
 		True wind calcs
+		Anchor distance calcs
 		Message types (on all transports):
 			UPDATES
 			GET
@@ -88,10 +89,8 @@ Functionality
 		Test, test, more tests...
 		Events
 			Alarms
-			
 		apis:
 			/signalk/v1/access/requests
-		
 		NMEA output
 		SSL
 		Enable MQTT/STOMP/COAP

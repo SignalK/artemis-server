@@ -23,6 +23,12 @@
  */
 package nz.co.fortytwo.signalk.artemis.serial;
 
+import static nz.co.fortytwo.signalk.artemis.util.Config.ADMIN_PWD;
+import static nz.co.fortytwo.signalk.artemis.util.Config.ADMIN_USER;
+import static nz.co.fortytwo.signalk.artemis.util.Config.INCOMING_RAW;
+import static nz.co.fortytwo.signalk.artemis.util.Config.INTERNAL_KV;
+import static nz.co.fortytwo.signalk.artemis.util.Config.getConfigProperty;
+
 import java.io.File;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.regex.Pattern;
@@ -52,7 +58,7 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 //import purejavacomm.SerialPortEventListener;
 
 /**
- * Wrapper to read serial port via rxtx, then fire messages into the artemis
+ * Wrapper to read serial port via jSerialComm, then fire messages into the artemis
  * queue
  * 
  * @author robert
@@ -63,7 +69,8 @@ public class SerialPortReader {
 	private static Logger logger = LogManager.getLogger(SerialPortReader.class);
 	private String portName;
 	private File portFile;
-	private ClientProducer producer;
+	private ThreadLocal<ClientSession> session;
+	private ThreadLocal<ClientProducer> producer;
 	private ClientConsumer consumer;
 	private boolean running = true;
 	//private boolean mapped = false;
@@ -72,16 +79,12 @@ public class SerialPortReader {
 
 	private LinkedBlockingQueue<String> queue;
 	private SerialReader serialReader;
-	private ClientSession session;
+	
 
 	public SerialPortReader() throws Exception {
 		super();
 		queue = new LinkedBlockingQueue<String>(100);
-		session = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
-				Config.getConfigProperty(Config.ADMIN_PWD));
-		producer = session.createProducer();
-
-		consumer = session.createConsumer(Config.INCOMING_RAW);
+		consumer = getSession().createConsumer(Config.INCOMING_RAW);
 	}
 
 	/**
@@ -107,6 +110,7 @@ public class SerialPortReader {
 			}
 		}
 		serialPort = SerialPort.getCommPort(portName);
+		
 		if(logger.isDebugEnabled())logger.debug("Opening {}", serialPort.getPortDescription());
 		serialPort.setBaudRate(baudRate);
 		serialPort.setNumDataBits(8);
@@ -120,7 +124,6 @@ public class SerialPortReader {
 		serialPort.addDataListener(serialReader);
 		serialPort.openPort();
 		if(logger.isDebugEnabled())logger.debug("Is open : {}", serialPort.isOpen());
-		// (new Thread(new SerialReader())).start();
 		// (new Thread(new SerialWriter())).start();
 
 	}
@@ -241,12 +244,12 @@ public class SerialPortReader {
 				// its not empty!
 				if (buffer.length() > 0) {
 					// send it
-					if (enableSerial && session != null && !session.isClosed()) {
-						ClientMessage txMsg = session.createMessage(true);
+					if (enableSerial && getSession() != null && !getSession().isClosed()) {
+						ClientMessage txMsg = getSession().createMessage(true);
 						txMsg.getBodyBuffer().writeString(buffer);
 						txMsg.putStringProperty(Config.MSG_SRC_BUS, portName);
 						txMsg.putStringProperty(Config.MSG_SRC_TYPE, Config.SERIAL);
-						producer.send(new SimpleString(Config.INCOMING_RAW), txMsg);
+						producer.get().send(new SimpleString(Config.INCOMING_RAW), txMsg);
 						if (logger.isDebugEnabled())
 							logger.debug("json = {}", buffer);
 
@@ -264,6 +267,7 @@ public class SerialPortReader {
 			try {
 				serialPort.removeDataListener();
 				serialPort.closePort();
+				serialPort=null;
 			} catch (Exception e1) {
 				logger.error("{}:{}" ,portName , e1.getMessage());
 				if (logger.isDebugEnabled())
@@ -284,8 +288,8 @@ public class SerialPortReader {
 	 * @throws ActiveMQException
 	 */
 	public void setSession(ClientSession session) throws ActiveMQException {
-		this.session = session;
-		this.producer = session.createProducer(Config.INCOMING_RAW);
+		this.session.set(session);
+		this.producer.set(session.createProducer(Config.INCOMING_RAW));
 
 	}
 
@@ -346,17 +350,47 @@ public class SerialPortReader {
 			}
 		}
 	}
+	public ClientSession getSession() {
 
+		if (session.get() == null) {
+			if (logger.isDebugEnabled())
+				logger.debug("Start amq session: {}", INTERNAL_KV);
+			try {
+				session.set(Util.getVmSession(getConfigProperty(ADMIN_USER),
+						getConfigProperty(ADMIN_PWD)));
+			} catch (Exception e) {
+				logger.error(e, e);
+			}
+		}
+		return session.get();
+	}
+
+	public ClientProducer getProducer() {
+		if (producer.get() == null && getSession() != null && !getSession().isClosed()) {
+			if (logger.isDebugEnabled())
+				logger.debug("Start producer: {}",INCOMING_RAW);
+			
+			try {
+				producer.set(getSession().createProducer());
+			} catch (ActiveMQException e) {
+				logger.error(e,e);
+			}
+
+		}
+		return producer.get();
+
+	}
 	@Override
 	protected void finalize() throws Throwable {
+		
 		stopSession();
 		super.finalize();
 	}
 
 	private void stopSession() {
-		if (session != null) {
+		if (session.get() != null) {
 			try {
-				session.close();
+				session.get().close();
 			} catch (ActiveMQException e) {
 				logger.error(e, e);
 			}
@@ -370,9 +404,9 @@ public class SerialPortReader {
 			}
 		}
 
-		if (producer != null) {
+		if (producer.get() != null) {
 			try {
-				producer.close();
+				producer.get().close();
 			} catch (ActiveMQException e) {
 				logger.error(e, e);
 			}

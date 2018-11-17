@@ -101,11 +101,15 @@ public class BaseInterceptor {
 		if (logger.isDebugEnabled())
 			logger.debug("Converting source in full: {}", node.toString());
 		//recurse keys
+		if(!node.isObject()) return;
 		node.asJsonMap().forEach((k,j) -> {
-				if(j.isObject() && j.has(SignalKConstants.source)) {
-					convertSource(j,srcBus, msgSrcType);
-				}else {
-					convertFullSrcToRef(j, srcBus, msgSrcType);
+				if(j.isObject()) {
+						
+					if(j.has(SignalKConstants.source)) {
+						convertSource(j,srcBus, msgSrcType);
+					}else {
+						convertFullSrcToRef(j, srcBus, msgSrcType);
+					}
 				}
 			});
 	}

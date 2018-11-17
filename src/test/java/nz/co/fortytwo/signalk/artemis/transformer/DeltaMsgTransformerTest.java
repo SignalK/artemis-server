@@ -2,6 +2,7 @@ package nz.co.fortytwo.signalk.artemis.transformer;
 
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.values;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -54,7 +55,7 @@ public class DeltaMsgTransformerTest  extends BaseMsgInterceptorTest {
 		
 		replayAll();
 		
-		assertNull(transformer.transform(message));
+		assertNotNull(transformer.transform(message));
 		
 		verifyAll();
 	}
@@ -85,7 +86,7 @@ public class DeltaMsgTransformerTest  extends BaseMsgInterceptorTest {
 		
 		replayAll();
 		
-		assertNull(transformer.transform(message));
+		assertNotNull(transformer.transform(message));
 		
 		verifyAll();
 	}
@@ -98,7 +99,7 @@ public class DeltaMsgTransformerTest  extends BaseMsgInterceptorTest {
 		
 		replayAll();
 		
-		assertNull(transformer.transform(message));
+		assertNotNull(transformer.transform(message));
 		
 		verifyAll();
 	}
@@ -113,7 +114,7 @@ public class DeltaMsgTransformerTest  extends BaseMsgInterceptorTest {
 		transformer.sendKvMap(message, map);
 		
 
-		assertNull(transformer.transform(message));
+		assertNotNull(transformer.transform(message));
 		
 		verifyAll();
 	}
@@ -127,7 +128,7 @@ public class DeltaMsgTransformerTest  extends BaseMsgInterceptorTest {
 		ClientMessage message = getClientMessage(full.toString(), Config.JSON_FULL, false); 
 		transformer.sendKvMap(message, map);
 		
-		assertNull(transformer.transform(message));
+		assertNotNull(transformer.transform(message));
 		
 		verifyAll();
 	}

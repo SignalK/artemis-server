@@ -94,9 +94,12 @@ public class DeclinationUpdater implements Runnable {
 			queryMap.put("uuid",Util.regexPath(uuid).toString());
 			influx.loadData(map, vessels, queryMap);
 			logger.debug(map);
-			Double decl = map.get(vessels+dot+ uuid+dot+nav+dot+"magneticVariation").at(value).asDouble();
-			logger.debug("Existing Declination: {}", map);
-			if(decl!=null && declination==Util.round(decl, 6)) {
+			Double decl = null;
+			if(map.get(vessels+dot+ uuid+dot+nav+dot+"magneticVariation")!=null) {
+					decl = map.get(vessels+dot+ uuid+dot+nav+dot+"magneticVariation").at(value).asDouble();
+					logger.debug("Existing Declination: {}", map);
+			}
+			if(decl==null || (decl!=null && declination==Util.round(decl, 6))) {
 				logger.debug("Declination changed: {}", declination);
 				influx.save(vessels+dot+uuid+dot + nav+dot+"magneticVariation", Json.object().set(value,declination));
 				influx.save(vessels+dot+uuid+dot + nav+dot+"magneticVariationAgeOfService", Json.object().set(value,System.currentTimeMillis()));

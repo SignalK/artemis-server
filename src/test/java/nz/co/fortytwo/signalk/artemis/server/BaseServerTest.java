@@ -45,6 +45,8 @@ public class BaseServerTest {
 	@AfterClass
 	public static void stopServer() throws Exception {
 		if(server!=null)server.stop();
+		CountDownLatch latch = new CountDownLatch(1);
+		latch.await(10, TimeUnit.SECONDS);
 	}
 
 	protected Json getSubscriptionJson(String context, String path, int period, int minPeriod, String format, String policy) {
