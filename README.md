@@ -44,8 +44,9 @@ Functionality
 		Zeroconf/mDNS/BonJour
 		Calculates declination
 		Meta data on values
-		True wind calcs
-		Anchor distance calcs
+		Events
+			True wind calcs on apparent wind
+			Anchor distance calcs on anchor watch
 		Message types (on all transports):
 			UPDATES
 			GET
@@ -92,7 +93,7 @@ Functionality
 		apis:
 			/signalk/v1/access/requests
 		NMEA output
-		SSL
+		SSL config
 		Enable MQTT/STOMP/COAP
 		auto rendered menu to apps
 		Better server UI

@@ -70,7 +70,7 @@ public class AlarmHandler extends BaseHandler{
 	private NavigableMap<String, Json> loadAlarms(TDBService influx) {
 		NavigableMap<String, Json> map=new ConcurrentSkipListMap<String, Json>();
 		Map<String, String> query= new HashMap<>();
-		query.put(skey, "meta");
+		query.put(skey, meta);
 		return influx.loadData(map, vessels, query);
 		
 	}
