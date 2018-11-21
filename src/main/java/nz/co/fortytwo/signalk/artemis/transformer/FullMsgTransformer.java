@@ -23,6 +23,10 @@
  */
 package nz.co.fortytwo.signalk.artemis.transformer;
 
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
+import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_DELTA;
+import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_FULL;
+
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
@@ -55,8 +59,7 @@ public class FullMsgTransformer extends BaseInterceptor implements Transformer {
 	@Override
 	public Message transform(Message message) {
 		
-		//if(!Config.JSON_FULL.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))return true;
-		
+		if (!JSON_FULL.equals(message.getStringProperty(AMQ_CONTENT_TYPE)))	return message;
 		Json node = Util.readBodyBuffer( message.toCore());
 		
 		// deal with full format

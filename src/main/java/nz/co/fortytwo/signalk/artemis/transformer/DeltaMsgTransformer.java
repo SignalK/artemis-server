@@ -1,5 +1,7 @@
 package nz.co.fortytwo.signalk.artemis.transformer;
 
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
+import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_DELTA;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.GET;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_datetime;
@@ -67,8 +69,8 @@ public class DeltaMsgTransformer extends BaseInterceptor implements Transformer 
 	private static Logger logger = LogManager.getLogger(DeltaMsgTransformer.class);
 
 	/**
-	 * Reads Delta format JSON and creates a kv message pairs. Does nothing if json is
-	 * not an update, and returns the original message
+	 * Reads Delta format JSON and creates a kv message pairs. Does nothing if json
+	 * is not an update, and returns the original message
 	 * 
 	 * @param node
 	 * @return
@@ -76,25 +78,25 @@ public class DeltaMsgTransformer extends BaseInterceptor implements Transformer 
 	@Override
 	public Message transform(Message message) {
 
-			
-			Json node = Util.readBodyBuffer(message.toCore());
-			
-			if (logger.isDebugEnabled())
-				logger.debug("Delta msg: {}", node.toString());
-
-			// deal with diff format
-			if (isDelta(node)) {
-				//try {
-					NavigableMap<String, Json> map = processDelta(node);
-					
-					sendKvMap(message, map);
-				
-
-			}
+		// is this s delta message
+		if (!JSON_DELTA.equals(message.getStringProperty(AMQ_CONTENT_TYPE)))
 			return message;
-	}
 
-	
+		Json node = Util.readBodyBuffer(message.toCore());
+
+		if (logger.isDebugEnabled())
+			logger.debug("Delta msg: {}", node.toString());
+
+		// deal with diff format
+		if (isDelta(node)) {
+			// try {
+			NavigableMap<String, Json> map = processDelta(node);
+
+			sendKvMap(message, map);
+
+		}
+		return message;
+	}
 
 	protected NavigableMap<String, Json> processDelta(Json node) {
 		if (logger.isDebugEnabled())
@@ -104,7 +106,5 @@ public class DeltaMsgTransformer extends BaseInterceptor implements Transformer 
 		return map;
 
 	}
-
-	
 
 }

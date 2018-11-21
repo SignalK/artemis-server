@@ -23,14 +23,15 @@
  */
 package nz.co.fortytwo.signalk.artemis.transformer;
 
+import static nz.co.fortytwo.signalk.artemis.util.Config.AIS;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
+import static nz.co.fortytwo.signalk.artemis.util.Config._0183;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self_str;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.NavigableMap;
-import java.util.concurrent.ConcurrentSkipListMap;
 
 import javax.script.Bindings;
 import javax.script.Invocable;
@@ -50,7 +51,6 @@ import com.coveo.nashorn_modules.ResourceFolder;
 
 import jdk.nashorn.api.scripting.NashornScriptEngine;
 import mjson.Json;
-import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
@@ -130,6 +130,10 @@ public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer
 
 	@Override
 	public Message transform(Message message) {
+		
+		if (!(_0183.equals(message.getStringProperty(AMQ_CONTENT_TYPE))|| AIS.equals(message.getStringProperty(AMQ_CONTENT_TYPE))))
+			return message;
+		
 		String bodyStr = Util.readBodyBufferToString(message.toCore()).trim();
 		if (logger.isDebugEnabled())
 			logger.debug("NMEA Message: " + bodyStr);
@@ -146,10 +150,10 @@ public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer
 
 				if (result==null || StringUtils.isBlank(result.toString())|| result.toString().startsWith("WARN")) {
 					logger.warn(bodyStr + "," + result);
-					return null;
+					return message;
 				}
 				Json json = Json.read(result.toString());
-				if(!json.isObject())return null;
+				if(!json.isObject())return message;
 				
 				json.set(SignalKConstants.CONTEXT, vessels + dot + Util.fixSelfKey(self_str));
 				

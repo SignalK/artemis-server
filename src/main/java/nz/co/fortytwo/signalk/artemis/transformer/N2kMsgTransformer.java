@@ -23,6 +23,9 @@
  */
 package nz.co.fortytwo.signalk.artemis.transformer;
 
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
+import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_DELTA;
+import static nz.co.fortytwo.signalk.artemis.util.Config.N2K;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self_str;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
@@ -117,6 +120,10 @@ public class N2kMsgTransformer extends JsBaseTransformer implements Transformer 
 
 	@Override
 	public Message transform(Message message) {
+		
+		if (!N2K.equals(message.getStringProperty(AMQ_CONTENT_TYPE)))
+			return message;
+		
 		String bodyStr = Util.readBodyBufferToString(message.toCore()).trim();
 		if (logger.isDebugEnabled())
 			logger.debug("N2K Message: {}", bodyStr);

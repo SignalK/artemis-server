@@ -132,8 +132,8 @@ public class NMEAMsgTransformerTest extends BaseMsgInterceptorTest {
 		checkConversion(msg,map);
 		
 	}
-	private void checkConversion(Message packet, HashMap<String, Object> map) {
-		ICoreMessage msg = packet.toCore();
+	private void checkConversion(ICoreMessage msg, HashMap<String, Object> map) {
+		
 		assertEquals(JSON_DELTA,msg.getStringProperty(AMQ_CONTENT_TYPE));
 //		{"context":"vessels.self","updates":[{"values":[{"path":"navigation.position","value":{"latitude":51.9485185,"longitude":4.580064166666666}},{"path":"navigation.courseOverGroundTrue","value":0},{"path":"navigation.speedOverGround","value":0.151761149557269},{"path":"navigation.magneticVariation","value":0},{"path":"navigation.magneticVariationAgeOfService","value":1383317189},{"path":"navigation.datetime","value":"2013-11-01T14:46:29.000Z"}],"source":{"sentence":"RMC","talker":"GP","type":"NMEA0183"},"timestamp":"2013-11-01T14:46:29.000Z"}]}"
 		String content = Util.readBodyBufferToString(msg);;

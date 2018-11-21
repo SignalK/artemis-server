@@ -1,5 +1,8 @@
 package nz.co.fortytwo.signalk.artemis.transformer;
 
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
+import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_DELTA;
+import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_SUBSCRIBE;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT_DELTA;
@@ -75,7 +78,8 @@ public class SubscribeMsgTransformer extends BaseInterceptor implements Transfor
 
 	@Override
 	public Message transform(Message message) {
-		
+		if (!JSON_SUBSCRIBE.equals(message.getStringProperty(AMQ_CONTENT_TYPE)))
+			return message;
 		
 		if (logger.isTraceEnabled())
 			logger.trace("Processing: {}", message);
