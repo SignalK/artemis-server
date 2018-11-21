@@ -3,6 +3,7 @@ package nz.co.fortytwo.signalk.artemis.handler;
 import static nz.co.fortytwo.signalk.artemis.util.Config.INTERNAL_KV;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_depth_belowKeel;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.notifications;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -78,12 +79,14 @@ public class AlarmHandlerIntegrationTest extends BaseServerTest{
 			assertTrue(replies.size()>=expected);
 			//there should be a message with AMQ_INFLUX_KEY=vessels.self.environment.wind.directionTrue
 			// and AMQ_INFLUX_KEY=vessels.self.environment.wind.speedTrue
+			int c=0;
 			for(ClientMessage m:replies) {
-				if(m.getStringProperty(Config.AMQ_INFLUX_KEY).contains(SignalKConstants.env_depth_belowKeel)) {
-					return;
+				if(m.getStringProperty(Config.AMQ_INFLUX_KEY).contains(notifications+dot+env_depth_belowKeel)) {
+					c++;
 				}
 			}
-			fail();
+			assertTrue(c>=4);
+			
 		} 
 	}
 

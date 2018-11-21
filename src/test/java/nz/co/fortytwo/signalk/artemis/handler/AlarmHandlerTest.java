@@ -47,7 +47,7 @@ public class AlarmHandlerTest extends BaseServerTest {
     @Before
     public void before(){
     	handler = partialMockBuilder(AlarmHandler.class)
-	    	//.addMockedMethod("sendJson")
+	    	.addMockedMethod("sendJson")
     			.createMock(); 
     	
     }
@@ -73,12 +73,12 @@ public class AlarmHandlerTest extends BaseServerTest {
 		//normal
 		ClientMessage normal1 = getMessage("{\"value\":5.3,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",env_depth_belowKeel,"nmea1.II");
 		 
-//		handler.sendJson(normal,"vessels."+uuid+dot+notifications+dot+env_depth_belowKeel+".values.nmea1.II",Json.nil());
-//		handler.sendJson(warn,"vessels."+uuid+dot+notifications+dot+env_depth_belowKeel+".values.nmea1.II",Json.read("{\"value\":{\"method\":[\"visual\"],\"state\":\"warn\",\"message\":\"Shallow water!\"}}"));
-//		handler.sendJson(alarm,"vessels."+uuid+dot+notifications+dot+env_depth_belowKeel+".values.nmea1.II",Json.read("{\"value\":{\"method\":[\"sound\"],\"state\":\"alarm\",\"message\":\"Running aground!\"}}"));
-//		handler.sendJson(normal1,"vessels."+uuid+dot+notifications+dot+env_depth_belowKeel+".values.nmea1.II",Json.nil());
+		handler.sendJson(normal,"vessels."+uuid+dot+notifications+dot+env_depth_belowKeel+".values.nmea1.II",Json.read("{\"value\":{\"method\":null,\"state\":null,\"message\":null}}"));
+		handler.sendJson(warn,"vessels."+uuid+dot+notifications+dot+env_depth_belowKeel+".values.nmea1.II",Json.read("{\"value\":{\"method\":[\"visual\"],\"state\":\"warn\",\"message\":\"Shallow water!\"}}"));
+		handler.sendJson(alarm,"vessels."+uuid+dot+notifications+dot+env_depth_belowKeel+".values.nmea1.II",Json.read("{\"value\":{\"method\":[\"sound\"],\"state\":\"alarm\",\"message\":\"Running aground!\"}}"));
+		handler.sendJson(normal1,"vessels."+uuid+dot+notifications+dot+env_depth_belowKeel+".values.nmea1.II",Json.read("{\"value\":{\"method\":null,\"state\":null,\"message\":null}}"));
 		
-	//	replayAll();
+		replayAll();
 		
 		handler.consume(normal);
 		handler.consume(warn);
@@ -88,7 +88,7 @@ public class AlarmHandlerTest extends BaseServerTest {
 //		CountDownLatch latch = new CountDownLatch(1);
 //		latch.await(2, TimeUnit.SECONDS);
 		
-	//	verifyAll();
+		verifyAll();
 	}
 	
 	private void setupMetaKeys(String data) throws Exception{

@@ -47,6 +47,7 @@ Functionality
 		Events
 			True wind calcs on apparent wind
 			Anchor distance calcs on anchor watch
+			Alarms
 		Message types (on all transports):
 			UPDATES
 			GET
@@ -89,7 +90,7 @@ Functionality
 	TODO:
 		Test, test, more tests...
 		Events
-			Alarms
+			route following calcs
 		apis:
 			/signalk/v1/access/requests
 		NMEA output

@@ -1,5 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.handler;
 
+import static nz.co.fortytwo.signalk.artemis.util.Config.INTERNAL_KV;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -7,6 +8,7 @@ import static org.junit.Assert.fail;
 import java.util.List;
 import java.util.UUID;
 
+import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.client.ClientConsumer;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
@@ -34,9 +36,11 @@ public class TrueWindIntegrationTest extends BaseServerTest{
 
 	private void readPartialKeys(String user, int expected) throws Exception{
 		try (ClientSession session = Util.getLocalhostClientSession("admin", "admin");
-				ClientProducer producer = session.createProducer();	
-				ClientConsumer consumer = session.createConsumer(Config.INTERNAL_KV+dot+UUID.randomUUID().toString());){
-
+				ClientProducer producer = session.createProducer();	){
+			String qName=Config.INTERNAL_KV+dot+UUID.randomUUID().toString();
+			session.createQueue(INTERNAL_KV, RoutingType.MULTICAST, qName);
+			ClientConsumer consumer = session.createConsumer(qName);
+			
 		//"$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,56.4,011113,,,A*78"
 		//"$IIMWV,041.5,R,24.3,N,A*08"	
 			
