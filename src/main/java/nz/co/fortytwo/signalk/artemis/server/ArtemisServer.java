@@ -65,6 +65,8 @@ import org.atmosphere.nettosphere.Nettosphere;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Log4J2LoggerFactory;
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.handler.AlarmHandler;
+import nz.co.fortytwo.signalk.artemis.handler.AnchorWatchHandler;
 import nz.co.fortytwo.signalk.artemis.handler.InfluxDbHandler;
 import nz.co.fortytwo.signalk.artemis.handler.TrueWindHandler;
 import nz.co.fortytwo.signalk.artemis.scheduled.DeclinationUpdater;
@@ -95,6 +97,8 @@ public final class ArtemisServer {
 	private ClientConsumer consumer;
 	private InfluxDbHandler influxHandler;
 	private TrueWindHandler trueWindHandler;
+	private AnchorWatchHandler anchorWatchHandler;
+	private AlarmHandler alarmHandler;
 
 	public ArtemisServer() throws Exception {
 		init();
@@ -235,6 +239,10 @@ public final class ArtemisServer {
 		influxHandler.startConsumer();
 		trueWindHandler = new TrueWindHandler();
 		trueWindHandler.startConsumer();
+		anchorWatchHandler = new AnchorWatchHandler();
+		anchorWatchHandler.startConsumer();
+		alarmHandler = new AlarmHandler();
+		alarmHandler.startConsumer();
 	}
 
 	private static void addShutdownHook(final ArtemisServer server) {

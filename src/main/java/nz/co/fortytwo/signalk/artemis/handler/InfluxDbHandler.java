@@ -56,9 +56,9 @@ public class InfluxDbHandler extends BaseHandler{
 		}
 	}
 
-	
+	@Override
 	public void consume(Message message) {
-		
+		logger.debug("Consuming {}",message);
 			String key = message.getStringProperty(AMQ_INFLUX_KEY);
 			Json node = Util.readBodyBuffer(message.toCore());
 			

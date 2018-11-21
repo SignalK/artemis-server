@@ -11,16 +11,20 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import javax.ws.rs.core.MediaType;
+
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.client.ClientConsumer;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.activemq.artemis.api.core.client.MessageHandler;
+import org.apache.activemq.artemis.core.client.impl.ClientMessageImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.Response;
+import org.easymock.EasyMockSupport;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
@@ -28,13 +32,21 @@ import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.DefaultCookie;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
+import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
-public class BaseServerTest {
+public class BaseServerTest extends EasyMockSupport {
 	static ArtemisServer server;
 	public static final String SIGNALK_TEST_DB = "signalk-test";
 	private static Logger logger = LogManager.getLogger(BaseServerTest.class);
+
+	protected String uuid;
+	
+	public BaseServerTest() {
+		uuid = Config.getConfigProperty(ConfigConstants.UUID);
+	}
 
 	@BeforeClass
 	public static void startServer() throws Exception {
@@ -47,6 +59,23 @@ public class BaseServerTest {
 		if(server!=null)server.stop();
 		CountDownLatch latch = new CountDownLatch(1);
 		latch.await(10, TimeUnit.SECONDS);
+	}
+	
+	protected ClientMessage getClientMessage(String body, String contentType, boolean reply) {
+		ClientMessage message = new ClientMessageImpl((byte) 0, false, 0, System.currentTimeMillis(), (byte) 4, 1024);
+		if(reply)message.putBooleanProperty(SignalKConstants.REPLY,reply);
+		message.putStringProperty(Config.AMQ_CONTENT_TYPE, contentType);
+		if(body!=null)
+			message.getBodyBuffer().writeString(body);
+		return message;
+	}
+
+	protected ClientMessage getMessage(String jsonStr, String key, String src) {
+		Json json = Json.read(jsonStr);
+		ClientMessage message = getClientMessage(json.toString(), MediaType.APPLICATION_JSON, false);
+		message.putStringProperty(Config.AMQ_INFLUX_KEY, "vessels."+uuid+"."+key+".values."+src);
+		
+		return message;
 	}
 
 	protected Json getSubscriptionJson(String context, String path, int period, int minPeriod, String format, String policy) {

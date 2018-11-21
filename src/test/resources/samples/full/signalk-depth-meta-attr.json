@@ -1,7 +1,7 @@
 { "self": "urn:mrn:signalk:uuid:b7590868-1d62-47d9-989c-32321b349fb9",
   "vessels": {
     "urn:mrn:signalk:uuid:b7590868-1d62-47d9-989c-32321b349fb9": {
-      "uuid": "urn:mrn:signalk:uuid:c0d79334-4e25-4245-8892-54e8ccc8021d",
+      "uuid": "urn:mrn:signalk:uuid:b7590868-1d62-47d9-989c-32321b349fb9",
 		    "environment": {
 		        "depth": {
 		            "belowKeel": {

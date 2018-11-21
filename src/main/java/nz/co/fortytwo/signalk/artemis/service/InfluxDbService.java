@@ -736,6 +736,7 @@ public class InfluxDbService implements TDBService {
 			if(version.equals(key))return;
 			String[] path = StringUtils.split(key, '.');
 			String field = getFieldType(val);
+			
 			Builder point = null;
 			switch (path[0]) {	
 			case resources:
@@ -786,6 +787,7 @@ public class InfluxDbService implements TDBService {
 				.tag("uuid", path[1])
 				.tag(InfluxDbService.PRIMARY_VALUE, primary.toString())
 				.tag(skey, String.join(".", ArrayUtils.subarray(path, 2, path.length)));
+		
 		influxDB.write(addPoint(point, field, val));
 		
 	}
@@ -847,13 +849,13 @@ public class InfluxDbService implements TDBService {
 
 	private Point addPoint(Builder point, String field, Object jsonValue) {
 		Object value = null;
-		if (logger.isDebugEnabled())logger.debug("addPoint: {} : {}",field,jsonValue);
+		if (logger.isDebugEnabled())logger.debug("addPoint: {} : {} : {}",field,jsonValue.getClass(),jsonValue);
 		if(jsonValue==null)return point.addField(field,true).build();
 		if(jsonValue instanceof Json){
-			if(((Json)jsonValue).isString()){
+			if(((Json)jsonValue).isNull()){
+				return point.addField(field,true).build();
+			}else if(((Json)jsonValue).isString()){
 				value=((Json)jsonValue).asString();
-			}else if(((Json)jsonValue).isNull()){
-				value=true;
 			}else if(((Json)jsonValue).isArray()){
 				value=((Json)jsonValue).toString();
 			}else{

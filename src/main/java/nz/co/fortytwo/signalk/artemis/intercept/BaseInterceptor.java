@@ -1,5 +1,8 @@
 package nz.co.fortytwo.signalk.artemis.intercept;
 
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self_str;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.version;
+
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
@@ -148,6 +151,10 @@ public class BaseInterceptor {
 		
 	}
 	public void sendKvMap(Message message, NavigableMap<String, Json> map) {
+		//remove "self" and "version"
+		map.remove(self_str);
+		map.remove(version);
+		
 		map.forEach((k,j) -> {
 			try {
 				sendKvMessage(message, k,j);

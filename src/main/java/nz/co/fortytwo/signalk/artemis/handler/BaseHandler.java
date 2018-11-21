@@ -88,6 +88,17 @@ public abstract class BaseHandler {
     	
 	}
 	
+	protected void sendJson(Message message, String key, Json json) throws ActiveMQException {
+		if(!json.isNull()) {
+			json.set(timestamp, Util.getIsoTimeString());
+		}
+    	if (logger.isDebugEnabled())
+			logger.debug("Sending json: key: {}, value: {}", key, json);
+		
+    	sendKvMessage(message, key, json);
+    	
+	}
+	
 	/**
 	 *  Will start a consumer and call the consume(message) method for each matching message
 	 *  
@@ -125,6 +136,8 @@ public abstract class BaseHandler {
 	
 
 	public ClientSession getTxSession() {
+		
+		if(txSession==null)txSession=new ThreadLocal<>();
 
 		if (txSession.get() == null) {
 			if (logger.isDebugEnabled())
@@ -140,6 +153,9 @@ public abstract class BaseHandler {
 	}
 
 	public ClientProducer getProducer() {
+		
+		if(producer==null)producer=new ThreadLocal<>();
+		
 		if (producer.get() == null && getTxSession() != null && !getTxSession().isClosed()) {
 			if (logger.isDebugEnabled())
 				logger.debug("Start producer: {}",INCOMING_RAW);

@@ -6,10 +6,13 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
+import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.Message;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -49,54 +52,129 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
  * 
  */
 
-public class AlarmHandler extends BaseHandler{
-	
+public class AlarmHandler extends BaseHandler {
+
 	private static Logger logger = LogManager.getLogger(AlarmHandler.class);
 
-	private static NavigableMap<String, Json> alarmMap;
-	
+	private static NavigableMap<String, Json> alarmMap = new ConcurrentSkipListMap<>();
+
 	public AlarmHandler() {
 		super();
+		if (logger.isDebugEnabled())
+			logger.debug("Initialising for : {} ", uuid);
 		try {
-			//load all keys with alarms
-			alarmMap = loadAlarms(influx);
+
+			// load all keys with alarms
+			NavigableMap<String, Json> map = loadAlarms(influx);
+			for (Entry<String, Json> entry : map.entrySet()) {
+				parseMeta(entry.getKey(), entry.getValue());
+			}
+
+			// start listening
 			initSession(null);
 		} catch (Exception e) {
-			logger.error(e,e);
+			logger.error(e, e);
 		}
 	}
 
-	
+	private void parseMeta(String key, Json json) {
+		if (json.isObject() && json.at(zones) != null) {
+			key = StringUtils.substringBefore(key, meta);
+			alarmMap.put(key, json);
+			if (logger.isDebugEnabled())
+				logger.debug("Adding alarm for key: {} : {}", key, json);
+		}
+	}
+
 	private NavigableMap<String, Json> loadAlarms(TDBService influx) {
-		NavigableMap<String, Json> map=new ConcurrentSkipListMap<String, Json>();
-		Map<String, String> query= new HashMap<>();
+		NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();
+		Map<String, String> query = new HashMap<>();
 		query.put(skey, meta);
 		return influx.loadData(map, vessels, query);
-		
+
 	}
 
-
+	@Override
 	public void consume(Message message) {
-		
-			String key = message.getStringProperty(AMQ_INFLUX_KEY);
-			if(!alarmMap.containsKey(key))return;
-			
+
+		String key = message.getStringProperty(AMQ_INFLUX_KEY);
+
+		if (key.contains(meta)) {
 			Json node = Util.readBodyBuffer(message.toCore());
-			
+			parseMeta(key, node);
+		} else {
+
+			if (!alarmMap.containsKey(key))
+				return;
+
+			Json node = Util.readBodyBuffer(message.toCore());
+
 			if (logger.isDebugEnabled())
 				logger.debug("Checking alarm for key: {} : {}", key, node);
-			check(key, node);
+			check(message, key, alarmMap.get(key), node);
+		}
 
 	}
 
+	protected void check(Message message, String key, Json alarmDef, Json node) {
+		// only works for doubles!
+		if (node.has(value) && node.at(value).isNumber()) {
+			double val = node.at(value).asDouble();
+			logger.debug("  Alarm val: {}", val);
+			Json zoneList = alarmDef.at(zones);
+			// logger.debug("zones: {}",zoneList);
+			for (Json zone : zoneList) {
+				double upper = zone.has("upper") ? zone.at("upper").asDouble() : Double.MAX_VALUE;
+				double lower = zone.has("lower") ? zone.at("lower").asDouble() : Double.MIN_VALUE;
+				if (val >= lower && val < upper) {
+					String state = zone.at("state").asString();
+					if (logger.isDebugEnabled())
+						logger.debug("  Alarm in zone: {}", state);
+					// send notification
+					// vessels.self.notifications+path
+					int len = Util.getContext(key).length();
+					key = key.substring(0, len) + dot + notifications + key.substring(len);
+					try {
+						if (normal.equals(state)) {
+							sendJson(message, key, getNormalNotification());
+						}
 
-	protected void check(String key, Json node) {
-		//influx.save(key, node);
-		
+						if (warn.equals(state)) {
+							// notification.at(value).set("method", alarmDef.at("warnMethod"));
+							sendJson(message, key,
+									getNotification(state, zone.at("message"), alarmDef.at("warnMethod")));
+						}
+						if (alarm.equals(state)) {
+							// notification.at(value).set("method", alarmDef.at("alarmMethod"));
+							sendJson(message, key,
+									getNotification(state, zone.at("message"), alarmDef.at("alarmMethod")));
+						}
+						if (logger.isDebugEnabled())
+							logger.debug("  Sending alarm: {}={}", key, state);
+
+					} catch (Exception e) {
+						logger.error(e, e);
+					}
+
+				}
+			}
+		}
+
 	}
 
+	private Json getNotification(String state, Json message, Json warnMethod) {
+		Json notification = Json.object();
+		notification.set(value, Json.object());
+		notification.at(value).set("state", state).set("message", message).set("method", warnMethod);
 
-	
-	
+		return notification;
+	}
+	private Json getNormalNotification() {
+		Json notification = Json.object();
+		notification.set(value, Json.object());
+		notification.at(value).set("state", Json.nil()).set("message", Json.nil()).set("method", Json.nil());
+
+		return notification;
+	}
 
 }

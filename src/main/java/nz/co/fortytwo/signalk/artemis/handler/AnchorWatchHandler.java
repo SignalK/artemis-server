@@ -99,7 +99,7 @@ public class AnchorWatchHandler extends BaseHandler{
 	}
 
 
-
+	@Override
 	public void consume(Message message) {
 		
 			String key = message.getStringProperty(AMQ_INFLUX_KEY);
