@@ -782,7 +782,8 @@ public class InfluxDbService implements TDBService {
 
 	private void writeToInflux(String[] path, long millis, String key, String sourceRef, String field,  Object val) {
 		Boolean primary = isPrimary(key,sourceRef);
-		Builder point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS)
+		Builder point = Point.measurement(path[0])
+				.time(millis, TimeUnit.MILLISECONDS)
 				.tag("sourceRef", sourceRef)
 				.tag("uuid", path[1])
 				.tag(InfluxDbService.PRIMARY_VALUE, primary.toString())
