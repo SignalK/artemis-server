@@ -62,6 +62,11 @@ public class TcpSubscribeTest extends BaseServerTest{
 		}
 	}
 	
+	/**
+	 * This test often fails when run in a full testsuite, but passes when run alone. 
+	 * 
+	 * @throws Exception
+	 */
 	@Test
 	public void checkMultiClientSubscribe() throws Exception {
 
