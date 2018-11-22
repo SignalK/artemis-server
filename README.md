@@ -42,7 +42,7 @@ Functionality
 			Serial connections
 	Supports:
 		Zeroconf/mDNS/BonJour
-		Calculates declination
+		Calculates declination from location
 		Meta data on values
 		Events
 			True wind calcs on apparent wind
@@ -63,6 +63,9 @@ Functionality
 			charts
 	Persistence:
 		Uses Time-series database to store all data and history
+	Security:
+		Supports Users and Roles. Token based.
+		Fine grain access control to the signalk key level
 	REST APIs:
 		/signalk/authenticate
 		/signalk/v1/api
@@ -90,9 +93,13 @@ Functionality
 	TODO:
 		Test, test, more tests...
 		Events
-			route following calcs
+			route following calcs XTE etc
 		apis:
 			/signalk/v1/access/requests
+			add full request/response semantics
+		Security:
+			reimplement key filtering as an interceptor.
+			Add full RBAC rules based filtering
 		NMEA output
 		SSL config
 		Enable MQTT/STOMP/COAP
