@@ -14,8 +14,11 @@ Bridging the INTERNAL.KV queue allows the cluster to behave as a single instance
 Netty, Atmosphere, and Activemq Artemis all use state-of-the-art asynchronous non-blocking IO and copy-on-write shared byte buffers. Activemq Artemis 
 
 https://activemq.apache.org/artemis/
+
 https://netty.io/
+
 https://github.com/Atmosphere/atmosphere
+
 
 Incoming
 --------
