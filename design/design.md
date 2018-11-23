@@ -19,6 +19,11 @@ https://netty.io/
 
 https://github.com/Atmosphere/atmosphere
 
+Artemis performance: https://softwaremill.com/mqperf/
+
+Management: 
+* jolokia REST API: https://jolokia.org/talks.html
+* Web console: http://hawt.io/
 
 Incoming
 --------
