@@ -23,7 +23,9 @@ The Artemis server has several architectural features of note:
 
 Apart from keeping signalk on track :-) the Artemis server has some really interesting aspects and  I expect it will gain more interest over time. If you think it has merit you are very welcome to contribute.
 
-
+Design
+------
+See https://github.com/SignalK/artemis-server/blob/master/design/design.md
 
 Functionality
 -------------
