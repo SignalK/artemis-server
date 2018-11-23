@@ -11,7 +11,11 @@ Components
 Horizontal scaling and high availibility can be performed at many layers, but primarily by creating a cluster of ActiveMQ artemis servers. 
 Bridging the INTERNAL.KV queue allows the cluster to behave as a single instance.
 
-Netty, Atmosphere, and Artemis are all use state-of-the-art asynchronous non-blocking IO and copy-on-write shared byte buffers. 
+Netty, Atmosphere, and Activemq Artemis all use state-of-the-art asynchronous non-blocking IO and copy-on-write shared byte buffers. Activemq Artemis 
+
+https://activemq.apache.org/artemis/
+https://netty.io/
+https://github.com/Atmosphere/atmosphere
 
 Incoming
 --------
@@ -23,9 +27,10 @@ Request messages (that expect a reply) will create an temp queue to receive repl
 ![](./incomingMsgHandling.png?raw=true)
 
 The consumers of the INTERNAL.KV queue can be built to suit. Each gets a copy of each message (topic/pubsub semantics), 
-they can use filters to limit them, and they can perform any action to suit. Since INTERNAL.KV a topic, 
+they can use filters to limit messages, and they can perform any action to suit. Since INTERNAL.KV is a topic, 
 a consumer can pause while consuming or consume periodically and not loose messages. 
-This is ideal for intermittent connections and data transfers to the cloud.
+
+Large queues will be automatically paged to disk. Default is non-durable, but if durable messages are enabled, all messages are stored on disk, and will survive reboots. This is ideal for intermittent connections and data transfers to the cloud.
 
 Outgoing
 --------  
