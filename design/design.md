@@ -6,7 +6,7 @@ This is to record and provide a conceptual view of the artemis server compositio
 Components
 ----------
 
-!(artemisComponents.png)
+![](./artemisComponents.png?raw=true)
 
 Horizontal scaling and high availibility can be performed at many layers, but primarily by creating a cluster of ActiveMQ artemis servers. 
 Bridging the INTERNAL.KV queue allows the cluster to behave as a single instance.
@@ -20,7 +20,7 @@ The various incoming protocols each have their own conversions to a std signalk 
 REST messages are pre-procesed by the Atmosphere framework, with the HTTP response waiting for the reply message. 
 Request messages (that expect a reply) will create an temp queue to receive replies in the form of OUTGOING.REPLY.[uuid]. 
 
-!(incomingMsgHandling.png)
+![](./incomingMsgHandling.png?raw=true)
 
 The consumers of the INTERNAL.KV queue can be built to suit. Each gets a copy of each message (topic/pubsub semantics), 
 they can use filters to limit them, and they can perform any action to suit. Since INTERNAL.KV a topic, 
@@ -30,5 +30,5 @@ This is ideal for intermittent connections and data transfers to the cloud.
 Outgoing
 --------  
 
-!(outgoingMsgHandling.png)
+![](./outgoingMsgHandling.png?raw=true)
 
