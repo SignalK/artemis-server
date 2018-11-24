@@ -17,6 +17,7 @@ import org.junit.Test;
 
 import nz.co.fortytwo.signalk.artemis.server.BaseServerTest;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class NMEAToKvTest extends BaseServerTest{
@@ -36,8 +37,8 @@ public class NMEAToKvTest extends BaseServerTest{
 				ClientProducer producer = session.createProducer();
 				ClientConsumer consumer = session.createConsumer(Config.INTERNAL_KV);){
 			session.start();
-		
-			sendMessage(session, producer, "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78");
+			String token = SecurityUtils.authenticateUser("admin", "admin");
+			sendMessage(session, producer, "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78", token);
 			
 			logger.debug("Input sent");
 		

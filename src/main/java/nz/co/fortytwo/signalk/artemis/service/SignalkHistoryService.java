@@ -63,9 +63,10 @@ public class SignalkHistoryService extends BaseApiService {
 	{
 		try {
 			//TODO: actually make this work!
+			String correlation = java.util.UUID.randomUUID().toString();
+			initSession(correlation);
 			
-			
-			sendMessage(addToken("", cookie));
+			sendMessage(getTempQ(),addToken("", cookie), correlation,getToken(cookie));
 			return Response.status(HttpStatus.SC_ACCEPTED).build();
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
@@ -97,7 +98,7 @@ public class SignalkHistoryService extends BaseApiService {
 			if (logger.isDebugEnabled())
 				logger.debug("Post: {}" , body);
 			
-			sendMessage(addToken(body, cookie));
+			sendMessage(getTempQ(),addToken(body, cookie),null,getToken(cookie));
 			return Response.status(HttpStatus.SC_ACCEPTED).build();
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);

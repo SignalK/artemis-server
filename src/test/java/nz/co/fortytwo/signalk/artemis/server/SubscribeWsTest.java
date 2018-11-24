@@ -62,6 +62,7 @@ import static org.asynchttpclient.Dsl.*;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
+import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 
@@ -77,7 +78,8 @@ public class SubscribeWsTest extends BaseServerTest {
 		try (ClientSession session = Util.getLocalhostClientSession("admin", "admin");
 				ClientProducer producer = session.createProducer();	
 				){
-			sendMessage(session, producer, "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78");
+			String token = SecurityUtils.authenticateUser("admin", "admin");
+			sendMessage(session, producer, "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78", token);
 		} catch (ActiveMQException e) {
 			logger.error(e,e);
 		} catch (Exception e) {

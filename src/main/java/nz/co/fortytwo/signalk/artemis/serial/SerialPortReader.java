@@ -25,6 +25,7 @@ package nz.co.fortytwo.signalk.artemis.serial;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.ADMIN_PWD;
 import static nz.co.fortytwo.signalk.artemis.util.Config.ADMIN_USER;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_USER_TOKEN;
 import static nz.co.fortytwo.signalk.artemis.util.Config.INCOMING_RAW;
 import static nz.co.fortytwo.signalk.artemis.util.Config.INTERNAL_KV;
 import static nz.co.fortytwo.signalk.artemis.util.Config.getConfigProperty;
@@ -249,6 +250,7 @@ public class SerialPortReader {
 						txMsg.getBodyBuffer().writeString(buffer);
 						txMsg.putStringProperty(Config.MSG_SRC_BUS, portName);
 						txMsg.putStringProperty(Config.MSG_SRC_TYPE, Config.SERIAL);
+						//txMsg.putStringProperty(AMQ_USER_TOKEN, getToken());
 						producer.get().send(new SimpleString(Config.INCOMING_RAW), txMsg);
 						if (logger.isDebugEnabled())
 							logger.debug("json = {}", buffer);

@@ -1,5 +1,7 @@
 package nz.co.fortytwo.signalk.artemis.intercept;
 
+import static nz.co.fortytwo.signalk.artemis.util.Config.INCOMING_RAW;
+
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.Interceptor;
 import org.apache.activemq.artemis.api.core.Message;
@@ -7,6 +9,7 @@ import org.apache.activemq.artemis.core.protocol.core.Packet;
 import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendMessage;
 import org.apache.activemq.artemis.core.server.ServerSession;
 import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -23,12 +26,11 @@ public class SessionInterceptor extends BaseInterceptor implements Interceptor {
 	@Override
 	public boolean intercept(final Packet packet, final RemotingConnection connection) throws ActiveMQException {
 		
-		 if(isResponse(packet))return true;
-		
 		if (packet instanceof SessionSendMessage) {
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
 			
 			Message msg = realPacket.getMessage();
+			if(!StringUtils.equals(msg.getAddress(), INCOMING_RAW))return true;
 			
 			if(msg.getStringProperty(Config.MSG_SRC_BUS)==null)
 				msg.putStringProperty(Config.MSG_SRC_BUS, connection.getRemoteAddress());

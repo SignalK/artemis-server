@@ -24,15 +24,15 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 public class SignalkMapConvertorTest {
 
 	private static Logger logger = LogManager.getLogger(SignalkMapConvertorTest.class);
+	
 	@Test
 	public void shouldConvertFull() throws Exception {
 		String body = FileUtils.readFileToString(new File("./src/test/resources/samples/full/docs-data_model_multiple_values.json"));
 		Json in = Json.read(body);
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();
 		SignalkMapConvertor.parseFull(in, map, "");
-		ArrayList<String> allowed =  new ArrayList<>();
-		allowed.add("all");
-		Json out = SignalkMapConvertor.mapToFull(map,allowed);
+
+		Json out = SignalkMapConvertor.mapToFull(map);
 		logger.debug(in);
 		logger.debug(out);
 		if(in.has("self"))in.delAt("self");
@@ -47,10 +47,9 @@ public class SignalkMapConvertorTest {
 		Json in = Json.read(body);
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();
 		SignalkMapConvertor.parseFull(in, map, "");
-		ArrayList<String> allowed =  new ArrayList<>();
-		allowed.add("all");
+	
 		logger.debug("Map:"+map);
-		Json out = SignalkMapConvertor.mapToFull(map,allowed);
+		Json out = SignalkMapConvertor.mapToFull(map);
 		logger.debug(in);
 		logger.debug(out);
 		if(in.has("self"))in.delAt("self");

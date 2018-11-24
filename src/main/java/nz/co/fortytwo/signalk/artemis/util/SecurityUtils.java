@@ -101,7 +101,7 @@ public final class SecurityUtils {
 		throw new SecurityException("Username or password invalid");
 	}
 
-	public static String issueToken(String username, Json roles) {
+	private static String issueToken(String username, Json roles) {
 		// Issue a token (can be a random String persisted to a database or a JWT token)
 		// The issued token must be associated to a user
 		Claims claims = Jwts.claims();
@@ -178,6 +178,20 @@ public final class SecurityUtils {
 		
 	}
 	
+	public static ArrayList<String> getDeniedWritePaths(String jwtToken) throws Exception {
+		Json roles = StringUtils.isBlank(jwtToken)?Json.read("[\"public\"]"):getRoles(jwtToken);
+		ArrayList<String> denied = new ArrayList<>();
+		for(Json r : roles.asJsonList()) {
+			for(Json d : getSecurityConfAsJson().at(ROLES).at(r.asString()).at("denied")) {
+				if(d.at("write").asBoolean()) {
+					denied.add(d.at("name").asString());
+				}
+			}
+		}
+		
+		return denied;
+		
+	}
 	public static ArrayList<String> getAllowedReadPaths(String jwtToken) throws Exception {
 		
 		Json roles = StringUtils.isBlank(jwtToken)?Json.read("[\"public\"]"):getRoles(jwtToken);
@@ -185,7 +199,23 @@ public final class SecurityUtils {
 		for(Json r : roles.asJsonList()) {
 			for(Json d : getSecurityConfAsJson().at(ROLES).at(r.asString()).at("allowed")) {
 				if(d.at("read").asBoolean()) {
-					allowed.add(d.at("name").asString());
+					allowed.add(Util.fixSelfKey(d.at("name").asString()));
+				}
+			}
+		}
+		
+		return allowed;
+		
+	}
+	
+	public static ArrayList<String> getAllowedWritePaths(String jwtToken) throws Exception {
+		
+		Json roles = StringUtils.isBlank(jwtToken)?Json.read("[\"public\"]"):getRoles(jwtToken);
+		ArrayList<String> allowed = new ArrayList<>();
+		for(Json r : roles.asJsonList()) {
+			for(Json d : getSecurityConfAsJson().at(ROLES).at(r.asString()).at("allowed")) {
+				if(d.at("write").asBoolean()) {
+					allowed.add(Util.fixSelfKey(d.at("name").asString()));
 				}
 			}
 		}

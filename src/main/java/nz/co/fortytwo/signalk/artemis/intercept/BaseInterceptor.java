@@ -1,25 +1,16 @@
 package nz.co.fortytwo.signalk.artemis.intercept;
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self_str;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.version;
-
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
-import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ICoreMessage;
-import org.apache.activemq.artemis.api.core.Message;
-import org.apache.activemq.artemis.api.core.RoutingType;
-import org.apache.activemq.artemis.api.core.client.ClientMessage;
-import org.apache.activemq.artemis.api.core.client.ClientProducer;
-import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.activemq.artemis.core.protocol.core.Packet;
 import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.MessagePacket;
-import org.apache.activemq.artemis.core.server.ServerSession;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.handler.MessageSupport;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.service.TDBService;
@@ -28,17 +19,13 @@ import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
-public class BaseInterceptor {
+public class BaseInterceptor extends MessageSupport{
 	private static Logger logger = LogManager.getLogger(BaseInterceptor.class);
 	protected static TDBService influx = new InfluxDbService();
-	protected  ThreadLocal<ClientSession> txSession = new ThreadLocal<>();
-	protected  ThreadLocal<ClientProducer> producer = new ThreadLocal<>();
-
+	
 	protected void init() {
 		try{
-			txSession.set(Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
-					Config.getConfigProperty(Config.ADMIN_PWD)));
-			producer.set(txSession.get().createProducer());
+			super.initSession();
 			
 			if(Config.getConfigProperty(ConfigConstants.CLOCK_SOURCE).equals("system")) {
 				influx.setWrite(true);
@@ -48,34 +35,6 @@ public class BaseInterceptor {
 			}
 	}
 
-	public ClientSession getTxSession() {
-
-		if (txSession.get() == null) {
-			try {
-				txSession.set(Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
-						Config.getConfigProperty(Config.ADMIN_PWD)));
-
-			} catch (Exception e) {
-				logger.error(e, e);
-			}
-		}
-		return txSession.get();
-	}
-
-	public ClientProducer getProducer() {
-		if (producer.get() == null && getTxSession() != null && !getTxSession().isClosed()) {
-			
-			try {
-				producer.set(getTxSession().createProducer());
-			} catch (ActiveMQException e) {
-				logger.error(e,e);
-			}
-
-		}
-		return producer.get();
-
-	}
-	
 	protected boolean isDelta(Json node){
 		return Util.isDelta(node);
 	}
@@ -116,83 +75,7 @@ public class BaseInterceptor {
 				}
 			});
 	}
-	protected void sendReply(String simpleName, String destination, String format, Json json, ServerSession s) throws Exception {
-		sendReply(String.class.getSimpleName(),destination,format,null,json);
-	}
 	
-	protected void  sendReply(String simpleName, String destination, String format, String correlation, Json json) throws Exception {
-		if(txSession.get()==null){
-			init();
-		}
-		if(json==null || json.isNull())json=Json.object();
-		
-		ClientMessage txMsg =  txSession.get().createMessage(false);
-		
-		//txMsg.putStringProperty(Config.JAVA_TYPE, type);
-		if(correlation!=null)
-			txMsg.putStringProperty(Config.AMQ_CORR_ID, correlation);
-		txMsg.putStringProperty(Config.AMQ_SUB_DESTINATION, destination);
-		txMsg.putBooleanProperty(Config.SK_SEND_TO_ALL, false);
-		txMsg.putStringProperty(SignalKConstants.FORMAT, format);
-		txMsg.putBooleanProperty(SignalKConstants.REPLY, true);
-		txMsg.putStringProperty(Config.AMQ_CORR_ID, correlation);
-		txMsg.setExpiration(System.currentTimeMillis()+5000);
-		txMsg.getBodyBuffer().writeString(json.toString());
-		if (logger.isDebugEnabled())
-			logger.debug("Msg body = {}",json.toString());
-		producer.get().send("outgoing.reply." +destination,txMsg);
-		
-	}
-	protected void sendKvJson(Message message, Json json) {
-		NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();
-		SignalkMapConvertor.parseDelta(json, map);
-		sendKvMap(message, map);
-		
-		
-	}
-	public void sendKvMap(Message message, NavigableMap<String, Json> map) {
-		//remove "self" and "version"
-		map.remove(self_str);
-		map.remove(version);
-		
-		map.forEach((k,j) -> {
-			try {
-				sendKvMessage(message, k,j);
-			} catch (Exception e) {
-				logger.error(e,e);
-			}
-		});
-		
-	}
-	protected void sendKvMessage(Message origMessage, String k, Json j) throws ActiveMQException {
-		ClientMessage txMsg = getTxSession().createMessage(false);
-		txMsg.copyHeadersAndProperties(origMessage);
-		
-		txMsg.putStringProperty(Config.AMQ_INFLUX_KEY, k);
-		txMsg.setRoutingType(RoutingType.MULTICAST);
-		txMsg.setExpiration(System.currentTimeMillis()+5000);
-		txMsg.getBodyBuffer().writeString(j.toString());
-		if (logger.isDebugEnabled())
-			logger.debug("Msg body signalk.kv: {} = {}",k, j.toString());
-		
-		getProducer().send(Config.INTERNAL_KV,txMsg);
-		
-	}
-	
-	protected void sendRawMessage(Message origMessage, String body) throws ActiveMQException {
-		ClientMessage txMsg = getTxSession().createMessage(false);
-		txMsg.copyHeadersAndProperties(origMessage);
-		
-		txMsg.removeProperty(Config.AMQ_CONTENT_TYPE);
-		
-		txMsg.setExpiration(System.currentTimeMillis()+5000);
-		txMsg.getBodyBuffer().writeString(body);
-		if (logger.isDebugEnabled())
-			logger.debug("Msg body incoming.raw: {}",body);
-		
-		getProducer().send(Config.INCOMING_RAW,txMsg);
-		
-	}
 	
 	protected void saveMap(NavigableMap<String, Json> map) {
 		influx.save(map);

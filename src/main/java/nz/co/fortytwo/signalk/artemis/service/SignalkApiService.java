@@ -155,7 +155,7 @@ public class SignalkApiService extends BaseApiService {
 			if (logger.isDebugEnabled())
 				logger.debug("Post: {}" , body);
 			
-			sendMessage(addToken(body, cookie));
+			sendMessage(getTempQ(),addToken(body, cookie),null,getToken(cookie));
 			return Response.status(HttpStatus.SC_ACCEPTED).build();
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
@@ -187,7 +187,7 @@ public class SignalkApiService extends BaseApiService {
 				logger.debug("Put:" + body);
 			//make a full message now
 			Json msg = Util.getJsonPutRequest(sanitizeApiPath(path),Json.read(body));
-			sendMessage(addToken(msg, cookie));
+			sendMessage(getTempQ(),addToken(msg, cookie),null,getToken(cookie));
 			return Response.status(HttpStatus.SC_ACCEPTED).build();
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);

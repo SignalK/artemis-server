@@ -114,7 +114,7 @@ public class GetMsgTransformer extends BaseInterceptor implements Transformer {
 				&& !aton.equals(root)
 				&& !ALL.equals(root)){
 				try{
-					sendReply(String.class.getSimpleName(),destination,FORMAT_FULL,correlation,Json.object());
+					sendReply(destination,FORMAT_FULL,correlation,Json.object(),jwtToken);
 					return null;
 				} catch (Exception e) {
 					logger.error(e, e);
@@ -198,7 +198,7 @@ public class GetMsgTransformer extends BaseInterceptor implements Transformer {
 				
 				if (logger.isDebugEnabled())logger.debug("GET  token: {}, map : {}",jwtToken, map);
 				
-				Json json = SignalkMapConvertor.mapToFull(map,jwtToken);
+				Json json = SignalkMapConvertor.mapToFull(map);
 				
 				if (logger.isDebugEnabled())logger.debug("GET json : {}", json);
 				
@@ -212,7 +212,7 @@ public class GetMsgTransformer extends BaseInterceptor implements Transformer {
 				if (StringUtils.isNotBlank(fullPath) && !root.startsWith(CONFIG) && !root.startsWith(ALL))
 					json = Util.findNodeMatch(json, fullPath);
 				
-				sendReply(map.getClass().getSimpleName(),destination,FORMAT_FULL,correlation,json);
+				sendReply(destination,FORMAT_FULL,correlation,json,jwtToken);
 
 			} catch (Exception e) {
 				logger.error(e, e);

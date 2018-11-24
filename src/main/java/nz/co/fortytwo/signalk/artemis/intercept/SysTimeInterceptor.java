@@ -1,5 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.intercept;
 
+import static nz.co.fortytwo.signalk.artemis.util.Config.INCOMING_RAW;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.GET;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_datetime;
@@ -19,6 +20,7 @@ import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.core.protocol.core.Packet;
 import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendMessage;
 import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -74,13 +76,12 @@ public class SysTimeInterceptor extends BaseInterceptor implements Interceptor {
 	@Override
 	public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException {
 		if (influx.getWrite())return true;
-		if (isResponse(packet))
-			return true;
 		
 		if (packet instanceof SessionSendMessage) {
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
 
 			ICoreMessage message = realPacket.getMessage();
+			if(!StringUtils.equals(message.getAddress(), INCOMING_RAW))return true;
 			String timeKey = vessels+dot+Config.getConfigProperty(ConfigConstants.UUID)+dot + nav_datetime;
 			
 			if (!timeKey.equals(message.getStringProperty(Config.AMQ_INFLUX_KEY)))

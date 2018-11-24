@@ -1,6 +1,7 @@
 package nz.co.fortytwo.signalk.artemis.intercept;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
+import static nz.co.fortytwo.signalk.artemis.util.Config.INCOMING_RAW;
 import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_DELTA;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONFIG;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PUT;
@@ -68,6 +69,7 @@ public class DeltaSourceInterceptorTest extends BaseMsgInterceptorTest {
 		interceptor.saveSource(Json.read("{\"sources\":{\"NMEA2000\":{\"actisense\":{\"src\":\"115\",\"pgn\":128267,\"label\":\"actisense\",\"type\":\"NMEA2000\"}}}}"));
 		replayAll();
 		ClientMessage message = getClientMessage(update.toString(), JSON_DELTA, false);
+		message.setAddress(INCOMING_RAW);
 		SessionSendMessage packet = new SessionSendMessage((CoreMessage) message);
 
 		assertTrue(interceptor.intercept(packet, null));
@@ -96,6 +98,7 @@ public class DeltaSourceInterceptorTest extends BaseMsgInterceptorTest {
 		replayAll();
 		
 		ClientMessage message = getClientMessage(put.toString(), JSON_DELTA, false);
+		message.setAddress(INCOMING_RAW);
 		SessionSendMessage packet = new SessionSendMessage((CoreMessage) message);
 
 		assertTrue(interceptor.intercept(packet, null));
@@ -123,6 +126,7 @@ public class DeltaSourceInterceptorTest extends BaseMsgInterceptorTest {
 		interceptor.saveSource(Json.read("{\"sources\":{\"NMEA2000\":{\"actisense\":{\"src\":\"115\",\"pgn\":128267,\"label\":\"actisense\",\"type\":\"NMEA2000\"}}}}"));
 		replayAll();
 		ClientMessage message = getClientMessage(config.toString(), JSON_DELTA, false);
+		message.setAddress(INCOMING_RAW);
 		SessionSendMessage packet = new SessionSendMessage((CoreMessage) message);
 
 		assertTrue(interceptor.intercept(packet, null));

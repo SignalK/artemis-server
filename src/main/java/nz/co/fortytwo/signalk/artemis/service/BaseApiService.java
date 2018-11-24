@@ -38,16 +38,13 @@ import org.atmosphere.websocket.WebSocketEventListenerAdapter;
 import org.jgroups.util.UUID;
 
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.handler.MessageSupport;
 import nz.co.fortytwo.signalk.artemis.subscription.SubscriptionManagerFactory;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
-public class BaseApiService {
-
-	protected static ThreadLocal<ClientProducer> producer=new ThreadLocal<>();
-
-	protected static ThreadLocal<ClientSession> txSession=new ThreadLocal<>();
+public class BaseApiService extends MessageSupport{
 
 	protected String tempQ;
 
@@ -77,8 +74,7 @@ public class BaseApiService {
 		if (getTempQ() == null) {
 			this.tempQ = tempQ;
 		}
-		getTxSession();
-		getProducer();
+		super.initSession();
 		getConsumer();
 	}
 
@@ -105,13 +101,7 @@ public class BaseApiService {
 	}
 
 	protected String addToken(String body, Cookie cookie) {
-
-		String jwtToken = getToken(cookie);
-		if (StringUtils.isNotBlank(jwtToken)) {
-			// add it to the body
-			return Json.read(body).set(SignalKConstants.TOKEN, jwtToken).toString();
-		}
-		return body;
+		return addToken(Json.read(body), cookie);
 	}
 	
 	protected String addToken(Json body, Cookie cookie) {
@@ -124,32 +114,8 @@ public class BaseApiService {
 		return body.toString();
 	}
 
-	protected String sendMessage(String body) throws ActiveMQException {
-		return sendMessage(body, UUID.randomUUID().toString());
-	}
 
-	protected String sendMessage(String body, String correlation) throws ActiveMQException {
-		if (logger.isDebugEnabled())
-			logger.debug("Incoming msg: {}, {}", correlation, body);
-		ClientMessage message = null;
-
-		message = getTxSession().createMessage(false);
-
-		message.getBodyBuffer().writeString(body);
-		message.putStringProperty(Config.AMQ_REPLY_Q, getTempQ());
-		if (correlation != null) {
-			message.putStringProperty(Config.AMQ_CORR_ID, correlation);
-		}
-		send(new SimpleString(Config.INCOMING_RAW), message);
-		return correlation;
-	}
-
-	private void send(SimpleString queue, ClientMessage message) throws ActiveMQException {
-		
-			getProducer().send(queue, message);
-		
-
-	}
+	
 
 	@Override
 	protected void finalize() throws Throwable {
@@ -301,36 +267,6 @@ public class BaseApiService {
 
 	}
 
-	public ClientSession getTxSession() {
-
-		if (txSession.get() == null) {
-			if (logger.isDebugEnabled())
-				logger.debug("Start amq session: {}", getTempQ());
-			try {
-				txSession.set(Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
-						Config.getConfigProperty(Config.ADMIN_PWD)));
-			} catch (Exception e) {
-				logger.error(e, e);
-			}
-		}
-		return txSession.get();
-	}
-
-	public ClientProducer getProducer() {
-		if (producer.get() == null && getTxSession() != null && !getTxSession().isClosed()) {
-			if (logger.isDebugEnabled())
-				logger.debug("Start producer: {}", getTempQ());
-			
-			try {
-				producer.set(getTxSession().createProducer());
-			} catch (ActiveMQException e) {
-				logger.error(e,e);
-			}
-
-		}
-		return producer.get();
-
-	}
 
 	public ClientConsumer getConsumer() {
 
@@ -397,9 +333,9 @@ public class BaseApiService {
 			logger.debug("JwtToken: {}", getToken(cookie));
 		}
 		if(StringUtils.isNotBlank(time)) {
-			sendMessage(Util.getJsonGetSnapshotRequest(path,getToken(cookie), time).toString(),correlation);
+			sendMessage(getTempQ(),Util.getJsonGetSnapshotRequest(path,getToken(cookie), time).toString(),correlation, getToken(cookie));
 		}else {
-			sendMessage(Util.getJsonGetRequest(path,getToken(cookie)).toString(),correlation);
+			sendMessage(getTempQ(),Util.getJsonGetRequest(path,getToken(cookie)).toString(),correlation, getToken(cookie));
 		}
 		
 	}
@@ -432,7 +368,7 @@ public class BaseApiService {
 				//setConnectionWatcher(resource, PING_PERIOD);
 			}
 
-			sendMessage(addToken(body, cookie), correlationId);
+			sendMessage(getTempQ(),addToken(body, cookie), correlationId, getToken(cookie));
 
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);

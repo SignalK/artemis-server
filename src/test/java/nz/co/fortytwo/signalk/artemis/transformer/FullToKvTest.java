@@ -17,6 +17,7 @@ import org.junit.Test;
 
 import nz.co.fortytwo.signalk.artemis.server.BaseServerTest;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class FullToKvTest extends BaseServerTest{
@@ -38,8 +39,8 @@ public class FullToKvTest extends BaseServerTest{
 			session.start();
 			
 			String body = FileUtils.readFileToString(new File("./src/test/resources/samples/full/docs-data_model_multiple_values.json"));
-			
-			sendMessage(session, producer, body);
+			String token = SecurityUtils.authenticateUser("admin", "admin");
+			sendMessage(session, producer, body, token);
 			
 			logger.debug("Input sent");
 		

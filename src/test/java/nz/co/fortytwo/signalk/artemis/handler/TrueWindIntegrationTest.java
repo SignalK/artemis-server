@@ -19,6 +19,7 @@ import org.junit.Test;
 
 import nz.co.fortytwo.signalk.artemis.server.BaseServerTest;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
@@ -43,9 +44,9 @@ public class TrueWindIntegrationTest extends BaseServerTest{
 			
 		//"$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,56.4,011113,,,A*78"
 		//"$IIMWV,041.5,R,24.3,N,A*08"	
-			
-			sendMessage(session, producer, "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,56.4,011113,,,A*78");
-			sendMessage(session, producer, "$IIMWV,041.5,R,24.3,N,A*08");
+			String token = SecurityUtils.authenticateUser("admin", "admin");
+			sendMessage(session, producer, "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,56.4,011113,,,A*78",token);
+			sendMessage(session, producer, "$IIMWV,041.5,R,24.3,N,A*08",token);
 			
 			logger.debug("Input sent");
 		

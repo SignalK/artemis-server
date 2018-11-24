@@ -1,5 +1,7 @@
 package nz.co.fortytwo.signalk.artemis.intercept;
 
+import static nz.co.fortytwo.signalk.artemis.util.Config.INCOMING_RAW;
+import static nz.co.fortytwo.signalk.artemis.util.Config.INTERNAL_KV;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONFIG;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.GET;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PUT;
@@ -12,11 +14,13 @@ import org.apache.activemq.artemis.api.core.Interceptor;
 import org.apache.activemq.artemis.core.protocol.core.Packet;
 import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendMessage;
 import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 /*
@@ -64,12 +68,12 @@ public class DeltaSourceInterceptor extends BaseInterceptor implements Intercept
 
 	@Override
 	public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException {
-		if(isResponse(packet))return true;
+		
 		if (packet instanceof SessionSendMessage) {
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
 
 			ICoreMessage message = realPacket.getMessage();
-			
+			if(!StringUtils.equals(message.getAddress(), INCOMING_RAW))return true;
 			if (!Config.JSON_DELTA.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))
 				return true;
 			

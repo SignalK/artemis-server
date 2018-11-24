@@ -232,8 +232,8 @@ public class InfluxDbTest {
 		
 		ArrayList<String> all = new ArrayList<>();
 		all.add("all");
-		Json mapRslt = SignalkMapConvertor.mapToFull(map,all);
-		Json jsonRslt = SignalkMapConvertor.mapToFull(rslt,all);
+		Json mapRslt = SignalkMapConvertor.mapToFull(map);
+		Json jsonRslt = SignalkMapConvertor.mapToFull(rslt);
 		logger.debug("Json source: {}",mapRslt);
 		logger.debug("Json result: {}",jsonRslt);
 		//remove uuid

@@ -32,6 +32,7 @@ import org.junit.Test;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.server.BaseServerTest;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class AlarmHandlerTest extends BaseServerTest {
@@ -60,18 +61,18 @@ public class AlarmHandlerTest extends BaseServerTest {
 		logger.debug(depthMeta);
 		
 		setupMetaKeys(depthMeta);
-		
+		String token = SecurityUtils.authenticateUser("admin", "admin");
 		//normal
-		ClientMessage normal = getMessage("{\"value\":4.5,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",env_depth_belowKeel,"nmea1.II");
+		ClientMessage normal = getMessage("{\"value\":4.5,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",env_depth_belowKeel,"nmea1.II",token);
 		
 		//warn
-		ClientMessage warn = getMessage("{\"value\":2.1,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",env_depth_belowKeel,"nmea1.II");
+		ClientMessage warn = getMessage("{\"value\":2.1,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",env_depth_belowKeel,"nmea1.II",token);
 	
 		//alarm
-		ClientMessage alarm = getMessage("{\"value\":1,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",env_depth_belowKeel,"nmea1.II");
+		ClientMessage alarm = getMessage("{\"value\":1,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",env_depth_belowKeel,"nmea1.II",token);
 		
 		//normal
-		ClientMessage normal1 = getMessage("{\"value\":5.3,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",env_depth_belowKeel,"nmea1.II");
+		ClientMessage normal1 = getMessage("{\"value\":5.3,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",env_depth_belowKeel,"nmea1.II",token);
 		 
 		handler.sendJson(normal,"vessels."+uuid+dot+notifications+dot+env_depth_belowKeel+".values.nmea1.II",Json.read("{\"value\":{\"method\":null,\"state\":null,\"message\":null}}"));
 		handler.sendJson(warn,"vessels."+uuid+dot+notifications+dot+env_depth_belowKeel+".values.nmea1.II",Json.read("{\"value\":{\"method\":[\"visual\"],\"state\":\"warn\",\"message\":\"Shallow water!\"}}"));
@@ -95,8 +96,8 @@ public class AlarmHandlerTest extends BaseServerTest {
 		try (ClientSession session = Util.getLocalhostClientSession("admin", "admin");
 				ClientProducer producer = session.createProducer();	
 				ClientConsumer consumer = session.createConsumer(Config.INTERNAL_KV);){
-
-			sendMessage(session, producer, data);
+			String token = SecurityUtils.authenticateUser("admin", "admin");
+			sendMessage(session, producer, data, token);
 			
 		} 
 	}

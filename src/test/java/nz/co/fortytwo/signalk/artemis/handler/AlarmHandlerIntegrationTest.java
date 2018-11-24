@@ -24,6 +24,7 @@ import org.junit.Test;
 
 import nz.co.fortytwo.signalk.artemis.server.BaseServerTest;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
@@ -51,19 +52,19 @@ public class AlarmHandlerIntegrationTest extends BaseServerTest{
 			String depthMeta = FileUtils.readFileToString(new File("./src/test/resources/samples/full/signalk-depth-meta-attr.json"));
 			depthMeta=StringUtils.replace(depthMeta, "urn:mrn:signalk:uuid:b7590868-1d62-47d9-989c-32321b349fb9", uuid);
 			logger.debug(depthMeta);
+			String token = SecurityUtils.authenticateUser("admin", "admin");
+			sendMessage(session, producer, depthMeta, token);	
 			
-			sendMessage(session, producer, depthMeta);	
-			
-			ClientMessage normal = getMessage("{\"value\":4.5,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",env_depth_belowKeel,"nmea1.II");
+			ClientMessage normal = getMessage("{\"value\":4.5,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",env_depth_belowKeel,"nmea1.II", token);
 			producer.send(INTERNAL_KV, normal);
 			//warn
-			ClientMessage warn = getMessage("{\"value\":2.1,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",env_depth_belowKeel,"nmea1.II");
+			ClientMessage warn = getMessage("{\"value\":2.1,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",env_depth_belowKeel,"nmea1.II", token);
 			producer.send(INTERNAL_KV, warn);
 			//alarm
-			ClientMessage alarm = getMessage("{\"value\":1,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",env_depth_belowKeel,"nmea1.II");
+			ClientMessage alarm = getMessage("{\"value\":1,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",env_depth_belowKeel,"nmea1.II", token);
 			producer.send(INTERNAL_KV, alarm);
 			//normal
-			ClientMessage normal1 = getMessage("{\"value\":5.3,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",env_depth_belowKeel,"nmea1.II");
+			ClientMessage normal1 = getMessage("{\"value\":5.3,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",env_depth_belowKeel,"nmea1.II", token);
 			producer.send(INTERNAL_KV, normal1);
 			
 			

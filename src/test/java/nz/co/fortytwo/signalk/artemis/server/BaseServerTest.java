@@ -1,5 +1,7 @@
 package nz.co.fortytwo.signalk.artemis.server;
 
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_INFLUX_KEY;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_USER_TOKEN;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT_DELTA;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.POLICY_FIXED;
 import static org.junit.Assert.assertNotNull;
@@ -70,11 +72,11 @@ public class BaseServerTest extends EasyMockSupport {
 		return message;
 	}
 
-	protected ClientMessage getMessage(String jsonStr, String key, String src) {
+	protected ClientMessage getMessage(String jsonStr, String key, String src, String token) {
 		Json json = Json.read(jsonStr);
 		ClientMessage message = getClientMessage(json.toString(), MediaType.APPLICATION_JSON, false);
-		message.putStringProperty(Config.AMQ_INFLUX_KEY, "vessels."+uuid+"."+key+".values."+src);
-		
+		message.putStringProperty(AMQ_INFLUX_KEY, "vessels."+uuid+"."+key+".values."+src);
+		message.putStringProperty(AMQ_USER_TOKEN, token);
 		return message;
 	}
 
@@ -160,8 +162,13 @@ public class BaseServerTest extends EasyMockSupport {
 		return replies;
 	}
 	
-	protected void sendMessage(ClientSession session, ClientProducer producer, String msg) throws ActiveMQException {
+//	protected void sendMessage(ClientSession session, ClientProducer producer, String msg) throws ActiveMQException {
+//		sendMessage(session, producer, msg, null); 
+//	}
+	protected void sendMessage(ClientSession session, ClientProducer producer, String msg, String token) throws ActiveMQException {
 		ClientMessage message = session.createMessage(true);
+		if(token!=null)
+			message.putStringProperty(AMQ_USER_TOKEN, token);
 		message.getBodyBuffer().writeString(msg);
 		producer.send(Config.INCOMING_RAW, message);
 		

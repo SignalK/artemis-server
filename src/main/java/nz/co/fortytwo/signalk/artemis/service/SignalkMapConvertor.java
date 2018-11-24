@@ -1,6 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONFIG;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.GET;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PATH;
@@ -9,6 +9,7 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UNKNOWN;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.attr;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.meta;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self_str;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sentence;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sourceRef;
@@ -34,7 +35,6 @@ import org.apache.logging.log4j.Logger;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
-import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
@@ -221,40 +221,16 @@ public class SignalkMapConvertor {
 	}
 
 	public static Json mapToFull(NavigableMap<String, Json> map) throws Exception {
-		return mapToFull(map, "");
-	}
-
-	public static Json mapToFull(NavigableMap<String, Json> map, String jwtToken) throws Exception {
-		if (map == null)
-			return Json.object();
-		ArrayList<String> allowed = SecurityUtils.getAllowedReadPaths(jwtToken);
-		return mapToFull(map, allowed);
-	}
-
-	public static Json mapToFull(NavigableMap<String, Json> map, ArrayList<String> allowed) throws Exception {
 
 		Json root = Json.object();
 		if (map == null)
 			return root;
 
-		NavigableMap<String, Json> allowedMap = new ConcurrentSkipListMap<>();
-		for (String key : allowed) {
-			if (key.equals("all")) {
-				allowedMap = map;
-				break;
-			}
-			key = Util.fixSelfKey(key);
-			NavigableMap<String, Json> subMap = map.subMap(key, true, key + ".\uFFFD", true);
-			if (logger.isDebugEnabled())
-				logger.debug("Found keys {} = {}", key, subMap.size());
-			allowedMap.putAll(subMap);
-		}
-
-		if (logger.isDebugEnabled())
-			logger.debug("Map to full: {}", allowedMap);
+		//NavigableMap<String, Json> allowedMap = new ConcurrentSkipListMap<>();
+		
 		root.set(self_str, Json.make(Config.getConfigProperty(ConfigConstants.UUID)));
 		root.set(version, Json.make(Config.getConfigProperty(ConfigConstants.VERSION)));
-		for (Entry<String, Json> entry : allowedMap.entrySet()) {
+		for (Entry<String, Json> entry : map.entrySet()) {
 			if (entry.getKey().endsWith(attr))
 				continue;
 

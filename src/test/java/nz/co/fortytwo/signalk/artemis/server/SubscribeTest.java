@@ -17,6 +17,7 @@ import org.jgroups.util.UUID;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class SubscribeTest extends BaseServerTest{
@@ -32,10 +33,10 @@ public class SubscribeTest extends BaseServerTest{
 				){
 			session.start();
 			//session.createTemporaryQueue("outgoing.reply." + tempQ, RoutingType.ANYCAST, tempQ);
-			
+			String token = SecurityUtils.authenticateUser("admin", "admin");
 			sendSubsribeMsg(session,producer, "vessels." + self, "navigation",tempQ);
 			
-			sendMessage(session, producer, "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78");
+			sendMessage(session, producer, "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78", token);
 			
 			List<ClientMessage> replies = listen(session, tempQ, 10);
 			assertTrue(replies.size()>1);
@@ -79,10 +80,10 @@ public class SubscribeTest extends BaseServerTest{
 			session.start();
 			String tempQ = UUID.randomUUID().toString();
 			session.createTemporaryQueue("outgoing.reply." + tempQ, RoutingType.ANYCAST, tempQ);
-			
+			String token = SecurityUtils.authenticateUser("admin", "admin");
 			sendSubsribeMsg(session,producer, "vessels." + self, "navigation",tempQ);
 			
-			sendMessage(session, producer, "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78");
+			sendMessage(session, producer, "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78", token);
 			
 			logger.debug("Subscribe sent");
 		

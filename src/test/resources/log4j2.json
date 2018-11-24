@@ -74,6 +74,11 @@
 					"level": "debug"
 				},
 				{
+					"name": "nz.co.fortytwo.signalk.artemis.intercept.SecurityInterceptor",
+					"level": "debug"
+				},
+				
+				{
 					"name": "nz.co.fortytwo.signalk.artemis.intercept.UpdateMsgInterceptor",
 					"level": "warn"
 				},
@@ -103,7 +108,7 @@
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.server.ArtemisTcpNettyHandler",
-					"level": "debug"
+					"level": "warn"
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.server.Subscription",
@@ -127,7 +132,7 @@
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.service.InfluxDbService",
-					"level": "debug"
+					"level": "error"
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.server.BaseServerTest",

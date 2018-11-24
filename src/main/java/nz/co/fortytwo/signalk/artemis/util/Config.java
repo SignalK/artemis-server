@@ -57,6 +57,7 @@ public class Config {
 	public static final String _AMQ_LVQ_NAME = "_AMQ_LVQ_NAME";
 	public static final String AMQ_CONTENT_TYPE = "AMQ_content_type";
 	public static final String AMQ_SESSION_ID = "AMQ_session_id";
+	public static final String AMQ_USER_TOKEN = "AMQ_USER_TOKEN";
 	public static final String JSON = "JSON";
 	public static final String JSON_FULL = "JSON_FULL";
 	public static final String JSON_DELTA = "JSON_DELTA";
@@ -90,7 +91,7 @@ public class Config {
 	public static final String INCOMING_RAW = "incoming.raw";
 	public static final String INTERNAL_KV = "internal.kv";
 	public static final String INTERNAL_DISCARD = "internal.discard";
-	
+	public static final String OUTGOING_REPLY = "outgoing.reply";
 
 	protected Config() {
 //		listener = new ConfigListener(map, (String) map.get(ADMIN_USER).asString(),
