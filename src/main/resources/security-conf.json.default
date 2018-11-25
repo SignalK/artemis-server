@@ -215,6 +215,36 @@
 					"write": true
 				}
 			]
+		},
+		"serial": {
+			"allowed": [
+				{
+					"read": true,
+					"name": "all",
+					"write": true
+				}
+			],
+			"denied": []
+		},
+		"n2k": {
+			"allowed": [
+				{
+					"read": true,
+					"name": "all",
+					"write": true
+				}
+			],
+			"denied": []
+		},
+		"ais": {
+			"allowed": [
+				{
+					"read": true,
+					"name": "vessels.self",
+					"write": false
+				}
+			],
+			"denied": []
 		}
 	}
 }

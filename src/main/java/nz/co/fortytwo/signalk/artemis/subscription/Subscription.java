@@ -76,6 +76,7 @@ public class Subscription {
 	private long minPeriod;
 	private String format;
 	private String policy;
+	private String token;
 	private Pattern pathPattern = null;
 	private Pattern uuidPattern = null;
 	private String vesselPath;
@@ -91,7 +92,7 @@ public class Subscription {
 	private String correlation;
 
 	public Subscription(String sessionId, String destination, String user, String password, String path, long period,
-			long minPeriod, String format, String policy, String correlation, String startTime, double playbackRate) throws Exception {
+			long minPeriod, String format, String policy, String correlation, String token,String startTime, double playbackRate) throws Exception {
 		this.sessionId = sessionId;
 
 		this.path = Util.sanitizePath(path);
@@ -104,6 +105,7 @@ public class Subscription {
 		this.minPeriod = minPeriod;
 		this.format = format;
 		this.policy = policy;
+		this.token = token;
 		this.destination = destination;
 		this.setCorrelation(correlation);
 		
@@ -120,6 +122,7 @@ public class Subscription {
 
 			private long queryTime=StringUtils.isNotBlank(startTime)?Util.getMillisFromIsoTime(startTime):System.currentTimeMillis();
 
+			private NavigableMap<String, Json> rslt = new ConcurrentSkipListMap<String, Json>();
 			@Override
 			public void run() {
 				if (logger.isDebugEnabled()) {
@@ -134,7 +137,7 @@ public class Subscription {
 					}
 					
 					// get a map of the current subs values
-					NavigableMap<String, Json> rslt = new ConcurrentSkipListMap<String, Json>();
+					
 					// select * from vessels where
 					// uuid='urn:mrn:imo:mmsi:209023000' AND skey=~/nav.*cou/
 					// group by skey,uuid,sourceRef,owner,grp order by time desc
@@ -160,13 +163,16 @@ public class Subscription {
 						if (logger.isDebugEnabled())
 							logger.debug("Full json = {}", json);
 					}
+					//Clear the result.
+					rslt.clear();
+					
 					try{
-						SubscriptionManagerFactory.getInstance().send(rslt.getClass().getSimpleName(), destination, format, correlation, json);
+						SubscriptionManagerFactory.getInstance().send( destination, format, correlation, token, json);
 					}catch(ActiveMQException amq){
 						logger.error(amq,amq);
 						setActive(false);
 					}
-
+					
 				} catch (Exception e) {
 					logger.error(e.getMessage(), e);
 
@@ -178,7 +184,7 @@ public class Subscription {
 		if (logger.isDebugEnabled())
 			logger.debug("Sending hello: {}", Config.getHelloMsg());
 		try{
-			SubscriptionManagerFactory.getInstance().send(ConcurrentSkipListMap.class.getSimpleName(), destination, format, correlation,  Config.getHelloMsg());
+			SubscriptionManagerFactory.getInstance().send( destination, format, correlation,  token, Config.getHelloMsg());
 		}catch(ActiveMQException amq){
 			logger.error(amq,amq);
 			setActive(false);

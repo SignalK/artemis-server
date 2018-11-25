@@ -28,6 +28,7 @@ import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.intercept.BaseInterceptor;
+import nz.co.fortytwo.signalk.artemis.service.SignalkKvConvertor;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
@@ -90,19 +91,21 @@ public class DeltaMsgTransformer extends BaseInterceptor implements Transformer 
 		// deal with diff format
 		if (isDelta(node)) {
 			// try {
-			NavigableMap<String, Json> map = processDelta(node);
-
-			sendKvMap(message, map);
+			try {
+				processDelta(message, node);
+			} catch (ActiveMQException e) {
+				logger.error(e,e);
+			}
 
 		}
 		return message;
 	}
 
-	protected NavigableMap<String, Json> processDelta(Json node) {
+	protected NavigableMap<String, Json> processDelta(Message message, Json node) throws ActiveMQException {
 		if (logger.isDebugEnabled())
 			logger.debug("Saving delta: {}", node.toString());
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
-		SignalkMapConvertor.parseDelta(node, map);
+		SignalkKvConvertor.parseDelta(this,message,node);
 		return map;
 
 	}

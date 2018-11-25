@@ -36,8 +36,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -55,6 +57,7 @@ import org.apache.activemq.artemis.core.server.ActiveMQServer;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -76,9 +79,6 @@ import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 import nz.co.fortytwo.signalk.artemis.util.Util;
-
-
-
 
 /**
  * ActiveMQ Artemis embedded with JMS
@@ -103,74 +103,70 @@ public final class ArtemisServer {
 	public ArtemisServer() throws Exception {
 		init();
 	}
-	
+
 	public ArtemisServer(String dbName) throws Exception {
 		InfluxDbService.setDbName(dbName);
 		init();
 	}
-	
-	private void init() throws Exception{
+
+	private void init() throws Exception {
 		Properties props = System.getProperties();
 		props.setProperty("java.net.preferIPv4Stack", "true");
 		props.setProperty("log4j.configurationFile", "./conf/log4j2.json");
-		props.setProperty("org.apache.logging.log4j.simplelog.StatusLogger.level","TRACE");
+		props.setProperty("org.apache.logging.log4j.simplelog.StatusLogger.level", "TRACE");
 		System.setProperties(props);
 		logger = LogManager.getLogger(ArtemisServer.class);
-		
+
 		ensureSecurityConf();
-		
+
 		Config.getInstance();
 
 		embedded = new EmbeddedActiveMQ();
 		embedded.start();
-		
-		//start incoming message consumer
+
+		// start incoming message consumer
 		startIncomingConsumer();
 		startKvHandlers();
-		
+
 		// start serial?
-		if(Config.getConfigPropertyBoolean(ENABLE_SERIAL)){
+		if (Config.getConfigPropertyBoolean(ENABLE_SERIAL)) {
 			// start a serial port manager
 			if (serialPortManager == null) {
 				serialPortManager = new SerialPortManager();
 				new Thread(serialPortManager).start();
 			}
-			
+
 		}
-		
+
 		addShutdownHook(this);
-		
-		server = new Nettosphere.Builder().config(
-				new org.atmosphere.nettosphere.Config.Builder()
-						.supportChunking(true)
-						.maxChunkContentLength(1024*1024)
-						.socketKeepAlive(true)
-						.enablePong(false)
-						.initParam(ApplicationConfig.PROPERTY_SESSION_SUPPORT, "true")
-						.initParam(ApplicationConfig.ANALYTICS, "false")
-						.initParam("jersey.config.server.provider.packages","nz.co.fortytwo.signalk.artemis,io.swagger.jaxrs.listing")
-						.initParam("jersey.config.server.provider.classnames","org.glassfish.jersey.media.multipart.MultiPartFeature")
-						.initParam("org.atmosphere.cpr.broadcaster.shareableThreadPool","true")
-						.initParam("org.atmosphere.cpr.broadcaster.maxProcessingThreads", "10")
-						.initParam("org.atmosphere.cpr.broadcaster.maxAsyncWriteThreads", "10")
-						.initParam("org.atmosphere.websocket.maxIdleTime", "10000")
-						.initParam("org.atmosphere.cpr.Broadcaster.writeTimeout", "30000")
-						.initParam("org.atmosphere.cpr.broadcasterLifeCyclePolicy","EMPTY_DESTROY")
-						.initParam("org.atmosphere.websocket.WebSocketProcessor","nz.co.fortytwo.signalk.artemis.server.SignalkWebSocketProcessor")
-						
-						.port(8080)
-						.host("0.0.0.0")
-					.build()
-				).build();
-		
+
+		server = new Nettosphere.Builder().config(new org.atmosphere.nettosphere.Config.Builder().supportChunking(true)
+				.maxChunkContentLength(1024 * 1024).socketKeepAlive(true).enablePong(false)
+				.initParam(ApplicationConfig.PROPERTY_SESSION_SUPPORT, "true")
+				.initParam(ApplicationConfig.ANALYTICS, "false")
+				.initParam("jersey.config.server.provider.packages",
+						"nz.co.fortytwo.signalk.artemis,io.swagger.jaxrs.listing")
+				.initParam("jersey.config.server.provider.classnames",
+						"org.glassfish.jersey.media.multipart.MultiPartFeature")
+				.initParam("org.atmosphere.cpr.broadcaster.shareableThreadPool", "true")
+				.initParam("org.atmosphere.cpr.broadcaster.maxProcessingThreads", "10")
+				.initParam("org.atmosphere.cpr.broadcaster.maxAsyncWriteThreads", "10")
+				.initParam("org.atmosphere.websocket.maxIdleTime", "10000")
+				.initParam("org.atmosphere.cpr.Broadcaster.writeTimeout", "30000")
+				.initParam("org.atmosphere.cpr.broadcasterLifeCyclePolicy", "EMPTY_DESTROY")
+				.initParam("org.atmosphere.websocket.WebSocketProcessor",
+						"nz.co.fortytwo.signalk.artemis.server.SignalkWebSocketProcessor")
+
+				.port(8080).host("0.0.0.0").build()).build();
+
 		server.start();
-		
+
 		skServer = new NettyServer(null, OUTPUT_TCP);
 		skServer.setTcpPort(Config.getConfigPropertyInt(TCP_PORT));
 		skServer.setUdpPort(Config.getConfigPropertyInt(UDP_PORT));
 		skServer.run();
 
-		if(Config.getConfigPropertyBoolean(GENERATE_NMEA0183)){
+		if (Config.getConfigPropertyBoolean(GENERATE_NMEA0183)) {
 			nmeaServer = new NettyServer(null, OUTPUT_NMEA);
 			nmeaServer.setTcpPort(Config.getConfigPropertyInt(TCP_NMEA_PORT));
 			nmeaServer.setUdpPort(Config.getConfigPropertyInt(UDP_NMEA_PORT));
@@ -182,59 +178,70 @@ public final class ArtemisServer {
 		ChartService.reloadCharts();
 	}
 
-
 	private void startScheduledServices() {
 		logger.info("Starting scheduled services");
-		//declination
+		// declination
 		final Runnable declination = new DeclinationUpdater();
 		scheduler.scheduleAtFixedRate(declination, 1, 1, TimeUnit.HOURS);
 	}
 
 	private void ensureSecurityConf() {
 		File secureConf = new File("./conf/security-conf.json");
-		if(!secureConf.exists()) {
-			try(InputStream in = getClass().getClassLoader().getResource("security-conf.json.default").openStream()){
+		if (!secureConf.exists()) {
+			try (InputStream in = getClass().getClassLoader().getResource("security-conf.json.default").openStream()) {
 				String defaultSecurity = IOUtils.toString(in);
 				SecurityUtils.save(defaultSecurity);
-			}catch (Exception e) {
-				logger.error(e,e);
+			} catch (Exception e) {
+				logger.error(e, e);
 			}
+
+		} 
+		// make sure we have system users serial, n2k, ais
+		try {
 			
-		}else {
-			//make sure we encrypt all passwords
-			try {
-				Json conf = SecurityUtils.getSecurityConfAsJson();
-				SecurityUtils.save(conf.toString());
-			} catch (IOException e) {
-				logger.error(e,e);
+			if (SecurityUtils.getUser("serial") == null) {
+				SecurityUtils.addUser("serial", java.util.UUID.randomUUID().toString(), "", Json.array().add("serial"));
 			}
+			if (SecurityUtils.getUser("n2k") == null) {
+				SecurityUtils.addUser("n2k", java.util.UUID.randomUUID().toString(), "", Json.array().add("n2k"));
+			}
+			if (SecurityUtils.getUser("ais") == null) {
+				SecurityUtils.addUser("ais", java.util.UUID.randomUUID().toString(), "", Json.array().add("ais"));
+			}
+			//amke sure all passwords are encrypted.
+			Json conf = SecurityUtils.getSecurityConfAsJson();
+			SecurityUtils.save(conf.toString());
+		} catch (Exception e) {
+			logger.error(e, e);
 		}
+
 	}
 
 	private void startIncomingConsumer() throws Exception {
-			if(session==null)
-				session = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),Config.getConfigProperty(Config.ADMIN_PWD));
-			if(consumer==null)
-				consumer = session.createConsumer(Config.INCOMING_RAW);
-			consumer.setMessageHandler(new MessageHandler() {
-				
-				@Override
-				public void onMessage(ClientMessage message) {
-					try {
-						message.acknowledge();
-					} catch (ActiveMQException e) {
-						logger.error(e, e);
-					}
-					logger.debug("Acknowledge {}", message);
-					
+		if (session == null)
+			session = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
+					Config.getConfigProperty(Config.ADMIN_PWD));
+		if (consumer == null)
+			consumer = session.createConsumer(Config.INCOMING_RAW);
+		consumer.setMessageHandler(new MessageHandler() {
+
+			@Override
+			public void onMessage(ClientMessage message) {
+				try {
+					message.acknowledge();
+				} catch (ActiveMQException e) {
+					logger.error(e, e);
 				}
-			});
-			session.start();
-			
+				logger.debug("Acknowledge {}", message);
+
+			}
+		});
+		session.start();
+
 	}
-	
+
 	private void startKvHandlers() throws Exception {
-		
+
 		influxHandler = new InfluxDbHandler();
 		influxHandler.startConsumer();
 		trueWindHandler = new TrueWindHandler();
@@ -257,18 +264,18 @@ public final class ArtemisServer {
 
 	public void stop() {
 		stopKvHandlers();
-		if(consumer!=null) {
+		if (consumer != null) {
 			try {
 				consumer.close();
 			} catch (ActiveMQException e) {
 				logger.error(e, e);
 			}
 		}
-		if(session!=null) {
+		if (session != null) {
 			try {
 				session.close();
 			} catch (ActiveMQException e) {
-				logger.error(e,e);
+				logger.error(e, e);
 			}
 		}
 		if (skServer != null) {
@@ -305,13 +312,13 @@ public final class ArtemisServer {
 	}
 
 	private void stopKvHandlers() {
-		if(influxHandler!=null) {
+		if (influxHandler != null) {
 			influxHandler.stop();
 		}
-		if(trueWindHandler!=null) {
+		if (trueWindHandler != null) {
 			trueWindHandler.stop();
 		}
-		
+
 	}
 
 	public static ActiveMQServer getActiveMQServer() {
@@ -372,35 +379,30 @@ public final class ArtemisServer {
 		txtSet.put("vessel_uuid", Config.getConfigProperty(UUID));
 		return txtSet;
 	}
-	
-	
 
 	static {
-        System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
-        System.setProperty("java.net.preferIPv4Stack", "true");
-        System.setProperty("log4j.configurationFile", "./conf/log4j2.json");
-        System.setProperty("org.apache.logging.log4j.simplelog.StatusLogger.level","TRACE");
-		
-    }
-	
+		System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
+		System.setProperty("java.net.preferIPv4Stack", "true");
+		System.setProperty("log4j.configurationFile", "./conf/log4j2.json");
+		System.setProperty("org.apache.logging.log4j.simplelog.StatusLogger.level", "TRACE");
+
+	}
+
 	public static void main(String[] args) throws Exception {
 
-		
 		PropertyConfigurator.configure("./conf/log4j2.json");
 		InternalLoggerFactory.setDefaultFactory(Log4J2LoggerFactory.INSTANCE);
 		LoggerContext context = (org.apache.logging.log4j.core.LoggerContext) LogManager.getContext(false);
-		
+
 		File file = new File("./conf/log4j2.json");
-		if(!file.exists()){
-			FileUtils.copyFile(new File("./conf/log4j2.json.sample"),file);
+		if (!file.exists()) {
+			FileUtils.copyFile(new File("./conf/log4j2.json.sample"), file);
 		}
 		// this will force a reconfiguration
-		context.setConfigLocation(file.toURI());		
-		
+		context.setConfigLocation(file.toURI());
+
 		new ArtemisServer();
 
 	}
-	
-	
 
 }

@@ -28,6 +28,7 @@ import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -41,6 +42,7 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 public class SignalkMapConvertor {
 
 	private static Logger logger = LogManager.getLogger(SignalkMapConvertor.class);
+
 
 	public static NavigableMap<String, Json> parseFull(Json json, NavigableMap<String, Json> map, String prefix) {
 		if (map == null)

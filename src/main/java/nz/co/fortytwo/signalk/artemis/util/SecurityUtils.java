@@ -3,6 +3,7 @@ package nz.co.fortytwo.signalk.artemis.util;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.crypto.SecretKey;
 import javax.servlet.http.Cookie;
@@ -41,7 +42,29 @@ public final class SecurityUtils {
 
 	private static Json securityConf;
 	
+	public static Json getUser(String name) throws Exception {
+		List<Json> list = getSecurityConfAsJson().at("users").asJsonList();
+		for(Json user:list) {
+			//logger.debug("Checking {}= {}", name, user.at("name").asString());
+			if(StringUtils.equals(user.at("name").asString(),name)) {
+				//logger.debug("   Found {} !",user);
+				return user;
+			}
+		}
+		return null;
+	}
 	
+	public static void addUser(String name, String password, String email, Json roles) throws Exception {
+		Json conf = SecurityUtils.getSecurityConfAsJson();
+		List<Json> list = conf.at("users").asJsonList();
+		list.add(Json.object()
+				.set("name", name)
+				.set("role",roles)
+				.set("password",password)
+				.set("email", email)
+				);
+		SecurityUtils.save(conf.toString());
+	}
 	
 	public static void setForbidden(AtmosphereResource r) {
 		r.getResponse().setHeader(HttpHeaders.AUTHORIZATION, "Basic realm=\""+REALM+"\"");
@@ -101,7 +124,7 @@ public final class SecurityUtils {
 		throw new SecurityException("Username or password invalid");
 	}
 
-	private static String issueToken(String username, Json roles) {
+	public static String issueToken(String username, Json roles) {
 		// Issue a token (can be a random String persisted to a database or a JWT token)
 		// The issued token must be associated to a user
 		Claims claims = Jwts.claims();

@@ -459,7 +459,14 @@ public class InfluxDbService implements TDBService {
 		if (obj != null)
 			return Json.make(Math.round((Double) obj));
 		obj = getValue(NULL_VALUE, s, 0);
-		if (obj != null && (boolean)obj) return Json.nil();
+		if (obj != null) {
+			if(obj instanceof String && Boolean.valueOf(obj.toString())){
+				return Json.nil();
+			}
+			if(obj instanceof Boolean && (boolean)obj){
+				return Json.nil();
+			}
+		}
 		
 		obj = getValue(DOUBLE_VALUE, s, 0);
 		if (obj != null)

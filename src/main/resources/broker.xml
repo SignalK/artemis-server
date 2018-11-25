@@ -107,7 +107,8 @@
 			</class-name>
 			<class-name>nz.co.fortytwo.signalk.artemis.intercept.SecurityWriteInterceptor
 			</class-name>
-
+<!-- 			<class-name>nz.co.fortytwo.signalk.artemis.intercept.SecurityReadInterceptor -->
+<!-- 			</class-name> -->
 		</remoting-incoming-interceptors>
 		<!-- outgoing -->
 		<!-- <remoting-outgoing-interceptors> -->

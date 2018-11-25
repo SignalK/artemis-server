@@ -630,5 +630,18 @@ public class Util {
         long iVal = Math.round(val * scale);
         return iVal / scale;
     }
+	/**Returns the Double or null if this is Json.nil()
+	 * @param value
+	 * @return
+	 */
+	public static Double asDouble(Json json) {
+		if(json==null || json.isNull()||json.getValue()==null) return null;
+		try {
+			return json.asDouble();
+		}catch (UnsupportedOperationException e) {
+			return (Double) json.getValue();
+		}
+		
+	}
 }
 

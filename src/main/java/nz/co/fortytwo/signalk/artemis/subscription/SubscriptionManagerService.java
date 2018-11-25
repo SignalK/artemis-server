@@ -177,7 +177,7 @@ public class SubscriptionManagerService{
 	}
 
 	
-	public void send(String type, String destination, String format, String correlation, Json json)
+	public void send(String destination, String format, String correlation, String token, Json json)
 			throws ActiveMQException {
 		if (json == null || json.isNull())
 			json = Json.object();
@@ -187,6 +187,7 @@ public class SubscriptionManagerService{
 		if (correlation != null)
 			txMsg.putStringProperty(Config.AMQ_CORR_ID, correlation);
 		txMsg.putStringProperty(Config.AMQ_SUB_DESTINATION, destination);
+		txMsg.putStringProperty(Config.AMQ_USER_TOKEN, token);
 		txMsg.putBooleanProperty(Config.SK_SEND_TO_ALL, false);
 		txMsg.putStringProperty(SignalKConstants.FORMAT, format);
 		txMsg.putBooleanProperty(SignalKConstants.REPLY, true);

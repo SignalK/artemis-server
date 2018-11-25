@@ -51,6 +51,7 @@ import com.coveo.nashorn_modules.ResourceFolder;
 
 import jdk.nashorn.api.scripting.NashornScriptEngine;
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.service.SignalkKvConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
@@ -159,7 +160,8 @@ public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer
 				
 				if (logger.isDebugEnabled())
 					logger.debug("Converted NMEA msg:" + json.toString());
-				sendKvJson(message, json);
+				SignalkKvConvertor.parseDelta(this, message, json);
+				//sendKvJson(message, json);
 			
 				//only used by tests, needs to go.
 				message.toCore().getBodyBuffer().clear();

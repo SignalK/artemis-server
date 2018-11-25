@@ -37,6 +37,7 @@ import org.apache.logging.log4j.Logger;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
+import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 
 
 /**
@@ -53,15 +54,21 @@ public class SerialPortManager implements Runnable {
 	private List<SerialPortReader> serialPortList = new CopyOnWriteArrayList<SerialPortReader>();
 
 	private boolean running = true;
-
-	//private ClientSession session;
+	private static String token = null;
+	
+	public static String getToken() {
+		return token;
+	}
 
 	@SuppressWarnings("static-access")
 	public void run() {
 		// not running, start now.
 		try {
-			
+			Json roles = SecurityUtils.getUser("serial").at("role");
+			token = SecurityUtils.issueToken("serial", roles);
 			while (running) {
+				//make sure token is updated
+				token = SecurityUtils.validateToken(token);
 				// remove any stopped readers
 				List<SerialPortReader> tmpPortList = new ArrayList<SerialPortReader>();
 				for (SerialPortReader reader : serialPortList) {
@@ -106,7 +113,7 @@ public class SerialPortManager implements Runnable {
 						}
 	
 						
-						SerialPortReader serial = new SerialPortReader();
+						
 						//serial.setSession(session);
 						//default 38400, then freeboard.cfg default, then freeboard.cfg per port
 						int baudRate = Config.getConfigPropertyInt(ConfigConstants.SERIAL_PORT_BAUD);
@@ -121,10 +128,12 @@ public class SerialPortManager implements Runnable {
 						}
 						
 						if(logger.isDebugEnabled())logger.debug("Comm port {} found and connecting at {}",portStr,baudRate);
+						SerialPortReader serial = new SerialPortReader();
 						serial.connect(portStr, baudRate);
 						if(logger.isDebugEnabled())logger.info("Comm port {} found and connected",portStr);
 						serialPortList.add(serial);
 					} catch (NullPointerException np) {
+						logger.error(np, np);
 						logger.error("Comm port {} was null, probably not found, or nothing connected",portStr);
 //					} catch (NoSuchPortException nsp) {
 //						logger.error("Comm port {} not found, or nothing connected",portStr);

@@ -4,7 +4,9 @@ import static nz.co.fortytwo.signalk.artemis.util.Config.ADMIN_PWD;
 import static nz.co.fortytwo.signalk.artemis.util.Config.ADMIN_USER;
 import static nz.co.fortytwo.signalk.artemis.util.Config.INCOMING_RAW;
 import static nz.co.fortytwo.signalk.artemis.util.Config.INTERNAL_KV;
+import static nz.co.fortytwo.signalk.artemis.util.Config.OUTGOING_REPLY;
 import static nz.co.fortytwo.signalk.artemis.util.Config.getConfigProperty;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self_str;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.timestamp;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
@@ -20,6 +22,7 @@ import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
+import org.apache.activemq.artemis.core.message.impl.CoreMessage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -120,8 +123,8 @@ public class MessageSupport {
 		txMsg.setExpiration(System.currentTimeMillis() + 5000);
 		txMsg.getBodyBuffer().writeString(json.toString());
 		if (logger.isDebugEnabled())
-			logger.debug("Msg body = {}", json.toString());
-		producer.get().send("outgoing.reply." + destination, txMsg);
+			logger.debug("Destination: {}, Msg body = {}", OUTGOING_REPLY+dot +destination, json.toString());
+		getProducer().send(OUTGOING_REPLY+dot + destination, txMsg);
 
 	}
 
@@ -186,7 +189,7 @@ public class MessageSupport {
 
 		if (txSession.get() == null) {
 			if (logger.isDebugEnabled())
-				logger.debug("Start amq session: {}", INTERNAL_KV);
+				logger.debug("Start amq session");
 			try {
 				txSession.set(Util.getVmSession(getConfigProperty(ADMIN_USER), getConfigProperty(ADMIN_PWD)));
 			} catch (Exception e) {
@@ -203,7 +206,7 @@ public class MessageSupport {
 
 		if (producer.get() == null && getTxSession() != null && !getTxSession().isClosed()) {
 			if (logger.isDebugEnabled())
-				logger.debug("Start producer: {}", INCOMING_RAW);
+				logger.debug("Start producer");
 
 			try {
 				producer.set(getTxSession().createProducer());
@@ -218,14 +221,14 @@ public class MessageSupport {
 
 	public void stop() {
 
-		if (producer.get() != null) {
+		if (producer!=null && producer.get() != null) {
 			try {
 				producer.get().close();
 			} catch (ActiveMQException e) {
 				logger.error(e, e);
 			}
 		}
-		if (txSession.get() != null) {
+		if (txSession!=null && txSession.get() != null) {
 			try {
 				txSession.get().close();
 			} catch (ActiveMQException e) {

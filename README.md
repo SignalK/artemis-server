@@ -101,6 +101,7 @@ Functionality
 			add full request/response semantics
 		Security:
 			reimplement key filtering as an interceptor.
+			Create default users for SERIAL, N2K, AIS, and other internal sources.
 			Add full RBAC rules based filtering
 		NMEA output
 		SSL config

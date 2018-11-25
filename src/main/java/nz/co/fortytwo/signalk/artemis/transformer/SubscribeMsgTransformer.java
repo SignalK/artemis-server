@@ -135,6 +135,7 @@ public class SubscribeMsgTransformer extends BaseInterceptor implements Transfor
 			String sessionId = message.getStringProperty(Config.AMQ_CORR_ID);
 			String destination = message.getStringProperty(Config.AMQ_REPLY_Q);
 			String correlation = message.getStringProperty(Config.AMQ_CORR_ID);
+			String token = message.getStringProperty(Config.AMQ_USER_TOKEN);
 			// ServerSession s =
 			// ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
 
@@ -142,7 +143,7 @@ public class SubscribeMsgTransformer extends BaseInterceptor implements Transfor
 				for (Json subscription : subscriptions.asJsonList()) {
 					Subscription sub = parseSubscribe(sessionId, destination,
 							Config.getConfigProperty(Config.ADMIN_USER), Config.getConfigProperty(Config.ADMIN_PWD),
-							ctx, subscription, correlation);
+							ctx, subscription, correlation, token);
 					if (logger.isDebugEnabled())
 						logger.debug("Remove subscription; " + sub.toString());
 					if(sub!=null)
@@ -163,6 +164,7 @@ public class SubscribeMsgTransformer extends BaseInterceptor implements Transfor
 			String sessionId = message.getStringProperty(Config.AMQ_CORR_ID);
 			String destination = message.getStringProperty(Config.AMQ_REPLY_Q);
 			String correlation = message.getStringProperty(Config.AMQ_CORR_ID);
+			String token = message.getStringProperty(Config.AMQ_USER_TOKEN);
 			// ServerSession s =
 			// ArtemisServer.getActiveMQServer().getSessionByID(sessionId);
 
@@ -170,7 +172,7 @@ public class SubscribeMsgTransformer extends BaseInterceptor implements Transfor
 				for (Json subscription : subscriptions.asJsonList()) {
 					Subscription sub = parseSubscribe(sessionId, destination,
 							Config.getConfigProperty(Config.ADMIN_USER), Config.getConfigProperty(Config.ADMIN_PWD),
-							ctx, subscription, correlation);
+							ctx, subscription, correlation, token);
 					if (logger.isDebugEnabled())
 						logger.debug("Created subscription; " + sub.toString());
 					if(sub!=null)
@@ -197,10 +199,11 @@ public class SubscribeMsgTransformer extends BaseInterceptor implements Transfor
 	 * @param context
 	 * @param subscription
 	 * @param correlation
+	 * @param token 
 	 * @throws Exception
 	 */
 	private Subscription parseSubscribe(String sessionId, String destination, String user, String password,
-			String context, Json subscription, String correlation) throws Exception {
+			String context, Json subscription, String correlation, String token) throws Exception {
 		// get values
 		if (logger.isDebugEnabled())
 			logger.debug("Parsing subscribe for : " + user + " : " + password + " : " + destination + " : " + context
@@ -238,7 +241,7 @@ public class SubscribeMsgTransformer extends BaseInterceptor implements Transfor
 			playbackRate = subscription.at(PLAYBACK_RATE).asDouble();
 
 		Subscription sub = new Subscription(sessionId, destination, user, password, path, period, minPeriod, format,
-				policy, correlation, startTime, playbackRate);
+				policy, correlation, token, startTime, playbackRate);
 
 		// STOMP, MQTT
 		// if(headers.containsKey(ConfigConstants.DESTINATION)){

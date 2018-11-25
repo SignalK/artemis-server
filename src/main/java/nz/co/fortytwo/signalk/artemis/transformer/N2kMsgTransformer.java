@@ -61,6 +61,7 @@ import com.coveo.nashorn_modules.ResourceFolder;
 
 import jdk.nashorn.api.scripting.NashornScriptEngine;
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.service.SignalkKvConvertor;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
@@ -149,7 +150,8 @@ public class N2kMsgTransformer extends JsBaseTransformer implements Transformer 
 				
 				if (logger.isDebugEnabled())
 					logger.debug("Converted N2K msg: {}", json.toString());
-				sendKvJson(message,json);
+				SignalkKvConvertor.parseDelta(this, message, json);
+				//sendKvJson(message,json);
 			} catch (Exception e) {
 				logger.error(e, e);
 				

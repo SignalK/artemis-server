@@ -49,8 +49,10 @@ import com.fazecast.jSerialComm.SerialPort;
 import com.fazecast.jSerialComm.SerialPortEvent;
 import com.fazecast.jSerialComm.SerialPortPacketListener;
 
+import nz.co.fortytwo.signalk.artemis.handler.MessageSupport;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
+import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 //import purejavacomm.CommPortIdentifier;
@@ -65,13 +67,12 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
  * @author robert
  * 
  */
-public class SerialPortReader {
+public class SerialPortReader extends MessageSupport{
 
 	private static Logger logger = LogManager.getLogger(SerialPortReader.class);
 	private String portName;
 	private File portFile;
-	private ThreadLocal<ClientSession> session;
-	private ThreadLocal<ClientProducer> producer;
+
 	private ClientConsumer consumer;
 	private boolean running = true;
 	//private boolean mapped = false;
@@ -85,7 +86,7 @@ public class SerialPortReader {
 	public SerialPortReader() throws Exception {
 		super();
 		queue = new LinkedBlockingQueue<String>(100);
-		consumer = getSession().createConsumer(Config.INCOMING_RAW);
+		consumer = getTxSession().createConsumer(Config.INCOMING_RAW);
 	}
 
 	/**
@@ -245,13 +246,13 @@ public class SerialPortReader {
 				// its not empty!
 				if (buffer.length() > 0) {
 					// send it
-					if (enableSerial && getSession() != null && !getSession().isClosed()) {
-						ClientMessage txMsg = getSession().createMessage(true);
+					if (enableSerial && getTxSession() != null && !getTxSession().isClosed()) {
+						ClientMessage txMsg = getTxSession().createMessage(true);
 						txMsg.getBodyBuffer().writeString(buffer);
 						txMsg.putStringProperty(Config.MSG_SRC_BUS, portName);
 						txMsg.putStringProperty(Config.MSG_SRC_TYPE, Config.SERIAL);
-						//txMsg.putStringProperty(AMQ_USER_TOKEN, getToken());
-						producer.get().send(new SimpleString(Config.INCOMING_RAW), txMsg);
+						txMsg.putStringProperty(AMQ_USER_TOKEN, SerialPortManager.getToken());
+						getProducer().send(new SimpleString(Config.INCOMING_RAW), txMsg);
 						if (logger.isDebugEnabled())
 							logger.debug("json = {}", buffer);
 
@@ -281,19 +282,6 @@ public class SerialPortReader {
 
 	}
 
-	/** */
-
-	/**
-	 * Set the camel producer, which fire the messages into camel
-	 * 
-	 * @param clientProducer
-	 * @throws ActiveMQException
-	 */
-	public void setSession(ClientSession session) throws ActiveMQException {
-		this.session.set(session);
-		this.producer.set(session.createProducer(Config.INCOMING_RAW));
-
-	}
 
 	/**
 	 * True if the serial port read/write threads are running
@@ -352,36 +340,8 @@ public class SerialPortReader {
 			}
 		}
 	}
-	public ClientSession getSession() {
+	
 
-		if (session.get() == null) {
-			if (logger.isDebugEnabled())
-				logger.debug("Start amq session: {}", INTERNAL_KV);
-			try {
-				session.set(Util.getVmSession(getConfigProperty(ADMIN_USER),
-						getConfigProperty(ADMIN_PWD)));
-			} catch (Exception e) {
-				logger.error(e, e);
-			}
-		}
-		return session.get();
-	}
-
-	public ClientProducer getProducer() {
-		if (producer.get() == null && getSession() != null && !getSession().isClosed()) {
-			if (logger.isDebugEnabled())
-				logger.debug("Start producer: {}",INCOMING_RAW);
-			
-			try {
-				producer.set(getSession().createProducer());
-			} catch (ActiveMQException e) {
-				logger.error(e,e);
-			}
-
-		}
-		return producer.get();
-
-	}
 	@Override
 	protected void finalize() throws Throwable {
 		
@@ -390,14 +350,7 @@ public class SerialPortReader {
 	}
 
 	private void stopSession() {
-		if (session.get() != null) {
-			try {
-				session.get().close();
-			} catch (ActiveMQException e) {
-				logger.error(e, e);
-			}
-		}
-
+		
 		if (consumer != null) {
 			try {
 				consumer.close();
@@ -405,14 +358,8 @@ public class SerialPortReader {
 				logger.error(e, e);
 			}
 		}
-
-		if (producer.get() != null) {
-			try {
-				producer.get().close();
-			} catch (ActiveMQException e) {
-				logger.error(e, e);
-			}
-		}
+		super.stop();
+		
 	}
 
 }

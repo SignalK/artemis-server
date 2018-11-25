@@ -92,9 +92,9 @@ public class AnchorWatchHandler extends BaseHandler{
 		query.put(skey, nav_anchor);
 		influx.loadData(map, vessels, query);
 		for(Entry<String, Json> entry:map.entrySet()) {
-			if(entry.getKey().contains(nav_anchor_maxRadius))maxRadius=entry.getValue().asDouble();
-			if(entry.getKey().contains(nav_anchor_position_latitude))anchorLat=entry.getValue().asDouble();
-			if(entry.getKey().contains(nav_position_longitude))anchorLon=entry.getValue().asDouble();
+			if(entry.getKey().contains(nav_anchor_maxRadius)) maxRadius=Util.asDouble(entry.getValue().at(value));
+			if(entry.getKey().contains(nav_anchor_position_latitude))anchorLat=Util.asDouble(entry.getValue().at(value));
+			if(entry.getKey().contains(nav_position_longitude))anchorLon=Util.asDouble(entry.getValue().at(value));
 		}
 	}
 
@@ -107,11 +107,11 @@ public class AnchorWatchHandler extends BaseHandler{
 			
 			if (logger.isDebugEnabled())
 				logger.debug("Processing key: {} : {}", key, node);
-			if(key.contains(nav_anchor_maxRadius))maxRadius=node.at(value).asDouble();
-			if(key.contains(nav_position_longitude))currentLon=node.at(value).asDouble();
-			if(key.contains(nav_position_latitude))currentLat=node.at(value).asDouble();
-			if(key.contains(nav_anchor_position_longitude))anchorLon=node.at(value).asDouble();
-			if(key.contains(nav_anchor_position_latitude))anchorLat=node.at(value).asDouble();
+			if(key.contains(nav_anchor_maxRadius)) maxRadius=Util.asDouble(node.at(value));
+			if(key.contains(nav_position_longitude))currentLon=Util.asDouble(node.at(value));
+			if(key.contains(nav_position_latitude))currentLat=Util.asDouble(node.at(value));
+			if(key.contains(nav_anchor_position_longitude))anchorLon=Util.asDouble(node.at(value));
+			if(key.contains(nav_anchor_position_latitude))anchorLat=Util.asDouble(node.at(value));
 			if(maxRadius!=null && maxRadius>0
 					&& currentLon!=null 
 					&& currentLat!=null 
