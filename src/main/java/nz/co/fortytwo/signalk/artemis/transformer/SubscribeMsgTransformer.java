@@ -123,7 +123,7 @@ public class SubscribeMsgTransformer extends BaseInterceptor implements Transfor
 						logger.debug("SubscribeMsg processed unsubscribe {}", node);
 				}
 			}
-			
+			node.clear(true);
 		}
 		return message;
 	}

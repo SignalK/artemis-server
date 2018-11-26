@@ -24,7 +24,6 @@
 package nz.co.fortytwo.signalk.artemis.transformer;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
-import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_DELTA;
 import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_FULL;
 
 import java.util.NavigableMap;

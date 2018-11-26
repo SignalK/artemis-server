@@ -95,6 +95,7 @@ public class GarbageInterceptor extends BaseInterceptor implements Interceptor {
 					return Config.JSON_DELTA;
 				if (isSubscribe(node))
 					return Config.JSON_SUBSCRIBE;
+				node.clear(true);
 			}
 		}
 		if (logger.isWarnEnabled()) {

@@ -227,41 +227,45 @@ public class SignalkMapConvertor {
 		Json root = Json.object();
 		if (map == null)
 			return root;
-
-		//NavigableMap<String, Json> allowedMap = new ConcurrentSkipListMap<>();
-		
-		root.set(self_str, Json.make(Config.getConfigProperty(ConfigConstants.UUID)));
-		root.set(version, Json.make(Config.getConfigProperty(ConfigConstants.VERSION)));
-		for (Entry<String, Json> entry : map.entrySet()) {
-			if (entry.getKey().endsWith(attr))
-				continue;
-
-			Json val = entry.getValue();
+		try {
+			//NavigableMap<String, Json> allowedMap = new ConcurrentSkipListMap<>();
 			
-			String path = StringUtils.substringBefore(entry.getKey(), dot + values + dot);
-			
-			if(!entry.getKey().contains(meta)) {
-				String ref = StringUtils.substringAfter(entry.getKey(), dot + values + dot);
-				if(ref.contains(dot+meta+dot))ref=StringUtils.substringBefore(ref, dot+meta+dot);
-				if(StringUtils.isNotBlank(ref)){
-					if(!StringUtils.startsWith(path, sources)) { 
-						if (logger.isDebugEnabled())
-							logger.debug("Add source: {} to value: {}", ref, val);
-						val.set(sourceRef, ref);
+			root.set(self_str, Json.make(Config.getConfigProperty(ConfigConstants.UUID)));
+			root.set(version, Json.make(Config.getConfigProperty(ConfigConstants.VERSION)));
+			for (Entry<String, Json> entry : map.entrySet()) {
+				if (entry.getKey().endsWith(attr))
+					continue;
+	
+				Json val = entry.getValue();
+				
+				String path = StringUtils.substringBefore(entry.getKey(), dot + values + dot);
+				
+				if(!entry.getKey().contains(meta)) {
+					String ref = StringUtils.substringAfter(entry.getKey(), dot + values + dot);
+					if(ref.contains(dot+meta+dot))ref=StringUtils.substringBefore(ref, dot+meta+dot);
+					if(StringUtils.isNotBlank(ref)){
+						if(!StringUtils.startsWith(path, sources)) { 
+							if (logger.isDebugEnabled())
+								logger.debug("Add source: {} to value: {}", ref, val);
+							val.set(sourceRef, ref);
+						}
 					}
+				}else {
+					path= path + dot +meta+ dot+StringUtils.substringAfter(entry.getKey(), dot+meta+dot);
 				}
-			}else {
-				path= path + dot +meta+ dot+StringUtils.substringAfter(entry.getKey(), dot+meta+dot);
+				if (logger.isDebugEnabled())
+					logger.debug("Add key: {}, value: {}", entry.getKey(), val.toString());
+				if (val.isObject() && val.has(sentence)) {
+					Util.setJson(root, path + dot + sentence, val.at(sentence).dup());
+					continue;
+				}
+				Util.setJson(root, path, val.dup());
 			}
-			if (logger.isDebugEnabled())
-				logger.debug("Add key: {}, value: {}", entry.getKey(), val.toString());
-			if (val.isObject() && val.has(sentence)) {
-				Util.setJson(root, path + dot + sentence, val.at(sentence).dup());
-				continue;
-			}
-			Util.setJson(root, path, val.dup());
+			return root.dup();
+		}finally {
+			map.clear();
+			root.clear(true);
 		}
-		return root;
 	}
 
 	public static Json mapToUpdatesDelta(NavigableMap<String, Json> map) {
@@ -277,12 +281,22 @@ public class SignalkMapConvertor {
 
 	public static Json mapToPutDelta(NavigableMap<String, Json> map) {
 		Map<String, Map<String, Map<String, Map<String, List<Entry<String, Json>>>>>> deltaMap = mapToDeltaMap(map);
-		return generateDelta(deltaMap, PUT);
+		try {
+			return generateDelta(deltaMap, PUT);
+		}finally {
+			map.clear();
+			deltaMap.clear();
+		}
 	}
 
 	public static Json mapToConfigDelta(NavigableMap<String, Json> map) {
 		Map<String, Map<String, Map<String, Map<String, List<Entry<String, Json>>>>>> deltaMap = mapToDeltaMap(map);
-		return generateDelta(deltaMap, CONFIG);
+		try {
+			return generateDelta(deltaMap, CONFIG);
+		}finally {
+			map.clear();
+			deltaMap.clear();
+		}
 	}
 
 	public static Map<String, Map<String, Map<String, Map<String, List<Entry<String, Json>>>>>> mapToDeltaMap(

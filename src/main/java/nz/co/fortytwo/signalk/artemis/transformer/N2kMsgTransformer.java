@@ -24,7 +24,6 @@
 package nz.co.fortytwo.signalk.artemis.transformer;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
-import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_DELTA;
 import static nz.co.fortytwo.signalk.artemis.util.Config.N2K;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self_str;
@@ -32,23 +31,13 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.NavigableMap;
-import java.util.concurrent.ConcurrentSkipListMap;
 
 import javax.script.Bindings;
 import javax.script.Invocable;
-import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
-import org.apache.activemq.artemis.api.core.ActiveMQException;
-import org.apache.activemq.artemis.api.core.ActiveMQExceptionType;
-import org.apache.activemq.artemis.api.core.ICoreMessage;
-import org.apache.activemq.artemis.api.core.Interceptor;
 import org.apache.activemq.artemis.api.core.Message;
-import org.apache.activemq.artemis.core.protocol.core.Packet;
-import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendMessage;
 import org.apache.activemq.artemis.core.server.transformer.Transformer;
-import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -62,8 +51,6 @@ import com.coveo.nashorn_modules.ResourceFolder;
 import jdk.nashorn.api.scripting.NashornScriptEngine;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.service.SignalkKvConvertor;
-import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
-import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
@@ -151,7 +138,7 @@ public class N2kMsgTransformer extends JsBaseTransformer implements Transformer 
 				if (logger.isDebugEnabled())
 					logger.debug("Converted N2K msg: {}", json.toString());
 				SignalkKvConvertor.parseDelta(this, message, json);
-				//sendKvJson(message,json);
+				json.clear(true);
 			} catch (Exception e) {
 				logger.error(e, e);
 				

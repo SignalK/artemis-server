@@ -161,7 +161,7 @@ public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer
 				if (logger.isDebugEnabled())
 					logger.debug("Converted NMEA msg:" + json.toString());
 				SignalkKvConvertor.parseDelta(this, message, json);
-				//sendKvJson(message, json);
+				json.clear(true);
 			
 				//only used by tests, needs to go.
 				message.toCore().getBodyBuffer().clear();

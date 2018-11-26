@@ -2,36 +2,19 @@ package nz.co.fortytwo.signalk.artemis.transformer;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
 import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_DELTA;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.GET;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_datetime;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
-import java.io.IOException;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
-import org.apache.activemq.artemis.api.core.ActiveMQExceptionType;
-import org.apache.activemq.artemis.api.core.ICoreMessage;
-import org.apache.activemq.artemis.api.core.Interceptor;
 import org.apache.activemq.artemis.api.core.Message;
-import org.apache.activemq.artemis.api.core.client.ClientMessage;
-import org.apache.activemq.artemis.core.protocol.core.Packet;
-import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendMessage;
 import org.apache.activemq.artemis.core.server.transformer.Transformer;
-import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.intercept.BaseInterceptor;
 import nz.co.fortytwo.signalk.artemis.service.SignalkKvConvertor;
-import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
-import nz.co.fortytwo.signalk.artemis.util.Config;
-import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 /*
@@ -101,13 +84,13 @@ public class DeltaMsgTransformer extends BaseInterceptor implements Transformer 
 		return message;
 	}
 
-	protected NavigableMap<String, Json> processDelta(Message message, Json node) throws ActiveMQException {
+	protected void processDelta(Message message, Json node) throws ActiveMQException {
 		if (logger.isDebugEnabled())
 			logger.debug("Saving delta: {}", node.toString());
-		NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
+	
 		SignalkKvConvertor.parseDelta(this,message,node);
-		return map;
-
+		
+		node.clear(true);
 	}
 
 }

@@ -106,6 +106,7 @@ public class DeltaSourceInterceptor extends BaseInterceptor implements Intercept
 					}
 					message.getBodyBuffer().clear();
 					message.getBodyBuffer().writeString(node.toString());
+					node.clear(true);
 					return true;
 				} catch (Exception e) {
 					logger.error(e, e);

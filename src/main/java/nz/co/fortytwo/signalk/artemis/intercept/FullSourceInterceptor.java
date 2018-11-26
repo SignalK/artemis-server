@@ -84,6 +84,7 @@ public class FullSourceInterceptor extends BaseInterceptor implements Intercepto
 				convertFullSrcToRef(node, srcBus,msgSrcType);
 				message.getBodyBuffer().clear();
 				message.getBodyBuffer().writeString(node.toString());
+				node.clear(true);
 				return true;
 			} catch (Exception e) {
 				logger.error(e, e);
