@@ -65,12 +65,12 @@ public class InfluxDbHandler extends BaseHandler{
 			if (logger.isDebugEnabled())
 				logger.debug("Saving key: {} : {}", key, node);
 			save(key, node);
-
+			node.clear(true);
 	}
 
 
 	protected void save(String key, Json node) {
-		influx.save(key, node);
+		influx.save(key, node.dup());
 		
 	}
 

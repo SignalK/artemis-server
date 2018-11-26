@@ -112,6 +112,7 @@ public class AnchorWatchHandler extends BaseHandler{
 			if(key.contains(nav_position_latitude))currentLat=Util.asDouble(node.at(value));
 			if(key.contains(nav_anchor_position_longitude))anchorLon=Util.asDouble(node.at(value));
 			if(key.contains(nav_anchor_position_latitude))anchorLat=Util.asDouble(node.at(value));
+			node.clear(true);
 			if(maxRadius!=null && maxRadius>0
 					&& currentLon!=null 
 					&& currentLat!=null 

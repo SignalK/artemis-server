@@ -106,7 +106,7 @@ public class TrueWindHandler extends BaseHandler{
 			if(key.contains(nav_speedOverGround))vesselSpeed=node.at(value).asDouble();
 			if(key.contains(nav_courseOverGroundTrue))cog=node.at(value).asDouble();
 			if(key.contains(nav_courseOverGroundMagnetic))cogm=node.at(value).asDouble();
-			
+
 			if (logger.isDebugEnabled())
 				logger.debug("Calculating on apparent angle: {}, apparentSpeed : {}, vesselSpeed: {}", apparentDirection, apparentWindSpeed, vesselSpeed);
             

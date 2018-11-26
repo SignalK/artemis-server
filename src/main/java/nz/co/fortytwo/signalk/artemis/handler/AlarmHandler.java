@@ -102,6 +102,7 @@ public class AlarmHandler extends BaseHandler {
 		if (key.contains(meta)) {
 			Json node = Util.readBodyBuffer(message.toCore());
 			parseMeta(key, node);
+			node.clear(true);
 		} else {
 
 			if (!alarmMap.containsKey(key))
@@ -112,6 +113,7 @@ public class AlarmHandler extends BaseHandler {
 			if (logger.isDebugEnabled())
 				logger.debug("Checking alarm for key: {} : {}", key, node);
 			check(message, key, alarmMap.get(key), node);
+			node.clear(true);
 		}
 
 	}
