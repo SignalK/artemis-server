@@ -121,6 +121,7 @@ public abstract class BaseHandler extends MessageSupport{
 	public void stop() {
 		if(consumer!=null) {
 			try {
+				consumer.setMessageHandler(null);
 				consumer.close();
 			} catch (ActiveMQException e) {
 				logger.error(e,e);

@@ -123,6 +123,7 @@ public class Subscription {
 			private long queryTime=StringUtils.isNotBlank(startTime)?Util.getMillisFromIsoTime(startTime):System.currentTimeMillis();
 
 			private NavigableMap<String, Json> rslt = new ConcurrentSkipListMap<String, Json>();
+			private Json json = Json.object();
 			@Override
 			public void run() {
 				if (logger.isDebugEnabled()) {
@@ -152,7 +153,7 @@ public class Subscription {
 					}
 					if (logger.isDebugEnabled())
 						logger.debug("rslt map = {}" , rslt);
-					Json json = null;
+					
 					if (SignalKConstants.FORMAT_DELTA.equals(format)) {
 						json = SignalkMapConvertor.mapToUpdatesDelta(rslt);
 						if (logger.isDebugEnabled())
@@ -168,6 +169,7 @@ public class Subscription {
 					
 					try{
 						SubscriptionManagerFactory.getInstance().send( destination, format, correlation, token, json);
+						json.clear(true);
 					}catch(ActiveMQException amq){
 						logger.error(amq,amq);
 						setActive(false);

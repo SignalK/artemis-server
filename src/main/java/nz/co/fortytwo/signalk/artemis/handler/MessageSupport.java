@@ -224,6 +224,7 @@ public class MessageSupport {
 		if (producer!=null && producer.get() != null) {
 			try {
 				producer.get().close();
+				producer.remove();
 			} catch (ActiveMQException e) {
 				logger.error(e, e);
 			}
@@ -231,11 +232,18 @@ public class MessageSupport {
 		if (txSession!=null && txSession.get() != null) {
 			try {
 				txSession.get().close();
+				txSession.remove();
 			} catch (ActiveMQException e) {
 				logger.error(e, e);
 			}
 		}
 
+	}
+
+	@Override
+	protected void finalize() throws Throwable {
+		stop();
+		super.finalize();
 	}
 
 	protected void setUuid(String uuid) {

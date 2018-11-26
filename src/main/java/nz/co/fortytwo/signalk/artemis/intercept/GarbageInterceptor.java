@@ -5,6 +5,7 @@ import static nz.co.fortytwo.signalk.artemis.util.Config.INCOMING_RAW;
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ICoreMessage;
 import org.apache.activemq.artemis.api.core.Interceptor;
+import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.core.protocol.core.Packet;
 import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendMessage;
 import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
@@ -33,6 +34,9 @@ public class GarbageInterceptor extends BaseInterceptor implements Interceptor {
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
 
 			ICoreMessage msg = realPacket.getMessage();
+			if(msg instanceof ClientMessage) {
+				((ClientMessage)msg).acknowledge();
+			}
 			if(!StringUtils.equals(msg.getAddress(), INCOMING_RAW))return true;
 			if(msg.getStringProperty(Config.AMQ_CONTENT_TYPE)!=null) {
 				return true;

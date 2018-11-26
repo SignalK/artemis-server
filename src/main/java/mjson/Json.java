@@ -1631,6 +1631,16 @@ public class Json implements java.io.Serializable, Iterable<Json>
 	
 	/**
 	 * <p>
+	 * Remove all elements. If true it frees all elements recursively
+	 * </p>
+	 * 
+	 * @param recursive
+	 * @return
+	 */
+	public void clear(boolean recursive) { throw new UnsupportedOperationException(); }
+	
+	/**
+	 * <p>
 	 * Remove the specified element from a <code>Json</code> array.
 	 * </p>
 	 * 
@@ -2322,6 +2332,23 @@ public class Json implements java.io.Serializable, Iterable<Json>
 			return this; 
 		}
 		
+		public void clear(boolean recursive) {
+			
+			for (Iterator<Json> i = L.iterator(); i.hasNext(); )
+			{
+				Json j = i.next();
+				if(!(j.isObject()||j.isArray())) {
+					continue;
+				}
+				if(recursive) {
+					j.clear(recursive);
+				}
+			}
+			for(int x=0;x<L.size();x++) {
+				this.delAt(x);
+			}
+		}
+		
 		public String toString()
 		{
 			return toString(Integer.MAX_VALUE);
@@ -2487,7 +2514,17 @@ public class Json implements java.io.Serializable, Iterable<Json>
 			removeParent(el, this);
 			return this;
 		}
-		
+		public void clear(boolean recursive) {
+			for(String k:object.keySet()) {
+				if(!(object.get(k).isObject()||object.get(k).isArray())) {
+					continue;
+				}
+				if(recursive) {
+					object.get(k).clear(recursive);
+				}
+				this.delAt(k);
+			}
+		}
 		public Object getValue() { return asMap(); }
 		public boolean isObject() { return true; }
 		public Map<String, Object> asMap() 

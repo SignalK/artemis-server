@@ -212,6 +212,7 @@ public class BaseApiService extends MessageSupport{
 							logger.debug("onMessage for client {}", message);
 						String recv = Util.readBodyBufferToString(message);
 						message.acknowledge();
+						
 						if (StringUtils.isBlank(recv))
 							recv = "{}";
 
@@ -248,7 +249,9 @@ public class BaseApiService extends MessageSupport{
 
 					getConsumer().close();
 					try {
-						if (txSession.get() != null && !txSession.get().isClosed()
+						if (txSession!=null 
+								&& txSession.get() != null 
+								&& !txSession.get().isClosed()
 								&& txSession.get().queueQuery(new SimpleString(getTempQ())).getConsumerCount() == 0) {
 							if (logger.isDebugEnabled())
 								logger.debug("Delete queue: {}", tempQ);

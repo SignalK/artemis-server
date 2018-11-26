@@ -23,23 +23,15 @@
  */
 package nz.co.fortytwo.signalk.artemis.serial;
 
-import static nz.co.fortytwo.signalk.artemis.util.Config.ADMIN_PWD;
-import static nz.co.fortytwo.signalk.artemis.util.Config.ADMIN_USER;
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_USER_TOKEN;
-import static nz.co.fortytwo.signalk.artemis.util.Config.INCOMING_RAW;
-import static nz.co.fortytwo.signalk.artemis.util.Config.INTERNAL_KV;
-import static nz.co.fortytwo.signalk.artemis.util.Config.getConfigProperty;
 
 import java.io.File;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.regex.Pattern;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.api.core.client.ClientConsumer;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
-import org.apache.activemq.artemis.api.core.client.ClientProducer;
-import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
@@ -52,13 +44,6 @@ import com.fazecast.jSerialComm.SerialPortPacketListener;
 import nz.co.fortytwo.signalk.artemis.handler.MessageSupport;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
-import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
-import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
-import nz.co.fortytwo.signalk.artemis.util.Util;
-//import purejavacomm.CommPortIdentifier;
-//import purejavacomm.SerialPort;
-//import purejavacomm.SerialPortEvent;
-//import purejavacomm.SerialPortEventListener;
 
 /**
  * Wrapper to read serial port via jSerialComm, then fire messages into the artemis

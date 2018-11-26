@@ -183,7 +183,7 @@ public class SubscriptionManagerService{
 			json = Json.object();
 		//ClientMessage txMsg = new ClientMessageImpl((byte) 0, false, 5000, System.currentTimeMillis(), (byte) 4, ActiveMQClient.DEFAULT_INITIAL_MESSAGE_PACKET_SIZE);
 		ClientMessage txMsg = getTxSession().createMessage(false);
-		
+		txMsg.setExpiration(System.currentTimeMillis() + 5000);
 		if (correlation != null)
 			txMsg.putStringProperty(Config.AMQ_CORR_ID, correlation);
 		txMsg.putStringProperty(Config.AMQ_SUB_DESTINATION, destination);
@@ -218,6 +218,7 @@ public class SubscriptionManagerService{
 		if (producer.get() != null) {
 			try {
 				producer.get().close();
+				producer.remove();
 			} catch (ActiveMQException e) {
 				logger.warn(e, e);
 			}
@@ -225,6 +226,7 @@ public class SubscriptionManagerService{
 		if (txSession.get() != null) {
 			try {
 				txSession.get().close();
+				txSession.remove();
 			} catch (ActiveMQException e) {
 				logger.warn(e, e);
 			}

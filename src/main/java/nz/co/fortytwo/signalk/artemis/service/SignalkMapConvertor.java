@@ -265,8 +265,14 @@ public class SignalkMapConvertor {
 	}
 
 	public static Json mapToUpdatesDelta(NavigableMap<String, Json> map) {
+		
 		Map<String, Map<String, Map<String, Map<String, List<Entry<String, Json>>>>>> deltaMap = mapToDeltaMap(map);
-		return generateDelta(deltaMap, UPDATES);
+		try {
+			return generateDelta(deltaMap, UPDATES);
+		}finally {
+			map.clear();
+			deltaMap.clear();
+		}
 	}
 
 	public static Json mapToPutDelta(NavigableMap<String, Json> map) {
@@ -333,6 +339,7 @@ public class SignalkMapConvertor {
 				logger.debug("Add entry: {}:{}", eKey, entry);
 			list.add(entry);
 		}
+		map=null;
 		return msgs;
 	}
 
@@ -350,73 +357,76 @@ public class SignalkMapConvertor {
 		if (logger.isDebugEnabled())
 			logger.debug("Delta map: {}", msgs);
 		Json delta = Json.object();
-
+		
 		if (msgs == null || msgs.size() == 0)
 			return delta;
-
-		Json updatesArray = Json.array();
-		delta.set(deltatype, updatesArray);
-
-		for (String ctx : msgs.keySet()) {
-
-			for (String ts : msgs.get(ctx).keySet()) {
-				if (logger.isDebugEnabled())
-					logger.debug("timestamp: {}", ts);
-				for (String src : msgs.get(ctx).get(ts).keySet()) {
-					// new values object
+		try {
+			Json updatesArray = Json.array();
+			delta.set(deltatype, updatesArray);
+	
+			for (String ctx : msgs.keySet()) {
+	
+				for (String ts : msgs.get(ctx).keySet()) {
 					if (logger.isDebugEnabled())
-						logger.debug("sourceRef: {}", src);
-					// make wrapper object
-					Json valObj = Json.object();
-					updatesArray.add(valObj);
-
-					Json valuesArray = Json.array();
-					valObj.set(values, valuesArray);
-					valObj.set(timestamp, ts);
-					valObj.set(sourceRef, src);
-
-					// now the values
-					for (Entry<String, List<Entry<String, Json>>> msg : msgs.get(ctx).get(ts).get(src).entrySet()) {
+						logger.debug("timestamp: {}", ts);
+					for (String src : msgs.get(ctx).get(ts).keySet()) {
+						// new values object
 						if (logger.isDebugEnabled())
-							logger.debug("item: {}", msg.getKey());
-						List<Entry<String, Json>> list = msg.getValue();
-
-						for (Entry<String, Json> v : list) {
-							String vKey = v.getKey();
-							Json vJson = v.getValue();
+							logger.debug("sourceRef: {}", src);
+						// make wrapper object
+						Json valObj = Json.object();
+						updatesArray.add(valObj);
+	
+						Json valuesArray = Json.array();
+						valObj.set(values, valuesArray);
+						valObj.set(timestamp, ts);
+						valObj.set(sourceRef, src);
+	
+						// now the values
+						for (Entry<String, List<Entry<String, Json>>> msg : msgs.get(ctx).get(ts).get(src).entrySet()) {
 							if (logger.isDebugEnabled())
-								logger.debug("Key: {}, value: {}", vKey, vJson);
-
-							vKey = StringUtils.substringAfter(vKey, ctx + dot);
-							vKey = StringUtils.substringBefore(vKey, dot + values + dot);
-
-							Json val = Json.object(PATH, vKey);
-
-							if (vJson != null && vJson.isObject()) {
-								if (vJson.has(timestamp)) {
-									vJson.delAt(timestamp);
+								logger.debug("item: {}", msg.getKey());
+							List<Entry<String, Json>> list = msg.getValue();
+	
+							for (Entry<String, Json> v : list) {
+								String vKey = v.getKey();
+								Json vJson = v.getValue();
+								if (logger.isDebugEnabled())
+									logger.debug("Key: {}, value: {}", vKey, vJson);
+	
+								vKey = StringUtils.substringAfter(vKey, ctx + dot);
+								vKey = StringUtils.substringBefore(vKey, dot + values + dot);
+	
+								Json val = Json.object(PATH, vKey);
+	
+								if (vJson != null && vJson.isObject()) {
+									if (vJson.has(timestamp)) {
+										vJson.delAt(timestamp);
+									}
+									if (vJson.has(sourceRef)) {
+										vJson.delAt(sourceRef);
+									}
+									if (vJson.has(value)) {
+										val.set(value, vJson.at(value));
+									}
+								} else {
+									val.set(value, vJson);
 								}
-								if (vJson.has(sourceRef)) {
-									vJson.delAt(sourceRef);
-								}
-								if (vJson.has(value)) {
-									val.set(value, vJson.at(value));
-								}
-							} else {
-								val.set(value, vJson);
+								if (logger.isDebugEnabled())
+									logger.debug("Added Key: {}, value: {}", vKey, vJson);
+								valuesArray.add(val);
 							}
-							if (logger.isDebugEnabled())
-								logger.debug("Added Key: {}, value: {}", vKey, vJson);
-							valuesArray.add(val);
 						}
 					}
+					// add context
 				}
-				// add context
+				delta.set(CONTEXT, ctx);
 			}
-			delta.set(CONTEXT, ctx);
+			msgs=null;
+			return delta.dup();
+		}finally {
+			delta.clear(true);
 		}
-
-		return delta;
 	}
 
 }
