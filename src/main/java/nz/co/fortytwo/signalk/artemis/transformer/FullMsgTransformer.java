@@ -26,9 +26,6 @@ package nz.co.fortytwo.signalk.artemis.transformer;
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
 import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_FULL;
 
-import java.util.NavigableMap;
-import java.util.concurrent.ConcurrentSkipListMap;
-
 import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.core.server.transformer.Transformer;
 import org.apache.logging.log4j.LogManager;
@@ -36,7 +33,7 @@ import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.intercept.BaseInterceptor;
-import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
+import nz.co.fortytwo.signalk.artemis.service.SignalkKvConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 
@@ -66,12 +63,8 @@ public class FullMsgTransformer extends BaseInterceptor implements Transformer {
 			if (logger.isDebugEnabled())
 				logger.debug("processing full {} ", node);
 			try {
-				NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
-				SignalkMapConvertor.parseFull(node,map,"");
-				if (logger.isDebugEnabled())
-					logger.debug("map size: {} ", map.size());
+				SignalkKvConvertor.parseFull(this,message, node,"");
 				
-				sendKvMap(message, map);
 			} catch (Exception e) {
 				logger.error(e,e);
 			}

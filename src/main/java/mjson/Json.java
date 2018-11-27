@@ -2337,9 +2337,6 @@ public class Json implements java.io.Serializable, Iterable<Json>
 			for (Iterator<Json> i = L.iterator(); i.hasNext(); )
 			{
 				Json j = i.next();
-				if(!(j.isObject()||j.isArray())) {
-					continue;
-				}
 				if(recursive) {
 					j.clear(recursive);
 				}
@@ -2516,9 +2513,6 @@ public class Json implements java.io.Serializable, Iterable<Json>
 		}
 		public void clear(boolean recursive) {
 			for(String k:object.keySet()) {
-				if(!(object.get(k).isObject()||object.get(k).isArray())) {
-					continue;
-				}
 				if(recursive) {
 					object.get(k).clear(recursive);
 				}

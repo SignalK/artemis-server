@@ -80,12 +80,6 @@ public class MessageSupport {
 
 	}
 
-	protected void sendKvJson(Message message, Json json) {
-		NavigableMap<String, Json> map = new ConcurrentSkipListMap<String, Json>();
-		SignalkMapConvertor.parseDelta(json, map);
-		sendKvMap(message, map);
-
-	}
 
 	public void sendKvMap(Message message, NavigableMap<String, Json> map) {
 		// remove "self" and "version"
