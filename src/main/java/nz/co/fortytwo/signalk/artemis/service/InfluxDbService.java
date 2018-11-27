@@ -741,44 +741,46 @@ public class InfluxDbService implements TDBService {
 			
 			if(self_str.equals(key))return;
 			if(version.equals(key))return;
-			String[] path = StringUtils.split(key, '.');
+			//String[] path = StringUtils.split(key, '.');
+			//StringUtils.substringBetween(key, dot, dot)
 			String field = getFieldType(val);
-			
+			int p1 = key.indexOf(dot);
+			int p2 = key.indexOf(dot,p1+1);
 			Builder point = null;
-			switch (path[0]) {	
+			switch (key.substring(0, p1)) {	
 			case resources:
-				point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS)
+				point = Point.measurement(key.substring(0, p1)).time(millis, TimeUnit.MILLISECONDS)
 						.tag("sourceRef", sourceRef)
-						.tag("uuid", path[1])
+						.tag("uuid", key.substring(p1+1, p2))
 						.tag(InfluxDbService.PRIMARY_VALUE, isPrimary(key,sourceRef).toString())
-						.tag(skey, String.join(".", ArrayUtils.subarray(path, 1, path.length)));
+						.tag(skey, key.substring(p2+1));
 				influxDB.write(addPoint(point, field, val));
 				break;
 			case sources:
-				point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS)
-						.tag("sourceRef", path[1])
-						.tag(skey, String.join(".", ArrayUtils.subarray(path, 1, path.length)));
+				point = Point.measurement(key.substring(0, p1)).time(millis, TimeUnit.MILLISECONDS)
+						.tag("sourceRef", key.substring(p1+1, p2))
+						.tag(skey, key.substring(p2+1));
 				influxDB.write(addPoint(point, field, val));
 				break;
 			case CONFIG:
-				point = Point.measurement(path[0]).time(millis, TimeUnit.MILLISECONDS)
-						.tag("uuid", path[1])
-						.tag(skey, String.join(".", ArrayUtils.subarray(path, 1, path.length)));
+				point = Point.measurement(key.substring(0, p1)).time(millis, TimeUnit.MILLISECONDS)
+						.tag("uuid", key.substring(p1+1, p2))
+						.tag(skey, key.substring(p2+1));
 				influxDB.write(addPoint(point, field, val));
 				//also update the config map
-				Config.setProperty(String.join(".", path), Json.make(val));
+				Config.setProperty(key, Json.make(val));
 				break;
 			case vessels:
-				writeToInflux(path, millis, key, sourceRef, field, val);
+				writeToInflux(key, p1, p2, millis, sourceRef, field, val);
 				break;
 			case aircraft:
-				writeToInflux(path, millis, key, sourceRef, field, val);
+				writeToInflux(key, p1, p2, millis, sourceRef, field, val);
 				break;
 			case sar:
-				writeToInflux(path, millis, key, sourceRef, field, val);
+				writeToInflux(key, p1, p2, millis, sourceRef, field, val);
 				break;
 			case aton:
-				writeToInflux(path, millis, key, sourceRef, field, val);
+				writeToInflux(key, p1, p2, millis, sourceRef, field, val);
 				break;
 			default:
 				break;
@@ -787,14 +789,14 @@ public class InfluxDbService implements TDBService {
 		
 	}
 
-	private void writeToInflux(String[] path, long millis, String key, String sourceRef, String field,  Object val) {
+	private void writeToInflux(String key, int p1, int p2, long millis, String sourceRef, String field,  Object val) {
 		Boolean primary = isPrimary(key,sourceRef);
-		Builder point = Point.measurement(path[0])
+		Builder point = Point.measurement(key.substring(0, p1))
 				.time(millis, TimeUnit.MILLISECONDS)
 				.tag("sourceRef", sourceRef)
-				.tag("uuid", path[1])
+				.tag("uuid", key.substring(p1+1, p2))
 				.tag(InfluxDbService.PRIMARY_VALUE, primary.toString())
-				.tag(skey, String.join(".", ArrayUtils.subarray(path, 2, path.length)));
+				.tag(skey, key.substring(p2+1));
 		
 		influxDB.write(addPoint(point, field, val));
 		

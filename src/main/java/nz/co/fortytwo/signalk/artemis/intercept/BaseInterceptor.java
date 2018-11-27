@@ -3,7 +3,9 @@ package nz.co.fortytwo.signalk.artemis.intercept;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
+import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ICoreMessage;
+import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.core.protocol.core.Packet;
 import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.MessagePacket;
 import org.apache.logging.log4j.LogManager;
@@ -12,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.handler.MessageSupport;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
+import nz.co.fortytwo.signalk.artemis.service.SignalkKvConvertor;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.service.TDBService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
@@ -55,11 +58,16 @@ public class BaseInterceptor extends MessageSupport{
 		return Util.isN2k(node);
 	}
 	
-	public void convertSource(Json j, String srcBus, String msgType) {
+	public void convertSource(MessageSupport support, Message message, Json j, String srcBus, String msgType)  {
 		Json srcJson = Util.convertSourceToRef(j,srcBus,msgType);
-		saveSource(srcJson);
+		try {
+			SignalkKvConvertor.parseFull(support, message, srcJson, "");
+		} catch (ActiveMQException e) {
+			logger.error(e,e);
+		}
+	
 	}
-	public void convertFullSrcToRef(Json node, String srcBus, String msgSrcType) {
+	public void convertFullSrcToRef(MessageSupport support, Message message, Json node, String srcBus, String msgSrcType) {
 		if (logger.isDebugEnabled())
 			logger.debug("Converting source in full: {}", node.toString());
 		//recurse keys
@@ -68,11 +76,12 @@ public class BaseInterceptor extends MessageSupport{
 				if(j.isObject()) {
 						
 					if(j.has(SignalKConstants.source)) {
-						convertSource(j,srcBus, msgSrcType);
+							convertSource(support, message, j,srcBus, msgSrcType);
+						}
 					}else {
-						convertFullSrcToRef(j, srcBus, msgSrcType);
+						convertFullSrcToRef(support, message, j, srcBus, msgSrcType);
 					}
-				}
+				
 			});
 	}
 	
@@ -81,13 +90,13 @@ public class BaseInterceptor extends MessageSupport{
 		influx.save(map);
 	}
 	
-	protected void saveSource(Json srcJson) {
-		if(srcJson==null)return;
-		NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
-		SignalkMapConvertor.parseFull(srcJson,map, "");
-		saveMap(map);
-	}
-	
+//	protected void saveSource(Json srcJson) {
+//		if(srcJson==null)return;
+//		NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
+//		SignalkMapConvertor.parseFull(srcJson,map, "");
+//		saveMap(map);
+//	}
+//	
 	protected boolean isResponse(Packet packet) {
 		if (packet.isResponse())
 			return true;

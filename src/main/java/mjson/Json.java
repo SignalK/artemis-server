@@ -1637,7 +1637,7 @@ public class Json implements java.io.Serializable, Iterable<Json>
 	 * @param recursive
 	 * @return
 	 */
-	public void clear(boolean recursive) { throw new UnsupportedOperationException(); }
+	public void clear(boolean recursive) {  }
 	
 	/**
 	 * <p>

@@ -193,13 +193,8 @@ public class Util {
 	 * @return
 	 */
 	public static String fixSelfKey(String key) {
-		if (selfMatch == null) {
-			selfMatch = Pattern.compile("\\." + Config.getConfigProperty(ConfigConstants.UUID) + "\\.|\\."
-					+ Config.getConfigProperty(ConfigConstants.UUID) + "$");
-		}
-		key = selfMatch.matcher(key).replaceAll(dot + Config.getConfigProperty(ConfigConstants.UUID) + dot);
-
-		return key;
+		if(key.endsWith(".self"))return StringUtils.removeEnd(key, "self")+Config.getConfigProperty(ConfigConstants.UUID);
+		return StringUtils.replace(key, ".self.", dot + Config.getConfigProperty(ConfigConstants.UUID)+dot);
 	}
 
 	public static ClientSession getVmSession(String user, String password) throws Exception {

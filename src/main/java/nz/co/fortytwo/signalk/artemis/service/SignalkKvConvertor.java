@@ -8,11 +8,16 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PUT;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UNKNOWN;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.meta;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sourceRef;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.timestamp;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.values;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
+
+import java.util.NavigableMap;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.Message;
@@ -30,11 +35,64 @@ public class SignalkKvConvertor {
 
 	private static Logger logger = LogManager.getLogger(SignalkKvConvertor.class);
 	
-	
+	public static void parseFull(MessageSupport sender,Message origMessage, Json json, String prefix) throws ActiveMQException {
+		
+		if (json == null || json.isNull())
+			return;
+
+		for (Entry<String, Json> entry : json.asJsonMap().entrySet()) {
+
+			String key = entry.getKey();
+			Json val = entry.getValue();
+
+			if (logger.isDebugEnabled())
+				logger.debug("Recurse {} = {}", () -> key, () -> val);
+			//primitive we write out
+			if (val.isPrimitive() || val.isNull() || val.isArray()) {
+				sender.sendKvMessage(origMessage,prefix + key, val);
+				continue;
+			}
+			//value object we save in .values.sourceref.
+			if (val.has(value)) {
+				String srcRef = null;
+				Json tmpVal = Json.object(value,val.at(value));
+				if (val.has(sourceRef)) {
+					srcRef = val.at(sourceRef).asString();
+					tmpVal.set(sourceRef, srcRef);
+				} else {
+					srcRef = UNKNOWN;
+					tmpVal.set(sourceRef, srcRef);
+				}
+
+				if (val.has(timestamp)) {
+					if (logger.isDebugEnabled())
+						logger.debug("put timestamp: {}:{}", key, val);
+					tmpVal.set(timestamp, val.at(timestamp).asString());
+				} else {
+					tmpVal.set(timestamp, Util.getIsoTimeString());
+				}
+				if(prefix.contains(dot+values)) {
+					sender.sendKvMessage(origMessage,prefix + key , val);
+					if (logger.isDebugEnabled())
+						logger.debug("put: {}:{}", prefix + key, val);
+				}else {
+					sender.sendKvMessage(origMessage,prefix + key + dot + values + dot + srcRef, tmpVal);
+					if (logger.isDebugEnabled())
+						logger.debug("put: {}:{}", prefix + key + dot + values + dot + srcRef, tmpVal);
+				}
+				//sourceRef is wrong for meta
+				if(val.has(meta)) parseFull(sender, origMessage, val.at(meta),  prefix + key + dot + values+dot+ srcRef+dot+meta+dot);
+				if(val.has(values)) parseFull(sender, origMessage, val.at(values),  prefix + key + dot + values+dot);
+				continue;
+			}
+			
+			parseFull(sender, origMessage, val, prefix + key + ".");
+
+		}
+
+	}
 	/**
-	 * Convert Delta JSON to map. Returns null if the json is not an update,
-	 * otherwise return a map
-	 * 
+	 * Convert Delta JSON to kv and send to kv queue. 
 	 * @param node
 	 * @return
 	 * @throws ActiveMQException 

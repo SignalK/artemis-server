@@ -269,8 +269,7 @@ public class Config {
 
 	public static String getConfigProperty(String prop) {
 		try {
-			if(config.getMap().containsKey(prop))
-				return (String) config.getMap().get(prop).getValue();
+			return (String) config.getMap().get(prop).getValue();
 		} catch (Exception e) {
 			logger.warn("getConfigProperty {} : {}",prop ,e.getMessage());
 			if (logger.isDebugEnabled())logger.debug(e,e);
@@ -285,8 +284,7 @@ public class Config {
 
 	public static Integer getConfigPropertyInt(String prop) {
 		try {
-			if(config.getMap().containsKey(prop))
-				return config.getMap().get(prop).asInteger();
+			return config.getMap().get(prop).asInteger();
 		} catch (Exception e) {
 			logger.warn("getConfigProperty {} : {}",prop ,e.getMessage());
 			if (logger.isDebugEnabled())logger.debug(e,e);
@@ -298,8 +296,7 @@ public class Config {
 	public static Double getConfigPropertyDouble(String prop) {
 
 		try {
-			if(config.getMap().containsKey(prop))
-				return config.getMap().get(prop).asDouble();
+			return config.getMap().get(prop).asDouble();
 		} catch (Exception e) {
 			logger.warn("getConfigProperty {} : {}",prop ,e.getMessage());
 			if (logger.isDebugEnabled())logger.debug(e,e);
@@ -309,7 +306,6 @@ public class Config {
 
 	public static Boolean getConfigPropertyBoolean(String prop) {
 		try {
-			if(config.getMap().containsKey(prop))
 				return config.getMap().get(prop).asBoolean();
 		} catch (Exception e) {
 			logger.warn("getConfigProperty {} : {}",prop ,e.getMessage());
