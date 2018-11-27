@@ -746,6 +746,7 @@ public class InfluxDbService implements TDBService {
 			String field = getFieldType(val);
 			int p1 = key.indexOf(dot);
 			int p2 = key.indexOf(dot,p1+1);
+			if(p2<0)p2=key.length();
 			Builder point = null;
 			switch (key.substring(0, p1)) {	
 			case resources:
