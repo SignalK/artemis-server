@@ -454,9 +454,18 @@ public class Util {
 		Json node = parent;
 		for (int x = 0; x < path.length(); x++) {
 			if (logger.isDebugEnabled())
-				logger.debug("setJson: {}", paths[x]);
+				logger.debug("setJson: {} : {}", paths[x], json);
 			if (x == paths.length - 1) {
-				node.set(paths[x], json);
+				//merge with existing
+				if(node.has(paths[x])&& node.at(paths[x]).isObject()){
+					Json j = node.at(paths[x]);
+					for( String key :json.asJsonMap().keySet()) {
+						j.set(key, json.at(key));
+					}
+					
+				}else {
+					node.set(paths[x], json);
+				}
 				return json;
 			}
 			if (node.has(paths[x])) {

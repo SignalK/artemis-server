@@ -51,7 +51,7 @@ public class TrueWindIntegrationTest extends BaseServerTest{
 			logger.debug("Input sent");
 		
 			logger.debug("Receive started");
-			List<ClientMessage> replies = listen(session, consumer, Config.INTERNAL_KV, 10, 100);
+			List<ClientMessage> replies = listen(session, consumer, qName, 10, 100);
 			
 			logger.debug("Received {} replies", replies.size());
 			replies.forEach((m)->{

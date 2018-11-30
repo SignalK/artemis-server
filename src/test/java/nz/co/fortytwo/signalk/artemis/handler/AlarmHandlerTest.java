@@ -50,7 +50,6 @@ public class AlarmHandlerTest extends BaseServerTest {
     	handler = partialMockBuilder(AlarmHandler.class)
 	    	.addMockedMethod("sendJson")
     			.createMock(); 
-    	
     }
 	@Test
 	public void shouldStoreKey() throws Exception {
@@ -86,8 +85,8 @@ public class AlarmHandlerTest extends BaseServerTest {
 		handler.consume(alarm);
 		handler.consume(normal1);
 		
-//		CountDownLatch latch = new CountDownLatch(1);
-//		latch.await(2, TimeUnit.SECONDS);
+		CountDownLatch latch = new CountDownLatch(1);
+		latch.await(5, TimeUnit.SECONDS);
 		
 		verifyAll();
 	}

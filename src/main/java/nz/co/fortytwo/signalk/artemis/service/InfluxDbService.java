@@ -13,6 +13,7 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.skey;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sourceRef;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sources;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.timestamp;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.uuid;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.values;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.version;
@@ -188,13 +189,13 @@ public class InfluxDbService implements TDBService {
 	}
 	@Override
 	public NavigableMap<String, Json> loadDataSnapshot(NavigableMap<String, Json> map, String table, Map<String, String> query, String time) {
-		String queryStr="select * from "+table+getWhereString(query, time)+" group by skey,primary, uuid,sourceRef order by time desc limit 1";
+		String queryStr="select * from "+table+getWhereString(query, time)+" group by skey, primary, uuid, sourceRef order by time desc limit 1";
 		return loadData(map, queryStr);
 	}
 
 	@Override
 	public NavigableMap<String, Json> loadSources(NavigableMap<String, Json> map, Map<String, String> query) {
-		String queryStr="select * from sources "+getWhereString(query)+" group by skey order by time desc limit 1";
+		String queryStr="select * from sources "+getWhereString(query)+" group by sourceRef, skey order by time desc limit 1";
 		return loadSources(map, queryStr);
 	}
 	
@@ -342,9 +343,9 @@ public class InfluxDbService implements TDBService {
 						
 						//make parent Json
 						Json parent = getParent(map,parentKey);
-						
+					
 						//add attributes
-						addAtPath(parent,"meta."+metaKey, val);
+						Util.setJson(parent,"meta."+metaKey, val);
 						
 						return;
 					}
@@ -437,7 +438,7 @@ public class InfluxDbService implements TDBService {
 				if (logger.isDebugEnabled())logger.debug("Load source: {}",s);
 				if (s == null)return;
 				
-				String key = s.getName() + dot + s.getTags().get(skey);
+				String key = s.getName() + dot + s.getTags().get("sourceRef")+dot + s.getTags().get(skey);
 				if (logger.isDebugEnabled())logger.debug("Load source map: {} = {}",()->key,()->getJsonValue(s,0));
 				map.put(key, getJsonValue(s,0));
 				
@@ -591,23 +592,6 @@ public class InfluxDbService implements TDBService {
 		return;
 	}
 
-	private void addAtPath(Json parent, String path, Json val) {
-		String[] pathArray = StringUtils.split(path, ".");
-		Json node = parent;
-		for (int x = 0; x < pathArray.length; x++) {
-			// add last
-			if (x == (pathArray.length - 1)) {
-				
-				if (logger.isDebugEnabled())logger.debug("finish: {}",pathArray[x]);
-				node.set(pathArray[x], val);
-				break;
-			}
-			// get next node
-			Json next = Util.getJson(node,pathArray[x]);
-			
-		}
-
-	}
 
 	
 	private void extractPrimaryValue(Json parent, Series s, String subKey, Json val, boolean useValue) {
@@ -634,12 +618,7 @@ public class InfluxDbService implements TDBService {
 			} else {
 				node.set(value, val);
 			}
-			//if we have a 'values' key, and its primary, copy back into value{} 
-			//if(parent.has(values)){
-//			Util.getJson(parent, values);
-//				Json pValues = Json.object(value,parent.at(value).dup(),timestamp,parent.at(timestamp).dup());
-//				parent.at(values).set(parent.at(sourceRef).asString(),pValues);
-			//}
+
 		}else{
 			// check if its an object value
 			if (StringUtils.isNotBlank(subKey)) {
@@ -647,13 +626,7 @@ public class InfluxDbService implements TDBService {
 			} else {
 				node.set(value, val);
 			}
-			//if we have a 'values' key, and its primary, copy back into value{} 
-//			if(parent.has(values)){
-//				Json pValues = parent.dup();
-//				parent.delAt(values);
-//				parent.delAt(sourceRef);
-//				parent.at(values).set(parent.at(sourceRef).asString(),pValues);
-//			}
+
 		}
 		if (logger.isDebugEnabled())logger.debug("extractPrimaryValueObj: {}",parent);
 	}
@@ -743,61 +716,71 @@ public class InfluxDbService implements TDBService {
 			if(version.equals(key))return;
 			//String[] path = StringUtils.split(key, '.');
 			//StringUtils.substringBetween(key, dot, dot)
-			String field = getFieldType(val);
-			int p1 = key.indexOf(dot);
-			int p2 = key.indexOf(dot,p1+1);
-			if(p2<0)p2=key.length();
-			Builder point = null;
-			switch (key.substring(0, p1)) {	
-			case resources:
-				point = Point.measurement(key.substring(0, p1)).time(millis, TimeUnit.MILLISECONDS)
-						.tag("sourceRef", sourceRef)
-						.tag("uuid", key.substring(p1+1, p2))
-						.tag(InfluxDbService.PRIMARY_VALUE, isPrimary(key,sourceRef).toString())
-						.tag(skey, key.substring(p2+1));
-				influxDB.write(addPoint(point, field, val));
-				break;
-			case sources:
-				point = Point.measurement(key.substring(0, p1)).time(millis, TimeUnit.MILLISECONDS)
-						.tag("sourceRef", key.substring(p1+1, p2))
-						.tag(skey, key.substring(p2+1));
-				influxDB.write(addPoint(point, field, val));
-				break;
-			case CONFIG:
-				point = Point.measurement(key.substring(0, p1)).time(millis, TimeUnit.MILLISECONDS)
-						.tag("uuid", key.substring(p1+1, p2))
-						.tag(skey, key.substring(p2+1));
-				influxDB.write(addPoint(point, field, val));
-				//also update the config map
-				Config.setProperty(key, Json.make(val));
-				break;
-			case vessels:
-				writeToInflux(key, p1, p2, millis, sourceRef, field, val);
-				break;
-			case aircraft:
-				writeToInflux(key, p1, p2, millis, sourceRef, field, val);
-				break;
-			case sar:
-				writeToInflux(key, p1, p2, millis, sourceRef, field, val);
-				break;
-			case aton:
-				writeToInflux(key, p1, p2, millis, sourceRef, field, val);
-				break;
-			default:
-				break;
+			try {
+				String field = getFieldType(val);
+				int p1 = key.indexOf(dot);
+				int p2 = key.indexOf(dot,p1+1);
+				int p3 = p2+1;
+				if(p2<0) {
+					p2=key.length();
+					p3=p2;
+				}
+				
+				Builder point = null;
+				switch (key.substring(0, p1)) {	
+				case resources:
+					point = Point.measurement(key.substring(0, p1)).time(millis, TimeUnit.MILLISECONDS)
+							.tag("sourceRef", sourceRef)
+							.tag("uuid", key.substring(p1+1, p2))
+							.tag(InfluxDbService.PRIMARY_VALUE, isPrimary(key,sourceRef).toString())
+							.tag(skey, key.substring(p3));
+					influxDB.write(addPoint(point, field, val));
+					break;
+				case sources:
+					point = Point.measurement(key.substring(0, p1)).time(millis, TimeUnit.MILLISECONDS)
+							.tag("sourceRef", key.substring(p1+1, p2))
+							.tag(skey, key.substring(p3));
+					influxDB.write(addPoint(point, field, val));
+					break;
+				case CONFIG:
+					point = Point.measurement(key.substring(0, p1)).time(millis, TimeUnit.MILLISECONDS)
+							//.tag("uuid", key.substring(p1+1, p2))
+							.tag(skey, key.substring(p1+1));
+					influxDB.write(addPoint(point, field, val));
+					//also update the config map
+					Config.setProperty(key, Json.make(val));
+					break;
+				case vessels:
+					writeToInflux(key, p1, p2, p3, millis, sourceRef, field, val);
+					break;
+				case aircraft:
+					writeToInflux(key, p1, p2, p3,millis, sourceRef, field, val);
+					break;
+				case sar:
+					writeToInflux(key, p1, p2, p3,millis, sourceRef, field, val);
+					break;
+				case aton:
+					writeToInflux(key, p1, p2, p3, millis, sourceRef, field, val);
+					break;
+				default:
+					break;
+				}
+			}catch (Exception e) {
+				logger.error(" Failed on key {} : {}",key, e.getMessage(), e);
+				throw e;
 			}
 		
 		
 	}
 
-	private void writeToInflux(String key, int p1, int p2, long millis, String sourceRef, String field,  Object val) {
+	private void writeToInflux(String key, int p1, int p2, int p3, long millis, String sourceRef, String field,  Object val) {
 		Boolean primary = isPrimary(key,sourceRef);
 		Builder point = Point.measurement(key.substring(0, p1))
 				.time(millis, TimeUnit.MILLISECONDS)
 				.tag("sourceRef", sourceRef)
 				.tag("uuid", key.substring(p1+1, p2))
 				.tag(InfluxDbService.PRIMARY_VALUE, primary.toString())
-				.tag(skey, key.substring(p2+1));
+				.tag(skey, key.substring(p3));
 		
 		influxDB.write(addPoint(point, field, val));
 		

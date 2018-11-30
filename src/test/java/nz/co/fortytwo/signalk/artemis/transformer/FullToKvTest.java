@@ -1,9 +1,12 @@
 package nz.co.fortytwo.signalk.artemis.transformer;
 
+import static nz.co.fortytwo.signalk.artemis.util.Config.INTERNAL_KV;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.client.ClientConsumer;
@@ -35,7 +38,10 @@ public class FullToKvTest extends BaseServerTest{
 	private void readPartialKeys(String user, int expected) throws Exception{
 		try (ClientSession session = Util.getLocalhostClientSession("admin", "admin");
 				ClientProducer producer = session.createProducer();	
-				ClientConsumer consumer = session.createConsumer(Config.INTERNAL_KV);){
+				){
+			String qName=Config.INTERNAL_KV+dot+UUID.randomUUID().toString();
+			session.createQueue(INTERNAL_KV, RoutingType.MULTICAST, qName);
+			ClientConsumer consumer = session.createConsumer(qName);
 			session.start();
 			
 			String body = FileUtils.readFileToString(new File("./src/test/resources/samples/full/docs-data_model_multiple_values.json"));

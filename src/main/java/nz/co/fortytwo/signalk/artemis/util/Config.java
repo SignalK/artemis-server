@@ -58,6 +58,7 @@ public class Config {
 	public static final String AMQ_CONTENT_TYPE = "AMQ_content_type";
 	public static final String AMQ_SESSION_ID = "AMQ_session_id";
 	public static final String AMQ_USER_TOKEN = "AMQ_USER_TOKEN";
+	public static final String AMQ_USER_ROLES = "AMQ_USER_ROLES";
 	public static final String JSON = "JSON";
 	public static final String JSON_FULL = "JSON_FULL";
 	public static final String JSON_DELTA = "JSON_DELTA";
@@ -172,10 +173,10 @@ public class Config {
 		model.put(ConfigConstants.DEMO, Json.make(false));
 		model.put(ConfigConstants.STREAM_URL, Json.make("motu.log"));
 		model.put(ConfigConstants.USBDRIVE, Json.make("/media/usb0"));
-		model.put(ConfigConstants.SERIAL_PORTS, Json.make(
+		model.put(ConfigConstants.SERIAL_PORTS, Json.read(
 				"[\"/dev/ttyUSB0\",\"/dev/ttyUSB1\",\"/dev/ttyUSB2\",\"/dev/ttyACM0\",\"/dev/ttyACM1\",\"/dev/ttyACM2\"]"));
 		if (SystemUtils.IS_OS_WINDOWS) {
-			model.put(ConfigConstants.SERIAL_PORTS, Json.make("[\"COM1\",\"COM2\",\"COM3\",\"COM4\"]"));
+			model.put(ConfigConstants.SERIAL_PORTS, Json.read("[\"COM1\",\"COM2\",\"COM3\",\"COM4\"]"));
 		}
 		//jwt key
 		//model.put(ConfigConstants.JWT_SECRET_KEY, Json.make(new String(Base64.encode(MacProvider.generateKey().getEncoded()))));

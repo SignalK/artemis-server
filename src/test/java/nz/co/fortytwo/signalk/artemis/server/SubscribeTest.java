@@ -32,7 +32,7 @@ public class SubscribeTest extends BaseServerTest{
 				ClientProducer producer = session.createProducer();	
 				){
 			session.start();
-			//session.createTemporaryQueue("outgoing.reply." + tempQ, RoutingType.ANYCAST, tempQ);
+			session.createTemporaryQueue("outgoing.reply." + tempQ, RoutingType.ANYCAST, tempQ);
 			String token = SecurityUtils.authenticateUser("admin", "admin");
 			sendSubsribeMsg(session,producer, "vessels." + self, "navigation",tempQ);
 			

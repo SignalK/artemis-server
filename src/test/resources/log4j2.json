@@ -74,7 +74,7 @@
 					"level": "debug"
 				},
 				{
-					"name": "nz.co.fortytwo.signalk.artemis.intercept.SecurityInterceptor",
+					"name": "nz.co.fortytwo.signalk.artemis.intercept.SecurityWriteInterceptor",
 					"level": "debug"
 				},
 				
@@ -132,7 +132,7 @@
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.service.InfluxDbService",
-					"level": "error"
+					"level": "info"
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.server.BaseServerTest",

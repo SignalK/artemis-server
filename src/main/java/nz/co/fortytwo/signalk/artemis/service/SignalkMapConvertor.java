@@ -240,9 +240,9 @@ public class SignalkMapConvertor {
 				
 				String path = StringUtils.substringBefore(entry.getKey(), dot + values + dot);
 				
-				if(!entry.getKey().contains(meta)) {
+				if(!entry.getKey().contains(dot+meta+dot)) {
 					String ref = StringUtils.substringAfter(entry.getKey(), dot + values + dot);
-					if(ref.contains(dot+meta+dot))ref=StringUtils.substringBefore(ref, dot+meta+dot);
+					//if(ref.contains(dot+meta+dot))ref=StringUtils.substringBefore(ref, dot+meta+dot);
 					if(StringUtils.isNotBlank(ref)){
 						if(!StringUtils.startsWith(path, sources)) { 
 							if (logger.isDebugEnabled())
@@ -260,6 +260,8 @@ public class SignalkMapConvertor {
 					continue;
 				}
 				Util.setJson(root, path, val.dup());
+				if (logger.isDebugEnabled())
+					logger.debug("root: {}", root);
 			}
 			return root.dup();
 		}finally {

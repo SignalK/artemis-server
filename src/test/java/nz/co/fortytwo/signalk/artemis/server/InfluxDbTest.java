@@ -3,6 +3,7 @@ package nz.co.fortytwo.signalk.artemis.server;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.values;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -10,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -40,6 +42,7 @@ public class InfluxDbTest {
 	public void setUpInfluxDb() {
 		logger.debug("Start influxdb client");
 		influx = new InfluxDbService(BaseServerTest.SIGNALK_TEST_DB);
+		influx.setWrite(true);
 	}
 
 	@After
@@ -103,15 +106,16 @@ public class InfluxDbTest {
 	public void shouldSaveFullModelAndReturnLatestWithEdit() throws Exception {
 		clearDb();
 		// get a sample of signalk
+		///artemis-server/src/test/resources/samples/full/docs-data_model.json
 		NavigableMap<String, Json> map = getJsonMap("./src/test/resources/samples/full/docs-data_model.json");
 		
 		//save and flush
 		influx.save(map);
 		//reload from db
-		NavigableMap<String, Json> rslt = loadFromDb("urn:mrn:signalk:uuid:c0d79334-4e25-4245-8892-54e8ccc8021d");
+		NavigableMap<String, Json> rslt = loadFromDb("urn:mrn:signalk:uuid:705f5f1a-efaf-44aa-9cb8-a0fd6305567c");
 		compareMaps(map,rslt);
 		//now run again with variation
-		map.put("vessels.urn:mrn:signalk:uuid:c0d79334-4e25-4245-8892-54e8ccc8021d.navigation.headingMagnetic.value",Json.make(6.55));
+		map.put("vessels.urn:mrn:signalk:uuid:705f5f1a-efaf-44aa-9cb8-a0fd6305567c.navigation.headingMagnetic.value",Json.make(6.55));
 		
 		//save and flush
 		influx.save(map);
@@ -259,10 +263,13 @@ public class InfluxDbTest {
 			return map.equals(rslt);
 		}
 		for(String key:map.asJsonMap().keySet()) {
-			if(!map.at(key).equals(rslt.at(key))) {
+			//logger.debug("Match {} ", key);
+			//logger.debug("Match {} : {}", map.at(key),rslt.at(key));
+			if( !map.at(key).equals(rslt.at(key))) {
 				logger.debug("Bad match {} is not  {}", map.at(key),rslt.at(key));
-				return compare(map.at(key),rslt.at(key));
+				return false;
 			}
+			return compare(map.at(key),rslt.at(key));
 		}
 		return true;
 	}
@@ -309,11 +316,11 @@ public class InfluxDbTest {
 	}
 	
 	private NavigableMap<String, Json> loadFromDb() {
-		NavigableMap<String, Json> rslt = new ConcurrentSkipListMap<String, Json>();
 		
-		rslt = influx.loadData(rslt,"select * from vessels group by skey, primary, uuid, sourceRef order by time desc limit 1");
-		rslt = influx.loadSources(rslt,"select * from sources group by skey,uuid order by time desc limit 1");
-		rslt = influx.loadResources(rslt,"select * from resources group by skey,uuid order by time desc limit 1");
+		NavigableMap<String, Json> rslt = new ConcurrentSkipListMap<String, Json>();
+		rslt = influx.loadData(rslt, vessels, new HashMap<String, String>());
+		rslt = influx.loadSources(rslt,new HashMap<String, String>());
+		rslt = influx.loadResources(rslt,new HashMap<String, String>());
 		rslt.forEach((t, u) -> logger.debug(t + "=" + u));
 		return rslt;
 	}

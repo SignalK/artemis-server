@@ -37,6 +37,7 @@ import javax.script.Bindings;
 import javax.script.Invocable;
 import javax.script.ScriptException;
 
+import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.core.server.transformer.Transformer;
 import org.apache.commons.io.Charsets;
@@ -160,9 +161,8 @@ public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer
 				
 				if (logger.isDebugEnabled())
 					logger.debug("Converted NMEA msg:" + json.toString());
-				SignalkKvConvertor.parseDelta(this, message, json);
+				SignalkKvConvertor.parseDelta(this,message, json);
 				json.clear(true);
-			
 				//only used by tests, needs to go.
 				message.toCore().getBodyBuffer().clear();
 				message.toCore().getBodyBuffer().writeString(json.toString());
@@ -177,4 +177,5 @@ public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer
 		return message;
 	}
 
+	
 }

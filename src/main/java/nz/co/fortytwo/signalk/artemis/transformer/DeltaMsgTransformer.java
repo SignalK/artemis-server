@@ -87,10 +87,9 @@ public class DeltaMsgTransformer extends BaseInterceptor implements Transformer 
 	protected void processDelta(Message message, Json node) throws ActiveMQException {
 		if (logger.isDebugEnabled())
 			logger.debug("Saving delta: {}", node.toString());
-	
-		SignalkKvConvertor.parseDelta(this,message,node);
-		
+		SignalkKvConvertor.parseDelta(this,message, node);
 		node.clear(true);
 	}
+
 
 }

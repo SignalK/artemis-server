@@ -3,6 +3,7 @@ package nz.co.fortytwo.signalk.artemis.intercept;
 import static nz.co.fortytwo.signalk.artemis.util.Config.INCOMING_RAW;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
+import org.apache.activemq.artemis.api.core.ActiveMQPropertyConversionException;
 import org.apache.activemq.artemis.api.core.Interceptor;
 import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.core.protocol.core.Packet;
@@ -13,8 +14,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.server.ArtemisServer;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 
 /**
  * A way to acquire the session in a message
@@ -48,6 +51,15 @@ public class SessionInterceptor extends BaseInterceptor implements Interceptor {
 							logger.debug("Session not found for: {}, name: {}",s.getConnectionID() ,s.getName());
 					}
 				}
+			}
+			//should not have roles here
+			msg.removeProperty(Config.AMQ_USER_ROLES);
+			try {
+				Json roles = StringUtils.isBlank(msg.getStringProperty(Config.AMQ_USER_TOKEN))?Json.read("[\"public\"]")
+						:SecurityUtils.getRoles(msg.getStringProperty(Config.AMQ_USER_TOKEN));
+				msg.putStringProperty(Config.AMQ_USER_ROLES, roles.toString());
+			} catch (Exception e) {
+				logger.error(e,e);
 			}
 
 		} else {

@@ -36,6 +36,7 @@ import javax.script.Bindings;
 import javax.script.Invocable;
 import javax.script.ScriptException;
 
+import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.core.server.transformer.Transformer;
 import org.apache.commons.io.Charsets;
@@ -137,7 +138,7 @@ public class N2kMsgTransformer extends JsBaseTransformer implements Transformer 
 				
 				if (logger.isDebugEnabled())
 					logger.debug("Converted N2K msg: {}", json.toString());
-				SignalkKvConvertor.parseDelta(this, message, json);
+				SignalkKvConvertor.parseDelta(this,message, json);
 				json.clear(true);
 			} catch (Exception e) {
 				logger.error(e, e);
@@ -146,6 +147,8 @@ public class N2kMsgTransformer extends JsBaseTransformer implements Transformer 
 		}
 		return message;
 	}
+
+	
 
 	
 

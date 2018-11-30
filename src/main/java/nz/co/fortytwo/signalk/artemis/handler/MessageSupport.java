@@ -2,9 +2,18 @@ package nz.co.fortytwo.signalk.artemis.handler;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.ADMIN_PWD;
 import static nz.co.fortytwo.signalk.artemis.util.Config.ADMIN_USER;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CORR_ID;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_INFLUX_KEY;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_REPLY_Q;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_SESSION_ID;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_SUB_DESTINATION;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_USER_ROLES;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_USER_TOKEN;
 import static nz.co.fortytwo.signalk.artemis.util.Config.INCOMING_RAW;
 import static nz.co.fortytwo.signalk.artemis.util.Config.INTERNAL_KV;
 import static nz.co.fortytwo.signalk.artemis.util.Config.OUTGOING_REPLY;
+import static nz.co.fortytwo.signalk.artemis.util.Config.SK_SEND_TO_ALL;
 import static nz.co.fortytwo.signalk.artemis.util.Config.getConfigProperty;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self_str;
@@ -14,6 +23,8 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.version;
 
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+
+import javax.ws.rs.core.MediaType;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.Message;
@@ -104,16 +115,16 @@ public class MessageSupport {
 
 		ClientMessage txMsg = getTxSession().createMessage(false);
 
-		// txMsg.putStringProperty(Config.JAVA_TYPE, type);
+		// txMsg.putStringProperty(JAVA_TYPE, type);
 		if (correlation != null)
-			txMsg.putStringProperty(Config.AMQ_CORR_ID, correlation);
+			txMsg.putStringProperty(AMQ_CORR_ID, correlation);
 		if (token != null)
-			txMsg.putStringProperty(Config.AMQ_USER_TOKEN, token);
-		txMsg.putStringProperty(Config.AMQ_SUB_DESTINATION, destination);
-		txMsg.putBooleanProperty(Config.SK_SEND_TO_ALL, false);
+			txMsg.putStringProperty(AMQ_USER_TOKEN, token);
+		txMsg.putStringProperty(AMQ_SUB_DESTINATION, destination);
+		txMsg.putBooleanProperty(SK_SEND_TO_ALL, false);
 		txMsg.putStringProperty(SignalKConstants.FORMAT, format);
 		txMsg.putBooleanProperty(SignalKConstants.REPLY, true);
-		txMsg.putStringProperty(Config.AMQ_CORR_ID, correlation);
+		txMsg.putStringProperty(AMQ_CORR_ID, correlation);
 		txMsg.setExpiration(System.currentTimeMillis() + 5000);
 		txMsg.getBodyBuffer().writeString(json.toString());
 		if (logger.isDebugEnabled())
@@ -130,14 +141,14 @@ public class MessageSupport {
 		message = getTxSession().createMessage(false);
 
 		message.getBodyBuffer().writeString(body);
-		message.putStringProperty(Config.AMQ_REPLY_Q, queue);
+		message.putStringProperty(AMQ_REPLY_Q, queue);
 		if (correlation != null) {
-			message.putStringProperty(Config.AMQ_CORR_ID, correlation);
+			message.putStringProperty(AMQ_CORR_ID, correlation);
 		}
 		if (jwtToken != null) {
-			message.putStringProperty(Config.AMQ_USER_TOKEN, jwtToken);
+			message.putStringProperty(AMQ_USER_TOKEN, jwtToken);
 		}
-		send(new SimpleString(Config.INCOMING_RAW), message);
+		send(new SimpleString(INCOMING_RAW), message);
 		return correlation;
 	}
 	
@@ -150,29 +161,35 @@ public class MessageSupport {
 		ClientMessage txMsg = getTxSession().createMessage(false);
 		txMsg.copyHeadersAndProperties(origMessage);
 
-		txMsg.removeProperty(Config.AMQ_CONTENT_TYPE);
+		txMsg.removeProperty(AMQ_CONTENT_TYPE);
 
 		txMsg.setExpiration(System.currentTimeMillis() + 5000);
 		txMsg.getBodyBuffer().writeString(body);
 		if (logger.isDebugEnabled())
 			logger.debug("Msg body incoming.raw: {}", body);
 
-		getProducer().send(Config.INCOMING_RAW, txMsg);
+		getProducer().send(INCOMING_RAW, txMsg);
 
 	}
 
-	public void sendKvMessage(Message origMessage, String k, Json j) throws ActiveMQException {
+	public void sendKvMessage(Message origMessage, String  k, Json j) throws ActiveMQException {
 		ClientMessage txMsg = getTxSession().createMessage(false);
 		txMsg.copyHeadersAndProperties(origMessage);
-
-		txMsg.putStringProperty(Config.AMQ_INFLUX_KEY, k);
+//		txMsg.putStringProperty(AMQ_CORR_ID,origMessage.getStringProperty(AMQ_REPLY_Q));
+//		txMsg.putStringProperty(AMQ_CONTENT_TYPE, origMessage.getStringProperty(AMQ_CONTENT_TYPE));
+//		txMsg.putStringProperty(AMQ_REPLY_Q, origMessage.getStringProperty(AMQ_REPLY_Q));
+//		txMsg.putStringProperty(AMQ_SESSION_ID, origMessage.getStringProperty(AMQ_SESSION_ID));
+//		txMsg.putStringProperty(AMQ_SUB_DESTINATION, origMessage.getStringProperty(AMQ_SUB_DESTINATION));
+//		txMsg.putStringProperty(AMQ_USER_ROLES, origMessage.getStringProperty(AMQ_USER_ROLES));
+//		txMsg.putStringProperty(AMQ_USER_TOKEN,  origMessage.getStringProperty(AMQ_USER_TOKEN));
+		txMsg.putStringProperty(AMQ_INFLUX_KEY, k);
 		txMsg.setRoutingType(RoutingType.MULTICAST);
 		txMsg.setExpiration(System.currentTimeMillis() + 5000);
 		txMsg.getBodyBuffer().writeString(j.toString());
 		if (logger.isDebugEnabled())
 			logger.debug("Msg body signalk.kv: {} = {}", k, j.toString());
 
-		getProducer().send(Config.INTERNAL_KV, txMsg);
+		getProducer().send(INTERNAL_KV, txMsg);
 
 	}
 

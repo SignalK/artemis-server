@@ -26,6 +26,7 @@ package nz.co.fortytwo.signalk.artemis.transformer;
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
 import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_FULL;
 
+import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.core.server.transformer.Transformer;
 import org.apache.logging.log4j.LogManager;
@@ -63,8 +64,8 @@ public class FullMsgTransformer extends BaseInterceptor implements Transformer {
 			if (logger.isDebugEnabled())
 				logger.debug("processing full {} ", node);
 			try {
-				SignalkKvConvertor.parseFull(this,message, node,"");
-				
+				SignalkKvConvertor.parseFull(this,message, node, "");
+				//node.clear(true);
 			} catch (Exception e) {
 				logger.error(e,e);
 			}
@@ -72,8 +73,6 @@ public class FullMsgTransformer extends BaseInterceptor implements Transformer {
 		}
 		return message;
 	}
-
-	
 
 	
 	

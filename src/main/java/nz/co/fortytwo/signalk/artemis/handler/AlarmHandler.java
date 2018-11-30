@@ -78,11 +78,10 @@ public class AlarmHandler extends BaseHandler {
 	}
 
 	private void parseMeta(String key, Json json) {
-		if (json.isObject() && json.at(zones) != null) {
-			key = StringUtils.substringBefore(key, meta);
-			alarmMap.put(key, json);
-			if (logger.isDebugEnabled())
-				logger.debug("Adding alarm for key: {} : {}", key, json);
+		if (logger.isDebugEnabled())
+			logger.debug("Adding alarm for key: {} : {}", key, json);
+		if (json.isObject() && json.has(meta)) {
+			parseMetaByKey(key,json.at(meta));
 		}
 	}
 
@@ -98,23 +97,39 @@ public class AlarmHandler extends BaseHandler {
 	public void consume(Message message) {
 		
 		String key = message.getStringProperty(AMQ_INFLUX_KEY);
-
+		if (logger.isDebugEnabled())
+			logger.debug("Consuming : {} ", key);
 		if (key.contains(meta)) {
 			Json node = Util.readBodyBuffer(message.toCore());
-			parseMeta(key, node);
-			node.clear(true);
-		} else {
+			parseMetaByKey(key, node);
+			return;
+		} 
 
-			if (!alarmMap.containsKey(key))
-				return;
+		if (!alarmMap.containsKey(key))
+			return;
 
-			Json node = Util.readBodyBuffer(message.toCore());
+		Json node = Util.readBodyBuffer(message.toCore());
 
-			if (logger.isDebugEnabled())
-				logger.debug("Checking alarm for key: {} : {}", key, node);
-			check(message, key, alarmMap.get(key), node);
-			node.clear(true);
-		}
+		if (logger.isDebugEnabled())
+			logger.debug("Checking alarm for key: {} : {}", key, node);
+		check(message, key, alarmMap.get(key), node);
+		node.clear(true);
+		
+
+	}
+
+	private void parseMetaByKey(String key, Json node) {
+		if (logger.isDebugEnabled())
+			logger.debug("Adding alarm for key: {} : {}", key, node);
+		
+			String parentKey = StringUtils.substringBeforeLast(key,".meta.");
+			String metaKey = StringUtils.substringAfterLast(key,".meta.");
+			Json metaJson = alarmMap.get(parentKey);
+			if(metaJson==null) {
+				metaJson=Json.object();
+			}
+			metaJson.set(metaKey,node);
+			alarmMap.put(key, metaJson);
 
 	}
 

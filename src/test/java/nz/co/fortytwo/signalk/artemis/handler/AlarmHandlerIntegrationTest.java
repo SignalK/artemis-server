@@ -48,6 +48,8 @@ public class AlarmHandlerIntegrationTest extends BaseServerTest{
 			String qName=Config.INTERNAL_KV+dot+UUID.randomUUID().toString();
 			session.createQueue(INTERNAL_KV, RoutingType.MULTICAST, qName);
 			ClientConsumer consumer = session.createConsumer(qName);
+			List<ClientMessage> replies = createListener(session, consumer, qName);
+			
 			
 			String depthMeta = FileUtils.readFileToString(new File("./src/test/resources/samples/full/signalk-depth-meta-attr.json"));
 			depthMeta=StringUtils.replace(depthMeta, "urn:mrn:signalk:uuid:b7590868-1d62-47d9-989c-32321b349fb9", uuid);
@@ -71,13 +73,9 @@ public class AlarmHandlerIntegrationTest extends BaseServerTest{
 			logger.debug("Input sent");
 		
 			logger.debug("Receive started");
-			List<ClientMessage> replies = listen(session, consumer, Config.INTERNAL_KV, 10, 100);
+			listen(replies, 10, 100);
 			
-			logger.debug("Received {} replies", replies.size());
-			replies.forEach((m)->{
-				logger.debug("Received {}", m);
-			});
-			assertTrue(replies.size()>=expected);
+			
 			//there should be a message with AMQ_INFLUX_KEY=vessels.self.environment.wind.directionTrue
 			// and AMQ_INFLUX_KEY=vessels.self.environment.wind.speedTrue
 			int c=0;

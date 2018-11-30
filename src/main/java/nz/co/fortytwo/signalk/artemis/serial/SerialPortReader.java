@@ -44,6 +44,7 @@ import com.fazecast.jSerialComm.SerialPortPacketListener;
 import nz.co.fortytwo.signalk.artemis.handler.MessageSupport;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
+import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 
 /**
  * Wrapper to read serial port via jSerialComm, then fire messages into the artemis
@@ -224,7 +225,7 @@ public class SerialPortReader extends MessageSupport{
 
 		}
 
-		private void sendMsg(String buffer) throws ActiveMQException {
+		private void sendMsg(String buffer) throws Exception {
 			if (StringUtils.isNotBlank(buffer)) {
 				if (logger.isDebugEnabled())
 					logger.debug("{} :Serial Received:{}",portName, buffer);
@@ -237,6 +238,9 @@ public class SerialPortReader extends MessageSupport{
 						txMsg.putStringProperty(Config.MSG_SRC_BUS, portName);
 						txMsg.putStringProperty(Config.MSG_SRC_TYPE, Config.SERIAL);
 						txMsg.putStringProperty(AMQ_USER_TOKEN, SerialPortManager.getToken());
+						
+						txMsg.putStringProperty(Config.AMQ_USER_ROLES, SecurityUtils.getRoles(SerialPortManager.getToken()).toString());
+						
 						getProducer().send(new SimpleString(Config.INCOMING_RAW), txMsg);
 						if (logger.isDebugEnabled())
 							logger.debug("json = {}", buffer);

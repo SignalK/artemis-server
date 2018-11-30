@@ -22,6 +22,7 @@ import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.activemq.artemis.api.core.client.MessageHandler;
 import org.apache.activemq.artemis.core.client.impl.ClientMessageImpl;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.asynchttpclient.AsyncHttpClient;
@@ -33,6 +34,7 @@ import org.junit.BeforeClass;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.DefaultCookie;
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
@@ -52,8 +54,9 @@ public class BaseServerTest extends EasyMockSupport {
 
 	@BeforeClass
 	public static void startServer() throws Exception {
-		//remove self file so we have clean model
+		InfluxDbService.allowWrite=true;
 		server = new ArtemisServer(SIGNALK_TEST_DB);
+		
 	}
 
 	@AfterClass
@@ -77,6 +80,11 @@ public class BaseServerTest extends EasyMockSupport {
 		ClientMessage message = getClientMessage(json.toString(), MediaType.APPLICATION_JSON, false);
 		message.putStringProperty(AMQ_INFLUX_KEY, "vessels."+uuid+"."+key+".values."+src);
 		message.putStringProperty(AMQ_USER_TOKEN, token);
+		try {
+			message.putStringProperty(Config.AMQ_USER_ROLES, SecurityUtils.getRoles(token).toString());
+		} catch (Exception e) {
+			logger.error(e,e);
+		}
 		return message;
 	}
 
@@ -132,10 +140,10 @@ public class BaseServerTest extends EasyMockSupport {
 		return listen(session, session.createConsumer(tempQ), tempQ, timeout, 2);
 	}
 	protected List<ClientMessage> listen( ClientSession session, ClientConsumer consumer, String tempQ, long timeout, int expected) throws ActiveMQException, InterruptedException {
-		logger.debug("Receive starting for {}", tempQ);
+		logger.debug("{}: Receive starting for {}",getClass().getSimpleName(), tempQ);
 		List<ClientMessage> replies = new ArrayList<>();
 		CountDownLatch latch = new CountDownLatch(expected);
-		
+		String clazz = getClass().getSimpleName();
 		consumer.setMessageHandler(new MessageHandler() {
 			
 			@Override
@@ -144,7 +152,7 @@ public class BaseServerTest extends EasyMockSupport {
 					
 					String recv = Util.readBodyBufferToString(message);
 					message.acknowledge();
-					logger.debug("onMessage = {}",recv);
+					logger.debug("{}: onMessage = {}",clazz,recv);
 					assertNotNull(recv);
 					replies.add(message);
 					latch.countDown();
@@ -155,20 +163,60 @@ public class BaseServerTest extends EasyMockSupport {
 		});
 		session.start();
 		latch.await(timeout, TimeUnit.SECONDS);
-		logger.debug("Receive complete for {}", tempQ);
+		logger.debug("{}: Receive complete for {}",getClass().getSimpleName(), tempQ);
 	
 		
 		assertTrue(replies.size()>1);
 		return replies;
 	}
 	
+	protected List<ClientMessage> createListener( ClientSession session, ClientConsumer consumer, String tempQ) throws ActiveMQException, InterruptedException {
+		logger.debug("{}: Receive starting for {}",getClass().getSimpleName(), tempQ);
+		List<ClientMessage> replies = new ArrayList<>();
+		String clazz = getClass().getSimpleName();
+		consumer.setMessageHandler(new MessageHandler() {
+			
+			@Override
+			public void onMessage(ClientMessage message) {
+				try{
+					
+					String recv = Util.readBodyBufferToString(message);
+					message.acknowledge();
+					logger.debug("{}: onMessage = {}",clazz,recv);
+					assertNotNull(recv);
+					replies.add(message);
+				} catch (ActiveMQException e) {
+					logger.error(e,e);
+				} 
+			}
+		});
+		session.start();
+
+		return replies;
+	}
+	
+	protected List<ClientMessage> listen( List<ClientMessage> replies, long timeout, int expected) throws ActiveMQException, InterruptedException {
+		
+		CountDownLatch latch = new CountDownLatch(expected);
+		latch.await(timeout, TimeUnit.SECONDS);
+		logger.debug("{}: Receive complete ",getClass().getSimpleName());
+		logger.debug("{}: Received {} replies",getClass().getSimpleName(), replies.size());
+		replies.forEach((m)->{
+			logger.debug("{}: Received {}",getClass().getSimpleName(), m);
+		});
+		
+		assertTrue(replies.size()>1);
+		return replies;
+	}
 //	protected void sendMessage(ClientSession session, ClientProducer producer, String msg) throws ActiveMQException {
 //		sendMessage(session, producer, msg, null); 
 //	}
 	protected void sendMessage(ClientSession session, ClientProducer producer, String msg, String token) throws ActiveMQException {
 		ClientMessage message = session.createMessage(true);
-		if(token!=null)
+		if(token!=null) {
 			message.putStringProperty(AMQ_USER_TOKEN, token);
+		}
+		logger.debug("Sending message: {}", message);
 		message.getBodyBuffer().writeString(msg);
 		producer.send(Config.INCOMING_RAW, message);
 		

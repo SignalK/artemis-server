@@ -50,6 +50,7 @@ import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.service.TDBService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
@@ -77,6 +78,9 @@ public class Subscription {
 	private String format;
 	private String policy;
 	private String token;
+	private String roles;
+	ArrayList<String> allowed;
+	ArrayList<String> denied;
 	private Pattern pathPattern = null;
 	private Pattern uuidPattern = null;
 	private String vesselPath;
@@ -106,6 +110,10 @@ public class Subscription {
 		this.format = format;
 		this.policy = policy;
 		this.token = token;
+		Json rolesJson =SecurityUtils.getRoles(token);
+		this.allowed = SecurityUtils.getAllowedReadPaths(rolesJson);
+		this.denied = SecurityUtils.getDeniedReadPaths(rolesJson);
+		this.roles=rolesJson.toString();
 		this.destination = destination;
 		this.setCorrelation(correlation);
 		
@@ -153,7 +161,10 @@ public class Subscription {
 					}
 					if (logger.isDebugEnabled())
 						logger.debug("rslt map = {}" , rslt);
+					//trim for security
+					SecurityUtils.trimMap(rslt, allowed, denied);
 					
+					//format
 					if (SignalKConstants.FORMAT_DELTA.equals(format)) {
 						json = SignalkMapConvertor.mapToUpdatesDelta(rslt);
 						if (logger.isDebugEnabled())
@@ -168,7 +179,7 @@ public class Subscription {
 					rslt.clear();
 					
 					try{
-						SubscriptionManagerFactory.getInstance().send( destination, format, correlation, token, json);
+						SubscriptionManagerFactory.getInstance().send( destination, format, correlation, token, roles, json);
 						json.clear(true);
 					}catch(ActiveMQException amq){
 						logger.error(amq,amq);
@@ -186,7 +197,7 @@ public class Subscription {
 		if (logger.isDebugEnabled())
 			logger.debug("Sending hello: {}", Config.getHelloMsg());
 		try{
-			SubscriptionManagerFactory.getInstance().send( destination, format, correlation,  token, Config.getHelloMsg());
+			SubscriptionManagerFactory.getInstance().send( destination, format, correlation,  token, roles, Config.getHelloMsg());
 		}catch(ActiveMQException amq){
 			logger.error(amq,amq);
 			setActive(false);

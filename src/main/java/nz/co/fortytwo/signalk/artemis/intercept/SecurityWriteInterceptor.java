@@ -37,15 +37,13 @@ public class SecurityWriteInterceptor extends BaseInterceptor implements Interce
 
 			if (!StringUtils.equals(msg.getAddress(), INTERNAL_KV))
 				return true;
-
-			if (StringUtils.isBlank(msg.getStringProperty(Config.AMQ_USER_TOKEN))) {
-				logger.error("Message has no {}: {}", Config.AMQ_USER_TOKEN, msg);
-				return false;
-			}
 			
 			// check allowed first
 			try {
-				ArrayList<String> allowed = SecurityUtils.getAllowedWritePaths(msg.getStringProperty(Config.AMQ_USER_TOKEN));
+				if (logger.isDebugEnabled())
+					logger.debug("Check allowed roles {} = {}", msg.getStringProperty(Config.AMQ_USER_ROLES), msg.getStringProperty(Config.AMQ_INFLUX_KEY));
+				
+				ArrayList<String> allowed = SecurityUtils.getAllowedWritePaths(msg.getStringProperty(Config.AMQ_USER_ROLES));
 				if(allowed==null||allowed.size()==0) return false;
 				for (String key : allowed) {
 					if (logger.isDebugEnabled())
@@ -62,7 +60,7 @@ public class SecurityWriteInterceptor extends BaseInterceptor implements Interce
 			
 			//check denied
 			try {
-				ArrayList<String> denied = SecurityUtils.getDeniedWritePaths(msg.getStringProperty(Config.AMQ_USER_TOKEN));
+				ArrayList<String> denied = SecurityUtils.getDeniedWritePaths(msg.getStringProperty(Config.AMQ_USER_ROLES));
 				if(denied==null||denied.size()==0) return true;
 				for (String key : denied) {
 					if (logger.isDebugEnabled())

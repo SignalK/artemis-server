@@ -3,7 +3,10 @@ package nz.co.fortytwo.signalk.artemis.util;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
 
 import javax.crypto.SecretKey;
 import javax.servlet.http.Cookie;
@@ -186,8 +189,11 @@ public final class SecurityUtils {
 	
 	
 
-	public static ArrayList<String> getDeniedReadPaths(String jwtToken) throws Exception {
-		Json roles = StringUtils.isBlank(jwtToken)?Json.read("[\"public\"]"):getRoles(jwtToken);
+	public static ArrayList<String> getDeniedReadPaths(String rolesStr) throws Exception {
+		if(StringUtils.isBlank(rolesStr)) new ArrayList<>();
+		return getDeniedReadPaths(Json.read(rolesStr));
+	}
+	public static ArrayList<String> getDeniedReadPaths(Json roles) throws Exception {
 		ArrayList<String> denied = new ArrayList<>();
 		for(Json r : roles.asJsonList()) {
 			for(Json d : getSecurityConfAsJson().at(ROLES).at(r.asString()).at("denied")) {
@@ -201,8 +207,11 @@ public final class SecurityUtils {
 		
 	}
 	
-	public static ArrayList<String> getDeniedWritePaths(String jwtToken) throws Exception {
-		Json roles = StringUtils.isBlank(jwtToken)?Json.read("[\"public\"]"):getRoles(jwtToken);
+	public static ArrayList<String> getDeniedWritePaths(String rolesStr) throws Exception {
+		if(StringUtils.isBlank(rolesStr)) new ArrayList<>();
+		return getDeniedWritePaths(Json.read(rolesStr));
+	}
+	public static ArrayList<String> getDeniedWritePaths(Json roles) throws Exception {
 		ArrayList<String> denied = new ArrayList<>();
 		for(Json r : roles.asJsonList()) {
 			for(Json d : getSecurityConfAsJson().at(ROLES).at(r.asString()).at("denied")) {
@@ -215,9 +224,11 @@ public final class SecurityUtils {
 		return denied;
 		
 	}
-	public static ArrayList<String> getAllowedReadPaths(String jwtToken) throws Exception {
-		
-		Json roles = StringUtils.isBlank(jwtToken)?Json.read("[\"public\"]"):getRoles(jwtToken);
+	public static ArrayList<String> getAllowedReadPaths(String rolesStr) throws Exception {
+		if(StringUtils.isBlank(rolesStr)) new ArrayList<>();
+		return getAllowedReadPaths(Json.read(rolesStr));
+	}
+	public static ArrayList<String> getAllowedReadPaths(Json roles) throws Exception {
 		ArrayList<String> allowed = new ArrayList<>();
 		for(Json r : roles.asJsonList()) {
 			for(Json d : getSecurityConfAsJson().at(ROLES).at(r.asString()).at("allowed")) {
@@ -231,9 +242,11 @@ public final class SecurityUtils {
 		
 	}
 	
-	public static ArrayList<String> getAllowedWritePaths(String jwtToken) throws Exception {
-		
-		Json roles = StringUtils.isBlank(jwtToken)?Json.read("[\"public\"]"):getRoles(jwtToken);
+	public static ArrayList<String> getAllowedWritePaths(String rolesStr) throws Exception {
+		if(StringUtils.isBlank(rolesStr)) new ArrayList<>();
+		return getAllowedWritePaths(Json.read(rolesStr));
+	}
+	public static ArrayList<String> getAllowedWritePaths(Json roles) throws Exception {
 		ArrayList<String> allowed = new ArrayList<>();
 		for(Json r : roles.asJsonList()) {
 			for(Json d : getSecurityConfAsJson().at(ROLES).at(r.asString()).at("allowed")) {
@@ -245,6 +258,51 @@ public final class SecurityUtils {
 		
 		return allowed;
 		
+	}
+
+	public static void trimMap(NavigableMap<String, Json> rslt, ArrayList<String> allowed, ArrayList<String> denied) {
+		// check allowed first
+		try {
+			if (allowed == null || allowed.size() == 0)
+				return;
+			for (String key : allowed) {
+				if (key.equals("all")) {
+					return;
+				}
+				Iterator<String> itr = rslt.keySet().iterator();
+				while(itr.hasNext()) {
+					if(key.contains(itr.next())) {
+						continue;
+					}
+					itr.remove();
+				}
+				return;
+			}
+		} catch (Exception e) {
+			logger.error(e, e);
+		}
+
+		// check denied
+		try {
+			if (denied == null || denied.size() == 0)
+				return;
+			for (String key : denied) {
+				if (key.equals("all")) {
+					rslt.clear();
+					return;
+				}
+				Iterator<String> itr = rslt.keySet().iterator();
+				while(itr.hasNext()) {
+					if(key.contains(itr.next())) {
+						itr.remove();
+					}
+				}
+					return;
+			}
+		} catch (Exception e) {
+			logger.error(e, e);
+		}
+
 	}
 
 }

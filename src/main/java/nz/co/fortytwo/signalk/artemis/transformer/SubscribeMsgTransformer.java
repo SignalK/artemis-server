@@ -147,13 +147,23 @@ public class SubscribeMsgTransformer extends BaseInterceptor implements Transfor
 					if (logger.isDebugEnabled())
 						logger.debug("Remove subscription; " + sub.toString());
 					if(sub!=null)
-						SubscriptionManagerFactory.getInstance().removeSubscription(sub);
+						unSubscribe(sub);
 				}
 			}
 
 			if (logger.isDebugEnabled())
 				logger.debug("processed unsubscribe  " + node);
 		}
+	}
+	
+	/**
+	 * Mock for tests
+	 * @param sub
+	 * @throws Exception
+	 */
+	public void unSubscribe(Subscription sub) throws Exception {
+		SubscriptionManagerFactory.getInstance().removeSubscription(sub);
+		
 	}
 
 	protected void parseSubscribe(Json node, Json subscriptions, String ctx, ICoreMessage message) throws Exception {
@@ -176,12 +186,23 @@ public class SubscribeMsgTransformer extends BaseInterceptor implements Transfor
 					if (logger.isDebugEnabled())
 						logger.debug("Created subscription; " + sub.toString());
 					if(sub!=null)
-						SubscriptionManagerFactory.getInstance().addSubscription(sub);
+						subscribe(sub);
+						
 				}
 			}
 			if (logger.isDebugEnabled())
 				logger.debug("processed subscribe  " + node);
 		}
+	}
+
+	/**
+	 * Mock for tests
+	 * @param sub
+	 * @throws Exception
+	 */
+	public void subscribe(Subscription sub) throws Exception {
+		SubscriptionManagerFactory.getInstance().addSubscription(sub);
+		
 	}
 
 	/**

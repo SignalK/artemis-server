@@ -34,14 +34,16 @@ public abstract class BaseHandler extends MessageSupport{
 	protected String filter=null;
 	
 	protected ClientConsumer consumer;
+	protected String clazz;
 	
 	public BaseHandler() {
 		uuid = Config.getConfigProperty(ConfigConstants.UUID);
+		clazz = getClass().getSimpleName();
 	}
 
 	protected void initSession(String filter) throws Exception {
 		if (logger.isDebugEnabled())
-			logger.debug("initSession: {}", filter);
+			logger.debug("{}: initSession: {}",clazz, filter);
 		super.initSession();
 		this.filter=filter;
 		getConsumer(filter);
@@ -62,7 +64,7 @@ public abstract class BaseHandler extends MessageSupport{
 
 		if (getConsumer(filter).getMessageHandler() == null) {
 			if (logger.isDebugEnabled())
-				logger.debug("Adding consumer messageHandler : {}",INTERNAL_KV);
+				logger.debug("{}: Adding consumer messageHandler for  {}", clazz,INTERNAL_KV);
 
 			getConsumer(filter).setMessageHandler(new MessageHandler() {
 
@@ -70,7 +72,7 @@ public abstract class BaseHandler extends MessageSupport{
 				public void onMessage(ClientMessage message) {
 					try {
 						if (logger.isDebugEnabled())
-							logger.debug("onMessage for client {}", message);
+							logger.debug("{}: onMessage for {}", clazz,message);
 						
 						message.acknowledge();
 						
@@ -80,7 +82,7 @@ public abstract class BaseHandler extends MessageSupport{
 					}
 				}
 			});
-			logger.debug("Set handler");
+			logger.debug("{}: Set handler ", clazz);
 			return true;
 		}
 		return false;
@@ -98,15 +100,15 @@ public abstract class BaseHandler extends MessageSupport{
 	public ClientConsumer getConsumer(String filter) {
 
 		if (consumer == null && getTxSession() != null && !getTxSession().isClosed()) {
-			String uuid = INTERNAL_KV+"."+UUID.randomUUID().toString();
+			String qName = INTERNAL_KV+"."+UUID.randomUUID().toString();
 			if (logger.isDebugEnabled())
-				logger.debug("Start consumer: {}", uuid);
+				logger.debug("{}: Start consumer for {} ", clazz, qName);
 			try {
-				getTxSession().createQueue(INTERNAL_KV, RoutingType.MULTICAST, uuid);
+				getTxSession().createQueue(INTERNAL_KV, RoutingType.MULTICAST, qName);
 				if(StringUtils.isBlank(filter)) {
-					consumer = getTxSession().createConsumer(uuid);
+					consumer = getTxSession().createConsumer(qName);
 				}else {
-					consumer = getTxSession().createConsumer(uuid, filter);
+					consumer = getTxSession().createConsumer(qName, filter);
 				}
 				getTxSession().start();
 				
