@@ -25,9 +25,13 @@ package nz.co.fortytwo.signalk.artemis.transformer;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.AIS;
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
+import static nz.co.fortytwo.signalk.artemis.util.Config.MSG_SRC_BUS;
+import static nz.co.fortytwo.signalk.artemis.util.Config.MSG_SRC_TYPE;
 import static nz.co.fortytwo.signalk.artemis.util.Config._0183;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self_str;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.source;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.io.File;
@@ -148,7 +152,7 @@ public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer
 				Object result =  ((Invocable)engine).invokeMethod(engineHolder.get().get("parser"),"parse", bodyStr);
 
 				if (logger.isDebugEnabled())
-					logger.debug("Processed NMEA:[" + result + "]");
+					logger.debug("Processed NMEA: " + result );
 
 				if (result==null || StringUtils.isBlank(result.toString())|| result.toString().startsWith("WARN")) {
 					logger.warn(bodyStr + "," + result);
@@ -158,6 +162,12 @@ public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer
 				if(!json.isObject())return message;
 				
 				json.set(SignalKConstants.CONTEXT, vessels + dot + Util.fixSelfKey(self_str));
+				//add type.bus to source
+				String type = message.getStringProperty(MSG_SRC_TYPE);
+				String bus = message.getStringProperty(MSG_SRC_BUS);
+				for(Json j:json.at(UPDATES).asJsonList()){
+					convertSource(this, message, j, bus, type);
+				}
 				
 				if (logger.isDebugEnabled())
 					logger.debug("Converted NMEA msg:" + json.toString());

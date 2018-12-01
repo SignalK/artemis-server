@@ -65,7 +65,7 @@ public class FullMsgTransformer extends BaseInterceptor implements Transformer {
 				logger.debug("processing full {} ", node);
 			try {
 				SignalkKvConvertor.parseFull(this,message, node, "");
-				//node.clear(true);
+				node.clear(true);
 			} catch (Exception e) {
 				logger.error(e,e);
 			}

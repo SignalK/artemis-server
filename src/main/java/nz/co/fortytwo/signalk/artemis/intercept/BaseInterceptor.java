@@ -59,6 +59,7 @@ public class BaseInterceptor extends MessageSupport{
 	}
 	
 	public void convertSource(MessageSupport support, Message message, Json j, String srcBus, String msgType)  {
+		
 		Json srcJson = Util.convertSourceToRef(j,srcBus,msgType);
 		try {
 			SignalkKvConvertor.parseFull(support, message, srcJson, "");

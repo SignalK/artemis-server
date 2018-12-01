@@ -49,7 +49,7 @@ public class SignalkKvConvertor {
 				logger.debug("Recurse {} = {}", () -> key, () -> val);
 			//primitive we write out
 			if (val.isPrimitive() || val.isNull() || val.isArray()) {
-				sender.sendKvMessage(origMessage,prefix + key, val);
+				sender.sendKvMessage(origMessage,prefix + key, val.dup());
 				continue;
 			}
 			//value object we save in .values.sourceref.
@@ -72,13 +72,13 @@ public class SignalkKvConvertor {
 					tmpVal.set(timestamp, Util.getIsoTimeString());
 				}
 				if(prefix.contains(dot+values)) {
-					sender.sendKvMessage(origMessage,prefix + key , val);
+					sender.sendKvMessage(origMessage,prefix + key , val.dup());
 					if (logger.isDebugEnabled())
 						logger.debug("put: {}:{}", prefix + key, val);
 				}else {
-					sender.sendKvMessage(origMessage,prefix + key + dot + values + dot + srcRef, tmpVal);
+					sender.sendKvMessage(origMessage,prefix + key + dot + values + dot + srcRef, tmpVal.dup());
 					if (logger.isDebugEnabled())
-						logger.debug("put: {}:{}", prefix + key + dot + values + dot + srcRef, tmpVal);
+						logger.debug("put: {}:{}", prefix + key + dot + values + dot + srcRef, tmpVal.dup());
 				}
 				//sourceRef is wrong for meta
 				if(val.has(meta)) parseFull(sender, origMessage, val.at(meta),  prefix + key + dot + values+dot+ srcRef+dot+meta+dot);

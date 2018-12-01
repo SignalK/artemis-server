@@ -53,7 +53,7 @@
 			"logger": [
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.intercept",
-					"level": "warn"
+					"level": "debug"
 				},
 				{
 					"name": "nz.co.fortytwo.signalk",

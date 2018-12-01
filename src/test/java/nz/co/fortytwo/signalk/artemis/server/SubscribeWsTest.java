@@ -23,6 +23,7 @@
  */
 package nz.co.fortytwo.signalk.artemis.server;
 
+import static nz.co.fortytwo.signalk.artemis.util.Config.SERIAL;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONFIG;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT_DELTA;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.POLICY_IDEAL;
@@ -79,7 +80,10 @@ public class SubscribeWsTest extends BaseServerTest {
 				ClientProducer producer = session.createProducer();	
 				){
 			String token = SecurityUtils.authenticateUser("admin", "admin");
-			sendMessage(session, producer, "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78", token);
+			sendMessage(session, producer, "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78", token, "/dev/ttyUSB0", SERIAL);
+			//wait a sec to flush through
+			CountDownLatch latch = new CountDownLatch(1);
+			latch.await(2,TimeUnit.SECONDS);
 		} catch (ActiveMQException e) {
 			logger.error(e,e);
 		} catch (Exception e) {
@@ -190,7 +194,7 @@ public class SubscribeWsTest extends BaseServerTest {
 			resp = getUrlAsString(c,SIGNALK_API + "/" + vessels + "/urn", restPort);
 			 Json respJson = Json.read(resp);
 			logger.debug(resp);
-			assertTrue(resp, respJson.has("urn:mrn:signalk:uuid:5da2f032-fc33-43f0-bc24-935bf55a17d1"));
+			assertTrue(resp, respJson.has(uuid));
 		}
 	}
 

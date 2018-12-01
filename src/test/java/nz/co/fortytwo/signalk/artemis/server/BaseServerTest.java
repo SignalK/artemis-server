@@ -212,10 +212,17 @@ public class BaseServerTest extends EasyMockSupport {
 //		sendMessage(session, producer, msg, null); 
 //	}
 	protected void sendMessage(ClientSession session, ClientProducer producer, String msg, String token) throws ActiveMQException {
+		sendMessage(session, producer, msg, token,null,null);
+	}
+	protected void sendMessage(ClientSession session, ClientProducer producer, String msg, String token, String srcBus, String srcType) throws ActiveMQException {
 		ClientMessage message = session.createMessage(true);
 		if(token!=null) {
 			message.putStringProperty(AMQ_USER_TOKEN, token);
 		}
+		if(srcBus!=null)
+			message.putStringProperty(Config.MSG_SRC_BUS, srcBus);
+		if(srcType!=null) 
+			message.putStringProperty(Config.MSG_SRC_TYPE, srcType);
 		logger.debug("Sending message: {}", message);
 		message.getBodyBuffer().writeString(msg);
 		producer.send(Config.INCOMING_RAW, message);
