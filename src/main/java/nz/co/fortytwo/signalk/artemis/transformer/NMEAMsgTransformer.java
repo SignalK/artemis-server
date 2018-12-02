@@ -25,6 +25,7 @@ package nz.co.fortytwo.signalk.artemis.transformer;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.AIS;
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
+import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_DELTA;
 import static nz.co.fortytwo.signalk.artemis.util.Config.MSG_SRC_BUS;
 import static nz.co.fortytwo.signalk.artemis.util.Config.MSG_SRC_TYPE;
 import static nz.co.fortytwo.signalk.artemis.util.Config._0183;
@@ -146,9 +147,15 @@ public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer
 		
 		if (StringUtils.isNotBlank(bodyStr) && bodyStr.startsWith("$")) {
 			try {
-				if (logger.isDebugEnabled())
+				if(engineHolder==null)engineHolder=ThreadLocal.withInitial(() -> {
+					return engine.createBindings();
+					
+				});
+				if (logger.isDebugEnabled()) {
 					logger.debug("Processing NMEA:[" + bodyStr + "]");
-				if(logger.isDebugEnabled())logger.debug("Parser inv: {}",engineHolder.get().get("parser"));
+					logger.debug("Parser inv: {}",engineHolder.get().get("parser"));
+				}
+				
 				Object result =  ((Invocable)engine).invokeMethod(engineHolder.get().get("parser"),"parse", bodyStr);
 
 				if (logger.isDebugEnabled())
@@ -165,18 +172,18 @@ public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer
 				//add type.bus to source
 				String type = message.getStringProperty(MSG_SRC_TYPE);
 				String bus = message.getStringProperty(MSG_SRC_BUS);
+				//now its a signalk delta msg
+				message.putStringProperty(AMQ_CONTENT_TYPE, JSON_DELTA);
 				for(Json j:json.at(UPDATES).asJsonList()){
 					convertSource(this, message, j, bus, type);
 				}
 				
 				if (logger.isDebugEnabled())
 					logger.debug("Converted NMEA msg:" + json.toString());
+				
 				SignalkKvConvertor.parseDelta(this,message, json);
 				json.clear(true);
-				//only used by tests, needs to go.
-				message.toCore().getBodyBuffer().clear();
-				message.toCore().getBodyBuffer().writeString(json.toString());
-				message.toCore().putStringProperty(Config.AMQ_CONTENT_TYPE, Config.JSON_DELTA);
+				
 				
 			} catch (Exception e) {
 				logger.error(e, e);

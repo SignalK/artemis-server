@@ -9,14 +9,12 @@ TODO:
 	srcRef back to source
 	
 	security
-
-	serial output
-	in serial, add TYPE=SERIAL header, add as type in sendMessage.
+		prevent message replay attacks
+		prevent NMEA/N2K over tcp attacks
 
 	convert self back to urn on reply
 	
 	Alarms
-	Declination
 
 	Git
 	REST LIST

@@ -1,5 +1,7 @@
 package nz.co.fortytwo.signalk.artemis.util;
 
+import static nz.co.fortytwo.signalk.artemis.util.Config.ADMIN_USER;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_USER_TOKEN;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONFIG;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
@@ -215,7 +217,7 @@ public class Util {
 			
 			ClientMessage message = txSession.createMessage(false);
 			message.getBodyBuffer().writeString(content);
-			
+			message.putStringProperty(AMQ_USER_TOKEN, SecurityUtils.authenticateUser(Config.getConfigProperty(ADMIN_USER), Config.getConfigProperty(ADMIN_USER)));
 			producer.send(Config.INCOMING_RAW, message);
 		} 
 	}

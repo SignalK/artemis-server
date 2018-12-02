@@ -54,21 +54,15 @@ public class SerialPortManager implements Runnable {
 	private List<SerialPortReader> serialPortList = new CopyOnWriteArrayList<SerialPortReader>();
 
 	private boolean running = true;
-	private static String token = null;
 	
-	public static String getToken() {
-		return token;
-	}
-
+	
 	@SuppressWarnings("static-access")
 	public void run() {
 		// not running, start now.
 		try {
-			Json roles = SecurityUtils.getUser("serial").at("role");
-			token = SecurityUtils.issueToken("serial", roles);
+			
 			while (running) {
-				//make sure token is updated
-				token = SecurityUtils.validateToken(token);
+			
 				// remove any stopped readers
 				List<SerialPortReader> tmpPortList = new ArrayList<SerialPortReader>();
 				for (SerialPortReader reader : serialPortList) {

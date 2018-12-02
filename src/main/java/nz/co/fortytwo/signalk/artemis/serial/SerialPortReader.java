@@ -237,10 +237,7 @@ public class SerialPortReader extends MessageSupport{
 						txMsg.getBodyBuffer().writeString(buffer);
 						txMsg.putStringProperty(Config.MSG_SRC_BUS, portName);
 						txMsg.putStringProperty(Config.MSG_SRC_TYPE, Config.SERIAL);
-						txMsg.putStringProperty(AMQ_USER_TOKEN, SerialPortManager.getToken());
-						
-						txMsg.putStringProperty(Config.AMQ_USER_ROLES, SecurityUtils.getRoles(SerialPortManager.getToken()).toString());
-						
+							
 						getProducer().send(new SimpleString(Config.INCOMING_RAW), txMsg);
 						if (logger.isDebugEnabled())
 							logger.debug("json = {}", buffer);

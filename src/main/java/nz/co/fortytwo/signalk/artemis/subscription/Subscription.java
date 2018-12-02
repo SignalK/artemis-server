@@ -95,7 +95,7 @@ public class Subscription {
 	private Map<String, String> map = new HashMap<>();
 	private String correlation;
 
-	public Subscription(String sessionId, String destination, String user, String password, String path, long period,
+	public Subscription(String sessionId, String destination, String path, long period,
 			long minPeriod, String format, String policy, String correlation, String token,String startTime, double playbackRate) throws Exception {
 		this.sessionId = sessionId;
 

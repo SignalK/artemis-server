@@ -19,6 +19,7 @@ import org.junit.Test;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
+import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 
 public class TcpSubscribeTest extends BaseServerTest{
@@ -40,8 +41,8 @@ public class TcpSubscribeTest extends BaseServerTest{
 		logger.debug("rcvd message = " + recv);
 		
 		try {
-
-			Json msg = getSubscriptionJson("vessels." + SignalKConstants.self, "navigation", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
+			String token = SecurityUtils.authenticateUser("admin", "admin");
+			Json msg = getSubscriptionJson("vessels.self", "navigation", 1000, 0, FORMAT_DELTA, POLICY_FIXED,token);
 			outToServer.writeBytes(msg.toString() + '\n');
 			String line = "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78";
 			outToServer.writeBytes(line + '\n');
@@ -69,7 +70,7 @@ public class TcpSubscribeTest extends BaseServerTest{
 	 */
 	@Test
 	public void checkMultiClientSubscribe() throws Exception {
-
+		String token = SecurityUtils.authenticateUser("admin", "admin");
 		Socket clientSocket1 = new Socket("127.0.0.1", port);
 		clientSocket1.setSoTimeout(30000);
 		DataOutputStream outToServer1 = new DataOutputStream(clientSocket1.getOutputStream());
@@ -88,10 +89,10 @@ public class TcpSubscribeTest extends BaseServerTest{
 		
 		try {
 			//assumes these exist!
-			Json msg1 = getSubscriptionJson("vessels." + SignalKConstants.self, "navigation.position", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
+			Json msg1 = getSubscriptionJson("vessels.self", "navigation.position", 1000, 0, FORMAT_DELTA, POLICY_FIXED,token);
 			outToServer1.writeBytes(msg1.toString() + '\n');
 			
-			Json msg2 = getSubscriptionJson("vessels." + SignalKConstants.self, "navigation.headingMagnetic", 1000, 0, FORMAT_DELTA, POLICY_FIXED);
+			Json msg2 = getSubscriptionJson("vessels.self", "navigation.headingMagnetic", 1000, 0, FORMAT_DELTA, POLICY_FIXED,token);
 			outToServer2.writeBytes(msg2.toString() + '\n');
 			outToServer2.flush();
 			

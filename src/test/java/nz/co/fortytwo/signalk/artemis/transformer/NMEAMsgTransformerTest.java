@@ -16,6 +16,9 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.timestamp;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.values;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -58,13 +61,17 @@ public class NMEAMsgTransformerTest extends BaseMsgInterceptorTest {
     
     @Before
     public void before(){
-    	
+    	transformer = partialMockBuilder(NMEAMsgTransformer.class)
+	    	.addMockedMethod("sendKvMessage")
+    			.createMock(); 
     }
     
     @Test
 	public void shouldAvoidJson() throws ActiveMQException {
     	Json json = Json.read("{\"context\":\"vessels.self\",\"updates\":[{\"values\":[{\"path\":\"propulsion.engine_1.revolutions\",\"value\":40.30333333333333}],\"source\":{\"sentence\":\"RPM\",\"talker\":\"II\",\"type\":\"NMEA0183\"},\"timestamp\":\"2018-05-14T02:43:29.224Z\"}]}");
 		ClientMessage message = getClientMessage(json.toString(), JSON_DELTA, false); 
+		
+		replayAll();
 		
 		ICoreMessage msg =  transformer.transform(message).toCore();
 		assertNotNull(msg);
@@ -77,59 +84,76 @@ public class NMEAMsgTransformerTest extends BaseMsgInterceptorTest {
 		
 		assertTrue(Util.isDelta(after));
 		assertEquals(json,after);
+		verifyAll();
     }
     
     @Test
 	public void shouldProcessRPM() throws ActiveMQException {	
 		ClientMessage message = getClientMessage("$IIRPM,E,1,2418.2,10.5,A*5F", _0183, false); 
-		ICoreMessage msg =  transformer.transform(message).toCore();
+		transformer.sendKvMessage( anyObject(message.getClass()), anyString(), anyObject(Json.class));
+		expectLastCall().times(4);
+		replayAll();
+		Message msg =  transformer.transform(message);
 		assertNotNull(msg);
+//		
+//		HashMap<String,Object> map=new HashMap<>();
+//		map.put("propulsion.engine_1.revolutions",40.30333333333333d); 
 		
-		HashMap<String,Object> map=new HashMap<>();
-		map.put("propulsion.engine_1.revolutions",40.30333333333333d); 
-		checkConversion(msg,map);
-		
+		verifyAll();
 	}
     
     @Test
 	public void shouldProcessDBT() throws ActiveMQException {	
 		ClientMessage message = getClientMessage("$IIDPT,4.1,0.0*45", _0183, false); 
+		transformer.sendKvMessage( anyObject(message.getClass()), anyString(), anyObject(Json.class));
+		expectLastCall().times(4);
+		replayAll();
+		
 		ICoreMessage msg =  transformer.transform(message).toCore();
 		assertNotNull(msg);
 		
-		HashMap<String,Object> map=new HashMap<>();
-		map.put(env_depth_belowTransducer,4.1d);
-		checkConversion(msg,map);
+//		HashMap<String,Object> map=new HashMap<>();
+//		map.put(env_depth_belowTransducer,4.1d);
+		verifyAll();
 		
 	}
 	
 	@Test
 	public void shouldProcessRMB() throws ActiveMQException {	
 		ClientMessage message = getClientMessage("$ECRMB,A,0.000,L,001,002,4653.550,N,07115.984,W,2.505,334.205,0.000,V*04", _0183, false); 
+		
+		transformer.sendKvMessage( anyObject(message.getClass()), anyString(), anyObject(Json.class));
+		expectLastCall().times(8);
+		replayAll();
+		
 		ICoreMessage msg =  transformer.transform(message).toCore();
 		assertNotNull(msg);
 		
-		HashMap<String,Object> map=new HashMap<>();
-		//map.put("environment.depth.belowTransducer navigation.courseRhumbline.nextPoint.value.lattitude",46.8925d);
-		map.put("navigation.courseRhumbline.nextPoint.bearingTrue",5.83297762795949d);
-		map.put("navigation.courseRhumbline.nextPoint.velocityMadeGood",0d);
-		map.put("navigation.courseRhumbline.nextPoint.distance",4639.260003915535d);
-		map.put("navigation.courseRhumbline.crossTrackError",0d);
+//		HashMap<String,Object> map=new HashMap<>();
+//		//map.put("environment.depth.belowTransducer navigation.courseRhumbline.nextPoint.value.lattitude",46.8925d);
+//		map.put("navigation.courseRhumbline.nextPoint.bearingTrue",5.83297762795949d);
+//		map.put("navigation.courseRhumbline.nextPoint.velocityMadeGood",0d);
+//		map.put("navigation.courseRhumbline.nextPoint.distance",4639.260003915535d);
+//		map.put("navigation.courseRhumbline.crossTrackError",0d);
 
-		checkConversion(msg,map);
+		verifyAll();
 		
 	}
 	
 	@Test
 	public void shouldProcessRMC() throws ActiveMQException {
 		ClientMessage message = getClientMessage("$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78", _0183, false); 
+		transformer.sendKvMessage( anyObject(message.getClass()), anyString(), anyObject(Json.class));
+		expectLastCall().times(9);
+		replayAll();
+		
 		ICoreMessage msg =  transformer.transform(message).toCore();
 		assertNotNull(msg);
 		
-		HashMap<String,Object> map=new HashMap<>();
-		map.put(nav_speedOverGround,0.151761149557269d);
-		map.put(nav_courseOverGroundTrue,0d);
-		checkConversion(msg,map);
+//		HashMap<String,Object> map=new HashMap<>();
+//		map.put(nav_speedOverGround,0.151761149557269d);
+//		map.put(nav_courseOverGroundTrue,0d);
+		verifyAll();
 		
 	}
 	private void checkConversion(ICoreMessage msg, HashMap<String, Object> map) {

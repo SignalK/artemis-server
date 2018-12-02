@@ -142,7 +142,6 @@ public class SubscribeMsgTransformer extends BaseInterceptor implements Transfor
 			if (subscriptions.isArray()) {
 				for (Json subscription : subscriptions.asJsonList()) {
 					Subscription sub = parseSubscribe(sessionId, destination,
-							Config.getConfigProperty(Config.ADMIN_USER), Config.getConfigProperty(Config.ADMIN_PWD),
 							ctx, subscription, correlation, token);
 					if (logger.isDebugEnabled())
 						logger.debug("Remove subscription; " + sub.toString());
@@ -181,7 +180,6 @@ public class SubscribeMsgTransformer extends BaseInterceptor implements Transfor
 			if (subscriptions.isArray()) {
 				for (Json subscription : subscriptions.asJsonList()) {
 					Subscription sub = parseSubscribe(sessionId, destination,
-							Config.getConfigProperty(Config.ADMIN_USER), Config.getConfigProperty(Config.ADMIN_PWD),
 							ctx, subscription, correlation, token);
 					if (logger.isDebugEnabled())
 						logger.debug("Created subscription; " + sub.toString());
@@ -223,11 +221,10 @@ public class SubscribeMsgTransformer extends BaseInterceptor implements Transfor
 	 * @param token 
 	 * @throws Exception
 	 */
-	private Subscription parseSubscribe(String sessionId, String destination, String user, String password,
-			String context, Json subscription, String correlation, String token) throws Exception {
+	private Subscription parseSubscribe(String sessionId, String destination, String context, Json subscription, String correlation, String token) throws Exception {
 		// get values
 		if (logger.isDebugEnabled())
-			logger.debug("Parsing subscribe for : " + user + " : " + password + " : " + destination + " : " + context
+			logger.debug("Parsing subscribe for : " +  destination + " : " + context
 					+ " : " + subscription);
 		String path = subscription.at(PATH).asString();
 		if(StringUtils.equals("none", path)) {
@@ -261,7 +258,7 @@ public class SubscribeMsgTransformer extends BaseInterceptor implements Transfor
 		if (subscription.at(PLAYBACK_RATE) != null)
 			playbackRate = subscription.at(PLAYBACK_RATE).asDouble();
 
-		Subscription sub = new Subscription(sessionId, destination, user, password, path, period, minPeriod, format,
+		Subscription sub = new Subscription(sessionId, destination, path, period, minPeriod, format,
 				policy, correlation, token, startTime, playbackRate);
 
 		// STOMP, MQTT

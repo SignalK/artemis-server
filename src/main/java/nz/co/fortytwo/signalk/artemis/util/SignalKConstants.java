@@ -123,6 +123,7 @@ public class SignalKConstants {
 	public static final String CONFIG_ACTION_READ = "CONFIG_ACTION_READ";
 	public static final String CONFIG_ACTION_SAVE = "CONFIG_ACTION_SAVE";
 
+	public static final String SK_MSG_TOKEN = "token";
 	public static final String SK_TOKEN = "SK_TOKEN";
 	public static final String JWT_TOKEN = "JWT_TOKEN";
 	public static final String TOKEN = "jwtToken";

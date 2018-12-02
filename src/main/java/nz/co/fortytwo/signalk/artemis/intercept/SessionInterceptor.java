@@ -18,6 +18,7 @@ import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.server.ArtemisServer;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
+import nz.co.fortytwo.signalk.artemis.util.Util;
 
 /**
  * A way to acquire the session in a message
@@ -52,6 +53,17 @@ public class SessionInterceptor extends BaseInterceptor implements Interceptor {
 					}
 				}
 			}
+			//make sure we get tokens for serial, tcp, etc
+			if(msg.getStringProperty(Config.AMQ_USER_TOKEN)==null)
+				try {
+					if (logger.isDebugEnabled())
+						logger.debug("Injecting AMQ_USER_TOKEN in {}",msg);
+					SecurityUtils.injectToken(msg);
+				} catch (Exception e1) {
+					logger.error(msg);
+					logger.error(Util.readBodyBufferToString(msg.toCore()));
+					logger.error(e1,e1);
+				}
 			//should not have roles here
 			msg.removeProperty(Config.AMQ_USER_ROLES);
 			try {

@@ -95,9 +95,9 @@
 		</queues>
 		<remoting-incoming-interceptors>
 			<!-- incoming -->
-			<class-name>nz.co.fortytwo.signalk.artemis.intercept.SessionInterceptor
-			</class-name>
 			<class-name>nz.co.fortytwo.signalk.artemis.intercept.GarbageInterceptor
+			</class-name>
+			<class-name>nz.co.fortytwo.signalk.artemis.intercept.SessionInterceptor
 			</class-name>
 			<class-name>nz.co.fortytwo.signalk.artemis.intercept.SysTimeInterceptor
 			</class-name>

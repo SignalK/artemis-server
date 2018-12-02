@@ -8,6 +8,9 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PUT;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.source;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sourceRef;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -54,7 +57,7 @@ public class DeltaSourceInterceptorTest extends BaseMsgInterceptorTest {
     @Before
     public void before(){
     	interceptor = partialMockBuilder(DeltaSourceInterceptor.class)
-	    	.addMockedMethod("saveSource")
+	    	.addMockedMethod("sendKvMessage")
 	    	.createMock(); 
 		try {
 			update=Json.read(FileUtils.readFileToString(new File("./src/test/resources/samples/delta/docs-data_model_multiple_values.json")));
@@ -65,13 +68,16 @@ public class DeltaSourceInterceptorTest extends BaseMsgInterceptorTest {
 	}
 
 	@Test
-	 @Ignore
 	public void shouldProcessUpdate() throws ActiveMQException {
 		//{sources.NMEA0183.GPS-1.label="GPS-1", sources.NMEA0183.GPS-1.label._attr={"owner":"admin","grp":"admin"}, sources.NMEA0183.GPS-1.sentence="RMC", sources.NMEA0183.GPS-1.sentence._attr={"owner":"admin","grp":"admin"}, sources.NMEA0183.GPS-1.talker="GP", sources.NMEA0183.GPS-1.talker._attr={"owner":"admin","grp":"admin"}, sources.NMEA0183.GPS-1.type="NMEA0183", sources.NMEA0183.GPS-1.type._attr={"owner":"admin","grp":"admin"}}
 //		interceptor.saveSource(Json.read("{\"sources\":{\"NMEA0183\":{\"GPS-1\":{\"sentence\":\"RMC\",\"talker\":\"GP\",\"label\":\"GPS-1\",\"type\":\"NMEA0183\"}}}}"));
 //		interceptor.saveSource(Json.read("{\"sources\":{\"NMEA2000\":{\"actisense\":{\"src\":\"115\",\"pgn\":128267,\"label\":\"actisense\",\"type\":\"NMEA2000\"}}}}"));
-		replayAll();
+		
 		ClientMessage message = getClientMessage(update.toString(), JSON_DELTA, false);
+		interceptor.sendKvMessage( anyObject(message.getClass()), anyString(), anyObject(Json.class));
+		expectLastCall().times(8);
+		replayAll();
+		
 		message.setAddress(INCOMING_RAW);
 		SessionSendMessage packet = new SessionSendMessage((CoreMessage) message);
 
@@ -95,13 +101,15 @@ public class DeltaSourceInterceptorTest extends BaseMsgInterceptorTest {
 	}
 	
 	@Test
-	 @Ignore
 	public void shouldProcessPut() throws ActiveMQException {
 		
 //		interceptor.saveSource(Json.read("{\"sources\":{\"NMEA2000\":{\"actisense\":{\"src\":\"115\",\"pgn\":128267,\"label\":\"actisense\",\"type\":\"NMEA2000\"}}}}"));
-		replayAll();
+		
 		
 		ClientMessage message = getClientMessage(put.toString(), JSON_DELTA, false);
+		interceptor.sendKvMessage( anyObject(message.getClass()), anyString(), anyObject(Json.class));
+		expectLastCall().times(4);
+		replayAll();
 		message.setAddress(INCOMING_RAW);
 		SessionSendMessage packet = new SessionSendMessage((CoreMessage) message);
 
@@ -125,12 +133,15 @@ public class DeltaSourceInterceptorTest extends BaseMsgInterceptorTest {
 	}
 	
 	@Test
-	 @Ignore
 	public void shouldProcessConfig() throws ActiveMQException {
 		
 //		interceptor.saveSource(Json.read("{\"sources\":{\"NMEA2000\":{\"actisense\":{\"src\":\"115\",\"pgn\":128267,\"label\":\"actisense\",\"type\":\"NMEA2000\"}}}}"));
-		replayAll();
+		
 		ClientMessage message = getClientMessage(config.toString(), JSON_DELTA, false);
+		interceptor.sendKvMessage( anyObject(message.getClass()), anyString(), anyObject(Json.class));
+		expectLastCall().times(4);
+		replayAll();
+		
 		message.setAddress(INCOMING_RAW);
 		SessionSendMessage packet = new SessionSendMessage((CoreMessage) message);
 

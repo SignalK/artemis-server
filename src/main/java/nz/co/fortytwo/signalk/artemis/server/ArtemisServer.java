@@ -129,14 +129,14 @@ public final class ArtemisServer {
 		startKvHandlers();
 
 		// start serial?
-		if (Config.getConfigPropertyBoolean(ENABLE_SERIAL)) {
-			// start a serial port manager
-			if (serialPortManager == null) {
-				serialPortManager = new SerialPortManager();
-				new Thread(serialPortManager).start();
-			}
-
-		}
+//		if (Config.getConfigPropertyBoolean(ENABLE_SERIAL)) {
+//			// start a serial port manager
+//			if (serialPortManager == null) {
+//				serialPortManager = new SerialPortManager();
+//				new Thread(serialPortManager).start();
+//			}
+//
+//		}
 
 		addShutdownHook(this);
 
@@ -183,6 +183,19 @@ public final class ArtemisServer {
 		// declination
 		final Runnable declination = new DeclinationUpdater();
 		scheduler.scheduleAtFixedRate(declination, 1, 1, TimeUnit.HOURS);
+		//system tokens
+		final Runnable systemTokens = new Runnable() {
+			
+			@Override
+			public void run() {
+				try {
+					SecurityUtils.validateTokenStore();
+				} catch (Exception e) {
+					logger.error(e,e);
+				}
+			}
+		};
+		scheduler.scheduleAtFixedRate(systemTokens, 1, 1, TimeUnit.HOURS);
 	}
 
 	private void ensureSecurityConf() {
@@ -198,17 +211,9 @@ public final class ArtemisServer {
 		} 
 		// make sure we have system users serial, n2k, ais
 		try {
+			SecurityUtils.checkSystemUsers();
 			
-			if (SecurityUtils.getUser("serial") == null) {
-				SecurityUtils.addUser("serial", java.util.UUID.randomUUID().toString(), "", Json.array().add("serial"));
-			}
-			if (SecurityUtils.getUser("n2k") == null) {
-				SecurityUtils.addUser("n2k", java.util.UUID.randomUUID().toString(), "", Json.array().add("n2k"));
-			}
-			if (SecurityUtils.getUser("ais") == null) {
-				SecurityUtils.addUser("ais", java.util.UUID.randomUUID().toString(), "", Json.array().add("ais"));
-			}
-			//amke sure all passwords are encrypted.
+			//make sure all passwords are encrypted.
 			Json conf = SecurityUtils.getSecurityConfAsJson();
 			SecurityUtils.save(conf.toString());
 		} catch (Exception e) {

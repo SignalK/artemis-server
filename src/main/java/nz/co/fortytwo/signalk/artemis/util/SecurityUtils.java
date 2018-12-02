@@ -1,17 +1,36 @@
 package nz.co.fortytwo.signalk.artemis.util;
 
+import static nz.co.fortytwo.signalk.artemis.util.Config.AIS;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_USER_ROLES;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_USER_TOKEN;
+import static nz.co.fortytwo.signalk.artemis.util.Config.EXTERNAL_IP;
+import static nz.co.fortytwo.signalk.artemis.util.Config.INTERNAL_IP;
+import static nz.co.fortytwo.signalk.artemis.util.Config.MSG_SRC_BUS;
+import static nz.co.fortytwo.signalk.artemis.util.Config.MSG_SRC_TYPE;
+import static nz.co.fortytwo.signalk.artemis.util.Config.N2K;
+import static nz.co.fortytwo.signalk.artemis.util.Config.SERIAL;
+import static nz.co.fortytwo.signalk.artemis.util.Config._0183;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SK_MSG_TOKEN;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SK_TOKEN;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.TOKEN;
+
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.NavigableMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.crypto.SecretKey;
 import javax.servlet.http.Cookie;
 import javax.ws.rs.core.HttpHeaders;
 
+import org.apache.activemq.artemis.api.core.ICoreMessage;
+import org.apache.activemq.artemis.api.core.Message;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
@@ -44,13 +63,20 @@ public final class SecurityUtils {
 	private static SecretKey key = MacProvider.generateKey();
 
 	private static Json securityConf;
+
+	private static ConcurrentHashMap<String, String> tokenStore=new ConcurrentHashMap<>();
+	private static String[] systemUsers = {"ais", "serial", "n2k","tcp_internal","tcp_external"};
+	
+	public static void validateTokenStore() throws Exception {
+		for(String name:tokenStore.keySet()) {
+			tokenStore.put(name, validateToken(tokenStore.get(name)));
+		}
+	}
 	
 	public static Json getUser(String name) throws Exception {
 		List<Json> list = getSecurityConfAsJson().at("users").asJsonList();
 		for(Json user:list) {
-			//logger.debug("Checking {}= {}", name, user.at("name").asString());
 			if(StringUtils.equals(user.at("name").asString(),name)) {
-				//logger.debug("   Found {} !",user);
 				return user;
 			}
 		}
@@ -269,15 +295,19 @@ public final class SecurityUtils {
 				if (key.equals("all")) {
 					return;
 				}
-				Iterator<String> itr = rslt.keySet().iterator();
-				while(itr.hasNext()) {
-					if(key.contains(itr.next())) {
-						continue;
-					}
-					itr.remove();
-				}
-				return;
 			}
+
+			rslt.entrySet().removeIf(entry->{
+				for (String a : allowed) {
+					if (entry.getKey().startsWith(a)) {
+						return false;
+					}
+				}
+				return true;
+			});
+			
+			return;
+			
 		} catch (Exception e) {
 			logger.error(e, e);
 		}
@@ -291,18 +321,77 @@ public final class SecurityUtils {
 					rslt.clear();
 					return;
 				}
-				Iterator<String> itr = rslt.keySet().iterator();
-				while(itr.hasNext()) {
-					if(key.contains(itr.next())) {
-						itr.remove();
+				rslt.entrySet().removeIf(entry->{
+					for (String a : allowed) {
+						if (entry.getKey().startsWith(a)) {
+							return true;
+						}
 					}
-				}
-					return;
+					return false;
+				});
+				return;
 			}
 		} catch (Exception e) {
 			logger.error(e, e);
 		}
 
+	}
+
+	public static void injectTokenFromMessage(ICoreMessage message, Json node) {
+		if(node.has(SK_MSG_TOKEN)) {
+			message.putStringProperty(AMQ_USER_TOKEN, node.at(SK_MSG_TOKEN).asString());
+		}
+		
+	}
+
+	public static void injectToken(Message msg) throws Exception {
+		
+		//AIS, 0183
+		String msgType = msg.getStringProperty(AMQ_CONTENT_TYPE);
+		//EXTERNAL_IP, SERIAL
+		String msgSrc = msg.getStringProperty(MSG_SRC_TYPE);
+		//ip, /dev/ttyUSB0
+		String msgBus = msg.getStringProperty(MSG_SRC_BUS);
+		
+		switch (msgType) {
+		case AIS:
+			if(StringUtils.equals(SERIAL,msgSrc) || StringUtils.equals(N2K,msgSrc)) {
+				msg.putStringProperty(AMQ_USER_TOKEN, tokenStore.get("ais"));
+			}
+			break;
+		case _0183:
+			if(StringUtils.equals(SERIAL,msgSrc)) {
+				msg.putStringProperty(AMQ_USER_TOKEN, tokenStore.get("serial"));
+			}
+
+			if(StringUtils.equals(INTERNAL_IP,msgSrc)) {
+				msg.putStringProperty(AMQ_USER_TOKEN, tokenStore.get("tcp_internal"));
+			}
+			if(StringUtils.equals(EXTERNAL_IP,msgSrc)) {
+				msg.putStringProperty(AMQ_USER_TOKEN, tokenStore.get("tcp_external"));
+			}
+			break;
+		case N2K:
+			if(StringUtils.equals(N2K,msgSrc)) {
+				msg.putStringProperty(AMQ_USER_TOKEN, tokenStore.get("n2k"));
+			}
+			break;
+		
+		default:
+			break;
+		}
+		
+	}
+
+	public static void checkSystemUsers() throws Exception {
+		for(String name: systemUsers) {
+			if (getUser(name) == null) {
+				addUser(name, java.util.UUID.randomUUID().toString(), "", Json.array().add(name));
+				String token = issueToken(name,SecurityUtils.getUser("serial").at("role") );
+				tokenStore.put(name, token);
+			}
+		}
+		
 	}
 
 }

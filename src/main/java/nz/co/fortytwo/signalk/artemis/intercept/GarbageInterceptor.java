@@ -15,6 +15,7 @@ import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 /**
@@ -83,18 +84,24 @@ public class GarbageInterceptor extends BaseInterceptor implements Interceptor {
 				return Config._0183;
 			} else if (msg.startsWith("{") && msg.endsWith("}")) {
 				Json node = Json.read(msg);
-				
 				if(isN2k(node)) {
 					return Config.N2K;
 				}
 				if (isFullFormat(node))
 					return Config.JSON_FULL;
-				if (isGet(node))
+				if (isGet(node)) {
+					//if the message has a token, inject into header
+					SecurityUtils.injectTokenFromMessage(message, node);
 					return Config.JSON_GET;
-				if (isDelta(node))
+				}
+				if (isDelta(node)) {
+					SecurityUtils.injectTokenFromMessage(message, node);
 					return Config.JSON_DELTA;
-				if (isSubscribe(node))
+				}
+				if (isSubscribe(node)) {
+					SecurityUtils.injectTokenFromMessage(message, node);
 					return Config.JSON_SUBSCRIBE;
+				}
 				node.clear(true);
 			}
 		}

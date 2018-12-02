@@ -66,16 +66,6 @@ public class ArtemisTcpNettyHandler extends SimpleChannelInboundHandler<String> 
 	private BiMap<String, ClientConsumer> consumerList = HashBiMap.create();
 	private String outputType;
 
-//	static {
-//		try {
-//			rxSession = Util.getVmSession(Config.getConfigProperty(Config.ADMIN_USER),
-//					Config.getConfigProperty(Config.ADMIN_PWD));
-//			producer = rxSession.createProducer();
-//			rxSession.start();
-//		} catch (Exception e) {
-//			logger.error(e, e);
-//		}
-//	}
 
 	public ArtemisTcpNettyHandler(String outputType) throws Exception {
 
@@ -88,6 +78,7 @@ public class ArtemisTcpNettyHandler extends SimpleChannelInboundHandler<String> 
 		} catch (Exception e) {
 			logger.error(e, e);
 		}
+		
 	}
 
 	private synchronized void send(ClientMessage msg) throws ActiveMQException{
@@ -169,6 +160,7 @@ public class ArtemisTcpNettyHandler extends SimpleChannelInboundHandler<String> 
 		String tempQ = contextList.inverse().get(ctx);
 
 		msg.putStringProperty(Config.AMQ_REPLY_Q, tempQ);
+		
 		send(msg);
 	}
 

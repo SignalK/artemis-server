@@ -53,7 +53,7 @@
 			"logger": [
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.intercept",
-					"level": "debug"
+					"level": "warn"
 				},
 				{
 					"name": "nz.co.fortytwo.signalk",
@@ -61,7 +61,7 @@
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.handler",
-					"level": "DEBUG",
+					"level": "info",
 					"additivity": true,
 					"appender-ref": []
 				},
@@ -71,11 +71,11 @@
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.intercept.DeltaMsgInterceptor",
-					"level": "debug"
+					"level": "warn"
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.intercept.SecurityWriteInterceptor",
-					"level": "debug"
+					"level": "warn"
 				},
 				
 				{
@@ -88,7 +88,7 @@
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.util",
-					"level": "debug"
+					"level": "warn"
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.server.SerialPortReader",
@@ -184,11 +184,19 @@
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.intercept.BaseInterceptor",
+					"level": "warn"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.intercept.GarbageInterceptor",
+					"level": "debug"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.intercept.SessionInterceptor",
 					"level": "debug"
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.intercept.GetMsgInterceptor",
-					"level": "debug"
+					"level": "warn"
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.scheduled.DeclinationUpdaterTest",
@@ -200,13 +208,13 @@
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor",
-					"level": "DEBUG",
+					"level": "warn",
 					"additivity": true,
 					"appender-ref": []
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.util.SecurityUtils",
-					"level": "DEBUG",
+					"level": "warn",
 					"additivity": true,
 					"appender-ref": []
 				},

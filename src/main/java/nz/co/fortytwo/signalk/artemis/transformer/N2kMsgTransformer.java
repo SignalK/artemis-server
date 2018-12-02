@@ -24,7 +24,11 @@
 package nz.co.fortytwo.signalk.artemis.transformer;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
+import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_DELTA;
+import static nz.co.fortytwo.signalk.artemis.util.Config.MSG_SRC_BUS;
+import static nz.co.fortytwo.signalk.artemis.util.Config.MSG_SRC_TYPE;
 import static nz.co.fortytwo.signalk.artemis.util.Config.N2K;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self_str;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
@@ -138,6 +142,14 @@ public class N2kMsgTransformer extends JsBaseTransformer implements Transformer 
 				
 				if (logger.isDebugEnabled())
 					logger.debug("Converted N2K msg: {}", json.toString());
+				//add type.bus to source
+				String type = message.getStringProperty(MSG_SRC_TYPE);
+				String bus = message.getStringProperty(MSG_SRC_BUS);
+				for(Json j:json.at(UPDATES).asJsonList()){
+					convertSource(this, message, j, bus, type);
+				}
+				//now its a signalk delta msg
+				message.putStringProperty(AMQ_CONTENT_TYPE, JSON_DELTA);
 				SignalkKvConvertor.parseDelta(this,message, json);
 				json.clear(true);
 			} catch (Exception e) {

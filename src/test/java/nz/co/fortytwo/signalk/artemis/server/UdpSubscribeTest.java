@@ -18,6 +18,7 @@ import org.junit.Test;
 
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
+import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 
 @Ignore
@@ -38,8 +39,8 @@ public class UdpSubscribeTest extends BaseServerTest{
         
 		
 		try {
-
-			byte[] msg = getSubscriptionJson("vessels." + SignalKConstants.self, "navigation", 1000, 0, FORMAT_DELTA, POLICY_FIXED).toString().getBytes();
+			String token = SecurityUtils.authenticateUser("admin", "admin");
+			byte[] msg = getSubscriptionJson("vessels." + SignalKConstants.self, "navigation", 1000, 0, FORMAT_DELTA, POLICY_FIXED,token).toString().getBytes();
 			DatagramPacket  dp1 = new DatagramPacket(msg , msg.length , host , port);
 			clientSocket.send(dp1);
 			 
@@ -78,12 +79,12 @@ public class UdpSubscribeTest extends BaseServerTest{
 		 byte[] buffer2 = new byte[65536];
 
 		try {
-
-			byte[] msg1 = getSubscriptionJson("vessels." + SignalKConstants.self, "navigation.position", 1000, 0, FORMAT_DELTA, POLICY_FIXED).toString().getBytes();
+			String token = SecurityUtils.authenticateUser("admin", "admin");
+			byte[] msg1 = getSubscriptionJson("vessels." + SignalKConstants.self, "navigation.position", 1000, 0, FORMAT_DELTA, POLICY_FIXED,token).toString().getBytes();
 			DatagramPacket  dp1 = new DatagramPacket(msg1 , msg1.length , host , port);
 			clientSocket1.send(dp1);
 			
-			byte[] msg2 = getSubscriptionJson("vessels." + SignalKConstants.self, "navigation.headingMagnetic", 1000, 0, FORMAT_DELTA, POLICY_FIXED).toString().getBytes();
+			byte[] msg2 = getSubscriptionJson("vessels." + SignalKConstants.self, "navigation.headingMagnetic", 1000, 0, FORMAT_DELTA, POLICY_FIXED,token).toString().getBytes();
 			DatagramPacket  dp2 = new DatagramPacket(msg2 , msg2.length , host , port);
 			clientSocket2.send(dp2);
 			 

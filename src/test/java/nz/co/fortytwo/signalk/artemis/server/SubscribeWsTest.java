@@ -324,7 +324,8 @@ public class SubscribeWsTest extends BaseServerTest {
 
 			});
 			// subscribe
-			String subscribeMsg = getSubscriptionJson("vessels.self","navigation",1000,1000,FORMAT_DELTA,POLICY_IDEAL).toString();
+			String token = SecurityUtils.authenticateUser("admin", "admin");
+			String subscribeMsg = getSubscriptionJson("vessels.self","navigation",1000,1000,FORMAT_DELTA,POLICY_IDEAL, token).toString();
 			websocket.sendTextFrame(subscribeMsg, true, 0);
 			
 			logger.debug("Sent subscribe = " + subscribeMsg);

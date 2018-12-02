@@ -88,8 +88,8 @@ public class BaseServerTest extends EasyMockSupport {
 		return message;
 	}
 
-	protected Json getSubscriptionJson(String context, String path, int period, int minPeriod, String format, String policy) {
-		Json json = Json.read("{\"context\":\"" + context + "\", \"subscribe\": []}");
+	protected Json getSubscriptionJson(String context, String path, int period, int minPeriod, String format, String policy, String token) {
+		Json json = Json.read("{\"context\":\"" + context + "\", \"token\":\"" + token + "\",\"subscribe\": []}");
 		Json sub = Json.object();
 		sub.set("path", path);
 		sub.set("period", period);
@@ -229,12 +229,13 @@ public class BaseServerTest extends EasyMockSupport {
 		
 	}
 
-	protected void sendSubsribeMsg(ClientSession session,  ClientProducer producer, String ctx, String path, String tempQ) throws ActiveMQException{
+	protected void sendSubsribeMsg(ClientSession session,  ClientProducer producer, String ctx, String path, String tempQ, String token) throws ActiveMQException{
 		ClientMessage message = session.createMessage(true);
 		
 		message.putStringProperty(Config.AMQ_SESSION_ID, tempQ);
 		message.putStringProperty(Config.AMQ_CORR_ID, tempQ);
-		Json msg = getSubscriptionJson(ctx, path, 1000, 0, FORMAT_DELTA, POLICY_FIXED);
+		message.putStringProperty(Config.AMQ_USER_TOKEN, token);
+		Json msg = getSubscriptionJson(ctx, path, 1000, 0, FORMAT_DELTA, POLICY_FIXED,token);
 		message.getBodyBuffer().writeString(msg.toString());
 		message.putStringProperty(Config.AMQ_REPLY_Q, tempQ);
 		logger.debug("Sending msg: {}, {} ", producer, message);
