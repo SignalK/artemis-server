@@ -8,6 +8,66 @@
 			"roles": [
 				"skipper"
 			]
+		},
+				{
+			"password": "",
+			"roles": [
+				"public"
+			],
+			"name": "public",
+			"lastPasswordChange": "2018-08-02T05:39:56.083Z",
+			"email": "",
+			"hash": "sha1:64000:18:npENjHPI+p62MNdpbDads/uIoJbSWG2a:hiiF15T+1Asr1oiOehtbqHTL"
+		},
+		{
+			"password": "",
+			"role": [
+				"serial"
+			],
+			"name": "serial",
+			"lastPasswordChange": "2018-11-24T20:45:12.263Z",
+			"email": "",
+			"hash": "sha1:64000:18:6d+46Qt/OCtjdJpufur3ukI9LPOXDf8s:6s36VM8pLa/YvuuvsJIev386"
+		},
+		{
+			"password": "",
+			"role": [
+				"n2k"
+			],
+			"name": "n2k",
+			"lastPasswordChange": "2018-11-24T20:45:12.385Z",
+			"email": "",
+			"hash": "sha1:64000:18:yAq0rOnDgOPXkJU/5Py1kTcOYxjtocqM:HadLD9EWw0MnNaWHwZLKtAWq"
+		},
+		{
+			"password": "",
+			"role": [
+				"ais"
+			],
+			"name": "ais",
+			"lastPasswordChange": "2018-11-24T20:45:12.457Z",
+			"email": "",
+			"hash": "sha1:64000:18:2Wftp8t26Qy7iOit/8kxX9h1bfRLFTII:ObaI2zcyiQ1Z76gPZYQaAzrV"
+		},
+		{
+			"password": "",
+			"role": [
+				"tcp_internal"
+			],
+			"name": "tcp_internal",
+			"lastPasswordChange": "2018-12-01T22:36:18.228Z",
+			"email": "",
+			"hash": "sha1:64000:18:iR4W9krKf13XriRr6+PV3Xz1gAFGrtAA:ndn9lNB18KuUrdH/wAUQ47FF"
+		},
+		{
+			"password": "",
+			"role": [
+				"tcp_external"
+			],
+			"name": "tcp_external",
+			"lastPasswordChange": "2018-12-01T22:36:18.417Z",
+			"email": "",
+			"hash": "sha1:64000:18:EtqmglreoENR12gmxeVZfJOlQ1Na4AVF:QfFBY+SStsMXIoPggKVljJPI"
 		}
 	],
 	"security": {
@@ -245,6 +305,26 @@
 				}
 			],
 			"denied": []
+		},
+		"tcp_internal": {
+			"allowed": [
+				{
+					"read": true,
+					"name": "all",
+					"write": true
+				}
+			],
+			"denied": []
+		},
+		"tcp_external": {
+			"allowed": [],
+			"denied": [
+			{
+					"read": true,
+					"name": "all",
+					"write": true
+				}
+				]
 		}
 	}
 }
