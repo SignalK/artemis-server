@@ -42,6 +42,7 @@ public class DeltaToKvTest extends BaseServerTest{
 			String qName=Config.INTERNAL_KV+dot+UUID.randomUUID().toString();
 			session.createQueue(INTERNAL_KV, RoutingType.MULTICAST, qName);
 			ClientConsumer consumer = session.createConsumer(qName);
+			List<ClientMessage> replies = createListener(session, consumer, qName);
 			session.start();
 		
 			String body = FileUtils.readFileToString(new File("./src/test/resources/samples/delta/docs-data_model_multiple_values.json"));
@@ -52,7 +53,7 @@ public class DeltaToKvTest extends BaseServerTest{
 			logger.debug("Input sent");
 		
 			logger.debug("Receive started");
-			List<ClientMessage> replies = listen(session, consumer, qName, 3, 20);
+			replies = listen(replies, 3, 20);
 			//assertEquals(expected, replies.size());
 			logger.debug("Received {} replies", replies.size());
 			replies.forEach((m)->{

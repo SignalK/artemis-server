@@ -66,6 +66,12 @@
 					"appender-ref": []
 				},
 				{
+					"name": "nz.co.fortytwo.signalk.artemis.handler.AlarmHandler",
+					"level": "debug",
+					"additivity": true,
+					"appender-ref": []
+				},
+				{
 					"name": "nz.co.fortytwo.signalk.artemis.intercept.MapToDeltaInterceptor",
 					"level": "warn"
 				},
@@ -88,15 +94,15 @@
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.util",
-					"level": "warn"
+					"level": "debug"
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.server.SerialPortReader",
-					"level": "error"
+					"level": "debug"
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.server.SerialPortManager",
-					"level": "error"
+					"level": "debug"
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.service",
@@ -139,32 +145,40 @@
 					"level": "debug"
 				},
 				{
-					"name": "nz.co.fortytwo.signalk.artemis.server.SubscribeWsTest",
+					"name": "nz.co.fortytwo.signalk.artemis.handler.AlarmHandlerTest",
 					"level": "debug"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.handler.MessageSupport",
+					"level": "debug"
+				},
+				{
+					"name": "nz.co.fortytwo.signalk.artemis.server.SubscribeWsTest",
+					"level": "error"
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.server.NMEAParserTest",
-					"level": "debug"
+					"level": "error"
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.server.SubscribeTest",
-					"level": "debug"
+					"level": "error"
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.server.UdpSubscribeTest",
-					"level": "debug"
+					"level": "error"
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.server.TcpSubscribeTest",
-					"level": "debug"
+					"level": "error"
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertorTest",
-					"level": "debug"
+					"level": "error"
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.transformer",
-					"level": "debug"
+					"level": "error"
 				},
 				{
 					"name": "org.atmosphere.nettosphere.BridgeRuntime",
@@ -188,11 +202,11 @@
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.intercept.GarbageInterceptor",
-					"level": "debug"
+					"level": "error"
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.intercept.SessionInterceptor",
-					"level": "debug"
+					"level": "error"
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.intercept.GetMsgInterceptor",
@@ -200,11 +214,11 @@
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.scheduled.DeclinationUpdaterTest",
-					"level": "debug"
+					"level": "error"
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.scheduled.DeclinationUpdater",
-					"level": "debug"
+					"level": "error"
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor",
@@ -220,7 +234,7 @@
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.server.InfluxDbTest",
-					"level": "DEBUG",
+					"level": "error",
 					"additivity": true,
 					"appender-ref": []
 				}

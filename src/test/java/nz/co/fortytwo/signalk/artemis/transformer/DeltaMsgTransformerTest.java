@@ -35,10 +35,6 @@ public class DeltaMsgTransformerTest  extends BaseMsgInterceptorTest {
 	private Json put = Json.read("{\"context\":\"vessels.urn:mrn:imo:mmsi:234567890\",\"put\":[{\"path\":\"propulsion.0.boostPressure\",\"value\":45500.0,\"timestamp\":\"2018-08-08T02:48:28.885Z\"}]}");
 	private Json config = Json.read("{\"context\":\"vessels.urn:mrn:imo:mmsi:234567890\",\"config\":[{\"$source\":\"NMEA2000.N2000-01\",\"timestamp\":\"2010-01-07T07:18:44.000Z\",\"values\":[{\"path\":\"propulsion.0.boostPressure\",\"value\":45500.0}]}]}");
 	
-	@Rule
-    public EasyMockRule rule = new EasyMockRule(this);
-
-    @Mock
     private DeltaMsgTransformer transformer;// 1
 
     @Before

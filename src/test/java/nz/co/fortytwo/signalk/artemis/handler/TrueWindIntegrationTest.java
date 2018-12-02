@@ -41,7 +41,7 @@ public class TrueWindIntegrationTest extends BaseServerTest{
 			String qName=Config.INTERNAL_KV+dot+UUID.randomUUID().toString();
 			session.createQueue(INTERNAL_KV, RoutingType.MULTICAST, qName);
 			ClientConsumer consumer = session.createConsumer(qName);
-			
+			List<ClientMessage> replies = createListener(session, consumer, qName);
 		//"$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,56.4,011113,,,A*78"
 		//"$IIMWV,041.5,R,24.3,N,A*08"	
 			String token = SecurityUtils.authenticateUser("admin", "admin");
@@ -51,7 +51,7 @@ public class TrueWindIntegrationTest extends BaseServerTest{
 			logger.debug("Input sent");
 		
 			logger.debug("Receive started");
-			List<ClientMessage> replies = listen(session, consumer, qName, 10, 100);
+			replies = listen(replies, 10, 100);
 			
 			logger.debug("Received {} replies", replies.size());
 			replies.forEach((m)->{

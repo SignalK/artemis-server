@@ -63,7 +63,7 @@ public class BaseServerTest extends EasyMockSupport {
 	public static void stopServer() throws Exception {
 		if(server!=null)server.stop();
 		CountDownLatch latch = new CountDownLatch(1);
-		latch.await(10, TimeUnit.SECONDS);
+		latch.await(15, TimeUnit.SECONDS);
 	}
 	
 	protected ClientMessage getClientMessage(String body, String contentType, boolean reply) {
@@ -76,9 +76,13 @@ public class BaseServerTest extends EasyMockSupport {
 	}
 
 	protected ClientMessage getMessage(String jsonStr, String key, String src, String token) {
-		Json json = Json.read(jsonStr);
-		ClientMessage message = getClientMessage(json.toString(), MediaType.APPLICATION_JSON, false);
-		message.putStringProperty(AMQ_INFLUX_KEY, "vessels."+uuid+"."+key+".values."+src);
+		return getMessage(jsonStr, key+".values."+src, token);
+	}
+	
+	protected ClientMessage getMessage(String jsonStr, String key,String token) {
+		//Json json = Json.read(jsonStr);
+		ClientMessage message = getClientMessage(jsonStr, MediaType.APPLICATION_JSON, false);
+		message.putStringProperty(AMQ_INFLUX_KEY, "vessels."+uuid+"."+key);
 		message.putStringProperty(AMQ_USER_TOKEN, token);
 		try {
 			message.putStringProperty(Config.AMQ_USER_ROLES, SecurityUtils.getRoles(token).toString());
@@ -136,39 +140,7 @@ public class BaseServerTest extends EasyMockSupport {
 		cookies.add(new DefaultCookie(SecurityUtils.AUTH_COOKIE_NAME, jwtToken));
 		return cookies;
 	}
-	protected List<ClientMessage> listen( ClientSession session, String tempQ, long timeout) throws ActiveMQException, InterruptedException {
-		return listen(session, session.createConsumer(tempQ), tempQ, timeout, 2);
-	}
-	protected List<ClientMessage> listen( ClientSession session, ClientConsumer consumer, String tempQ, long timeout, int expected) throws ActiveMQException, InterruptedException {
-		logger.debug("{}: Receive starting for {}",getClass().getSimpleName(), tempQ);
-		List<ClientMessage> replies = new ArrayList<>();
-		CountDownLatch latch = new CountDownLatch(expected);
-		String clazz = getClass().getSimpleName();
-		consumer.setMessageHandler(new MessageHandler() {
-			
-			@Override
-			public void onMessage(ClientMessage message) {
-				try{
-					
-					String recv = Util.readBodyBufferToString(message);
-					message.acknowledge();
-					logger.debug("{}: onMessage = {}",clazz,recv);
-					assertNotNull(recv);
-					replies.add(message);
-					latch.countDown();
-				} catch (ActiveMQException e) {
-					logger.error(e,e);
-				} 
-			}
-		});
-		session.start();
-		latch.await(timeout, TimeUnit.SECONDS);
-		logger.debug("{}: Receive complete for {}",getClass().getSimpleName(), tempQ);
-	
-		
-		assertTrue(replies.size()>1);
-		return replies;
-	}
+
 	
 	protected List<ClientMessage> createListener( ClientSession session, ClientConsumer consumer, String tempQ) throws ActiveMQException, InterruptedException {
 		logger.debug("{}: Receive starting for {}",getClass().getSimpleName(), tempQ);

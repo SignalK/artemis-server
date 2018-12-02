@@ -24,10 +24,7 @@ import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 
 public class AnchorWatchHandlerTest extends BaseMsgInterceptorTest {
-	@Rule
-    public EasyMockRule rule = new EasyMockRule(this);
-
-    @Mock
+	
     private AnchorWatchHandler handler;
 
     @Before

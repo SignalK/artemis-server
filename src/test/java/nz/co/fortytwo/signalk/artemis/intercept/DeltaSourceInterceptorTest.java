@@ -43,10 +43,7 @@ public class DeltaSourceInterceptorTest extends BaseMsgInterceptorTest {
 	private Json put = Json.read("{\"context\":\"vessels.urn:mrn:imo:mmsi:234567890\",\"put\":[{\"source\":{\"label\":\"actisense\",\"type\":\"NMEA2000\",\"src\":\"115\",\"pgn\":128267},\"timestamp\":\"2010-01-07T07:18:44.000Z\",\"values\":[{\"path\":\"propulsion.0.boostPressure\",\"value\":45500.0}]}]}");
 	private Json config = Json.read("{\"context\":\"vessels.urn:mrn:imo:mmsi:234567890\",\"config\":[{\"source\":{\"label\":\"actisense\",\"type\":\"NMEA2000\",\"src\":\"115\",\"pgn\":128267},\"timestamp\":\"2010-01-07T07:18:44.000Z\",\"values\":[{\"path\":\"propulsion.0.boostPressure\",\"value\":45500.0}]}]}");
 	
-	@Rule
-    public EasyMockRule rule = new EasyMockRule(this);
-
-    @Mock
+	
     private DeltaSourceInterceptor interceptor;// 1
 
    

@@ -24,7 +24,7 @@ public class BaseMsgInterceptorTest extends EasyMockSupport {
 		super();
 		uuid = Config.getConfigProperty(ConfigConstants.UUID);
 		InfluxDbService.setDbName(BaseServerTest.SIGNALK_TEST_DB);
-		new InfluxDbService().setWrite(true);
+		InfluxDbService.allowWrite=true;
 	}
 
 	protected ClientMessage getClientMessage(String body, String contentType, boolean reply) {

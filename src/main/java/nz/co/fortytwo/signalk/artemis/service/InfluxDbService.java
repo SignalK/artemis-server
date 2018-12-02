@@ -636,11 +636,7 @@ public class InfluxDbService implements TDBService {
 		if (logger.isDebugEnabled())logger.debug("extractValue: {}:{}",s, srcref);
 		Json node = parent;
 		
-//		if (StringUtils.isNotBlank(srcref)) {
-//			node = Util.getJson(parent,values );
-//			node.set(srcref,Json.object());
-//			node=node.at(srcref);
-//		}
+
 		Object ts = getValue("time", s, 0);
 		if (ts != null) {
 			// make predictable 3 digit nano ISO format
@@ -659,16 +655,7 @@ public class InfluxDbService implements TDBService {
 				node.set(value, val);
 				if (logger.isDebugEnabled())logger.debug("extractValue without subkey: {}",node);
 			}
-//			if (StringUtils.isNotBlank(srcref)) {
-//				String skey = s.getTags().get(skey);
-//				//if we have a 'value' copy it into values.srcRef.{} too
-//				if (logger.isDebugEnabled())logger.debug("extractValue skey: {}",skey);
-//				if(!skey.contains(dot+values+dot) && parent.has(value)){
-//					Json pValues = Json.object(value,parent.at(value),timestamp,parent.at(timestamp));
-//					Util.getJson(parent,values );
-//					parent.at(values).set(srcref,pValues);
-//				}
-//			}
+
 		}else{
 			//for source
 			if (StringUtils.isNotBlank(subkey)) {
@@ -677,13 +664,7 @@ public class InfluxDbService implements TDBService {
 			} else {
 				node.set(value, val);
 			}
-//			if (StringUtils.isNotBlank(srcref)) {
-//				//if we have a 'value' copy it into values.srcRef.{} too
-//				if(parent.has(value)){
-//					Json pValues = Json.object(value,parent.at(value),timestamp,parent.at(timestamp));
-//					parent.at(values).set(parent.at(sourceRef).asString(),pValues);
-//				}
-//			}
+
 		}
 		
 		if (logger.isDebugEnabled())logger.debug("extractValue, parent: {}",parent);

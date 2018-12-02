@@ -79,9 +79,9 @@ public class AlarmHandler extends BaseHandler {
 
 	private void parseMeta(String key, Json json) {
 		if (logger.isDebugEnabled())
-			logger.debug("Adding alarm for key: {} : {}", key, json);
+			logger.debug("Adding alarm for  meta key: {} : {}", key, json);
 		if (json.isObject() && json.has(meta)) {
-			parseMetaByKey(key,json.at(meta));
+			parseMetaByKey(key, json.at(meta));
 		}
 	}
 
@@ -95,7 +95,7 @@ public class AlarmHandler extends BaseHandler {
 
 	@Override
 	public void consume(Message message) {
-		
+
 		String key = message.getStringProperty(AMQ_INFLUX_KEY);
 		if (logger.isDebugEnabled())
 			logger.debug("Consuming : {} ", key);
@@ -103,10 +103,13 @@ public class AlarmHandler extends BaseHandler {
 			Json node = Util.readBodyBuffer(message.toCore());
 			parseMetaByKey(key, node);
 			return;
-		} 
+		}
 
-		if (!alarmMap.containsKey(key))
+		if (!alarmMap.containsKey(key)) {
+			if (logger.isDebugEnabled())
+				logger.debug("Skipping : {} ", key);
 			return;
+		}
 
 		Json node = Util.readBodyBuffer(message.toCore());
 
@@ -114,65 +117,70 @@ public class AlarmHandler extends BaseHandler {
 			logger.debug("Checking alarm for key: {} : {}", key, node);
 		check(message, key, alarmMap.get(key), node);
 		node.clear(true);
-		
 
 	}
 
 	private void parseMetaByKey(String key, Json node) {
 		if (logger.isDebugEnabled())
 			logger.debug("Adding alarm for key: {} : {}", key, node);
-		
-			String parentKey = StringUtils.substringBeforeLast(key,".meta.");
-			String metaKey = StringUtils.substringAfterLast(key,".meta.");
-			Json metaJson = alarmMap.get(parentKey);
-			if(metaJson==null) {
-				metaJson=Json.object();
-			}
-			metaJson.set(metaKey,node);
-			alarmMap.put(key, metaJson);
+
+		String parentKey = StringUtils.substringBeforeLast(key, ".meta.");
+		String metaKey = StringUtils.substringAfterLast(key, ".meta.");
+		Json metaJson = alarmMap.get(parentKey);
+		if (metaJson == null) {
+			metaJson = Json.object();
+		}
+		Util.setJson(metaJson, metaKey, node);
+		alarmMap.put(parentKey, metaJson);
+		if (logger.isDebugEnabled())
+			logger.debug("Added alarm for key: {} : {}", parentKey, metaJson);
 
 	}
 
 	protected void check(Message message, String key, Json alarmDef, Json node) {
 		// only works for doubles!
+		logger.debug("  Alarm key: {}, def: {}, val: {}", key, alarmDef,node);
 		if (node.has(value) && node.at(value).isNumber()) {
 			double val = node.at(value).asDouble();
 			logger.debug("  Alarm val: {}", val);
-			Json zoneList = alarmDef.at(zones);
-			// logger.debug("zones: {}",zoneList);
-			for (Json zone : zoneList) {
-				double upper = zone.has("upper") ? zone.at("upper").asDouble() : Double.MAX_VALUE;
-				double lower = zone.has("lower") ? zone.at("lower").asDouble() : Double.MIN_VALUE;
-				if (val >= lower && val < upper) {
-					String state = zone.at("state").asString();
-					if (logger.isDebugEnabled())
-						logger.debug("  Alarm in zone: {}", state);
-					// send notification
-					// vessels.self.notifications+path
-					int len = Util.getContext(key).length();
-					key = key.substring(0, len) + dot + notifications + key.substring(len);
-					try {
-						if (normal.equals(state)) {
-							sendJson(message, key, getNormalNotification());
-						}
-
-						if (warn.equals(state)) {
-							// notification.at(value).set("method", alarmDef.at("warnMethod"));
-							sendJson(message, key,
-									getNotification(state, zone.at("message"), alarmDef.at("warnMethod")));
-						}
-						if (alarm.equals(state)) {
-							// notification.at(value).set("method", alarmDef.at("alarmMethod"));
-							sendJson(message, key,
-									getNotification(state, zone.at("message"), alarmDef.at("alarmMethod")));
-						}
+			if (alarmDef.has(zones)) {
+				Json zoneList = alarmDef.at(zones);
+				logger.debug("zones: {}",zoneList);
+				for (Json zone : zoneList) {
+					double upper = zone.has("upper") ? zone.at("upper").asDouble() : Double.MAX_VALUE;
+					double lower = zone.has("lower") ? zone.at("lower").asDouble() : Double.MIN_VALUE;
+					logger.debug("limits: {}:{}",lower, upper);
+					if (val >= lower && val < upper) {
+						String state = zone.at("state").asString();
 						if (logger.isDebugEnabled())
-							logger.debug("  Sending alarm: {}={}", key, state);
+							logger.debug("  Alarm in zone: {}", state);
+						// send notification
+						// vessels.self.notifications+path
+						int len = Util.getContext(key).length();
+						key = key.substring(0, len) + dot + notifications + key.substring(len);
+						try {
+							if (normal.equals(state)) {
+								sendJson(message, key, getNormalNotification());
+							}
 
-					} catch (Exception e) {
-						logger.error(e, e);
+							if (warn.equals(state)) {
+								// notification.at(value).set("method", alarmDef.at("warnMethod"));
+								sendJson(message, key,
+										getNotification(state, zone.at("message"), alarmDef.at("warnMethod")));
+							}
+							if (alarm.equals(state)) {
+								// notification.at(value).set("method", alarmDef.at("alarmMethod"));
+								sendJson(message, key,
+										getNotification(state, zone.at("message"), alarmDef.at("alarmMethod")));
+							}
+							if (logger.isDebugEnabled())
+								logger.debug("  Sending alarm: {}={}", key, state);
+
+						} catch (Exception e) {
+							logger.error(e, e);
+						}
+
 					}
-
 				}
 			}
 		}
@@ -186,6 +194,7 @@ public class AlarmHandler extends BaseHandler {
 
 		return notification;
 	}
+
 	private Json getNormalNotification() {
 		Json notification = Json.object();
 		notification.set(value, Json.object());

@@ -16,10 +16,8 @@ import nz.co.fortytwo.signalk.artemis.intercept.BaseMsgInterceptorTest;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 
 public class InfluxDbHandlerTest extends BaseMsgInterceptorTest {
-	@Rule
-    public EasyMockRule rule = new EasyMockRule(this);
-
-    @Mock
+	
+    
     private InfluxDbHandler handler;// 1
 
     @Before

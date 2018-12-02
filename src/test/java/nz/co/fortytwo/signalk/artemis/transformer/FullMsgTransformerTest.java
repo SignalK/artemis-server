@@ -1,5 +1,9 @@
 package nz.co.fortytwo.signalk.artemis.transformer;
 
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.same;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -33,10 +37,6 @@ public class FullMsgTransformerTest  extends BaseMsgInterceptorTest {
 	private Json delta;
 	
 	
-	@Rule
-    public EasyMockRule rule = new EasyMockRule(this);
-
-    @Mock
     private FullMsgTransformer transformer;// 1
     
     public FullMsgTransformerTest() {
@@ -48,33 +48,36 @@ public class FullMsgTransformerTest  extends BaseMsgInterceptorTest {
 			logger.error(e,e);
 		}
 	}
-	
+    
     @Before
     public void before(){
     	transformer = partialMockBuilder(FullMsgTransformer.class)
-	    	.addMockedMethod("saveMap").createMock(); 
+	    	.addMockedMethod("sendKvMessage")
+    			.createMock(); 
     }
+	
+   
 	@Test
 	public void shouldProcessVessels() throws ActiveMQException {
 		
-		NavigableMap<String, Json> map = SignalkMapConvertor.parseFull(full, new ConcurrentSkipListMap<String,Json>(),"");
+		
 		ClientMessage message = getClientMessage(full.toString(), Config.JSON_FULL, false); 
-		transformer.sendKvMap(message, map);
-		
+		transformer.sendKvMessage( same(message), anyString(), anyObject(Json.class));
+		expectLastCall().times(13);
 		replayAll();
-		
+		transformer.transform(message);
 		verifyAll();
 	}
 	
 	@Test
 	public void shouldProcessConfig() throws ActiveMQException {
-		NavigableMap<String, Json> map = SignalkMapConvertor.parseFull(config, new ConcurrentSkipListMap<String,Json>(),"");
-		ClientMessage message = getClientMessage(full.toString(), Config.JSON_FULL, false); 
-		transformer.sendKvMap(message, map);
 		
+		ClientMessage message = getClientMessage(full.toString(), Config.JSON_FULL, false); 
+		transformer.sendKvMessage( same(message), anyString(), anyObject(Json.class));
+		expectLastCall().times(13);
 		replayAll();
 		
-		
+		transformer.transform(message);
 		verifyAll();
 	}
 	
@@ -82,20 +85,20 @@ public class FullMsgTransformerTest  extends BaseMsgInterceptorTest {
 	public void shouldAvoidDeltaFormat() throws ActiveMQException {
 	
 		replayAll();
-		NavigableMap<String, Json> map = SignalkMapConvertor.parseFull(config, new ConcurrentSkipListMap<String,Json>(),"");
-		ClientMessage message = getClientMessage(full.toString(), Config.JSON_DELTA, false); 
-		transformer.sendKvMap(message, map);
 		
+		ClientMessage message = getClientMessage(delta.toString(), Config.JSON_DELTA, false); 
+		transformer.transform(message);
 		verifyAll();
 	}
 	@Test
-	public void shouldAvoidContext() throws Exception {
+	public void shouldHandleContext() throws Exception {
 		
+		ClientMessage message = getClientMessage(config.toString(), Config.JSON_FULL, false); 
+		transformer.sendKvMessage( same(message), anyString(), anyObject(Json.class));
+		expectLastCall().times(51);
 		replayAll();
-		NavigableMap<String, Json> map = SignalkMapConvertor.parseFull(config, new ConcurrentSkipListMap<String,Json>(),"");
-		ClientMessage message = getClientMessage(full.toString(), Config.JSON_FULL, false); 
-		transformer.sendKvMap(message, map);
 		
+		transformer.transform(message);
 		verifyAll();
 	}
 	

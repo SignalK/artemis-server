@@ -42,6 +42,7 @@ public class NMEAToKvTest extends BaseServerTest{
 			String qName=Config.INTERNAL_KV+dot+UUID.randomUUID().toString();
 			session.createQueue(INTERNAL_KV, RoutingType.MULTICAST, qName);
 			ClientConsumer consumer = session.createConsumer(qName);
+			List<ClientMessage> replies = createListener(session, consumer, qName);
 			session.start();
 			String token = SecurityUtils.authenticateUser("admin", "admin");
 			sendMessage(session, producer, "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78", token);
@@ -49,7 +50,7 @@ public class NMEAToKvTest extends BaseServerTest{
 			logger.debug("Input sent");
 		
 			logger.debug("Receive started");
-			List<ClientMessage> replies = listen(session,consumer,qName, 3, 10);
+			replies = listen(replies, 3, 10);
 			//assertEquals(expected, replies.size());
 			logger.debug("Received {} replies", replies.size());
 			replies.forEach((m)->{

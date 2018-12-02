@@ -43,7 +43,7 @@ public class SubscribeTest extends BaseServerTest{
 			
 			sendMessage(session, producer, "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78", token);
 			
-			replies = listen(session, tempQ, 10);
+			replies = listen(replies, 3, 10);
 			assertTrue(replies.size()>1);
 		} 
 	}
@@ -76,7 +76,7 @@ public class SubscribeTest extends BaseServerTest{
 			logger.debug("Subscribe sent");
 		
 			logger.debug("Receive started");
-			replies = listen(session, tempQ, 5);
+			replies = listen(replies, 5, 5);
 			//assertEquals(expected, replies.size());
 			logger.debug("Received {} replies", replies.size());
 			for(ClientMessage c: replies) {

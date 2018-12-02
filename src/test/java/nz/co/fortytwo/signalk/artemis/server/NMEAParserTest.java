@@ -18,6 +18,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.coveo.nashorn_modules.FilesystemFolder;
@@ -27,6 +28,8 @@ import com.coveo.nashorn_modules.Require;
 import jdk.nashorn.api.scripting.NashornScriptEngine;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 
+//we only use this for testing js changes
+@Ignore
 public class NMEAParserTest {
 
 	private static Logger logger = LogManager.getLogger(NMEAParserTest.class);
@@ -39,6 +42,7 @@ public class NMEAParserTest {
 	private static ScheduledExecutorService globalScheduledThreadPool = Executors.newScheduledThreadPool(20);
 
 	@SuppressWarnings("restriction")
+	
 	public NMEAParserTest() throws ScriptException {
 		super();
 		NashornScriptEngineFactory factory = new NashornScriptEngineFactory();

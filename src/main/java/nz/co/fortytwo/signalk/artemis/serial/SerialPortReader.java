@@ -254,9 +254,11 @@ public class SerialPortReader extends MessageSupport{
 
 		protected void stopReader() {
 			try {
-				serialPort.removeDataListener();
-				serialPort.closePort();
-				serialPort=null;
+				if(serialPort!=null) {
+					serialPort.removeDataListener();
+					serialPort.closePort();
+					serialPort=null;
+				}
 			} catch (Exception e1) {
 				logger.error("{}:{}" ,portName , e1.getMessage());
 				if (logger.isDebugEnabled())

@@ -81,7 +81,7 @@ public class MessageSupport {
 	}
 
 	protected void sendJson(Message message, String key, Json json) throws ActiveMQException {
-		if (!json.isNull()) {
+		if (!json.isNull()&&!json.has(timestamp)) {
 			json.set(timestamp, Util.getIsoTimeString());
 		}
 		if (logger.isDebugEnabled())
@@ -175,13 +175,6 @@ public class MessageSupport {
 	public void sendKvMessage(Message origMessage, String  k, Json j) throws ActiveMQException {
 		ClientMessage txMsg = getTxSession().createMessage(false);
 		txMsg.copyHeadersAndProperties(origMessage);
-//		txMsg.putStringProperty(AMQ_CORR_ID,origMessage.getStringProperty(AMQ_REPLY_Q));
-//		txMsg.putStringProperty(AMQ_CONTENT_TYPE, origMessage.getStringProperty(AMQ_CONTENT_TYPE));
-//		txMsg.putStringProperty(AMQ_REPLY_Q, origMessage.getStringProperty(AMQ_REPLY_Q));
-//		txMsg.putStringProperty(AMQ_SESSION_ID, origMessage.getStringProperty(AMQ_SESSION_ID));
-//		txMsg.putStringProperty(AMQ_SUB_DESTINATION, origMessage.getStringProperty(AMQ_SUB_DESTINATION));
-//		txMsg.putStringProperty(AMQ_USER_ROLES, origMessage.getStringProperty(AMQ_USER_ROLES));
-//		txMsg.putStringProperty(AMQ_USER_TOKEN,  origMessage.getStringProperty(AMQ_USER_TOKEN));
 		txMsg.putStringProperty(AMQ_INFLUX_KEY, k);
 		txMsg.setRoutingType(RoutingType.MULTICAST);
 		txMsg.setExpiration(System.currentTimeMillis() + 5000);

@@ -234,8 +234,7 @@ public class SubscriptionManagerService{
 		}
 
 	}
-	@Override
-	protected void finalize() throws Throwable {
+	public void stopAll() {
 		for(Subscription sub:subscriptions){
 			try {
 				sub.setActive(false);
@@ -246,6 +245,11 @@ public class SubscriptionManagerService{
 		}
 		subscriptions.clear();
 		closeSession();
+	}
+	
+	@Override
+	protected void finalize() throws Throwable {
+		stopAll();
 		
 		super.finalize();
 	}

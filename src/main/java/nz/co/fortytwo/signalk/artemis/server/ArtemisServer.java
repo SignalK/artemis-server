@@ -76,6 +76,7 @@ import nz.co.fortytwo.signalk.artemis.scheduled.DeclinationUpdater;
 import nz.co.fortytwo.signalk.artemis.serial.SerialPortManager;
 import nz.co.fortytwo.signalk.artemis.service.ChartService;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
+import nz.co.fortytwo.signalk.artemis.subscription.SubscriptionManagerFactory;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 import nz.co.fortytwo.signalk.artemis.util.Util;
@@ -128,16 +129,6 @@ public final class ArtemisServer {
 		startIncomingConsumer();
 		startKvHandlers();
 
-		// start serial?
-//		if (Config.getConfigPropertyBoolean(ENABLE_SERIAL)) {
-//			// start a serial port manager
-//			if (serialPortManager == null) {
-//				serialPortManager = new SerialPortManager();
-//				new Thread(serialPortManager).start();
-//			}
-//
-//		}
-
 		addShutdownHook(this);
 
 		server = new Nettosphere.Builder().config(new org.atmosphere.nettosphere.Config.Builder().supportChunking(true)
@@ -180,6 +171,16 @@ public final class ArtemisServer {
 
 	private void startScheduledServices() {
 		logger.info("Starting scheduled services");
+		//serial manager
+		// start serial?
+		if (Config.getConfigPropertyBoolean(ENABLE_SERIAL)) {
+			// start a serial port manager
+			if (serialPortManager == null) {
+				serialPortManager = new SerialPortManager();
+				scheduler.scheduleAtFixedRate(serialPortManager, 0, 30, TimeUnit.SECONDS);
+			}
+
+		}
 		// declination
 		final Runnable declination = new DeclinationUpdater();
 		scheduler.scheduleAtFixedRate(declination, 1, 1, TimeUnit.HOURS);
@@ -268,6 +269,10 @@ public final class ArtemisServer {
 	}
 
 	public void stop() {
+		//stop scheduler
+		scheduler.shutdown();
+		//stop subscriptions
+		SubscriptionManagerFactory.getInstance().stopAll();
 		stopKvHandlers();
 		if (consumer != null) {
 			try {

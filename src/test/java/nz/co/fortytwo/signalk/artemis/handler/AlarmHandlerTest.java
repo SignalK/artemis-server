@@ -39,10 +39,7 @@ public class AlarmHandlerTest extends BaseServerTest {
 	
 	private static Logger logger = LogManager.getLogger(AlarmHandlerTest.class);
 	
-	@Rule
-    public EasyMockRule rule = new EasyMockRule(this);
-
-    @Mock
+	
     private AlarmHandler handler;
 
     @Before
@@ -55,12 +52,23 @@ public class AlarmHandlerTest extends BaseServerTest {
 	public void shouldStoreKey() throws Exception {
 		
 		///artemis-server/src/test/resources/samples/full/signalk-depth-meta-attr.json
-		String depthMeta = FileUtils.readFileToString(new File("./src/test/resources/samples/full/signalk-depth-meta-attr.json"));
-		depthMeta=StringUtils.replace(depthMeta, "urn:mrn:signalk:uuid:b7590868-1d62-47d9-989c-32321b349fb9", uuid);
-		logger.debug(depthMeta);
+		//String depthMeta = FileUtils.readFileToString(new File("./src/test/resources/samples/full/signalk-depth-meta-attr.json"));
+		//depthMeta=StringUtils.replace(depthMeta, "urn:mrn:signalk:uuid:b7590868-1d62-47d9-989c-32321b349fb9", uuid);
+		//logger.debug(depthMeta);
 		
-		setupMetaKeys(depthMeta);
 		String token = SecurityUtils.authenticateUser("admin", "admin");
+		
+		handler.consume(getMessage(Json.make("Depth Below Keel").toString(),"environment.depth.belowKeel.values.nmea1.II.meta.displayName",token));
+		handler.consume(getMessage("[\"visual\"]","environment.depth.belowKeel.values.nmea1.II.meta.warnMethod",token));
+		handler.consume(getMessage(Json.make("Meters (m)").toString(),"environment.depth.belowKeel.values.nmea1.II.meta.units",token));
+		handler.consume(getMessage("[\"sound\"]","environment.depth.belowKeel.values.nmea1.II.meta.alarmMethod",token));
+		handler.consume(getMessage(Json.make("DBK").toString(),"environment.depth.belowKeel.values.nmea1.II.meta.shortName",token));
+		handler.consume(getMessage("[{\"lower\":0.0,\"upper\":1.5,\"state\":\"alarm\",\"message\":\"Running aground!\"},{\"lower\":1.5,\"upper\":3.0,\"state\":\"warn\",\"message\":\"Shallow water!\"},{\"lower\":3.0,\"state\":\"normal\"}]","environment.depth.belowKeel.values.nmea1.II.meta.zones",token));
+		handler.consume(getMessage(Json.make("sparkLine").toString(),"environment.depth.belowKeel.values.nmea1.II.meta.gaugeType",token));
+		handler.consume(getMessage(Json.make("Depth Below Keel in Meters").toString(),"environment.depth.belowKeel.values.nmea1.II.meta.longName",token));
+
+		
+
 		//normal
 		ClientMessage normal = getMessage("{\"value\":4.5,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",env_depth_belowKeel,"nmea1.II",token);
 		
@@ -85,21 +93,13 @@ public class AlarmHandlerTest extends BaseServerTest {
 		handler.consume(alarm);
 		handler.consume(normal1);
 		
-		CountDownLatch latch = new CountDownLatch(1);
-		latch.await(5, TimeUnit.SECONDS);
+//		latch = new CountDownLatch(1);
+//		latch.await(3, TimeUnit.SECONDS);
 		
 		verifyAll();
 	}
 	
-	private void setupMetaKeys(String data) throws Exception{
-		try (ClientSession session = Util.getLocalhostClientSession("admin", "admin");
-				ClientProducer producer = session.createProducer();	
-				ClientConsumer consumer = session.createConsumer(Config.INTERNAL_KV);){
-			String token = SecurityUtils.authenticateUser("admin", "admin");
-			sendMessage(session, producer, data, token);
-			
-		} 
-	}
+	
 	
 
 }
