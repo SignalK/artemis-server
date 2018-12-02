@@ -71,7 +71,7 @@ public class AlarmHandler extends BaseHandler {
 			}
 
 			// start listening
-			initSession(null);
+			initSession(AMQ_INFLUX_KEY+" LIKE '"+vessels+"%'");
 		} catch (Exception e) {
 			logger.error(e, e);
 		}

@@ -1,5 +1,7 @@
 package nz.co.fortytwo.signalk.artemis.intercept;
 
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_USER_TOKEN;
+
 import javax.ws.rs.core.MediaType;
 
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
@@ -13,6 +15,7 @@ import nz.co.fortytwo.signalk.artemis.server.BaseServerTest;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
+import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 
 public class BaseMsgInterceptorTest extends EasyMockSupport {
@@ -37,10 +40,18 @@ public class BaseMsgInterceptorTest extends EasyMockSupport {
 	}
 
 	protected ClientMessage getMessage(String jsonStr, String key, String src) {
+		return getMessage(jsonStr, key+".values."+src);
+	}
+	protected ClientMessage getMessage(String jsonStr, String key) {
 		Json json = Json.read(jsonStr);
 		ClientMessage message = getClientMessage(json.toString(), MediaType.APPLICATION_JSON, false);
-		message.putStringProperty(Config.AMQ_INFLUX_KEY, "vessels.urn:mrn:signalk:uuid:a8fb07c0-1ffd-4663-899c-f16c2baf8270."+key+".values."+src);
-		
+		message.putStringProperty(Config.AMQ_INFLUX_KEY, "vessels."+uuid+"."+key);
+//		message.putStringProperty(AMQ_USER_TOKEN, token);
+//		try {
+//			message.putStringProperty(Config.AMQ_USER_ROLES, SecurityUtils.getRoles(token).toString());
+//		} catch (Exception e) {
+//			logger.error(e,e);
+//		}
 		return message;
 	}
 }

@@ -1,27 +1,19 @@
 package nz.co.fortytwo.signalk.artemis.handler;
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_wind_directionTrue;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_wind_speedTrue;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_speedOverGround;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self;
-import static org.junit.Assert.assertEquals;
-
-import javax.ws.rs.core.MediaType;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_anchor_currentRadius;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_anchor_maxRadius;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_anchor_position_latitude;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_anchor_position_longitude;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_position_latitude;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_position_longitude;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
-import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
-import org.easymock.EasyMockRule;
-import org.easymock.Mock;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
-import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.intercept.BaseMsgInterceptorTest;
-import nz.co.fortytwo.signalk.artemis.util.Config;
-import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 
 public class AnchorWatchHandlerTest extends BaseMsgInterceptorTest {
 	
