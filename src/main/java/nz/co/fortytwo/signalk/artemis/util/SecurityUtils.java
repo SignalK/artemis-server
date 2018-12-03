@@ -7,6 +7,7 @@ import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_USER_TOKEN;
 import static nz.co.fortytwo.signalk.artemis.util.Config.EXTERNAL_IP;
 import static nz.co.fortytwo.signalk.artemis.util.Config.INTERNAL_IP;
 import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_DELTA;
+import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_FULL;
 import static nz.co.fortytwo.signalk.artemis.util.Config.MSG_SRC_BUS;
 import static nz.co.fortytwo.signalk.artemis.util.Config.MSG_SRC_TYPE;
 import static nz.co.fortytwo.signalk.artemis.util.Config.N2K;
@@ -382,6 +383,19 @@ public final class SecurityUtils {
 			if(StringUtils.equals(INTERNAL_IP,msgSrc)) {
 				msg.putStringProperty(AMQ_USER_TOKEN, tokenStore.get("tcp_internal"));
 			}
+			break;
+		case JSON_FULL:
+			//signalk without auth over serial
+			if(StringUtils.equals(SERIAL,msgSrc)) {
+				msg.putStringProperty(AMQ_USER_TOKEN, tokenStore.get("serial"));
+			}
+			//signalk over internal
+//			if(StringUtils.equals(INTERNAL_IP,msgSrc)) {
+//				msg.putStringProperty(AMQ_USER_TOKEN, tokenStore.get("tcp_internal"));
+//			}
+//			if(StringUtils.equals(EXTERNAL_IP,msgSrc)) {
+//				msg.putStringProperty(AMQ_USER_TOKEN, tokenStore.get("tcp_external"));
+//			}
 			break;
 		case JSON_DELTA:
 			//signalk without auth over serial

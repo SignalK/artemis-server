@@ -14,11 +14,15 @@ By default the security is set up as follows:
 * One default user `admin` with the stupid password of `admin`. _You need to change this_. See below.
 * If messages contain a `token`, the user is derived from the token, and appropriate permissions applied.
 * If they have no token:
-	* Messages received on serial connections (or serial over USB) are assigned the `serial` user. Usually this is NMEA0183 gps data etc.
-	* AIS messages are assigned the `ais` user. 
-	* N2K messages are assigned the `n2k` user.
-	* Messages received on the internal network are assigned the `tcp_internal` user.
-	* Messages received on the external network are assigned the `tcp_external` user.
+	* AIS messages over serial or n2k are assigned the `ais` user. 
+	* AIS messages over internal_ip are assigned the `tcp_internal` user. 
+	* NMEA0183 messages received on serial connections (or serial over USB) are assigned the `serial` user. Usually this is NMEA0183 gps data etc.
+	* NMEA0183 messages received on internal_ip are assigned the `tcp_internal` user.
+	* NMEA0183 messages received on external_ip are assigned the `tcp_external` user.  
+	* N2K messages from N2K (canboat) are assigned the `n2k` user.
+	* N2K messages on the internal network are assigned the `tcp_internal` user.
+	* JSON_DELTA and JSON_FULL messages over serial are assigned the `serial` user. 
+	* All other messages get the `public` user
 
 The User 'Roles' allow the permissions for these default users to be controlled.
 Full RBAC rules based filtering is in the pipeline. 
@@ -39,7 +43,7 @@ At the top of the screen you will see the user list (somewhat ugly, help gratefu
 * Reset the admin password by entering in the password field. It will need at least 8 chars. 
 
 The password will later be converted to a hash, so you wont see it again. 
-If you need to fix a forgotton password open the ./conf/security-conf.json delet the `hash`, _and the comma before it_
+If you need to fix a forgotton password open the ./conf/security-conf.json delete the `hash`, _and the comma before it_
   
 ![](./design/artemisHash.png?raw=true)
 
