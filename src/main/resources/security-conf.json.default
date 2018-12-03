@@ -9,7 +9,7 @@
 				"skipper"
 			]
 		},
-				{
+		{
 			"password": "",
 			"roles": [
 				"public"

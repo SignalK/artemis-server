@@ -19,13 +19,19 @@ The Artemis server has several architectural features of note:
 
 4) Artemis uses a Time Series Database (TSB) as native storage. Hence all data is persistent, and full data history is maintained. Exploring the use of history is one area of special interest for me, as its virtually unknown in the recreational marine world. See item2), storing history and running sophisticated diagnostics and explorations will create workloads and data transfers way beyond the little RPi. The underlying Artemis message server can be used to spread this workload across many servers, even when they are only intermittently available.
 
-5) Artemis exposes very sophisticated remote diagnostics via JMX/jolokia. You can capture, watch and trace messages as they pass through the server, and get detailed performance data. The data can also be stored in the TSB, so you can look back into it later.
+5) Artemis exposes very sophisticated remote diagnostics via JMX/jolokia. You can capture, watch and trace messages as they pass through the server, and get detailed jvm and application performance data. The data can also be stored in the TSB, so you can look back into it later.
 
 Apart from keeping signalk on track :-) the Artemis server has some really interesting aspects and  I expect it will gain more interest over time. If you think it has merit you are very welcome to contribute.
 
 Design
 ------
 See https://github.com/SignalK/artemis-server/blob/master/design/design.md
+
+Security
+--------
+The default install has user `admin`, password `admin` _This is obviously very insecure_, the first thing you should do is change passwords.
+
+See https://github.com/SignalK/artemis-server/blob/master/SECURITY.md
 
 Functionality
 -------------

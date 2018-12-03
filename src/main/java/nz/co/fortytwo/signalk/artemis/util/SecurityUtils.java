@@ -409,7 +409,7 @@ public final class SecurityUtils {
 			if (getUser(name) == null) {
 				addUser(name, java.util.UUID.randomUUID().toString(), "", Json.array().add(name));
 			}
-			String token = issueToken(name,SecurityUtils.getUser("serial").at("role") );
+			String token = issueToken(name,SecurityUtils.getUser("serial").at("roles") );
 			tokenStore.put(name, token);
 		}
 		
