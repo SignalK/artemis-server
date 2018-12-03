@@ -6,6 +6,7 @@ import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_USER_ROLES;
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_USER_TOKEN;
 import static nz.co.fortytwo.signalk.artemis.util.Config.EXTERNAL_IP;
 import static nz.co.fortytwo.signalk.artemis.util.Config.INTERNAL_IP;
+import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_DELTA;
 import static nz.co.fortytwo.signalk.artemis.util.Config.MSG_SRC_BUS;
 import static nz.co.fortytwo.signalk.artemis.util.Config.MSG_SRC_TYPE;
 import static nz.co.fortytwo.signalk.artemis.util.Config.N2K;
@@ -167,7 +168,7 @@ public final class SecurityUtils {
 				.signWith(SignatureAlgorithm.HS512, key)
 				.compact();
 		// Return the issued token
-		logger.debug("Issue token: {}",compactJws);
+		if(logger.isDebugEnabled())logger.debug("Issue token: {}",compactJws);
 		return compactJws;
 	}
 
@@ -352,11 +353,14 @@ public final class SecurityUtils {
 		String msgSrc = msg.getStringProperty(MSG_SRC_TYPE);
 		//ip, /dev/ttyUSB0
 		String msgBus = msg.getStringProperty(MSG_SRC_BUS);
-		
+		if(logger.isDebugEnabled())logger.debug("Inject token: {} ,{},{}",msgType, msgSrc, msgBus);
 		switch (msgType) {
 		case AIS:
 			if(StringUtils.equals(SERIAL,msgSrc) || StringUtils.equals(N2K,msgSrc)) {
 				msg.putStringProperty(AMQ_USER_TOKEN, tokenStore.get("ais"));
+			}
+			if(StringUtils.equals(INTERNAL_IP,msgSrc)) {
+				msg.putStringProperty(AMQ_USER_TOKEN, tokenStore.get("tcp_internal"));
 			}
 			break;
 		case _0183:
@@ -375,21 +379,38 @@ public final class SecurityUtils {
 			if(StringUtils.equals(N2K,msgSrc)) {
 				msg.putStringProperty(AMQ_USER_TOKEN, tokenStore.get("n2k"));
 			}
+			if(StringUtils.equals(INTERNAL_IP,msgSrc)) {
+				msg.putStringProperty(AMQ_USER_TOKEN, tokenStore.get("tcp_internal"));
+			}
 			break;
+		case JSON_DELTA:
+			//signalk without auth over serial
+			if(StringUtils.equals(SERIAL,msgSrc)) {
+				msg.putStringProperty(AMQ_USER_TOKEN, tokenStore.get("serial"));
+			}
+			//signalk over internal
+//			if(StringUtils.equals(INTERNAL_IP,msgSrc)) {
+//				msg.putStringProperty(AMQ_USER_TOKEN, tokenStore.get("tcp_internal"));
+//			}
+//			if(StringUtils.equals(EXTERNAL_IP,msgSrc)) {
+//				msg.putStringProperty(AMQ_USER_TOKEN, tokenStore.get("tcp_external"));
+//			}
+			break;
+			
 		
 		default:
 			break;
 		}
-		
+		if(logger.isDebugEnabled())logger.debug("Injected token: {} : {} ,{},{}",msg.getStringProperty(AMQ_USER_TOKEN),msgType, msgSrc, msgBus);
 	}
 
 	public static void checkSystemUsers() throws Exception {
 		for(String name: systemUsers) {
 			if (getUser(name) == null) {
 				addUser(name, java.util.UUID.randomUUID().toString(), "", Json.array().add(name));
-				String token = issueToken(name,SecurityUtils.getUser("serial").at("role") );
-				tokenStore.put(name, token);
 			}
+			String token = issueToken(name,SecurityUtils.getUser("serial").at("role") );
+			tokenStore.put(name, token);
 		}
 		
 	}

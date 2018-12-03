@@ -183,7 +183,7 @@ public final class ArtemisServer {
 		}
 		// declination
 		final Runnable declination = new DeclinationUpdater();
-		scheduler.scheduleAtFixedRate(declination, 1, 1, TimeUnit.HOURS);
+		scheduler.scheduleAtFixedRate(declination, 0, 1, TimeUnit.HOURS);
 		//system tokens
 		final Runnable systemTokens = new Runnable() {
 			
