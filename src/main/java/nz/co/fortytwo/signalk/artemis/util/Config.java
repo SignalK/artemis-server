@@ -1,5 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.util;
 
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.CLOCK_SOURCE;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.uuid;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
@@ -41,14 +42,18 @@ public class Config {
 	private static NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
 	private static TDBService influx = new InfluxDbService();
 	
-	private static Config config = null;
+	//private static Config config = null;
+	private static NavigableMap<String, Json> defaultMap = new ConcurrentSkipListMap<>();
 
 	static {
 		try {
+			Config.setDefaults(defaultMap);
+			Config.setDefaults(map);
 			map = Config.loadConfig(map);
-			config = new Config();
-			//security.addAttributes(map);
-			//influx.save(map);
+			//config = new Config();
+			if(StringUtils.equals(map.get(CLOCK_SOURCE).asString(), "system")){
+				influx.setWrite(true);
+			}
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}
@@ -99,11 +104,11 @@ public class Config {
 //				(String) map.get(ADMIN_PWD).asString());
 	}
 
-	public static Config getInstance() {
-		return config;
-	}
+//	public static Config getInstance() {
+//		return config;
+//	}
 
-	private Map<String, Json> getMap() {
+	private static Map<String, Json> getMap() {
 		return map;
 	}
 
@@ -189,6 +194,8 @@ public class Config {
 		model.put(ConfigConstants.STOMP_PORT, Json.make(61613));
 		model.put(ConfigConstants.MQTT_PORT, Json.make(1883));
 		model.put(ConfigConstants.CLOCK_SOURCE, Json.make("gps"));
+		
+		model.put(ConfigConstants.ARTEMIS_PERSIST, Json.make(false));
 
 		model.put(ConfigConstants.HAWTIO_PORT, Json.make(8000));
 		model.put(ConfigConstants.HAWTIO_AUTHENTICATE, Json.make(false));
@@ -205,6 +212,8 @@ public class Config {
 		model.put(ConfigConstants.ALLOW_INSTALL, Json.make(true));
 		model.put(ConfigConstants.ALLOW_UPGRADE, Json.make(true));
 		model.put(ConfigConstants.GENERATE_NMEA0183, Json.make(true));
+		model.put(ConfigConstants.START_TCP, Json.make(true));
+		model.put(ConfigConstants.START_UDP, Json.make(true));
 		model.put(ConfigConstants.ZEROCONF_AUTO, Json.make(true));
 		model.put(ConfigConstants.START_MQTT, Json.make(true));
 		model.put(ConfigConstants.START_STOMP, Json.make(true));
@@ -241,8 +250,8 @@ public class Config {
 
 	public static NavigableMap<String, Json> loadConfig(NavigableMap<String, Json> model) throws IOException {
 		
-		logger.info("Loading config defaults");
-		Config.setDefaults(model);
+		logger.info("Loaded config defaults");
+		
 		logger.info("Loading saved config");
 		influx.loadConfig(model,null );
 		
@@ -250,7 +259,7 @@ public class Config {
 		String selfUuid = model.get(ConfigConstants.UUID).asString();
 		//create a self vessel
 		model.put(vessels+dot+selfUuid+dot+uuid, Json.make(selfUuid));
-		saveConfig(model);
+		//saveConfig(model);
 		if (logger.isDebugEnabled())logger.debug("Config: {}",model);
 		return model;
 	}
@@ -270,7 +279,10 @@ public class Config {
 
 	public static String getConfigProperty(String prop) {
 		try {
-			return (String) config.getMap().get(prop).getValue();
+			if(map.get(prop)==null && defaultMap.get(prop)!=null) {
+				map.put(prop, defaultMap.get(prop));
+			}
+			return (String) map.get(prop).getValue();
 		} catch (Exception e) {
 			logger.warn("getConfigProperty {} : {}",prop ,e.getMessage());
 			if (logger.isDebugEnabled())logger.debug(e,e);
@@ -279,13 +291,19 @@ public class Config {
 	}
 
 	public static Json getConfigJsonArray(String prop) {
-		return config.getMap().get(prop);
+		if(map.get(prop)==null && defaultMap.get(prop)!=null) {
+			map.put(prop, defaultMap.get(prop));
+		}
+		return map.get(prop);
 
 	}
 
 	public static Integer getConfigPropertyInt(String prop) {
 		try {
-			return config.getMap().get(prop).asInteger();
+			if(map.get(prop)==null && defaultMap.get(prop)!=null) {
+				map.put(prop, defaultMap.get(prop));
+			}
+			return map.get(prop).asInteger();
 		} catch (Exception e) {
 			logger.warn("getConfigProperty {} : {}",prop ,e.getMessage());
 			if (logger.isDebugEnabled())logger.debug(e,e);
@@ -297,7 +315,10 @@ public class Config {
 	public static Double getConfigPropertyDouble(String prop) {
 
 		try {
-			return config.getMap().get(prop).asDouble();
+			if(map.get(prop)==null && defaultMap.get(prop)!=null) {
+				map.put(prop, defaultMap.get(prop));
+			}
+			return map.get(prop).asDouble();
 		} catch (Exception e) {
 			logger.warn("getConfigProperty {} : {}",prop ,e.getMessage());
 			if (logger.isDebugEnabled())logger.debug(e,e);
@@ -307,7 +328,10 @@ public class Config {
 
 	public static Boolean getConfigPropertyBoolean(String prop) {
 		try {
-				return config.getMap().get(prop).asBoolean();
+			if(map.get(prop)==null && defaultMap.get(prop)!=null) {
+				map.put(prop, defaultMap.get(prop));
+			}
+			return map.get(prop).asBoolean();
 		} catch (Exception e) {
 			logger.warn("getConfigProperty {} : {}",prop ,e.getMessage());
 			if (logger.isDebugEnabled())logger.debug(e,e);

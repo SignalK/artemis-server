@@ -16,11 +16,14 @@ package nz.co.fortytwo.signalk.artemis.server;
  * limitations under the License.
  */
 
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.CLOCK_SOURCE;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.ENABLE_SERIAL;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.GENERATE_NMEA0183;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.OUTPUT_NMEA;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.OUTPUT_TCP;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.REST_PORT;
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.START_TCP;
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.START_UDP;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.TCP_NMEA_PORT;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.TCP_PORT;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.UDP_NMEA_PORT;
@@ -117,10 +120,9 @@ public final class ArtemisServer {
 		props.setProperty("org.apache.logging.log4j.simplelog.StatusLogger.level", "TRACE");
 		System.setProperties(props);
 		logger = LogManager.getLogger(ArtemisServer.class);
-
+		Config.saveConfig();
+		
 		ensureSecurityConf();
-
-		Config.getInstance();
 
 		embedded = new EmbeddedActiveMQ();
 		embedded.start();
@@ -152,12 +154,24 @@ public final class ArtemisServer {
 
 		server.start();
 
-		skServer = new NettyServer(null, OUTPUT_TCP);
-		skServer.setTcpPort(Config.getConfigPropertyInt(TCP_PORT));
-		skServer.setUdpPort(Config.getConfigPropertyInt(UDP_PORT));
-		skServer.run();
+		if (Config.getConfigPropertyBoolean(START_TCP)||Config.getConfigPropertyBoolean(START_UDP)) {
+			logger.info("Starting tcp/udp server");
+			skServer = new NettyServer(null, OUTPUT_TCP);
+			if (Config.getConfigPropertyBoolean(START_TCP)){
+				skServer.setTcpPort(Config.getConfigPropertyInt(TCP_PORT));
+			}else {
+				skServer.setTcpPort(0);
+			}
+			if (Config.getConfigPropertyBoolean(START_UDP)){
+				skServer.setUdpPort(Config.getConfigPropertyInt(UDP_PORT));
+			}else {
+				skServer.setUdpPort(0);
+			}
+			skServer.run();
+		}
 
 		if (Config.getConfigPropertyBoolean(GENERATE_NMEA0183)) {
+			logger.info("Starting NMEA output");
 			nmeaServer = new NettyServer(null, OUTPUT_NMEA);
 			nmeaServer.setTcpPort(Config.getConfigPropertyInt(TCP_NMEA_PORT));
 			nmeaServer.setUdpPort(Config.getConfigPropertyInt(UDP_NMEA_PORT));

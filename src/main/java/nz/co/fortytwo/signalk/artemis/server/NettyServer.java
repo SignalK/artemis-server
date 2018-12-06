@@ -89,27 +89,29 @@ public class NettyServer {
 	}
 	
 	public void run() throws Exception{
-		forwardingHandler = new ArtemisTcpNettyHandler(outputType);
+		
 		// The generic TCP socket server
 		ServerBootstrap skBootstrap = new ServerBootstrap();
-		skBootstrap.group(group, workerGroup).channel(NioServerSocketChannel.class).localAddress(tcpPort)
-				.childHandler(new ChannelInitializer<SocketChannel>() {
-					@Override
-					public void initChannel(SocketChannel socketChannel) throws Exception {
-						ChannelPipeline pipeline = socketChannel.pipeline();
-						pipeline.addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
-						pipeline.addLast(DECODER);
-						pipeline.addLast(ENCODER);
-						pipeline.addLast(forwardingHandler);
-						logger.info("Signal K {} Connection over TCP from:{}",outputType,socketChannel.remoteAddress());
+		if(tcpPort>0) {
+			forwardingHandler = new ArtemisTcpNettyHandler(outputType);
+			skBootstrap.group(group, workerGroup).channel(NioServerSocketChannel.class).localAddress(tcpPort)
+					.childHandler(new ChannelInitializer<SocketChannel>() {
+						@Override
+						public void initChannel(SocketChannel socketChannel) throws Exception {
+							ChannelPipeline pipeline = socketChannel.pipeline();
+							pipeline.addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
+							pipeline.addLast(DECODER);
+							pipeline.addLast(ENCODER);
+							pipeline.addLast(forwardingHandler);
+							logger.info("Signal K {} Connection over TCP from:{}",outputType,socketChannel.remoteAddress());
+							
+						}
 						
-					}
-					
-				});
-		final ChannelFuture signalkTcpFuture = skBootstrap.bind().sync();
-		logger.info("Server listening on TCP {}", signalkTcpFuture.channel().localAddress());
-		signalkTcpFuture.channel().closeFuture();
-		
+					});
+			final ChannelFuture signalkTcpFuture = skBootstrap.bind().sync();
+			logger.info("Server listening on TCP {}", signalkTcpFuture.channel().localAddress());
+			signalkTcpFuture.channel().closeFuture();
+		}
 		if(udpPort>0){
 			udpHandler = new ArtemisUdpNettyHandler(outputType);
 			 

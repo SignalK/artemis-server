@@ -104,12 +104,14 @@ public abstract class BaseHandler extends MessageSupport{
 			if (logger.isDebugEnabled())
 				logger.debug("{}: Start consumer for {} ", clazz, qName);
 			try {
-				getTxSession().createQueue(INTERNAL_KV, RoutingType.MULTICAST, qName);
 				if(StringUtils.isBlank(filter)) {
-					consumer = getTxSession().createConsumer(qName);
+					getTxSession().createQueue(INTERNAL_KV, RoutingType.MULTICAST, qName, false);
 				}else {
-					consumer = getTxSession().createConsumer(qName, filter);
+					getTxSession().createQueue(INTERNAL_KV, RoutingType.MULTICAST, qName, filter, false);
 				}
+				
+				consumer = getTxSession().createConsumer(qName);
+				
 				getTxSession().start();
 				
 			} catch (ActiveMQException e) {

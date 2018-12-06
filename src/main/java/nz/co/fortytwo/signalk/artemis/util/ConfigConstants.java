@@ -88,10 +88,16 @@ public class ConfigConstants {
 	// public static final String SESSIONID = "signalk.session";
 
 	// servers
+	//persistent queues
+	public static final String ARTEMIS_PERSIST = "config.server.server.queues.persistent";
+		
 	public static final String WEBSOCKET_PORT = "config.server.server.websocket.port";
 	public static final String REST_PORT = "config.server.server.rest.port";
 	public static final String TCP_PORT = "config.server.server.tcp.port";
 	public static final String UDP_PORT = "config.server.server.udp.port";
+	
+	public static final String START_TCP = "config.server.server.tcp.start";
+	public static final String START_UDP = "config.server.server.udp.start";
 	
 	//NMEA output
 	public static final String TCP_NMEA_PORT = "config.server.server.tcp.nmea.port";
@@ -116,6 +122,7 @@ public class ConfigConstants {
 	public static final String ALLOW_INSTALL = "config.server.apps.install.allow";
 	public static final String ALLOW_UPGRADE = "config.server.apps.upgrade.allow";
 
+	
 	// security
 	public static final String SECURITY_DENY = "config.server.security.deny.ip";
 	public static final String SECURITY_CONFIG = "config.server.security.config.ip";
@@ -133,26 +140,6 @@ public class ConfigConstants {
 	public static final String JOLOKIA_CONTEXT = "config.jolokia.context";
 	public static final String JOLOKIA_WAR = "config.jolokia.war";
 
-	// Instrument Offsets, Display Units, Adjustments
-	public static final String SURFACE_TO_TRANSDUCER = "config.environment.depth.surfaceToTransducer";
-	public static final String TRANSDUCER_TO_KEEL = "config.environment.depth.transducerToKeel";
-	public static final String SOG_DISPLAY_UNIT = "config.navigation.meta.sogDisplayUnit";
-	public static final String DEPTH_USER_UNIT = "config.environment.depth.meta.userUnit";
-	public static final String STW_DISPLAY_UNIT = "config.navigation.meta.stwDisplayUnit";
-	public static final String DEPTH_ALARM_ZONES = "config.environment.depth.meta.zones";
-	public static final String DEPTH_WARN_METHOD = "config.environment.depth.meta.warnMethod";
-	public static final String DEPTH_ALARM_METHOD = "config.environment.depth.meta.alarmMethod";
-	public static final String ENGINE_TEMP_USER_UNIT = "config.propulsion.engine.coolantTemperature.meta.userUnit";
-	public static final String ENGINE_TEMP_ALARM_ZONES = "config.propulsion.engine.coolantTemperature.meta.zones";
-	public static final String ENGINE_TEMP_ALARM_METHOD = "config.propulsion.engine.coolantTemperature.meta.alarmMethod";
-	public static final String ENGINE_TEMP_WARN_METHOD = "config.propulsion.engine.coolantTemperature.meta.warnMethod";
-
-	// This is currently unimplemented as the MEGA compensates for wind offsets
-	// A command must be issued in terminal mode with the MEGA to set the
-	// apparent
-	// wind offset.
-	// public static final String WIND_OFFSET =
-	// "config.instruments.wind.apparentWindOffset";
 
 	public ConfigConstants() {
 		// TODO Auto-generated constructor stub

@@ -13,13 +13,11 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.skey;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sourceRef;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.sources;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.timestamp;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.uuid;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.values;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.version;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Map;
@@ -28,7 +26,6 @@ import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -68,7 +65,7 @@ public class InfluxDbService implements TDBService {
 	}
 
 	public InfluxDbService(String dbName) {
-		this.dbName=dbName;
+		InfluxDbService.dbName=dbName;
 		setUpTDb();
 	}
 
@@ -77,13 +74,13 @@ public class InfluxDbService implements TDBService {
 	 */
 	@Override
 	public void setUpTDb() {
-		//try 3 times
+		//try 7 times
 		int c=0;
-		while(c<4) {
+		while(c<8) {
 			c++;
 			try {
 				influxDB = InfluxDBFactory.connect("http://localhost:8086", "admin", "admin");
-				c=4;
+				c=99;
 			}catch(InfluxDBIOException e) {
 				logger.error(e, e);
 				try {
@@ -108,11 +105,11 @@ public class InfluxDbService implements TDBService {
 	@Override
 	public void setWrite(boolean write) {
 		allowWrite=write;
-		try {
-			Config.saveConfig();
-		} catch (IOException e) {
-			logger.error(e,e);
-		}
+//		try {
+//			Config.saveConfig();
+//		} catch (IOException e) {
+//			logger.error(e,e);
+//		}
 	}
 	
 	@Override
@@ -515,6 +512,9 @@ public class InfluxDbService implements TDBService {
 		if(k.contains("._attr")){
 			return;
 		}
+		if(k.contains("jwtToken")){
+			return;
+		}
 		String srcRef = null;
 		if(v.isObject() && v.has(sourceRef)) {
 			srcRef=v.at(sourceRef).asString();
@@ -698,8 +698,10 @@ public class InfluxDbService implements TDBService {
 			//String[] path = StringUtils.split(key, '.');
 			//StringUtils.substringBetween(key, dot, dot)
 			try {
-				String field = getFieldType(val);
 				int p1 = key.indexOf(dot);
+				if(p1<0) {
+					p1=key.length();
+				}
 				int p2 = key.indexOf(dot,p1+1);
 				int p3 = p2+1;
 				if(p2<0) {
@@ -715,33 +717,33 @@ public class InfluxDbService implements TDBService {
 							.tag("uuid", key.substring(p1+1, p2))
 							.tag(InfluxDbService.PRIMARY_VALUE, isPrimary(key,sourceRef).toString())
 							.tag(skey, key.substring(p3));
-					influxDB.write(addPoint(point, field, val));
+					influxDB.write(addPoint(point, getFieldType(val), val));
 					break;
 				case sources:
 					point = Point.measurement(key.substring(0, p1)).time(millis, TimeUnit.MILLISECONDS)
 							.tag("sourceRef", key.substring(p1+1, p2))
 							.tag(skey, key.substring(p3));
-					influxDB.write(addPoint(point, field, val));
+					influxDB.write(addPoint(point, getFieldType(val), val));
 					break;
 				case CONFIG:
 					point = Point.measurement(key.substring(0, p1)).time(millis, TimeUnit.MILLISECONDS)
 							//.tag("uuid", key.substring(p1+1, p2))
 							.tag(skey, key.substring(p1+1));
-					influxDB.write(addPoint(point, field, val));
+					influxDB.write(addPoint(point, getFieldType(val), val));
 					//also update the config map
 					Config.setProperty(key, Json.make(val));
 					break;
 				case vessels:
-					writeToInflux(key, p1, p2, p3, millis, sourceRef, field, val);
+					writeToInflux(key, p1, p2, p3, millis, sourceRef, getFieldType(val), val);
 					break;
 				case aircraft:
-					writeToInflux(key, p1, p2, p3,millis, sourceRef, field, val);
+					writeToInflux(key, p1, p2, p3,millis, sourceRef, getFieldType(val), val);
 					break;
 				case sar:
-					writeToInflux(key, p1, p2, p3,millis, sourceRef, field, val);
+					writeToInflux(key, p1, p2, p3,millis, sourceRef, getFieldType(val), val);
 					break;
 				case aton:
-					writeToInflux(key, p1, p2, p3, millis, sourceRef, field, val);
+					writeToInflux(key, p1, p2, p3, millis, sourceRef, getFieldType(val), val);
 					break;
 				default:
 					break;
