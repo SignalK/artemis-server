@@ -124,6 +124,9 @@ public class ConfigConstants {
 
 	
 	// security
+	public static final String SECURITY_SSL_ENABLE = "config.server.server.ssl.enable";
+	public static final String SECURITY_PRIVATE_KEY = "config.server.server.ssl.privateKey";
+	public static final String SECURITY_CERTIFICATE = "config.server.server.ssl.certificate";
 	public static final String SECURITY_DENY = "config.server.security.deny.ip";
 	public static final String SECURITY_CONFIG = "config.server.security.config.ip";
 	public static final String SECURITY_WHITE = "config.server.security.white.ip";

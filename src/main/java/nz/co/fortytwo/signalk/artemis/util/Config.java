@@ -121,9 +121,13 @@ public class Config {
 		String ver = getConfigProperty(ConfigConstants.VERSION);
 		ver = StringUtils.removeStart(ver,"v");
 		version.set("version", ver);
-		version.set(SignalKConstants.websocketUrl, "ws://" + hostname + ":"
+		
+		String ws = getConfigPropertyBoolean(ConfigConstants.SECURITY_SSL_ENABLE)?"wss":"ws";
+		String http = getConfigPropertyBoolean(ConfigConstants.SECURITY_SSL_ENABLE)?"https":"http";
+		
+		version.set(SignalKConstants.websocketUrl, ws+"://" + hostname + ":"
 				+ getConfigPropertyInt(ConfigConstants.WEBSOCKET_PORT) + SignalKConstants.SIGNALK_WS);
-		version.set(SignalKConstants.restUrl, "http://" + hostname + ":"
+		version.set(SignalKConstants.restUrl, http + "://" + hostname + ":"
 				+ getConfigPropertyInt(ConfigConstants.REST_PORT) + SignalKConstants.SIGNALK_API + "/");
 		version.set(SignalKConstants.signalkTcpPort,
 				"tcp://" + hostname + ":" + getConfigPropertyInt(ConfigConstants.TCP_PORT));
@@ -217,6 +221,12 @@ public class Config {
 		model.put(ConfigConstants.ZEROCONF_AUTO, Json.make(true));
 		model.put(ConfigConstants.START_MQTT, Json.make(true));
 		model.put(ConfigConstants.START_STOMP, Json.make(true));
+		
+		//security
+		model.put(ConfigConstants.SECURITY_SSL_ENABLE, Json.make(true));
+		model.put(ConfigConstants.SECURITY_PRIVATE_KEY, Json.make("./conf/test-private.pem"));
+		model.put(ConfigConstants.SECURITY_CERTIFICATE, Json.make("./conf/test-cert.pem"));
+		
 		// control config, only local networks
 		Json ips = Json.array();
 		Enumeration<NetworkInterface> interfaces;

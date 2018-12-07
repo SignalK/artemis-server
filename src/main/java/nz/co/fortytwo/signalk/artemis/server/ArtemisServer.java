@@ -22,6 +22,9 @@ import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.GENERATE_NMEA0
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.OUTPUT_NMEA;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.OUTPUT_TCP;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.REST_PORT;
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.SECURITY_CERTIFICATE;
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.SECURITY_PRIVATE_KEY;
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.SECURITY_SSL_ENABLE;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.START_TCP;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.START_UDP;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.TCP_NMEA_PORT;
@@ -35,9 +38,19 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SIGNALK_DISCO
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants._SIGNALK_HTTP_TCP_LOCAL;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants._SIGNALK_WS_TCP_LOCAL;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
+import java.math.BigInteger;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +62,9 @@ import java.util.concurrent.TimeUnit;
 
 import javax.jmdns.JmmDNS;
 import javax.jmdns.ServiceInfo;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLSessionContext;
+import javax.security.auth.x500.X500Principal;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.RoutingType;
@@ -67,7 +83,22 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.atmosphere.cpr.ApplicationConfig;
 import org.atmosphere.nettosphere.Nettosphere;
+import org.atmosphere.nettosphere.Nettosphere.Builder;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.cert.X509v3CertificateBuilder;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.util.encoders.Base64;
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemWriter;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeUtils;
 
+import io.netty.buffer.ByteBufAllocator;
+
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Log4J2LoggerFactory;
 import mjson.Json;
@@ -89,6 +120,8 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
  */
 public final class ArtemisServer {
 
+	private static final String TEST_CERT_PEM = "./conf/test-cert.pem";
+	private static final String TEST_PRIVATE_PEM = "./conf/test-private.pem";
 	private static Logger logger;
 	private static EmbeddedActiveMQ embedded;
 	private static Nettosphere server;
@@ -132,8 +165,10 @@ public final class ArtemisServer {
 		startKvHandlers();
 
 		addShutdownHook(this);
-
-		server = new Nettosphere.Builder().config(new org.atmosphere.nettosphere.Config.Builder().supportChunking(true)
+		
+		
+		org.atmosphere.nettosphere.Config.Builder config = new org.atmosphere.nettosphere.Config.Builder();
+		config.supportChunking(true)
 				.maxChunkContentLength(1024 * 1024).socketKeepAlive(true).enablePong(false)
 				.initParam(ApplicationConfig.PROPERTY_SESSION_SUPPORT, "true")
 				.initParam(ApplicationConfig.ANALYTICS, "false")
@@ -149,8 +184,20 @@ public final class ArtemisServer {
 				.initParam("org.atmosphere.cpr.broadcasterLifeCyclePolicy", "EMPTY_DESTROY")
 				.initParam("org.atmosphere.websocket.WebSocketProcessor",
 						"nz.co.fortytwo.signalk.artemis.server.SignalkWebSocketProcessor")
+				.port(8080)
+				.host("0.0.0.0");
+		
+		if (Config.getConfigPropertyBoolean(SECURITY_SSL_ENABLE)) {
+			//make sure we have certs
+			createSSLCerts();
+			
+			SslContextBuilder ssl = SslContextBuilder.forServer(
+					new File(Config.getConfigProperty(SECURITY_CERTIFICATE)),
+					new File(Config.getConfigProperty(SECURITY_PRIVATE_KEY)));
+			config.sslContext(ssl.build());
+		}
 
-				.port(8080).host("0.0.0.0").build()).build();
+		server = new Nettosphere.Builder().config(config.build()).build();
 
 		server.start();
 
@@ -214,6 +261,7 @@ public final class ArtemisServer {
 	}
 
 	private void ensureSecurityConf() {
+		
 		File secureConf = new File("./conf/security-conf.json");
 		if (!secureConf.exists()) {
 			try (InputStream in = getClass().getClassLoader().getResource("security-conf.json.default").openStream()) {
@@ -235,6 +283,57 @@ public final class ArtemisServer {
 			logger.error(e, e);
 		}
 
+	}
+
+	private void createSSLCerts() {
+		try{
+			if(new File(TEST_PRIVATE_PEM).exists() && new File(TEST_CERT_PEM).exists()) 
+				return; //we have them
+				
+			KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+	        keyGen.initialize(1024);
+	        KeyPair key = keyGen.generateKeyPair();
+	        PrivateKey priv = key.getPrivate();
+	        //PublicKey pub = key.getPublic();
+	        //String privateKey = new String(Base64.encode(priv.getEncoded()));
+	        
+	        StringWriter keyWriter = new StringWriter();
+	        PemWriter pemKeyWriter = new PemWriter(keyWriter);
+	        pemKeyWriter.writeObject(new PemObject("PRIVATE KEY", priv.getEncoded()));
+	        pemKeyWriter.flush();
+	        pemKeyWriter.close();
+	        
+	        FileUtils.writeStringToFile(new File(TEST_PRIVATE_PEM), keyWriter.getBuffer().toString());
+	        //String publicKey1 = new String(Base64.encode(pub.getEncoded(), 0,pub.getEncoded().length));
+	        //String publicKey = new String(Base64.encode(publicKey1.getBytes(),0, publicKey1.getBytes().length));
+	        		
+			BigInteger serialNumber = BigInteger.valueOf(System.currentTimeMillis());
+	        Date startDate = DateTime.now().toDate();
+	        Date expiryDate = DateTime.now().plusYears(10).toDate();
+	        X500Name issuer = new X500Name("CN=MyBoat");
+	        X500Name subject = new X500Name("CN=ArtemisSignalkServer");
+
+	        X509v3CertificateBuilder certBuilder = new X509v3CertificateBuilder(
+	                issuer, serialNumber, startDate, expiryDate, subject,
+	                SubjectPublicKeyInfo.getInstance(key.getPublic().getEncoded()));
+	        JcaContentSignerBuilder builder = new JcaContentSignerBuilder("SHA256withRSA");
+	        ContentSigner signer = builder.build(key.getPrivate());
+
+
+	        byte[] certBytes = certBuilder.build(signer).getEncoded();
+	        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+	        X509Certificate x509Cert = (X509Certificate) certificateFactory.generateCertificate(new ByteArrayInputStream(certBytes));
+	        
+	        StringWriter writer = new StringWriter();
+	        PemWriter pemWriter = new PemWriter(writer);
+	        pemWriter.writeObject(new PemObject("CERTIFICATE", x509Cert.getEncoded()));
+	        pemWriter.flush();
+	        pemWriter.close();
+	        FileUtils.writeStringToFile(new File(TEST_CERT_PEM), writer.getBuffer().toString());
+        }catch(Exception ex){
+            ex.printStackTrace();
+        }
+		
 	}
 
 	private void startIncomingConsumer() throws Exception {

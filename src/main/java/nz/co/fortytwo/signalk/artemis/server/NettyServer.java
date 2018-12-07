@@ -90,9 +90,10 @@ public class NettyServer {
 	
 	public void run() throws Exception{
 		
-		// The generic TCP socket server
-		ServerBootstrap skBootstrap = new ServerBootstrap();
+		
 		if(tcpPort>0) {
+			// The generic TCP socket server
+			ServerBootstrap skBootstrap = new ServerBootstrap();
 			forwardingHandler = new ArtemisTcpNettyHandler(outputType);
 			skBootstrap.group(group, workerGroup).channel(NioServerSocketChannel.class).localAddress(tcpPort)
 					.childHandler(new ChannelInitializer<SocketChannel>() {

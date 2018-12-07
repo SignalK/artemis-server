@@ -17,9 +17,11 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -96,7 +98,9 @@ public class AppsService extends BaseApiService {
 	    @ApiResponse(responseCode = "500", description = "Internal server error"),
 	    @ApiResponse(responseCode = "403", description = "No permission")
 	    })
-	public Response install(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
+	public Response install(
+			@Context UriInfo uriInfo, 
+			@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
 			@Parameter(description = "Name of webapp as found on npmjs.com", example="@signalk/freeboard-sk") @QueryParam("appName") String appName, 
 			@Parameter(description = "Version of webapp as found on npmjs.com", example="1.0.0") @QueryParam("appVersion") String appVersion) {
 		try {
@@ -113,7 +117,7 @@ public class AppsService extends BaseApiService {
 			};
 			t.start();
 
-			return Response.seeOther(new URI("/config/logs.html")).build();
+			return Response.seeOther(uriInfo.getRequestUriBuilder().scheme(scheme).replacePath("/config/logs.html").replaceQuery(null).build()).build();
 
 		} catch (Exception e) {
 			logger.error(e, e);
@@ -130,7 +134,9 @@ public class AppsService extends BaseApiService {
 	    @ApiResponse(responseCode = "403", description = "No permission")
 	    })
 	@Path("remove")
-	public Response remove(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
+	public Response remove(
+			@Context UriInfo uriInfo, 
+			@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
 			@Parameter(description = "Name of webapp", example="@signalk/freeboard-sk") @QueryParam("appName") String appName) {
 		try {
 			File appDir = new File(staticDir, appName);
@@ -161,7 +167,9 @@ public class AppsService extends BaseApiService {
 	    @ApiResponse(responseCode = "403", description = "No permission")
 	    })
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response search(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
+	public Response search(
+			@Context UriInfo uriInfo, 
+			@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
 			@Parameter(description = "Npm tag, default 'signalk-webapp'", example="signalk-webapp")@QueryParam("keyword") String keyword) {
 		try (final AsyncHttpClient c = asyncHttpClient();) {
 			Json json = Util.getUrlAsJson(c, "https://api.npms.io/v2/search?size=250&q=keywords:"+StringUtils.defaultString(keyword, "signalk-webapp"));

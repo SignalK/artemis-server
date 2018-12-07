@@ -72,6 +72,7 @@ Functionality
 	Persistence:
 		Uses Time-series database to store all data and history
 	Security:
+		SSL/TLS (https, wss)
 		Supports Users and Roles. Token based.
 		Fine grain access control to the signalk key level
 	REST APIs:
@@ -118,7 +119,7 @@ It assumes influx db is running on localhost:8086
 REST API docs
 -------------
 
-Swagger REST API docs and live testing is available at http://localhost:8080/docs/
+Swagger REST API docs and live testing is available at https://localhost:8080/docs/
 
 
 Installation
@@ -131,12 +132,12 @@ The default signalk-java installs the old java server, to get this new version s
 Using JMX/Jolokia Diagnostics (via Hawtio)
 ==========================================
 
-Download the stand-alone hawtio.jar file from http://hawt.io and save to a local dir ([HAWTIO_DIR]).
+Download the stand-alone hawtio.jar file from https://hawt.io and save to a local dir ([HAWTIO_DIR]).
 Start the hawtio-app with port 8888. eg `java -jar [HAWTIO_DIR]/hawtio-app-1.4.65.jar -p 8888`
-Open web browser to `http://localhost:8888/hawtio/`
+Open web browser to `https://localhost:8888/hawtio/`
 
-Look in the aretmis server start.log for the line `Jolokia: Agent started with URL http://192.168.43.246:8780/jolokia/`
-Enter connection data to the artemis server: `http://192.168.43.246:8780/jolokia/` and connect.
+Look in the aretmis server start.log for the line `Jolokia: Agent started with URL https://192.168.43.246:8780/jolokia/`
+Enter connection data to the artemis server: `https://192.168.43.246:8780/jolokia/` and connect.
 
 
 Development

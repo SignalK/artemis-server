@@ -33,8 +33,10 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -80,7 +82,7 @@ public class GitService extends BaseApiService {
 	@GET
 	@Path("install")
 	@Produces(MediaType.TEXT_PLAIN)
-	public Response processInstall(@QueryParam("project") String project, @QueryParam("npm") boolean npm)
+	public Response processInstall(@Context UriInfo uriInfo, @QueryParam("project") String project, @QueryParam("npm") boolean npm)
 			throws IOException {
 		if (logger.isDebugEnabled())
 			logger.debug("We are processing the path = {}, npm={}", project, npm);
@@ -110,7 +112,7 @@ public class GitService extends BaseApiService {
 			};
 			t.start();
 			
-			return Response.seeOther(new URI("/config/logs.html")).build();
+			return Response.seeOther(uriInfo.getRequestUriBuilder().scheme(scheme).replacePath("/config/logs.html").replaceQuery(null).build()).build();
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			return Response.status(HttpStatus.SC_BAD_REQUEST).build();
@@ -131,7 +133,7 @@ public class GitService extends BaseApiService {
 	@GET
 	@Path("upgrade")
 	@Produces(MediaType.TEXT_PLAIN)
-	public Response processUpgrade(@QueryParam("project") String project, @QueryParam("npm") boolean npm)
+	public Response processUpgrade(@Context UriInfo uriInfo, @QueryParam("project") String project, @QueryParam("npm") boolean npm)
 			throws IOException {
 		if (logger.isDebugEnabled())
 			logger.debug("We are processing the path = {}, npm={}", project, npm);
@@ -160,7 +162,7 @@ public class GitService extends BaseApiService {
 			};
 			t.start();
 			
-			return Response.seeOther(new URI("/config/logs.html")).build();
+			return Response.seeOther(uriInfo.getRequestUriBuilder().scheme(scheme).replacePath("/config/logs.html").replaceQuery(null).build()).build();
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			return Response.status(HttpStatus.SC_BAD_REQUEST).build();

@@ -1,5 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.SECURITY_SSL_ENABLE;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.STATIC_DIR;
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.AUTH_COOKIE_NAME;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SIGNALK_API;
@@ -60,12 +61,16 @@ public class BaseApiService extends MessageSupport{
 	
 	private static Timer timer = new Timer();
 
+	
 	@Context
 	protected BroadcasterFactory broadCasterFactory;
+
+	protected String scheme;
 
 	public BaseApiService() {
 		super();
 		staticDir = new File(Config.getConfigProperty(STATIC_DIR));
+		scheme = Config.getConfigPropertyBoolean(SECURITY_SSL_ENABLE)?"https":"http";
 	}
 
 	protected void initSession(String tempQ) throws Exception {

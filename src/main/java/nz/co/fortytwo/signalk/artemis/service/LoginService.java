@@ -1,5 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.SECURITY_SSL_ENABLE;
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.AUTH_COOKIE_NAME;
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.authenticateUser;
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.validateToken;
@@ -36,6 +37,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 
 @Path("/signalk/authenticate")
@@ -47,7 +49,11 @@ public class LoginService {
 	@Context 
 	private AtmosphereResource resource;
 
+	private String scheme;
+
 	public LoginService() throws Exception{
+		if(logger.isDebugEnabled())logger.debug("LoginService started");
+		scheme = Config.getConfigPropertyBoolean(SECURITY_SSL_ENABLE)?"https":"http";
 	}
 
 	//@Produces(MediaType.APPLICATION_JSON)
@@ -60,10 +66,11 @@ public class LoginService {
 			@FormParam("password") String password, 
 			@FormParam("target") String target) throws Exception {
 		
-		
+		if(logger.isDebugEnabled())logger.debug("Authentication request, {}", uriInfo.getRequestUri());
 		//no auth, return unauthorised
 		if( StringUtils.isBlank(username)||StringUtils.isBlank(password)) {
-			URI uri = uriInfo.getBaseUriBuilder().path("/login.html").build();
+			URI uri = uriInfo.getRequestUriBuilder().scheme(scheme).replacePath("/login.html").replaceQuery(null).build();
+			
 			return Response.temporaryRedirect(uri)
 					.build();
 		}
@@ -77,7 +84,8 @@ public class LoginService {
 			
 			//login valid, redirect to initial page if we have a target.
 			if(StringUtils.isNotBlank(target)) {
-				URI uri = uriInfo.getBaseUriBuilder().path(target).build();
+				URI uri = uriInfo.getRequestUriBuilder().scheme(scheme).replacePath(target).replaceQuery(null).build();
+				
 				if(logger.isDebugEnabled())logger.debug("Authenticated, redirect to {}", uri.toString());
 				
 				return Response.seeOther(uri)
@@ -90,7 +98,8 @@ public class LoginService {
 		} catch (Exception e) {
 			//failed try again
 			logger.error(e,e);
-			URI uri = uriInfo.getBaseUriBuilder().path("/login.html").build();
+			URI uri = uriInfo.getRequestUriBuilder().scheme(scheme).replacePath("/login.html").replaceQuery(null).build();
+			
 			if(logger.isDebugEnabled())logger.debug("Unauthenticated, redirect to {}", uri.toString());
 			
 			return Response.seeOther(uri)
