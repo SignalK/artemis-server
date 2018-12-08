@@ -29,7 +29,7 @@ public class InfluxDbHandlerTest extends BaseMsgInterceptorTest {
 	@Test
 	public void shouldStoreKey() {
 		Json json = Json.read("{\"value\":-1.5707963271535559,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}");
-		handler.save("vessels.urn:mrn:signalk:uuid:a8fb07c0-1ffd-4663-899c-f16c2baf8270.environment.wind.angleApparent.values.unknown", json);
+		handler.save("vessels."+uuid+".environment.wind.angleApparent.values.unknown", json);
 		
 		replayAll();
 		
@@ -40,7 +40,7 @@ public class InfluxDbHandlerTest extends BaseMsgInterceptorTest {
 	@Test
 	public void shouldStoreJsonNull() {
 		Json json = Json.nil();
-		handler.save("vessels.urn:mrn:signalk:uuid:a8fb07c0-1ffd-4663-899c-f16c2baf8270.environment.wind.angleApparent.values.unknown", json);
+		handler.save("vessels."+uuid+".environment.wind.angleApparent.values.unknown", json);
 		
 		replayAll();
 		
@@ -52,7 +52,7 @@ public class InfluxDbHandlerTest extends BaseMsgInterceptorTest {
 	//mock fails on null, but null is saved.
 	public void shouldStoreNull() {
 		
-		handler.save("vessels.urn:mrn:signalk:uuid:a8fb07c0-1ffd-4663-899c-f16c2baf8270.environment.wind.angleApparent.values.unknown", null);
+		handler.save("vessels."+uuid+".environment.wind.angleApparent.values.unknown", null);
 		
 		replayAll();
 		

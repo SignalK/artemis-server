@@ -2,17 +2,24 @@ package nz.co.fortytwo.signalk.artemis.server;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_INFLUX_KEY;
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_USER_TOKEN;
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.SECURITY_SSL_ENABLE;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT_DELTA;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.POLICY_FIXED;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
@@ -27,6 +34,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.Response;
+import org.asynchttpclient.config.AsyncHttpClientConfigDefaults;
+import org.asynchttpclient.config.AsyncHttpClientConfigHelper;
+import org.asynchttpclient.netty.handler.AsyncHttpClientHandler;
 import org.easymock.EasyMockSupport;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -47,9 +57,14 @@ public class BaseServerTest extends EasyMockSupport {
 	private static Logger logger = LogManager.getLogger(BaseServerTest.class);
 
 	protected String uuid;
+	protected String httpScheme;
+	protected String wsScheme;
 	
 	public BaseServerTest() {
 		uuid = Config.getConfigProperty(ConfigConstants.UUID);
+		httpScheme = Config.getConfigPropertyBoolean(SECURITY_SSL_ENABLE)?"https":"http";
+		wsScheme = Config.getConfigPropertyBoolean(SECURITY_SSL_ENABLE)?"wss":"ws";
+		
 	}
 
 	@BeforeClass
@@ -116,22 +131,20 @@ public class BaseServerTest extends EasyMockSupport {
 		return getUrlAsString(c,path, null,null, restPort);
 	}
 	protected String getUrlAsString(AsyncHttpClient c, String path, String user, String pass, int restPort) throws Exception {
-		//final AsyncHttpClient c = new AsyncHttpClient();
-		//try {
+			
 			// get a sessionid
 			Response r2 = null;
+			
 			if(user!=null){
-				r2 = c.prepareGet("http://localhost:" + restPort + path).setCookies(getCookies(user, pass)).execute().get();
+				r2 = c.prepareGet(httpScheme+"://localhost:" + restPort + path).setCookies(getCookies(user, pass)).execute().get();
 			}else{
-				r2 = c.prepareGet("http://localhost:" + restPort + path).execute().get();
+				r2 = c.prepareGet(httpScheme+"://localhost:" + restPort + path).execute().get();
 			}
 			
 			String response = r2.getResponseBody();
 			logger.debug("Endpoint string:" + response);
 			return response;
-		//} finally {
-		//	c.close();
-		//}
+		
 	}
 	
 	protected Collection<Cookie> getCookies(String user, String pass) throws Exception {

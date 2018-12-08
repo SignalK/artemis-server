@@ -95,7 +95,7 @@ public class SubscribeWsTest extends BaseServerTest {
 	@Test
 	public void shouldGetAllData() throws Exception {
 
-		try (final AsyncHttpClient c = asyncHttpClient();) {
+		try (final AsyncHttpClient c = asyncHttpClient(config().setUseInsecureTrustManager(true));) {
 		
 			String resp = getUrlAsString(c,SIGNALK_API,restPort);
 			 Json respJson = Json.read(resp);
@@ -106,12 +106,12 @@ public class SubscribeWsTest extends BaseServerTest {
 	@Test
 	public void shouldGetWsPublicUrls() throws Exception {
 
-		try (final AsyncHttpClient c = asyncHttpClient();) {
+		try (final AsyncHttpClient c = asyncHttpClient(config().setUseInsecureTrustManager(true));) {
 			Json json = getUrlAsJson(c,SIGNALK_DISCOVERY, restPort);
 			logger.debug("shouldGetWsPublicUrls: {}", json);
-			assertEquals("ws://localhost:" + wsPort + SIGNALK_WS,
+			assertEquals(wsScheme+"://localhost:" + wsPort + SIGNALK_WS,
 					json.at("endpoints").at("v1").at(websocketUrl).asString());
-			assertEquals("http://localhost:" + restPort + SIGNALK_API+"/",
+			assertEquals(httpScheme+"://localhost:" + restPort + SIGNALK_API+"/",
 					json.at("endpoints").at("v1").at(restUrl).asString());
 			assertEquals("1.0.0",
 					json.at("endpoints").at("v1").at(version).asString());
@@ -181,7 +181,7 @@ public class SubscribeWsTest extends BaseServerTest {
 			assertTrue(resp, respJson.has(CONFIG));
 		}
 			//no login, authenticationInterceptor sends back 301 redirect so no result
-		try (final AsyncHttpClient c = asyncHttpClient();) {	
+		try (final AsyncHttpClient c = asyncHttpClient(config().setUseInsecureTrustManager(true));) {	
 			String resp = getUrlAsString(c,"/" + CONFIG, restPort);
 			assertEquals("",resp);
 
@@ -201,7 +201,7 @@ public class SubscribeWsTest extends BaseServerTest {
 	@Test
 	public void shouldGetApiData() throws Exception {
 
-		try (final AsyncHttpClient c = asyncHttpClient();) {
+		try (final AsyncHttpClient c = asyncHttpClient(config().setUseInsecureTrustManager(true));) {
 		
 			Json json = getUrlAsJson(c,  SIGNALK_API +"/vessels", "admin","admin",restPort);
 					
@@ -216,7 +216,7 @@ public class SubscribeWsTest extends BaseServerTest {
 	@Test
 	public void shouldGetApiSelfData() throws Exception {
 
-		try (final AsyncHttpClient c = asyncHttpClient();) {
+		try (final AsyncHttpClient c = asyncHttpClient(config().setUseInsecureTrustManager(true));) {
 
 			Json json = getUrlAsJson(c,  SIGNALK_API +"/self", "admin","admin",restPort);
 			
@@ -228,7 +228,7 @@ public class SubscribeWsTest extends BaseServerTest {
 	@Test
 	public void shouldGetApiUUIDData() throws Exception {
 
-		try (final AsyncHttpClient c = asyncHttpClient();) {
+		try (final AsyncHttpClient c = asyncHttpClient(config().setUseInsecureTrustManager(true));) {
 
 			String resp = getUrlAsString(c, SIGNALK_API + "/vessels/"+Config.getConfigProperty(ConfigConstants.UUID)+"/uuid","admin","admin",restPort);
 			logger.debug("Endpoint json:" + resp);
@@ -239,7 +239,7 @@ public class SubscribeWsTest extends BaseServerTest {
 	@Test
 	public void shouldGetApiSubset() throws Exception {
 
-		try (final AsyncHttpClient c = asyncHttpClient();) {
+		try (final AsyncHttpClient c = asyncHttpClient(config().setUseInsecureTrustManager(true));) {
 
 			Json json = getUrlAsJson(c,  SIGNALK_API +"/vessels/urn:mrn:imo:mmsi:123456789", "admin","admin",restPort);
 			
@@ -252,7 +252,7 @@ public class SubscribeWsTest extends BaseServerTest {
 	@Test
 	public void shouldGetApiForSelf() throws Exception {
 
-		try (final AsyncHttpClient c = asyncHttpClient();) {
+		try (final AsyncHttpClient c = asyncHttpClient(config().setUseInsecureTrustManager(true));) {
 
 			Json json = getUrlAsJson(c,  SIGNALK_API +"/vessels/self", "admin","admin",restPort);
 			
@@ -268,7 +268,7 @@ public class SubscribeWsTest extends BaseServerTest {
 	@Test
 	public void shouldGetApiForSources() throws Exception {
 
-		try (final AsyncHttpClient c = asyncHttpClient();) {
+		try (final AsyncHttpClient c = asyncHttpClient(config().setUseInsecureTrustManager(true));) {
 			String rslt = getUrlAsString(c, SIGNALK_API + "/sources","admin","admin",restPort);
 			
 			Json json = Json.read(rslt);
@@ -284,9 +284,9 @@ public class SubscribeWsTest extends BaseServerTest {
 	public void shouldGetSubscribeWsResponse() throws Exception {
 		final List<String> received = new ArrayList<String>();
 		final CountDownLatch latch = new CountDownLatch(5);
-		try (final AsyncHttpClient c = asyncHttpClient();) {
+		try (final AsyncHttpClient c = asyncHttpClient(config().setUseInsecureTrustManager(true));) {
 
-			String restUrl = "ws://localhost:" + restPort + SIGNALK_WS;
+			String restUrl = wsScheme+"://localhost:" + restPort + SIGNALK_WS;
 			logger.debug("Open websocket at: " + restUrl);		   
 			WebSocket websocket = c.prepareGet(restUrl).setCookies(getCookies("admin", "admin"))
 					.execute(new WebSocketUpgradeHandler.Builder().build()).get();

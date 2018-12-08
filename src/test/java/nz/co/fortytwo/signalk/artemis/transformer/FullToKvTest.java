@@ -23,7 +23,7 @@ import nz.co.fortytwo.signalk.artemis.server.BaseServerTest;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 import nz.co.fortytwo.signalk.artemis.util.Util;
-@Ignore
+
 public class FullToKvTest extends BaseServerTest{
 	
 	private static Logger logger = LogManager.getLogger(FullToKvTest.class);
