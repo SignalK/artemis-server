@@ -83,6 +83,7 @@ public class ConfigConstants {
 
 	// demo
 	public static final String DEMO = "config.server.demo.start";
+	public static final String DEMO_DELAY = "config.server.demo.delay";
 	public static final String STREAM_URL = "config.server.demo.file";
 	public static final String XMPP = "config.server.xmpp";
 	// public static final String SESSIONID = "signalk.session";
@@ -93,6 +94,8 @@ public class ConfigConstants {
 		
 	public static final String WEBSOCKET_PORT = "config.server.server.websocket.port";
 	public static final String REST_PORT = "config.server.server.rest.port";
+	public static final String WEBSOCKET_PORT_SSL = "config.server.server.websocket.portSsl";
+	public static final String REST_PORT_SSL = "config.server.server.rest.portSsl";
 	public static final String TCP_PORT = "config.server.server.tcp.port";
 	public static final String UDP_PORT = "config.server.server.udp.port";
 	

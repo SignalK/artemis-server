@@ -121,14 +121,16 @@ public class Config {
 		String ver = getConfigProperty(ConfigConstants.VERSION);
 		ver = StringUtils.removeStart(ver,"v");
 		version.set("version", ver);
-		
-		String ws = getConfigPropertyBoolean(ConfigConstants.SECURITY_SSL_ENABLE)?"wss":"ws";
-		String http = getConfigPropertyBoolean(ConfigConstants.SECURITY_SSL_ENABLE)?"https":"http";
+		boolean ssl = getConfigPropertyBoolean(ConfigConstants.SECURITY_SSL_ENABLE);
+		String ws = ssl ?"wss":"ws";
+		String http = ssl?"https":"http";
+		int restPort = ssl?getConfigPropertyInt(ConfigConstants.REST_PORT_SSL):getConfigPropertyInt(ConfigConstants.REST_PORT);
+		int wsPort = ssl?getConfigPropertyInt(ConfigConstants.WEBSOCKET_PORT_SSL):getConfigPropertyInt(ConfigConstants.WEBSOCKET_PORT);
 		
 		version.set(SignalKConstants.websocketUrl, ws+"://" + hostname + ":"
-				+ getConfigPropertyInt(ConfigConstants.WEBSOCKET_PORT) + SignalKConstants.SIGNALK_WS);
+				+ wsPort + SignalKConstants.SIGNALK_WS);
 		version.set(SignalKConstants.restUrl, http + "://" + hostname + ":"
-				+ getConfigPropertyInt(ConfigConstants.REST_PORT) + SignalKConstants.SIGNALK_API + "/");
+				+ restPort + SignalKConstants.SIGNALK_API + "/");
 		version.set(SignalKConstants.signalkTcpPort,
 				"tcp://" + hostname + ":" + getConfigPropertyInt(ConfigConstants.TCP_PORT));
 		version.set(SignalKConstants.signalkUdpPort,
@@ -176,10 +178,13 @@ public class Config {
 		model.put(ConfigConstants.UUID, Json.make(SignalKConstants.URN_UUID + UUID.randomUUID().toString()));
 		model.put(ConfigConstants.WEBSOCKET_PORT, Json.make(8080));
 		model.put(ConfigConstants.REST_PORT, Json.make(8080));
+		model.put(ConfigConstants.WEBSOCKET_PORT_SSL, Json.make(8443));
+		model.put(ConfigConstants.REST_PORT_SSL, Json.make(8443));
 		model.put(ConfigConstants.STORAGE_ROOT, Json.make("./storage/"));
 		model.put(ConfigConstants.STATIC_DIR, Json.make("./signalk-static/"));
 		model.put(ConfigConstants.MAP_DIR, Json.make("./mapcache/"));
 		model.put(ConfigConstants.DEMO, Json.make(false));
+		model.put(ConfigConstants.DEMO_DELAY, Json.make(250));
 		model.put(ConfigConstants.STREAM_URL, Json.make("motu.log"));
 		model.put(ConfigConstants.USBDRIVE, Json.make("/media/usb0"));
 		model.put(ConfigConstants.SERIAL_PORTS, Json.read(

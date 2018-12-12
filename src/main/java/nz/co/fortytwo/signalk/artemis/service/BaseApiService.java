@@ -247,25 +247,25 @@ public class BaseApiService extends MessageSupport{
 
 	private void closeSession() {
 
-		if (getConsumer() != null) {
+		if (consumer != null) {
 			if (logger.isDebugEnabled())
 				logger.debug("Close consumer: {}", tempQ);
 			try {
 
-					getConsumer().close();
-					try {
-						if (txSession!=null 
-								&& txSession.get() != null 
-								&& !txSession.get().isClosed()
-								&& txSession.get().queueQuery(new SimpleString(getTempQ())).getConsumerCount() == 0) {
-							if (logger.isDebugEnabled())
-								logger.debug("Delete queue: {}", tempQ);
-							txSession.get().deleteQueue(getTempQ());
-						}
-					} catch (ActiveMQNonExistentQueueException | ActiveMQIllegalStateException e) {
+				consumer.close();
+				try {
+					if (txSession!=null 
+							&& txSession.get() != null 
+							&& !txSession.get().isClosed()
+							&& txSession.get().queueQuery(new SimpleString(getTempQ())).getConsumerCount() == 0) {
 						if (logger.isDebugEnabled())
-							logger.debug(e.getMessage());
+							logger.debug("Delete queue: {}", tempQ);
+						txSession.get().deleteQueue(getTempQ());
 					}
+				} catch (ActiveMQNonExistentQueueException | ActiveMQIllegalStateException e) {
+					if (logger.isDebugEnabled())
+						logger.debug(e.getMessage());
+				}
 				
 			} catch (ActiveMQException e) {
 				logger.warn(e, e);

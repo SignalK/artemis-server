@@ -21,6 +21,7 @@ import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.GENERATE_NMEA0
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.OUTPUT_NMEA;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.OUTPUT_TCP;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.REST_PORT;
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.REST_PORT_SSL;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.SECURITY_CERTIFICATE;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.SECURITY_PRIVATE_KEY;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.SECURITY_SSL_ENABLE;
@@ -33,6 +34,7 @@ import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.UDP_PORT;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.UUID;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.VERSION;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.WEBSOCKET_PORT;
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.WEBSOCKET_PORT_SSL;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SIGNALK_DISCOVERY;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants._SIGNALK_HTTP_TCP_LOCAL;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants._SIGNALK_WS_TCP_LOCAL;
@@ -152,10 +154,16 @@ public final class ArtemisServer {
 
 		addShutdownHook(this);
 		
+		int port = Config.getConfigPropertyInt(REST_PORT);
+		if (Config.getConfigPropertyBoolean(SECURITY_SSL_ENABLE)) {
+			port = Config.getConfigPropertyInt(REST_PORT_SSL);
+		}
 		
 		org.atmosphere.nettosphere.Config.Builder config = new org.atmosphere.nettosphere.Config.Builder();
 		config.supportChunking(true)
-				.maxChunkContentLength(1024 * 1024).socketKeepAlive(true).enablePong(false)
+				.maxChunkContentLength(1024 * 1024)
+				.socketKeepAlive(true)
+				.enablePong(false)
 				.initParam(ApplicationConfig.PROPERTY_SESSION_SUPPORT, "true")
 				.initParam(ApplicationConfig.ANALYTICS, "false")
 				.initParam("jersey.config.server.provider.packages",
@@ -170,7 +178,7 @@ public final class ArtemisServer {
 				.initParam("org.atmosphere.cpr.broadcasterLifeCyclePolicy", "EMPTY_DESTROY")
 				.initParam("org.atmosphere.websocket.WebSocketProcessor",
 						"nz.co.fortytwo.signalk.artemis.server.SignalkWebSocketProcessor")
-				.port(8080)
+				.port(port)
 				.host("0.0.0.0");
 		
 		if (Config.getConfigPropertyBoolean(SECURITY_SSL_ENABLE)) {
@@ -464,13 +472,24 @@ public final class ArtemisServer {
 
 				jmdns.registerServiceType(_SIGNALK_WS_TCP_LOCAL);
 				jmdns.registerServiceType(_SIGNALK_HTTP_TCP_LOCAL);
-				ServiceInfo wsInfo = ServiceInfo.create(_SIGNALK_WS_TCP_LOCAL, "signalk-ws",
-						Config.getConfigPropertyInt(WEBSOCKET_PORT), 0, 0, getMdnsTxt());
+				
 				try {
-					jmdns.registerService(wsInfo);
-					ServiceInfo httpInfo = ServiceInfo.create(_SIGNALK_HTTP_TCP_LOCAL, "signalk-http",
-							Config.getConfigPropertyInt(REST_PORT), 0, 0, getMdnsTxt());
-					jmdns.registerService(httpInfo);
+					if (Config.getConfigPropertyBoolean(SECURITY_SSL_ENABLE)) {
+						ServiceInfo wsSslInfo = ServiceInfo.create(_SIGNALK_WS_TCP_LOCAL, "signalk-wss",
+								Config.getConfigPropertyInt(WEBSOCKET_PORT_SSL), 0, 0, getMdnsTxt());
+						jmdns.registerService(wsSslInfo);
+						ServiceInfo httpSslInfo = ServiceInfo.create(_SIGNALK_HTTP_TCP_LOCAL, "signalk-https",
+								Config.getConfigPropertyInt(REST_PORT_SSL), 0, 0, getMdnsTxt());
+						jmdns.registerService(httpSslInfo);
+					}else {
+						ServiceInfo wsInfo = ServiceInfo.create(_SIGNALK_WS_TCP_LOCAL, "signalk-ws",
+								Config.getConfigPropertyInt(WEBSOCKET_PORT), 0, 0, getMdnsTxt());
+						jmdns.registerService(wsInfo);
+						ServiceInfo httpInfo = ServiceInfo.create(_SIGNALK_HTTP_TCP_LOCAL, "signalk-http",
+								Config.getConfigPropertyInt(REST_PORT), 0, 0, getMdnsTxt());
+						jmdns.registerService(httpInfo);
+					}
+					
 				} catch (IOException e) {
 					e.printStackTrace();
 				}

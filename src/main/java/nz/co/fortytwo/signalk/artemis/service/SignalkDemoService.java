@@ -35,7 +35,7 @@ public class SignalkDemoService extends BaseApiService implements Runnable {
 		}
 	}
 
-	private void processDemo(File streamFile) throws IOException, ActiveMQException, InterruptedException {
+	private void processDemo(File streamFile, int delay) throws IOException, ActiveMQException, InterruptedException {
 		LineIterator itr = FileUtils.lineIterator(streamFile);
 		while (itr.hasNext()) {
 			ClientMessage txMsg = getTxSession().createMessage(true);
@@ -44,7 +44,9 @@ public class SignalkDemoService extends BaseApiService implements Runnable {
 			txMsg.putStringProperty(Config.MSG_SRC_TYPE, Config.SERIAL);
 			getProducer().send(new SimpleString(Config.INCOMING_RAW), txMsg);
 			c++;
-			//Thread.currentThread().sleep(0,1000);
+			if(delay>0) {
+			  Thread.currentThread().sleep(delay);
+			}
 			if(c%10000==0) {
 				logger.info("Processed {} messages/sec",c/((System.currentTimeMillis()-start)/1000));
 				start=System.currentTimeMillis();
@@ -64,10 +66,13 @@ public class SignalkDemoService extends BaseApiService implements Runnable {
 			return;
 		}
 		
+		
+		int delay=Config.getConfigPropertyInt(ConfigConstants.DEMO_DELAY);
+		
 		while (Config.getConfigPropertyBoolean(ConfigConstants.DEMO)) {
 			
 			try {
-				processDemo(streamFile);
+				processDemo(streamFile, delay);
 			} catch (Exception e) {
 				logger.error(e,e);
 			} 
