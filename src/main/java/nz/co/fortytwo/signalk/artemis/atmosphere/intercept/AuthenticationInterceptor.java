@@ -1,5 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.atmosphere.intercept;
 
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.SECURITY_SSL_ENABLE;
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.AUTH_COOKIE_NAME;
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.updateCookie;
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.validateToken;
@@ -7,7 +8,9 @@ import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.validateToken;
 import java.util.Map.Entry;
 
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpUtils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,15 +20,18 @@ import org.atmosphere.cpr.AtmosphereInterceptor;
 import org.atmosphere.cpr.AtmosphereInterceptorAdapter;
 import org.atmosphere.cpr.AtmosphereResource;
 
+import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 
 @AtmosphereInterceptorService
 public class AuthenticationInterceptor extends AtmosphereInterceptorAdapter implements AtmosphereInterceptor {
 
 	private static Logger logger = LogManager.getLogger(AuthenticationInterceptor.class);
+	protected String scheme;
 
 	public AuthenticationInterceptor() {
 		super();
+		scheme = Config.getConfigPropertyBoolean(SECURITY_SSL_ENABLE)?"https":"http";
 	}
 
 	@Override
@@ -69,14 +75,13 @@ public class AuthenticationInterceptor extends AtmosphereInterceptorAdapter impl
 			}
 		}
 
-		StringBuffer uri = r.getRequest().getRequestURL(); // "/login.html";
-		String url = uri.substring(0, uri.indexOf(r.getRequest().getPathInfo()));
-		url = url + "/login.html?target="+r.getRequest().getPathInfo();
+		
+	
 		if (logger.isDebugEnabled())
-			logger.debug("Unauthenticated, redirect to {}", url);
+			logger.debug("Unauthenticated, redirect to {}", "/login.html?target="+r.getRequest().getPathInfo());
 
 		r.getResponse().setStatus(HttpStatus.SC_MOVED_TEMPORARILY);
-		r.getResponse().setHeader("Location", url);
+		r.getResponse().setHeader("Location", "/login.html?target="+r.getRequest().getPathInfo());
 
 		return Action.RESUME;
 
