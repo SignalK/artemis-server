@@ -2,7 +2,11 @@ package nz.co.fortytwo.signalk.artemis.server;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_INFLUX_KEY;
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_USER_TOKEN;
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.REST_PORT;
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.REST_PORT_SSL;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.SECURITY_SSL_ENABLE;
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.WEBSOCKET_PORT;
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.WEBSOCKET_PORT_SSL;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT_DELTA;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.POLICY_FIXED;
 import static org.junit.Assert.assertNotNull;
@@ -59,12 +63,20 @@ public class BaseServerTest extends EasyMockSupport {
 	protected String uuid;
 	protected String httpScheme;
 	protected String wsScheme;
+	protected int restPort;
+	protected int wsPort;
 	
 	public BaseServerTest() {
 		uuid = Config.getConfigProperty(ConfigConstants.UUID);
 		httpScheme = Config.getConfigPropertyBoolean(SECURITY_SSL_ENABLE)?"https":"http";
 		wsScheme = Config.getConfigPropertyBoolean(SECURITY_SSL_ENABLE)?"wss":"ws";
-		
+		if(Config.getConfigPropertyBoolean(SECURITY_SSL_ENABLE)) {
+			restPort=Config.getConfigPropertyInt(REST_PORT_SSL);
+			wsPort=Config.getConfigPropertyInt(WEBSOCKET_PORT_SSL);
+		}else {
+			restPort=Config.getConfigPropertyInt(REST_PORT);
+			wsPort=Config.getConfigPropertyInt(WEBSOCKET_PORT);
+		}
 	}
 
 	@BeforeClass

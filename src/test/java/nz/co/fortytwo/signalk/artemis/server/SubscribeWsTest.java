@@ -71,8 +71,7 @@ public class SubscribeWsTest extends BaseServerTest {
 
 	private static Logger logger = LogManager.getLogger(SubscribeWsTest.class);
 	String jsonDiff = null;
-	private int restPort = 8080;
-	private String wsPort = "8080";
+	
 
 	public SubscribeWsTest() {
 

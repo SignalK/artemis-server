@@ -19,6 +19,7 @@
 
 		<persistence-enabled>false</persistence-enabled>
 		<graceful-shutdown-timeout>5000</graceful-shutdown-timeout>
+		<journal-sync-transactional>false</journal-sync-transactional>
 		<journal-sync-non-transactional>false</journal-sync-non-transactional>
 		<connectors>
 			<connector name="in-vm">vm://0</connector>

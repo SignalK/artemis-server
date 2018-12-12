@@ -1,26 +1,21 @@
 
 TODO:
     apis:
-		/signalk/v1/access/requests
-		/signalk/v1/auth
+		/signalk/v1/access/requests Device access requests
+		/signalk/v1/auth - -Login API 
+		Request Response
 	send date to rpi from browser
 	Add login on main screen
 	more efficient subscriptions
 	srcRef back to source
 	
-	security
-		prevent message replay attacks
-		prevent NMEA/N2K over tcp attacks
-
-
 	Git
 	REST LIST
-
+	
+	
 	MQTT
 	STOMP
 
 "datetime":{"value":"2018-12-03T05:00:37.000Z"}, is not updated when no input devices
 
 hawtio and jolokia ssl
-
-atmosphere interceptor reverts to http

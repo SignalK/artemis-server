@@ -124,7 +124,8 @@ public class LoginService {
 	@ApiResponses( value = {
 			@ApiResponse(responseCode = "200", description = "OK", headers = @Header(name="Set-Cookie",description  = "The new cookie is returned.")),
 			@ApiResponse(responseCode = "500", description = "Internal server error"),
-		    @ApiResponse(responseCode = "403", description = "No permission")
+		    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+		    @ApiResponse(responseCode = "501", description = "Not Implemented")
 		})
 	@Consumes(MediaType.APPLICATION_JSON)
 	@POST
@@ -155,7 +156,8 @@ public class LoginService {
 	@ApiResponses( value = {
 			@ApiResponse(responseCode = "200", description = "OK", headers = @Header(name="Set-Cookie",description  = "The new cookie is returned.")),
 			@ApiResponse(responseCode = "500", description = "Internal server error"),
-		    @ApiResponse(responseCode = "403", description = "No permission")
+			@ApiResponse(responseCode = "401", description = "Unauthorized"),
+		    @ApiResponse(responseCode = "501", description = "Not Implemented")
 		})
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@POST
@@ -176,7 +178,7 @@ public class LoginService {
 	@ApiResponses( value = {
 			@ApiResponse(responseCode = "200", description = "OK", headers = @Header(name="Set-Cookie",description  = "The cookie is expired and returned.")),
 			@ApiResponse(responseCode = "500", description = "Internal server error"),
-		    @ApiResponse(responseCode = "403", description = "No permission"),
+		    @ApiResponse(responseCode = "501", description = "Not Implemented"),
 		    @ApiResponse(responseCode = "400", description = "No token")
 	})
 	@Path("logout")
