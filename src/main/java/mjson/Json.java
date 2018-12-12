@@ -2334,16 +2334,16 @@ public class Json implements java.io.Serializable, Iterable<Json>
 		
 		public void clear(boolean recursive) {
 			
-			for (Iterator<Json> i = L.iterator(); i.hasNext(); )
-			{
-				Json j = i.next();
-				if(recursive) {
-					j.clear(recursive);
-				}
-			}
-			for(int x=0;x<L.size();x++) {
-				this.delAt(x);
-			}
+//			for (Iterator<Json> i = L.iterator(); i.hasNext(); )
+//			{
+//				Json j = i.next();
+//				if(recursive) {
+//					j.clear(recursive);
+//				}
+//			}
+//			for(int x=0;x<L.size();x++) {
+//				this.delAt(x);
+//			}
 		}
 		
 		public String toString()
@@ -2512,12 +2512,12 @@ public class Json implements java.io.Serializable, Iterable<Json>
 			return this;
 		}
 		public void clear(boolean recursive) {
-			for(String k:object.keySet()) {
-				if(recursive) {
-					object.get(k).clear(recursive);
-				}
-				this.delAt(k);
-			}
+//			for(String k:object.keySet()) {
+//				if(recursive) {
+//					object.get(k).clear(recursive);
+//				}
+//				this.delAt(k);
+//			}
 		}
 		public Object getValue() { return asMap(); }
 		public boolean isObject() { return true; }

@@ -33,46 +33,43 @@
 				<acceptor name="mqtts">tcp://0.0.0.0:8883?tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=MQTT;sslEnabled=true;keyStorePath=/opt/keystore.jks;keyStorePassword=password</acceptor> -->
 		</acceptors>
 
-		
+
 		<address-settings>
 			<address-setting match="incoming.#">
 				<auto-create-queues>true</auto-create-queues>
 				<default-address-routing-type>ANYCAST</default-address-routing-type>
+				<max-size-bytes>104857600</max-size-bytes>
+      			<page-size-bytes>500000</page-size-bytes>
+				<address-full-policy>PAGE</address-full-policy>
 				<auto-delete-queues>true</auto-delete-queues>
 				<expiry-delay>1000</expiry-delay>
 			</address-setting>
 			<address-setting match="outgoing.#">
 				<auto-create-queues>true</auto-create-queues>
 				<default-address-routing-type>ANYCAST</default-address-routing-type>
+				<max-size-bytes>104857600</max-size-bytes>
+      			<page-size-bytes>1000000</page-size-bytes>
+				<address-full-policy>PAGE</address-full-policy>
 				<auto-delete-queues>true</auto-delete-queues>
 				<expiry-delay>5000</expiry-delay>
 			</address-setting>
 			<address-setting match="internal.#">
 				<auto-create-queues>true</auto-create-queues>
 				<default-address-routing-type>MULTICAST</default-address-routing-type>
+				<max-size-bytes>104857600</max-size-bytes>
+      			<page-size-bytes>1000000</page-size-bytes>
+				<address-full-policy>PAGE</address-full-policy>
 				<auto-delete-queues>true</auto-delete-queues>
-				<expiry-delay>5000</expiry-delay>
+				<expiry-delay>3000</expiry-delay>
 			</address-setting>
-<!-- 			<address-setting match="internal.kv"> -->
-<!-- 				<auto-create-queues>true</auto-create-queues> -->
-<!-- 				<default-address-routing-type>MULTICAST</default-address-routing-type> -->
-<!-- 				<auto-delete-queues>true</auto-delete-queues> -->
-<!-- 				<expiry-delay>5000</expiry-delay> -->
-<!-- 			</address-setting> -->
-<!-- 			<address-setting match="internal.discard"> -->
-<!-- 				<auto-create-queues>true</auto-create-queues> -->
-<!-- 				<default-address-routing-type>MULTICAST</default-address-routing-type> -->
-<!-- 				<auto-delete-queues>true</auto-delete-queues> -->
-<!-- 				<expiry-delay>500</expiry-delay> -->
-<!-- 			</address-setting> -->
 		</address-settings>
 		<addresses>
-		  <address name="internal.kv">
-		  	<multicast/>
-		  </address>
-		  <address name="internal.discard">
-		  	<multicast/>
-		  </address>
+			<address name="internal.kv">
+				<multicast/>
+			</address>
+			<address name="internal.discard">
+				<multicast/>
+			</address>
 		</addresses>
 		<queues>
 			<queue name="incoming.raw">
@@ -84,14 +81,14 @@
 				<address>outgoing.reply</address>
 				<durable>false</durable>
 			</queue>
-			<queue name="internal.kv">
-				<address>internal.kv</address>
-				<durable>false</durable>
-			</queue>
-			<queue name="internal.discard">
-				<address>internal.discard</address>
-				<durable>false</durable>
-			</queue>
+<!-- 			<queue name="internal.kv"> -->
+<!-- 				<address>internal.kv</address> -->
+<!-- 				<durable>false</durable> -->
+<!-- 			</queue> -->
+<!-- 			<queue name="internal.discard"> -->
+<!-- 				<address>internal.discard</address> -->
+<!-- 				<durable>false</durable> -->
+<!-- 			</queue> -->
 		</queues>
 		<remoting-incoming-interceptors>
 			<!-- incoming -->
@@ -107,8 +104,8 @@
 			</class-name>
 			<class-name>nz.co.fortytwo.signalk.artemis.intercept.SecurityWriteInterceptor
 			</class-name>
-<!-- 			<class-name>nz.co.fortytwo.signalk.artemis.intercept.SecurityReadInterceptor -->
-<!-- 			</class-name> -->
+			<!-- <class-name>nz.co.fortytwo.signalk.artemis.intercept.SecurityReadInterceptor -->
+			<!-- </class-name> -->
 		</remoting-incoming-interceptors>
 		<!-- outgoing -->
 		<!-- <remoting-outgoing-interceptors> -->

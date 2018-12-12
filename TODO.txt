@@ -12,9 +12,6 @@ TODO:
 		prevent message replay attacks
 		prevent NMEA/N2K over tcp attacks
 
-	convert self back to urn on reply
-	
-	Alarms
 
 	Git
 	REST LIST
@@ -23,4 +20,7 @@ TODO:
 	STOMP
 
 "datetime":{"value":"2018-12-03T05:00:37.000Z"}, is not updated when no input devices
+
 hawtio and jolokia ssl
+
+atmosphere interceptor reverts to http

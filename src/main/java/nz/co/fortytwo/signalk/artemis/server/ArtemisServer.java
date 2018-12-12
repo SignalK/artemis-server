@@ -16,7 +16,6 @@ package nz.co.fortytwo.signalk.artemis.server;
  * limitations under the License.
  */
 
-import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.CLOCK_SOURCE;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.ENABLE_SERIAL;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.GENERATE_NMEA0183;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.OUTPUT_NMEA;
@@ -47,27 +46,20 @@ import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import javax.jmdns.JmmDNS;
 import javax.jmdns.ServiceInfo;
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLSessionContext;
-import javax.security.auth.x500.X500Principal;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
-import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.client.ClientConsumer;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
@@ -76,28 +68,21 @@ import org.apache.activemq.artemis.core.server.ActiveMQServer;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.atmosphere.cpr.ApplicationConfig;
 import org.atmosphere.nettosphere.Nettosphere;
-import org.atmosphere.nettosphere.Nettosphere.Builder;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
-import org.bouncycastle.util.encoders.Base64;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemWriter;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeUtils;
 
-import io.netty.buffer.ByteBufAllocator;
-
-import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Log4J2LoggerFactory;
@@ -110,6 +95,7 @@ import nz.co.fortytwo.signalk.artemis.scheduled.DeclinationUpdater;
 import nz.co.fortytwo.signalk.artemis.serial.SerialPortManager;
 import nz.co.fortytwo.signalk.artemis.service.ChartService;
 import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
+import nz.co.fortytwo.signalk.artemis.service.SignalkDemoService;
 import nz.co.fortytwo.signalk.artemis.subscription.SubscriptionManagerFactory;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
@@ -228,6 +214,10 @@ public final class ArtemisServer {
 		startMdns();
 		startScheduledServices();
 		ChartService.reloadCharts();
+		SignalkDemoService demo = new SignalkDemoService();
+		Thread t = new Thread(demo);
+		t.run();
+		
 	}
 
 	private void startScheduledServices() {
