@@ -70,7 +70,7 @@
 			"hash": "sha1:64000:18:EtqmglreoENR12gmxeVZfJOlQ1Na4AVF:QfFBY+SStsMXIoPggKVljJPI"
 		}
 	],
-	"security": {
+	"net": {
             "config": {
                "ip": ["10.1.1.40/8","127.0.0.1/8"]
             },
