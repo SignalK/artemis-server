@@ -2,7 +2,6 @@ package nz.co.fortytwo.signalk.artemis.util;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.AIS;
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
-import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_USER_ROLES;
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_USER_TOKEN;
 import static nz.co.fortytwo.signalk.artemis.util.Config.EXTERNAL_IP;
 import static nz.co.fortytwo.signalk.artemis.util.Config.INTERNAL_IP;
@@ -14,16 +13,11 @@ import static nz.co.fortytwo.signalk.artemis.util.Config.N2K;
 import static nz.co.fortytwo.signalk.artemis.util.Config.SERIAL;
 import static nz.co.fortytwo.signalk.artemis.util.Config._0183;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SK_MSG_TOKEN;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SK_TOKEN;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.TOKEN;
 
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentHashMap;
 
