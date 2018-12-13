@@ -1,22 +1,16 @@
 package nz.co.fortytwo.signalk.artemis.intercept;
 
-import static nz.co.fortytwo.signalk.artemis.util.Config.INCOMING_RAW;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.GET;
+import static nz.co.fortytwo.signalk.artemis.util.Config.INTERNAL_KV;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_datetime;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.io.IOException;
-import java.util.NavigableMap;
-import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
-import org.apache.activemq.artemis.api.core.ActiveMQExceptionType;
 import org.apache.activemq.artemis.api.core.ICoreMessage;
 import org.apache.activemq.artemis.api.core.Interceptor;
-import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.core.protocol.core.Packet;
 import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendMessage;
 import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
@@ -25,7 +19,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
-import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
@@ -81,7 +74,7 @@ public class SysTimeInterceptor extends BaseInterceptor implements Interceptor {
 			SessionSendMessage realPacket = (SessionSendMessage) packet;
 
 			ICoreMessage message = realPacket.getMessage();
-			if(!StringUtils.equals(message.getAddress(), INCOMING_RAW))return true;
+			if(!StringUtils.equals(message.getAddress(), INTERNAL_KV))return true;
 			String timeKey = vessels+dot+Config.getConfigProperty(ConfigConstants.UUID)+dot + nav_datetime;
 			
 			if (!timeKey.equals(message.getStringProperty(Config.AMQ_INFLUX_KEY)))
