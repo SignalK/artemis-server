@@ -202,7 +202,7 @@ public class Config {
 		model.put(ConfigConstants.UDP_NMEA_PORT, Json.make(55556));
 		model.put(ConfigConstants.STOMP_PORT, Json.make(61613));
 		model.put(ConfigConstants.MQTT_PORT, Json.make(1883));
-		model.put(ConfigConstants.CLOCK_SOURCE, Json.make("gps"));
+		model.put(ConfigConstants.CLOCK_SOURCE, Json.make("system"));//"gps"
 		
 		model.put(ConfigConstants.ARTEMIS_PERSIST, Json.make(false));
 
