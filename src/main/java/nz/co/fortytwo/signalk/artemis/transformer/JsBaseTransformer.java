@@ -44,6 +44,10 @@ public class JsBaseTransformer extends BaseInterceptor {
 		}
 	}
 	
+	public JsBaseTransformer() {
+		logger.debug("Starting Nashorn JS engine..");
+	}
+	
 	protected static InputStream getIOStream(String path) {
 
 		if(logger.isDebugEnabled())logger.debug("Return resource {}", path);
