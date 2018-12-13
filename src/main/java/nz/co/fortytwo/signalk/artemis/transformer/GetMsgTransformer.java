@@ -142,6 +142,10 @@ public class GetMsgTransformer extends BaseInterceptor implements Transformer {
 					switch (root) {
 					case CONFIG:
 						influx.loadConfig(map, queryMap);
+						if(map.size()==0 && queryMap.size()==0) {
+							//send defaults
+							Config.setDefaults(map);
+						}
 						break;
 					case resources:
 						influx.loadResources(map, queryMap);

@@ -276,8 +276,9 @@ public class InfluxDbService implements TDBService {
 		Query query = new Query(queryStr, dbName);
 		QueryResult result = influxDB.query(query);
 		
-		if (result == null || result.getResults() == null)
+		if (result == null || result.getResults() == null) {
 			return map;
+		}
 		result.getResults().forEach((r) -> {
 			if (r.getSeries() == null ||r.getSeries()==null)
 				return;

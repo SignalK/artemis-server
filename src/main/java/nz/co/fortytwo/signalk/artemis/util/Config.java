@@ -188,9 +188,9 @@ public class Config {
 		model.put(ConfigConstants.STREAM_URL, Json.make("motu.log"));
 		model.put(ConfigConstants.USBDRIVE, Json.make("/media/usb0"));
 		model.put(ConfigConstants.SERIAL_PORTS, Json.array(
-				Json.make("/dev/ttyUSB0"),Json.make("/dev/ttyUSB1"),Json.make("/dev/ttyUSB2"),Json.make("/dev/ttyACM0"),Json.make("/dev/ttyACM1"),Json.make("/dev/ttyACM2")));
+				"/dev/ttyUSB0","/dev/ttyUSB1","/dev/ttyUSB2","/dev/ttyACM0","/dev/ttyACM1","/dev/ttyACM2"));
 		if (SystemUtils.IS_OS_WINDOWS) {
-			model.put(ConfigConstants.SERIAL_PORTS, Json.array(Json.make("COM1"),Json.make("COM2"),Json.make("COM3"),Json.make("COM4")));
+			model.put(ConfigConstants.SERIAL_PORTS, Json.array("COM1","COM2","COM3","COM4"));
 		}
 		//jwt key
 		//model.put(ConfigConstants.JWT_SECRET_KEY, Json.make(new String(Base64.encode(MacProvider.generateKey().getEncoded()))));
