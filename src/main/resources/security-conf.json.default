@@ -21,7 +21,7 @@
 		},
 		{
 			"password": "",
-			"role": [
+			"roles": [
 				"serial"
 			],
 			"name": "serial",
@@ -31,7 +31,7 @@
 		},
 		{
 			"password": "",
-			"role": [
+			"roles": [
 				"n2k"
 			],
 			"name": "n2k",
@@ -41,7 +41,7 @@
 		},
 		{
 			"password": "",
-			"role": [
+			"roles": [
 				"ais"
 			],
 			"name": "ais",
@@ -51,7 +51,7 @@
 		},
 		{
 			"password": "",
-			"role": [
+			"roles": [
 				"tcp_internal"
 			],
 			"name": "tcp_internal",
@@ -61,7 +61,7 @@
 		},
 		{
 			"password": "",
-			"role": [
+			"roles": [
 				"tcp_external"
 			],
 			"name": "tcp_external",

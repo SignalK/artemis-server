@@ -69,8 +69,8 @@ public final class SecurityUtils {
 		}
 	}
 	
-	public static Json getUser(String name) throws Exception {
-		List<Json> list = getSecurityConfAsJson().at("users").asJsonList();
+	private static Json getUser(Json conf, String name) throws Exception {
+		List<Json> list = conf.at("users").asJsonList();
 		for(Json user:list) {
 			if(StringUtils.equals(user.at("name").asString(),name)) {
 				return user;
@@ -79,8 +79,8 @@ public final class SecurityUtils {
 		return null;
 	}
 	
-	public static void addUser(String name, String password, String email, Json roles) throws Exception {
-		Json conf = SecurityUtils.getSecurityConfAsJson();
+	private static Json addUser(Json conf, String name, String password, String email, Json roles) throws Exception {
+		
 		List<Json> list = conf.at("users").asJsonList();
 		list.add(Json.object()
 				.set("name", name)
@@ -88,7 +88,7 @@ public final class SecurityUtils {
 				.set("password",password)
 				.set("email", email)
 				);
-		SecurityUtils.save(conf.toString());
+		return conf;
 	}
 	
 	public static void setForbidden(AtmosphereResource r) {
@@ -413,14 +413,33 @@ public final class SecurityUtils {
 	}
 
 	public static void checkSystemUsers() throws Exception {
-		for(String name: systemUsers) {
-			if (getUser(name) == null) {
-				addUser(name, java.util.UUID.randomUUID().toString(), "", Json.array().add(name));
-			}
-			String token = issueToken(name,SecurityUtils.getUser(name).at("roles") );
-			tokenStore.put(name, token);
+		Json conf = getSecurityConfAsJson();
+		Json roles = conf.at(ROLES);
+
+		if(roles.at("serial")==null) {
+			conf.at(ROLES).set("serial",Json.read("{ \"allowed\": [ { \"read\": true, \"name\": \"all\", \"write\": true } ], \"denied\": [] }"));
+		}
+		if(roles.at("n2k")==null) {
+			conf.at(ROLES).set("n2k",Json.read("{ \"allowed\": [ { \"read\": true, \"name\": \"all\", \"write\": true } ], \"denied\": [] }"));
+		}
+		if(roles.at("ais")==null) {
+			conf.at(ROLES).set("ais",Json.read("{ \"allowed\": [ { \"read\": true, \"name\": \"vessels.self\", \"write\": false } ], \"denied\": [] }"));
+		}
+		if(roles.at("tcp_internal")==null) {
+			conf.at(ROLES).set("tcp_internal",Json.read("{ \"allowed\": [ { \"read\": true, \"name\": \"all\", \"write\": true } ], \"denied\": [] }"));
+		}
+		if(roles.at("tcp_external")==null) {
+			conf.at(ROLES).set("tcp_external",Json.read("{ \"allowed\": [], \"denied\": [ { \"read\": true, \"name\": \"all\", \"write\": true } ] }"));
 		}
 		
+		for(String name: systemUsers) {
+			if (getUser(conf,name) == null) {
+				addUser(conf,name, java.util.UUID.randomUUID().toString(), "", Json.array().add(name));
+			}
+			String token = issueToken(name,getUser(conf, name).at(ROLES) );
+			tokenStore.put(name, token);
+		}
+		SecurityUtils.save(conf.toString());
 	}
 
 }
