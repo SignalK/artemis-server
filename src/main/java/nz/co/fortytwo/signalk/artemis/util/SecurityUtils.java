@@ -212,7 +212,7 @@ public final class SecurityUtils {
 	
 
 	public static ArrayList<String> getDeniedReadPaths(String rolesStr) throws Exception {
-		if(StringUtils.isBlank(rolesStr)) new ArrayList<>();
+		if(StringUtils.isBlank(rolesStr)) return  new ArrayList<>();
 		return getDeniedReadPaths(Json.read(rolesStr));
 	}
 	public static ArrayList<String> getDeniedReadPaths(Json roles) throws Exception {
@@ -230,7 +230,7 @@ public final class SecurityUtils {
 	}
 	
 	public static ArrayList<String> getDeniedWritePaths(String rolesStr) throws Exception {
-		if(StringUtils.isBlank(rolesStr)) new ArrayList<>();
+		if(StringUtils.isBlank(rolesStr)) return new ArrayList<>();
 		return getDeniedWritePaths(Json.read(rolesStr));
 	}
 	public static ArrayList<String> getDeniedWritePaths(Json roles) throws Exception {
@@ -247,7 +247,7 @@ public final class SecurityUtils {
 		
 	}
 	public static ArrayList<String> getAllowedReadPaths(String rolesStr) throws Exception {
-		if(StringUtils.isBlank(rolesStr)) new ArrayList<>();
+		if(StringUtils.isBlank(rolesStr)) return new ArrayList<>();
 		return getAllowedReadPaths(Json.read(rolesStr));
 	}
 	public static ArrayList<String> getAllowedReadPaths(Json roles) throws Exception {
@@ -265,7 +265,7 @@ public final class SecurityUtils {
 	}
 	
 	public static ArrayList<String> getAllowedWritePaths(String rolesStr) throws Exception {
-		if(StringUtils.isBlank(rolesStr)) new ArrayList<>();
+		if(StringUtils.isBlank(rolesStr)) return new ArrayList<>();
 		return getAllowedWritePaths(Json.read(rolesStr));
 	}
 	public static ArrayList<String> getAllowedWritePaths(Json roles) throws Exception {

@@ -57,9 +57,12 @@ public class SignalkDemoService extends BaseApiService implements Runnable {
 
 	@Override
 	public void run() {
+		
 		if(!Config.getConfigPropertyBoolean(ConfigConstants.DEMO))return;
 		start=System.currentTimeMillis();
 		String streamUrl = Config.getConfigProperty(ConfigConstants.STREAM_URL);
+		logger.info("Starting demo {}..",streamUrl);
+		
 		File streamFile = new File(streamUrl);
 		if(!streamFile.exists()) {
 			logger.error("Demo file does not exist: {}",streamUrl);
