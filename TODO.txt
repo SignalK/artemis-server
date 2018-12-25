@@ -11,7 +11,7 @@ TODO:
 	
 	Git
 	REST LIST
-	
+	Enable push to remote servers
 	
 	MQTT
 	STOMP

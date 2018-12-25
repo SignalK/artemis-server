@@ -119,7 +119,7 @@ It assumes influx db is running on localhost:8086
 REST API docs
 -------------
 
-Swagger REST API docs and live testing is available at https://localhost:8080/docs/
+Swagger REST API docs and live testing is available at https://localhost:8443/docs/
 
 
 Installation
@@ -134,10 +134,10 @@ Using JMX/Jolokia Diagnostics (via Hawtio)
 
 Download the stand-alone hawtio.jar file from https://hawt.io and save to a local dir ([HAWTIO_DIR]).
 Start the hawtio-app with port 8888. eg `java -jar [HAWTIO_DIR]/hawtio-app-1.4.65.jar -p 8888`
-Open web browser to `https://localhost:8888/hawtio/`
+Open web browser to `http://localhost:8888/hawtio/`
 
-Look in the aretmis server start.log for the line `Jolokia: Agent started with URL https://192.168.43.246:8780/jolokia/`
-Enter connection data to the artemis server: `https://192.168.43.246:8780/jolokia/` and connect.
+Look in the aretmis server start.log for the line `Jolokia: Agent started with URL http://192.168.43.246:8780/jolokia/`
+Enter connection data to the artemis server: `http://192.168.43.246:8780/jolokia/` and connect.
 
 
 Development

@@ -17,9 +17,12 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SK_MSG_TOKEN;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import javax.crypto.SecretKey;
 import javax.servlet.http.Cookie;
@@ -36,6 +39,7 @@ import org.atmosphere.cpr.AtmosphereResource;
 import org.joda.time.DateTime;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.impl.crypto.MacProvider;
@@ -62,10 +66,23 @@ public final class SecurityUtils {
 
 	private static ConcurrentHashMap<String, String> tokenStore=new ConcurrentHashMap<>();
 	private static String[] systemUsers = {"ais", "serial", "n2k","tcp_internal","tcp_external"};
+
+	private static List<String> invalidTokens = Collections.synchronizedList(new ArrayList<String>());
 	
-	public static void validateTokenStore() throws Exception {
+	public static void validateTokenStore() throws Exception  {
 		for(String name:tokenStore.keySet()) {
 			tokenStore.put(name, validateToken(tokenStore.get(name)));
+		}
+		//also clean invalidTokens
+		Iterator<String> it = invalidTokens.iterator();
+		while (it.hasNext()) {
+			String token = (String) it.next();
+			try {
+				//will fail if invalid/expired
+				Jwts.parser().setSigningKey(key).parseClaimsJws(token).getBody();
+			}catch (Exception e) {
+				it.remove();
+			}
 		}
 	}
 	
@@ -111,8 +128,12 @@ public final class SecurityUtils {
 	}
 
 	public static String validateToken(String token) throws Exception {
+		
 		// Check if the token was issued by the server and if it's not expired
 		// Throw an Exception if the token is invalid
+		if(invalidTokens.contains(token)){
+			throw new SecurityException("Token is logged out");
+		}
 		Claims body = Jwts.parser().setSigningKey(key).parseClaimsJws(token).getBody();
 		
 		//renew if near expiry
@@ -440,6 +461,10 @@ public final class SecurityUtils {
 			tokenStore.put(name, token);
 		}
 		SecurityUtils.save(conf.toString());
+	}
+
+	public static void invalidateToken(String token) {
+		invalidTokens.add(token);
 	}
 
 }
