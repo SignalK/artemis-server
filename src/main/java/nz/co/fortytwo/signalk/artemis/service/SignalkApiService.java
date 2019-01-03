@@ -1,6 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SK_TOKEN;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
@@ -20,8 +20,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.atmosphere.annotation.Suspend;
 import org.atmosphere.cpr.AtmosphereResource;
-import org.signalk.schema.FullApi;
-import org.signalk.schema.NavigationApi;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -64,7 +62,7 @@ public class SignalkApiService extends BaseApiService {
 	    @ApiResponse(responseCode = "200", description = "OK", 
 	    		content = @Content(
                         mediaType = MediaType.TEXT_PLAIN, 
-                        schema = @Schema(example="\"vessels.urn:mrn:signalk:uuid:a8fb07c0-1ffd-4663-899c-f16c2baf8270\"")                       		
+                        schema = @Schema(example = "\"vessels.urn:mrn:signalk:uuid:a8fb07c0-1ffd-4663-899c-f16c2baf8270\"")                       		
                         )
                 ),
 	    @ApiResponse(responseCode = "500", description = "Internal server error"),
@@ -92,7 +90,30 @@ public class SignalkApiService extends BaseApiService {
 	    @ApiResponse(responseCode = "200", description = "OK", 
 	    		content = @Content(
                         mediaType = "application/json",
-                        		schema = @Schema(implementation = FullApi.class)
+                        		schema = @Schema(example = "{ \"self\":\"urn:mrn:imo:mmsi:366982330\",\n" + 
+                        				"  \"vessels\": {\n" + 
+                        				"    \"urn:mrn:imo:mmsi:366982330\": {\n" + 
+                        				"      \"mmsi\": \"230099999\",\n" + 
+                        				"      \"navigation\": {\n" + 
+                        				"        \"position\": {\n" + 
+                        				"          \"value\": {\n" + 
+                        				"            \"longitude\": 173.1693,\n" + 
+                        				"            \"latitude\": -41.156426,\n" + 
+                        				"            \"altitude\": 0\n" + 
+                        				"          },\n" + 
+                        				"          \"timestamp\": \"2015-01-25T12:01:01.000Z\",\n" + 
+                        				"          \"$source\": \"a.suitable.path\"\n" + 
+                        				"        },\n" + 
+                        				"        \"courseOverGroundTrue\": {\n" + 
+                        				"          \"value\": 245.69,\n" + 
+                        				"          \"timestamp\": \"2015-01-25T12:01:01.000Z\",\n" + 
+                        				"          \"$source\": \"a.suitable.path\"\n" + 
+                        				"        }\n" + 
+                        				"      }\n" + 
+                        				"    }\n" + 
+                        				"  },\n" + 
+                        				"  \"version\": \"1.0.0\"\n" + 
+                        				"}")
                         )
                 ),
 	    @ApiResponse(responseCode = "500", description = "Internal server error"),
@@ -116,7 +137,22 @@ public class SignalkApiService extends BaseApiService {
 	    @ApiResponse(responseCode = "200", description = "OK", 
 	    		content = @Content(
                         mediaType = "application/json",
-                        schema = @Schema(implementation = NavigationApi.class)
+                        schema = @Schema(example = "{\n" + 
+                        		"        \"position\": {\n" + 
+                        		"          \"value\": {\n" + 
+                        		"            \"longitude\": 173.1693,\n" + 
+                        		"            \"latitude\": -41.156426,\n" + 
+                        		"            \"altitude\": 0\n" + 
+                        		"          },\n" + 
+                        		"          \"timestamp\": \"2015-01-25T12:01:01.000Z\",\n" + 
+                        		"          \"$source\": \"a.suitable.path\"\n" + 
+                        		"        },\n" + 
+                        		"        \"courseOverGroundTrue\": {\n" + 
+                        		"          \"value\": 245.69,\n" + 
+                        		"          \"timestamp\": \"2015-01-25T12:01:01.000Z\",\n" + 
+                        		"          \"$source\": \"a.suitable.path\"\n" + 
+                        		"        }\n" + 
+                        		"      }")
                         )
                 ),
 	    @ApiResponse(responseCode = "500", description = "Internal server error"),
@@ -127,19 +163,35 @@ public class SignalkApiService extends BaseApiService {
 	@GET
 	@Path( "{path:[^?]*}")
 	public String get(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie, 
-			@Parameter( description = "A signalk path", example="/vessel/self/navigation") @PathParam(value = "path") String path) throws Exception {
+			@Parameter( description = "A signalk path, eg /vessels/self/navigation", example="/vessels/self/navigation") @PathParam(value = "path") String path) throws Exception {
 		//String path = req.getPathInfo();
 		getPath(path,cookie, null);
 		return "";
 	}
 	
 		
-	@Operation(summary = "Post a signalk message", description = " Post a signalk message. Has the same result as using non-http transport. This is a 'fire-and-forget' method,"
+	@Operation(summary = "Post a signalk GET message", description = " Post a signalk GET message. Has the same result as using non-http transport. This is a 'fire-and-forget' method,"
 			+ " see PUT ")
 	@ApiResponses ({
 	    @ApiResponse(responseCode = "200", description = "OK", 
 	    		content = @Content(
-                        mediaType = "application/json"                        		
+                        mediaType = "application/json",
+                        schema = @Schema(example = "{\n" + 
+                        		"        \"position\": {\n" + 
+                        		"          \"value\": {\n" + 
+                        		"            \"longitude\": 173.1693,\n" + 
+                        		"            \"latitude\": -41.156426,\n" + 
+                        		"            \"altitude\": 0\n" + 
+                        		"          },\n" + 
+                        		"          \"timestamp\": \"2015-01-25T12:01:01.000Z\",\n" + 
+                        		"          \"$source\": \"a.suitable.path\"\n" + 
+                        		"        },\n" + 
+                        		"        \"courseOverGroundTrue\": {\n" + 
+                        		"          \"value\": 245.69,\n" + 
+                        		"          \"timestamp\": \"2015-01-25T12:01:01.000Z\",\n" + 
+                        		"          \"$source\": \"a.suitable.path\"\n" + 
+                        		"        }\n" + 
+                        		"      }")
                         )
                 ),
 	    @ApiResponse(responseCode = "500", description = "Internal server error"),
@@ -149,7 +201,16 @@ public class SignalkApiService extends BaseApiService {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@POST
 	public Response post(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie, 
-			@Parameter( name="body", description = "A signalk message")String body) {
+			@Parameter( name="body", 
+				description = "A signalk message",
+				schema = @Schema(
+						example = "{\n" + 
+								"  \"context\": \"vessels.self\",\n" + 
+								"  \"requestId\": \"184743-434373-348483\",\n" + 
+								"  \"get\": {\n" + 
+								"    \"path\": \"navigation\",\n" + 
+								"  }\n" + 
+								"}")) String body) {
 		try {
 			
 			if (logger.isDebugEnabled())
@@ -168,7 +229,12 @@ public class SignalkApiService extends BaseApiService {
 	@ApiResponses ({
 	    @ApiResponse(responseCode = "200", description = "OK", 
 	    		content = @Content(
-                        mediaType = "application/json"                        		
+                        mediaType = "application/json",
+                        schema = @Schema(example = "{\n" + 
+                        		"   \"requestId\": \"123345-23232-232323\",\n" + 
+                        		"   \"state\": \"COMPLETED\",\n" + 
+                        		"   \"statusCode\": 200\n" + 
+                        		"}")
                         )
                 ),
 	    @ApiResponse(responseCode = "500", description = "Internal server error"),
@@ -179,8 +245,14 @@ public class SignalkApiService extends BaseApiService {
 	@PUT
 	@Path( "{path:[^?]*}")
 	public Response put(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
-			@Parameter( description = "A signalk path", example="/vessel/self/navigation") @PathParam(value = "path") String path,
-			@Parameter( name="body", description = "A signalk message") String body) {
+			@Parameter( description = "A signalk path to a leaf, eg /vessel/self/navigation/anchor/maxRadius", example="/vessel/self/navigation/anchor/maxRadius") @PathParam(value = "path") String path,
+			@Parameter( name = "body", 
+				description = "A signalk value to set for this key", 
+				schema = @Schema(
+					example = "{\n" + 
+						"   \"value\": 75.0\n" + 
+						"}"
+					)) String body) {
 		//requestId, context, state, code (result), message (optional)
 		try {
 			if (logger.isDebugEnabled())

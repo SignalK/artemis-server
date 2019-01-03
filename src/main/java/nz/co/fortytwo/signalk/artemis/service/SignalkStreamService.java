@@ -20,8 +20,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.atmosphere.annotation.Suspend;
 import org.atmosphere.cpr.AtmosphereResource;
-import org.signalk.schema.Subscribe;
-import org.signalk.schema.Update;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -47,7 +45,30 @@ public class SignalkStreamService extends BaseApiService {
 	    @ApiResponse(responseCode = "101", description = "Switching to websocket",
 	    		content = @Content(
                         mediaType = "application/json",
-                        schema = @Schema(implementation = Update.class)
+                        schema = @Schema( example = "{\n" + 
+                        		"  \"context\": \"vessels.366982330.navigation\",\n" + 
+                        		"  \"updates\": [\n" + 
+                        		"    {\n" + 
+                        		"      \"values\": [\n" + 
+                        		"        \n" + 
+                        		"        {\n" + 
+                        		"          \"path\": \"position\",\n" + 
+                        		"          \"value\": {\n" + 
+                        		"            \"longitude\": 173.1693,\n" + 
+                        		"            \"latitude\": -41.156426,\n" + 
+                        		"            \"altitude\": 0\n" + 
+                        		"          }\n" + 
+                        		"        },\n" + 
+                        		"        {\n" + 
+                        		"          \"path\": \"courseOverGroundTrue\",\n" + 
+                        		"          \"value\": 245.69\n" + 
+                        		"        }\n" + 
+                        		"      ],\n" + 
+                        		"      \"$source\": \"sources.gps_0183_RMC\",\n" + 
+                        		"      \"timestamp\":  \"2015-03-07T12:37:10.523Z\"\n" + 
+                        		"    }\n" + 
+                        		"  ]\n" + 
+                        		"}")
                 )),
 	    @ApiResponse(responseCode = "500", description = "Internal server error"),
 	    @ApiResponse(responseCode = "403", description = "No permission")
@@ -56,7 +77,9 @@ public class SignalkStreamService extends BaseApiService {
 	//@Produces(MediaType.APPLICATION_JSON)
 	@GET
 	public Response getWS(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
-			@Parameter( description = "A signalk path", example="/vessel/self/navigation") @QueryParam("subscribe")String subscribe) throws Exception {
+			@Parameter( description = "Subscribe mode ( none | self | all )", 
+					example = "self" ) 
+					@QueryParam("subscribe")String subscribe) throws Exception {
 		
 		if (logger.isDebugEnabled())
 			logger.debug("get : ws for {}, subscribe={}", resource.getRequest().getRemoteUser(),subscribe);
@@ -91,7 +114,30 @@ public class SignalkStreamService extends BaseApiService {
 	    @ApiResponse(responseCode = "101", description = "Switching to websocket",
 	    		content = @Content(
                         mediaType = "application/json",
-                        schema = @Schema(implementation = Update.class)
+                        schema = @Schema( example = "{\n" + 
+                        		"  \"context\": \"vessels.366982330.navigation\",\n" + 
+                        		"  \"updates\": [\n" + 
+                        		"    {\n" + 
+                        		"      \"values\": [\n" + 
+                        		"        \n" + 
+                        		"        {\n" + 
+                        		"          \"path\": \"position\",\n" + 
+                        		"          \"value\": {\n" + 
+                        		"            \"longitude\": 173.1693,\n" + 
+                        		"            \"latitude\": -41.156426,\n" + 
+                        		"            \"altitude\": 0\n" + 
+                        		"          }\n" + 
+                        		"        },\n" + 
+                        		"        {\n" + 
+                        		"          \"path\": \"courseOverGroundTrue\",\n" + 
+                        		"          \"value\": 245.69\n" + 
+                        		"        }\n" + 
+                        		"      ],\n" + 
+                        		"      \"$source\": \"sources.gps_0183_RMC\",\n" + 
+                        		"      \"timestamp\":  \"2015-03-07T12:37:10.523Z\"\n" + 
+                        		"    }\n" + 
+                        		"  ]\n" + 
+                        		"}")
                 )),
 	    @ApiResponse(responseCode = "500", description = "Internal server error"),
 	    @ApiResponse(responseCode = "403", description = "No permission")
@@ -101,7 +147,25 @@ public class SignalkStreamService extends BaseApiService {
 	//@Produces(MediaType.APPLICATION_JSON)
 	@POST
 	public String post(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
-			@Parameter( name="body", description = "A signalk SUBSCRIBE message",schema = @Schema(implementation=Subscribe.class)) String body) {
+			@Parameter( name="body", 
+				description = "A signalk SUBSCRIBE message",
+				schema = @Schema(example = "{\n" + 
+					"  \"context\": \"vessels.self\",\n" + 
+					"  \"subscribe\": [\n" + 
+					"    {\n" + 
+					"      \"path\": \"navigation.speedThroughWater\",\n" + 
+					"      \"period\": 1000,\n" + 
+					"      \"format\": \"delta\",\n" + 
+					"      \"policy\": \"ideal\",\n" + 
+					"      \"minPeriod\": 200\n" + 
+					"    },\n" + 
+					"    {\n" + 
+					"      \"path\": \"navigation.logTrip\",\n" + 
+					"      \"period\": 10000\n" + 
+					"    }\n" + 
+					"  ]\n" + 
+					"}")) 
+				String body) {
 		
 			return getWebsocket(resource, body,cookie);
 		

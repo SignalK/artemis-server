@@ -132,6 +132,7 @@ public final class SecurityUtils {
 		// Check if the token was issued by the server and if it's not expired
 		// Throw an Exception if the token is invalid
 		if(invalidTokens.contains(token)){
+			logger.debug("Invalid token: {}", token);
 			throw new SecurityException("Token is logged out");
 		}
 		Claims body = Jwts.parser().setSigningKey(key).parseClaimsJws(token).getBody();

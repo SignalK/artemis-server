@@ -12,6 +12,7 @@ TODO:
 	Git
 	REST LIST
 	Enable push to remote servers
+	GET by tcp/ws does not return a wrapper with requestid etc.
 	
 	MQTT
 	STOMP

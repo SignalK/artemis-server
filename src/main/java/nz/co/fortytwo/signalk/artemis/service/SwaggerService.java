@@ -54,7 +54,7 @@ public class SwaggerService {
             		ImmutableSet.of(
             				SignalkStreamService.class.getCanonicalName(), 
             				AppsService.class.getCanonicalName(),
-            				LoginService.class.getCanonicalName(),
+            				AuthService.class.getCanonicalName(),
             				SignalkHistoryService.class.getCanonicalName(),
             				SignalkApiService.class.getCanonicalName(),
             				SignalkEndpointService.class.getCanonicalName(),
