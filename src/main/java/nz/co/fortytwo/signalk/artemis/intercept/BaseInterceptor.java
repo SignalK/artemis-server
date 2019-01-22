@@ -54,6 +54,10 @@ public class BaseInterceptor extends MessageSupport{
 		return Util.isFullFormat(node);
 	}
 	
+	protected boolean isLogin(Json node) {
+		return Util.isLogin(node);
+	}
+	
 	protected boolean isN2k(Json node) {
 		return Util.isN2k(node);
 	}

@@ -68,6 +68,7 @@ public class Config {
 	public static final String JSON_FULL = "JSON_FULL";
 	public static final String JSON_DELTA = "JSON_DELTA";
 	public static final String JSON_GET = "JSON_GET";
+	public static final String JSON_LOGIN = "JSON_LOGIN";
 	public static final String JSON_MAP = "JSON_MAP";
 	public static final String JSON_SUBSCRIBE = "JSON_SUBSCRIBE";
 	public static final String _0183 = "0183";
@@ -85,7 +86,6 @@ public class Config {
 	public static final String SK_TYPE_VALUE = "SK_VALUE";
 	public static final String SK_TYPE_ATTRIBUTE = "SK_ATTRIBUTE";
 
-	public static final String SK_SEND_TO_ALL = "SK_SEND_TO_ALL";
 	public static final String MSG_SRC_IP = "MSG_SRC_IP";
 	public static final String MSG_SRC_BUS = "MSG_SRC_BUS";
 	public static final String MSG_SRC_TYPE = "MSG_SRC_TYPE";

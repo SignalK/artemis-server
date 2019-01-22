@@ -198,6 +198,10 @@ public class BaseApiService extends MessageSupport{
 	}
 
 	public boolean setConsumer(AtmosphereResource resource, boolean resumeAfter) throws ActiveMQException {
+		return setConsumer(resource, resumeAfter, null);
+	}
+	
+	public boolean setConsumer(AtmosphereResource resource, boolean resumeAfter, MessageHandler handler) throws ActiveMQException {
 
 		if (getConsumer().getMessageHandler() == null) {
 			if (logger.isDebugEnabled())
@@ -207,42 +211,50 @@ public class BaseApiService extends MessageSupport{
 				resource.setBroadcaster(broadCasterFactory.get());
 				logger.debug("Adding broadcaster");
 			}
-
-			getConsumer().setMessageHandler(new MessageHandler() {
-
-				@Override
-				public void onMessage(ClientMessage message) {
-					try {
-						if (logger.isDebugEnabled())
-							logger.debug("onMessage for client {}", message);
-						String recv = Util.readBodyBufferToString(message);
-						message.acknowledge();
-						
-						if (StringUtils.isBlank(recv))
-							recv = "{}";
-
-						if (logger.isDebugEnabled())
-							logger.debug("onMessage for client at {}, {}", getTempQ(), recv);
-
-						if (resumeAfter) {
-							resource.write(recv);
-							resource.resume();
-						} else {
-							resource.getBroadcaster().broadcast(recv, resource);
-						}
-
-						if (logger.isDebugEnabled())
-							logger.debug("Sent to resource: {}", resource);
-
-					} catch (ActiveMQException e) {
-						logger.error(e, e);
-					}
-				}
-			});
+			if(handler!=null) {
+				getConsumer().setMessageHandler(handler);
+			}else {
+				getConsumer().setMessageHandler(getDefaultMessageHandler(resource, resumeAfter));
+			}
 			logger.debug("Set handler");
 			return true;
 		}
 		return false;
+	}
+	
+	private MessageHandler getDefaultMessageHandler(AtmosphereResource resource, boolean resumeAfter) {
+		MessageHandler handler = new MessageHandler() {
+
+			@Override
+			public void onMessage(ClientMessage message) {
+				try {
+					if (logger.isDebugEnabled())
+						logger.debug("onMessage for client {}", message);
+					String recv = Util.readBodyBufferToString(message);
+					message.acknowledge();
+					
+					if (StringUtils.isBlank(recv))
+						recv = "{}";
+
+					if (logger.isDebugEnabled())
+						logger.debug("onMessage for client at {}, {}", getTempQ(), recv);
+
+					if (resumeAfter) {
+						resource.write(recv);
+						resource.resume();
+					} else {
+						resource.getBroadcaster().broadcast(recv, resource);
+					}
+
+					if (logger.isDebugEnabled())
+						logger.debug("Sent to resource: {}", resource);
+
+				} catch (ActiveMQException e) {
+					logger.error(e, e);
+				}
+			}
+		};
+		return handler;
 	}
 
 	private void closeSession() {
@@ -438,3 +450,5 @@ public class BaseApiService extends MessageSupport{
 		
 	}
 }
+	
+	

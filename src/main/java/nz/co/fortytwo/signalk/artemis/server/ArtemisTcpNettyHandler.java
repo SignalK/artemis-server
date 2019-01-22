@@ -261,37 +261,30 @@ public class ArtemisTcpNettyHandler extends SimpleChannelInboundHandler<String> 
 			String session = message.getStringProperty(Config.AMQ_SUB_DESTINATION);
 			if (logger.isDebugEnabled())
 				logger.debug("TCP session: {}", session);
-			if (Config.SK_SEND_TO_ALL.equals(session)) {
-				// tcp
-				for (String key : contextList.keySet()) {
-					ChannelHandlerContext ctx = getChannel(key);
-					if (ctx != null )
-						ctx.pipeline().writeAndFlush(msg + "\r\n");
+			
+			// tcp
+			ChannelHandlerContext ctx = contextList.get(session);
+			if (logger.isDebugEnabled())
+				logger.debug("TCP send to : {}", ctx);
+			if(ctx == null || !ctx.channel().isWritable()){
+				//cant send, kill it
+				try {
+					consumerList.get(session).close();
+				} catch (ActiveMQException e) {
+					logger.error(e.getMessage(), e);
 				}
-			} else {
-				// tcp
-				ChannelHandlerContext ctx = contextList.get(session);
-				if (logger.isDebugEnabled())
-					logger.debug("TCP send to : {}", ctx);
-				if(ctx == null || !ctx.channel().isWritable()){
-					//cant send, kill it
-					try {
-						consumerList.get(session).close();
-					} catch (ActiveMQException e) {
-						logger.error(e.getMessage(), e);
-					}
-					try {
-						SubscriptionManagerFactory.getInstance().removeByTempQ(session);
-					} catch (Exception e) {
-						logger.error(e.getMessage(), e);
-					}
-					consumerList.remove(session);
-					return;
+				try {
+					SubscriptionManagerFactory.getInstance().removeByTempQ(session);
+				} catch (Exception e) {
+					logger.error(e.getMessage(), e);
 				}
-				
-				if (ctx != null )
-					ctx.pipeline().writeAndFlush(msg + "\r\n");
+				consumerList.remove(session);
+				return;
 			}
+			
+			if (ctx != null )
+				ctx.pipeline().writeAndFlush(msg + "\r\n");
+		
 		}
 
 	}

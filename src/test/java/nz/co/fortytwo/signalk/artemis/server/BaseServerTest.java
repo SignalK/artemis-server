@@ -202,16 +202,14 @@ public class BaseServerTest extends EasyMockSupport {
 			logger.debug("{}: Received {}",getClass().getSimpleName(), m);
 		});
 		
-		assertTrue(replies.size()>1);
+		assertTrue(replies.size()>=1);
 		return replies;
 	}
-//	protected void sendMessage(ClientSession session, ClientProducer producer, String msg) throws ActiveMQException {
-//		sendMessage(session, producer, msg, null); 
-//	}
+
 	protected void sendMessage(ClientSession session, ClientProducer producer, String msg, String token) throws ActiveMQException {
-		sendMessage(session, producer, msg, token,null,null);
+		sendMessage(session, producer, msg, token,null,null, null);
 	}
-	protected void sendMessage(ClientSession session, ClientProducer producer, String msg, String token, String srcBus, String srcType) throws ActiveMQException {
+	protected void sendMessage(ClientSession session, ClientProducer producer, String msg, String token, String srcBus, String srcType, String tempQ) throws ActiveMQException {
 		ClientMessage message = session.createMessage(true);
 		if(token!=null) {
 			message.putStringProperty(AMQ_USER_TOKEN, token);
@@ -220,6 +218,8 @@ public class BaseServerTest extends EasyMockSupport {
 			message.putStringProperty(Config.MSG_SRC_BUS, srcBus);
 		if(srcType!=null) 
 			message.putStringProperty(Config.MSG_SRC_TYPE, srcType);
+		if(tempQ!=null)
+			message.putStringProperty(Config.AMQ_REPLY_Q, tempQ);
 		logger.debug("Sending message: {}", message);
 		message.getBodyBuffer().writeString(msg);
 		producer.send(Config.INCOMING_RAW, message);

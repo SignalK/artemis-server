@@ -1,10 +1,17 @@
-package nz.co.fortytwo.signalk.artemis.service;
+package nz.co.fortytwo.signalk.artemis.transformer;
 
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
 import java.util.UUID;
 
+import org.apache.activemq.artemis.api.core.RoutingType;
+import org.apache.activemq.artemis.api.core.client.ClientConsumer;
+import org.apache.activemq.artemis.api.core.client.ClientMessage;
+import org.apache.activemq.artemis.api.core.client.ClientProducer;
+import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.FixMethodOrder;
@@ -12,18 +19,19 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.server.BaseServerTest;
+import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.Util;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class AuthServiceTest {
-	private static Logger logger = LogManager.getLogger(AuthServiceTest.class);
-	private AuthService service;
+public class AuthTransformerTest extends BaseServerTest{
+	private static Logger logger = LogManager.getLogger(AuthTransformerTest.class);
 	
-	
-	public AuthServiceTest() throws Exception {
-		service = new AuthService();
+	public AuthTransformerTest() throws Exception {
+		
 	}
 
 	@Test
-	public void shouldLogin() {
+	public void shouldLogin() throws Exception {
 		String uuid = UUID.randomUUID().toString();
 		String body = "{\n" + 
 				"  \"requestId\": \""+uuid+"\",\n" + 
@@ -32,7 +40,7 @@ public class AuthServiceTest {
 				"    \"password\": \"admin\"\n" + 
 				"  }\n" + 
 				"}";
-		Json reply = service.login(body);
+		Json reply = sendBody(body);
 		logger.debug(reply);
 		assertEquals(uuid,reply.at("requestId").asString());
 		assertEquals("COMPLETED",reply.at("state").asString());
@@ -41,8 +49,37 @@ public class AuthServiceTest {
 		assertTrue(reply.at("login").has("token"));
 	}
 
+	private Json sendBody(String body) throws  Exception {
+		try (ClientSession session = Util.getLocalhostClientSession("admin", "admin");
+				ClientProducer producer = session.createProducer();	
+				){
+			String tempQ = UUID.randomUUID().toString();
+			String qName=Config.OUTGOING_REPLY+dot+tempQ;
+			//session.createTemporaryQueue("outgoing.reply." + destination, RoutingType.ANYCAST, destination);
+			session.createQueue(qName, RoutingType.ANYCAST, qName);
+			ClientConsumer consumer = session.createConsumer(qName);
+			List<ClientMessage> replies = createListener(session, consumer, qName);
+			//session.start();
+		
+			sendMessage(session, producer, body, null,null,null,tempQ);
+			
+			logger.debug("Input sent: {}",body);
+		
+			logger.debug("Receive started on {}",qName);
+			replies = listen(replies, 3, 1);
+			//assertEquals(expected, replies.size());
+			logger.debug("Received {} replies", replies.size());
+			replies.forEach((m)->{
+				logger.debug("Received {}", m);
+			});
+			ClientMessage msg = replies.get(0);
+			String msgBody = Util.readBodyBufferToString(msg);
+			return Json.read(msgBody);
+		}
+	}
+
 	@Test
-	public void shouldFailBadCred() {
+	public void shouldFailBadCred() throws Exception {
 		String uuid = UUID.randomUUID().toString();
 		String body = "{\n" + 
 				"  \"requestId\": \""+uuid+"\",\n" + 
@@ -51,7 +88,7 @@ public class AuthServiceTest {
 				"    \"password\": \"nopass\"\n" + 
 				"  }\n" + 
 				"}";
-		Json reply = service.login(body);
+		Json reply = sendBody(body);
 		logger.debug(reply);
 		assertEquals(uuid,reply.at("requestId").asString());
 		assertEquals("COMPLETED",reply.at("state").asString());
@@ -60,7 +97,7 @@ public class AuthServiceTest {
 	}
 	
 	@Test
-	public void shouldFailNoRequestId() {
+	public void shouldFailNoRequestId() throws Exception {
 		String uuid = UUID.randomUUID().toString();
 		String body = "{\n" + 
 				"  \"login\": {\n" + 
@@ -68,7 +105,7 @@ public class AuthServiceTest {
 				"    \"password\": \"nopass\"\n" + 
 				"  }\n" + 
 				"}";
-		Json reply = service.login(body);
+		Json reply = sendBody(body);
 		logger.debug(reply);
 		//assertEquals(uuid,reply.at("requestId").asString());
 		assertEquals("FAILED",reply.at("state").asString());
@@ -77,7 +114,7 @@ public class AuthServiceTest {
 	}
 
 	@Test
-	public void shouldFailNoName() {
+	public void shouldFailNoName() throws Exception {
 		String uuid = UUID.randomUUID().toString();
 		String body = "{\n" + 
 				"  \"requestId\": \""+uuid+"\",\n" + 
@@ -86,7 +123,7 @@ public class AuthServiceTest {
 				"    \"password\": \"nopass\"\n" + 
 				"  }\n" + 
 				"}";
-		Json reply = service.login(body);
+		Json reply = sendBody(body);
 		logger.debug(reply);
 		//assertEquals(uuid,reply.at("requestId").asString());
 		assertEquals("FAILED",reply.at("state").asString());
@@ -94,7 +131,7 @@ public class AuthServiceTest {
 		assertTrue(!reply.has("login"));
 	}
 	@Test
-	public void shouldFailNoPassword() {
+	public void shouldFailNoPassword() throws Exception {
 		String uuid = UUID.randomUUID().toString();
 		String body = "{\n" + 
 				"  \"requestId\": \""+uuid+"\",\n" + 
@@ -103,7 +140,7 @@ public class AuthServiceTest {
 				//"    \"password\": \"nopass\"\n" + 
 				"  }\n" + 
 				"}";
-		Json reply = service.login(body);
+		Json reply = sendBody(body);
 		logger.debug(reply);
 		//assertEquals(uuid,reply.at("requestId").asString());
 		assertEquals("FAILED",reply.at("state").asString());
@@ -111,7 +148,7 @@ public class AuthServiceTest {
 		assertTrue(!reply.has("login"));
 	}
 	@Test
-	public void shouldFailBlankRequestId() {
+	public void shouldFailBlankRequestId() throws Exception {
 		String uuid = UUID.randomUUID().toString();
 		String body = "{\n" + 
 				"  \"requestId\": \"\",\n" + 
@@ -120,7 +157,7 @@ public class AuthServiceTest {
 				"    \"password\": \"nopass\"\n" + 
 				"  }\n" + 
 				"}";
-		Json reply = service.login(body);
+		Json reply = sendBody(body);
 		logger.debug(reply);
 		//assertEquals(uuid,reply.at("requestId").asString());
 		assertEquals("FAILED",reply.at("state").asString());
@@ -129,7 +166,7 @@ public class AuthServiceTest {
 	}
 
 	@Test
-	public void shouldFailBlankName() {
+	public void shouldFailBlankName() throws Exception {
 		String uuid = UUID.randomUUID().toString();
 		String body = "{\n" + 
 				"  \"requestId\": \""+uuid+"\",\n" + 
@@ -138,7 +175,7 @@ public class AuthServiceTest {
 				"    \"password\": \"nopass\"\n" + 
 				"  }\n" + 
 				"}";
-		Json reply = service.login(body);
+		Json reply = sendBody(body);
 		logger.debug(reply);
 		//assertEquals(uuid,reply.at("requestId").asString());
 		assertEquals("FAILED",reply.at("state").asString());
@@ -146,7 +183,7 @@ public class AuthServiceTest {
 		assertTrue(!reply.has("login"));
 	}
 	@Test
-	public void shouldFailBlankPassword() {
+	public void shouldFailBlankPassword() throws Exception {
 		String uuid = UUID.randomUUID().toString();
 		String body = "{\n" + 
 				"  \"requestId\": \""+uuid+"\",\n" + 
@@ -155,7 +192,7 @@ public class AuthServiceTest {
 				"    \"password\": \"\"\n" + 
 				"  }\n" + 
 				"}";
-		Json reply = service.login(body);
+		Json reply = sendBody(body);
 		logger.debug(reply);
 		//assertEquals(uuid,reply.at("requestId").asString());
 		assertEquals("FAILED",reply.at("state").asString());
@@ -163,7 +200,7 @@ public class AuthServiceTest {
 		assertTrue(!reply.has("login"));
 	}
 	@Test
-	public void shouldLogOut() {
+	public void shouldLogOut() throws Exception {
 		String uuid = UUID.randomUUID().toString();
 		String body = "{\n" + 
 				"  \"requestId\": \""+uuid+"\",\n" + 
@@ -172,7 +209,7 @@ public class AuthServiceTest {
 				"    \"password\": \"admin\"\n" + 
 				"  }\n" + 
 				"}";
-		Json reply = service.login(body);
+		Json reply = sendBody(body);
 		logger.debug(reply);
 		String token = reply.at("login").at("token").asString();
 		uuid = UUID.randomUUID().toString();
@@ -180,7 +217,7 @@ public class AuthServiceTest {
 				"  \"requestId\": \""+uuid+"\",\n" + 
 				"  \"token\": \""+token+"\"\n" +  
 				"}";
-		reply = service.logout(body);
+		reply = sendBody(body);
 		logger.debug(reply);
 		assertEquals(uuid,reply.at("requestId").asString());
 		assertEquals("COMPLETED",reply.at("state").asString());
@@ -188,7 +225,7 @@ public class AuthServiceTest {
 		assertTrue(!reply.has("login"));
 	}
 	@Test
-	public void shouldBeValidated() {
+	public void shouldBeValidated() throws Exception {
 		String uuid = UUID.randomUUID().toString();
 		String body = "{\n" + 
 				"  \"requestId\": \""+uuid+"\",\n" + 
@@ -197,7 +234,7 @@ public class AuthServiceTest {
 				"    \"password\": \"admin\"\n" + 
 				"  }\n" + 
 				"}";
-		Json reply = service.login(body);
+		Json reply = sendBody(body);
 		logger.debug(reply);
 		String token = reply.at("login").at("token").asString();
 		uuid = UUID.randomUUID().toString();
@@ -205,7 +242,7 @@ public class AuthServiceTest {
 				"  \"requestId\": \""+uuid+"\",\n" + 
 				"  \"token\": \""+token+"\"\n" +  
 				"}";
-		reply = service.validate(body);
+		reply = sendBody(body);
 		logger.debug(reply);
 		assertEquals(uuid,reply.at("requestId").asString());
 		assertEquals("COMPLETED",reply.at("state").asString());
@@ -214,14 +251,14 @@ public class AuthServiceTest {
 	}
 	
 	@Test
-	public void shouldFailValidate() {
+	public void shouldFailValidate() throws Exception {
 		String uuid = UUID.randomUUID().toString();
 		String body = "{\n" + 
 				"  \"requestId\": \""+uuid+"\",\n" + 
 				"  \"token\": \"eyJhbGciOiJIUzUxMiJ9.eyJyb2xlcyI6IltcInNraXBwZXJcIl0iLCJpYXQiOjE1NDY1NTA5OTYsImV4cCI6MTU0NjYzNzM5Nn0.w0bkfYhCJLwMyCBKiWFLbXTuu6VFaS_BxBPBjgBS-9aPMv22fOI5GzzG3jK7rbW43_4KvjrfLZ6RAibiDnB2ug\"\n" +  
 				"}";
-		Json reply = service.logout(body);
-		reply = service.validate(body);
+		Json reply = sendBody(body);
+		reply = sendBody(body);
 		logger.debug(reply);
 		//assertEquals(uuid,reply.at("requestId").asString());
 		assertEquals("FAILED",reply.at("state").asString());

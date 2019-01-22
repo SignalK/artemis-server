@@ -177,6 +177,10 @@
 					"level": "error"
 				},
 				{
+					"name": "nz.co.fortytwo.signalk.artemis.service.AuthServiceTest",
+					"level": "debug"
+				},
+				{
 					"name": "nz.co.fortytwo.signalk.artemis.transformer",
 					"level": "error"
 				},
@@ -228,7 +232,7 @@
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.util.SecurityUtils",
-					"level": "warn",
+					"level": "debug",
 					"additivity": true,
 					"appender-ref": []
 				},

@@ -1,17 +1,16 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
-import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.authenticateUser;
-
 import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.atmosphere.annotation.Suspend;
+import org.atmosphere.cpr.AtmosphereResource;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -26,48 +25,30 @@ import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 
 @Path("/signalk/v1/auth")
 @Tag(name = "Authentication API")
-public class AuthService {
+public class AuthService extends BaseApiService{
 
 	private static Logger logger = LogManager.getLogger(AuthService.class);
+	
+	@Context 
+	private AtmosphereResource resource;
 	
 	public AuthService() throws Exception{
 		if(logger.isDebugEnabled())logger.debug("AuthService started");
 	}
 	
-	
-		private Json authenticate( Json authRequest) throws Exception {
-			if( authRequest==null || !authRequest.has("requestId")
-					|| !authRequest.has("login")
-					|| !authRequest.at("login").has("username") 
-					|| !authRequest.at("login").has("password") ) {
-				throw new IllegalArgumentException("Must have requestId, username and password");
-			}
-			String requestId = authRequest.at("requestId").asString();
-			String username = authRequest.at("login").at("username").asString();
-			String password = authRequest.at("login").at("password").asString();
-			if(logger.isDebugEnabled())logger.debug("Authentication request, {} : {}", requestId, username);
-			//no auth, return unauthorised
-			
-			if( StringUtils.isBlank(requestId)||StringUtils.isBlank(username)||StringUtils.isBlank(password)) {
-				throw new IllegalArgumentException("requestId, username or password cannot be blank");
-			}
-			// Validate the Authorization header			
-			try {
-				String token = authenticateUser(username, password);
-				//create the reply
-				return Json.object()
-						.set("requestId", requestId)
-						.set("state", "COMPLETED")
-						.set("result", 200)
-						.set("login", Json.object("token",token));
-			} catch (Exception e) {
-				return Json.object()
-						.set("requestId", requestId)
-						.set("state", "COMPLETED")
-						.set("result", 401);
-			}
-			
+	@Override
+	protected void initSession(String tempQ) throws Exception {
+		try{
+			String correlation = java.util.UUID.randomUUID().toString();
+			super.initSession(correlation);
+			super.setConsumer(resource, true);
+			//addWebsocketCloseListener(resource);
+		}catch(Exception e){
+			logger.error(e,e);
+			throw e;
 		}
+	}
+	
 	@Operation(summary = "Login (json)", description = "Login with username and password as json data, return token as json")
 	@ApiResponses( value = {
 			@ApiResponse(responseCode = "200", 
@@ -100,8 +81,9 @@ public class AuthService {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
 	@POST
+	@Suspend(contentType = MediaType.APPLICATION_JSON)
 	@Path("login")
-	public Json login( 
+	public String login( 
 			@Parameter(required=true, 
 					schema = @Schema(
 						example = "{\n" + 
@@ -115,19 +97,20 @@ public class AuthService {
 			logger.debug("Post: {}" , body);
 		Json json = Json.read(body);
 		try {
-			return authenticate(json);
+			sendMessage(getTempQ(),body,json.at("requestId").asString(),(String)null);
+			return "";
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			return Json.object()
 					//.set("requestId", json.at("requestId").asString())
 					.set("state", "FAILED")
-					.set("result", 500);
+					.set("result", 500).toString();
 		}
 		
 		
 	}
 	
-	@GET
+	@POST
 	@Operation(summary = "Logout", description = "Logout, expires and returns the token",
 			parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN", required=true))
 	@ApiResponses( value = {
@@ -146,6 +129,8 @@ public class AuthService {
 		    @ApiResponse(responseCode = "400", description = "No token")
 	})
 	@Path("logout")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
 	public Json logout( 
 			@Parameter(required=true, 
 					schema = @Schema(
@@ -172,7 +157,7 @@ public class AuthService {
 		
 	}
 	
-	@GET
+	@POST
 	@Operation(summary = "Validate", 
 		description = "Validates the token, returning the token or an updated replacement.")
 	@ApiResponses( value = {
@@ -208,6 +193,8 @@ public class AuthService {
 					})
 			
 	@Path("validate")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
 	public Json validate(@Parameter(required=true, 
 			schema = @Schema(
 					example = "{\n" + 

@@ -255,70 +255,36 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 			String sessionId = message.getStringProperty(Config.AMQ_SUB_DESTINATION);
 			if (logger.isDebugEnabled())
 				logger.debug("UDP session id: {}", sessionId);
-			if (Config.SK_SEND_TO_ALL.equals(sessionId)) {
-				// udp
-				
-					for (InetSocketAddress client : socketList.values()) {
-						if (logger.isDebugEnabled())
-							logger.debug("Sending udp: {}", msg);
-						if(channelList.get(sessionId)==null || !channelList.get(sessionId).channel().isWritable()){
-							
-							//cant send, kill it
-							try {
-								consumerList.get(sessionId).close();
-							} catch (ActiveMQException e) {
-								logger.error(e.getMessage(), e);
-							}
-							try {
-								SubscriptionManagerFactory.getInstance().removeByTempQ(sessionId);
-							} catch (Exception e) {
-								logger.error(e.getMessage(), e);
-							}
-							consumerList.remove(sessionId);
-							channelList.remove(sessionId);
-							socketList.remove(sessionId);
-							continue;
-						}
-						((NioDatagramChannel) channelList.get(sessionId).channel()).writeAndFlush(
-								new DatagramPacket(Unpooled.copiedBuffer(msg + "\r\n", CharsetUtil.UTF_8), client));
-						if (logger.isDebugEnabled())
-							logger.debug("Sent udp to {}", client);
-					}
-				
-				
-			} else {
-
+			
 				// udp
 		
-					final InetSocketAddress client = socketList.get(sessionId);
-					if (logger.isDebugEnabled())
-						logger.debug("Sending udp: {}", msg);
-					// udpCtx.pipeline().writeAndFlush(msg+"\r\n");
-					if(channelList.get(sessionId)==null || !channelList.get(sessionId).channel().isWritable()){
-					
-						//cant send, kill it
-						try {
-							consumerList.get(sessionId).close();
-						} catch (ActiveMQException e) {
-							logger.error(e.getMessage(), e);
-						}
-						try {
-							SubscriptionManagerFactory.getInstance().removeByTempQ(sessionId);
-						} catch (Exception e) {
-							logger.error(e.getMessage(), e);
-						}
-						consumerList.remove(sessionId);
-						channelList.remove(sessionId);
-						socketList.remove(sessionId);
-						return;
-					}
-					((NioDatagramChannel) channelList.get(sessionId).channel()).writeAndFlush(
-							new DatagramPacket(Unpooled.copiedBuffer(msg + "\r\n", CharsetUtil.UTF_8), client));
-					if (logger.isDebugEnabled())
-						logger.debug("Sent udp for session: {}", sessionId);
+			final InetSocketAddress client = socketList.get(sessionId);
+			if (logger.isDebugEnabled())
+				logger.debug("Sending udp: {}", msg);
+			// udpCtx.pipeline().writeAndFlush(msg+"\r\n");
+			if(channelList.get(sessionId)==null || !channelList.get(sessionId).channel().isWritable()){
 			
-				
+				//cant send, kill it
+				try {
+					consumerList.get(sessionId).close();
+				} catch (ActiveMQException e) {
+					logger.error(e.getMessage(), e);
+				}
+				try {
+					SubscriptionManagerFactory.getInstance().removeByTempQ(sessionId);
+				} catch (Exception e) {
+					logger.error(e.getMessage(), e);
+				}
+				consumerList.remove(sessionId);
+				channelList.remove(sessionId);
+				socketList.remove(sessionId);
+				return;
 			}
+			((NioDatagramChannel) channelList.get(sessionId).channel()).writeAndFlush(
+					new DatagramPacket(Unpooled.copiedBuffer(msg + "\r\n", CharsetUtil.UTF_8), client));
+			if (logger.isDebugEnabled())
+				logger.debug("Sent udp for session: {}", sessionId);
+	
 		}
 
 	}

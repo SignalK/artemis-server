@@ -82,14 +82,6 @@
 				<address>outgoing.reply</address>
 				<durable>false</durable>
 			</queue>
-<!-- 			<queue name="internal.kv"> -->
-<!-- 				<address>internal.kv</address> -->
-<!-- 				<durable>false</durable> -->
-<!-- 			</queue> -->
-<!-- 			<queue name="internal.discard"> -->
-<!-- 				<address>internal.discard</address> -->
-<!-- 				<durable>false</durable> -->
-<!-- 			</queue> -->
 		</queues>
 		<remoting-incoming-interceptors>
 			<!-- incoming -->
@@ -120,6 +112,15 @@
 				<filter string="AMQ_content_type='JSON_GET'" />
 				<transformer-class-name>
 					nz.co.fortytwo.signalk.artemis.transformer.GetMsgTransformer
+				</transformer-class-name>
+				<exclusive>true</exclusive>
+			</divert>
+			<divert name="raw-auth-divert">
+				<address>incoming.raw</address>
+				<forwarding-address>internal.discard</forwarding-address>
+				<filter string="AMQ_content_type='JSON_LOGIN'" />
+				<transformer-class-name>
+					nz.co.fortytwo.signalk.artemis.transformer.AuthTransformer
 				</transformer-class-name>
 				<exclusive>true</exclusive>
 			</divert>

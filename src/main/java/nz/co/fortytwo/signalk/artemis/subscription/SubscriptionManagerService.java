@@ -189,7 +189,6 @@ public class SubscriptionManagerService{
 		txMsg.putStringProperty(Config.AMQ_SUB_DESTINATION, destination);
 		txMsg.putStringProperty(Config.AMQ_USER_TOKEN, token);	
 		txMsg.putStringProperty(Config.AMQ_USER_ROLES, roles);
-		txMsg.putBooleanProperty(Config.SK_SEND_TO_ALL, false);
 		txMsg.putStringProperty(SignalKConstants.FORMAT, format);
 		txMsg.putBooleanProperty(SignalKConstants.REPLY, true);
 		txMsg.getBodyBuffer().writeString(json.toString());

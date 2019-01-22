@@ -6,14 +6,11 @@ import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CORR_ID;
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_INFLUX_KEY;
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_REPLY_Q;
-import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_SESSION_ID;
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_SUB_DESTINATION;
-import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_USER_ROLES;
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_USER_TOKEN;
 import static nz.co.fortytwo.signalk.artemis.util.Config.INCOMING_RAW;
 import static nz.co.fortytwo.signalk.artemis.util.Config.INTERNAL_KV;
 import static nz.co.fortytwo.signalk.artemis.util.Config.OUTGOING_REPLY;
-import static nz.co.fortytwo.signalk.artemis.util.Config.SK_SEND_TO_ALL;
 import static nz.co.fortytwo.signalk.artemis.util.Config.getConfigProperty;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self_str;
@@ -22,9 +19,6 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.version;
 
 import java.util.NavigableMap;
-import java.util.concurrent.ConcurrentSkipListMap;
-
-import javax.ws.rs.core.MediaType;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.Message;
@@ -33,12 +27,10 @@ import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
 import org.apache.activemq.artemis.api.core.client.ClientSession;
-import org.apache.activemq.artemis.core.message.impl.CoreMessage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
-import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
@@ -121,10 +113,9 @@ public class MessageSupport {
 		if (token != null)
 			txMsg.putStringProperty(AMQ_USER_TOKEN, token);
 		txMsg.putStringProperty(AMQ_SUB_DESTINATION, destination);
-		txMsg.putBooleanProperty(SK_SEND_TO_ALL, false);
+		
 		txMsg.putStringProperty(SignalKConstants.FORMAT, format);
 		txMsg.putBooleanProperty(SignalKConstants.REPLY, true);
-		txMsg.putStringProperty(AMQ_CORR_ID, correlation);
 		txMsg.setExpiration(System.currentTimeMillis() + 5000);
 		txMsg.getBodyBuffer().writeString(json.toString());
 		if (logger.isDebugEnabled())

@@ -6,7 +6,9 @@ import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.authenticateUser
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.validateToken;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SK_TOKEN;
 
+import java.io.IOException;
 import java.net.URI;
+import java.util.UUID;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
@@ -19,12 +21,19 @@ import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.activemq.artemis.api.core.ActiveMQException;
+import org.apache.activemq.artemis.api.core.client.ClientMessage;
+import org.apache.activemq.artemis.api.core.client.MessageHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.atmosphere.annotation.Suspend;
 import org.atmosphere.cpr.AtmosphereResource;
+
+import com.sun.jersey.api.uri.UriBuilderImpl;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -32,6 +41,7 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -39,10 +49,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
+import nz.co.fortytwo.signalk.artemis.util.Util;
 
 @Path("/signalk/authenticate")
 @Tag(name = "Authentication API")
-public class LoginService {
+public class LoginService extends BaseApiService{
 
 	private static Logger logger = LogManager.getLogger(LoginService.class);
 	
@@ -54,123 +65,118 @@ public class LoginService {
 	public LoginService() throws Exception{
 		if(logger.isDebugEnabled())logger.debug("LoginService started");
 		scheme = Config.getConfigPropertyBoolean(SECURITY_SSL_ENABLE)?"https":"http";
+		String correlation = java.util.UUID.randomUUID().toString();
+		initSession(correlation);
 	}
 
+	@Override
+	protected void initSession(String tempQ) throws Exception {
+		try{
+			super.initSession(tempQ);
+			MessageHandler handler = new MessageHandler() {
+
+				@Override
+				public void onMessage(ClientMessage message) {
+					String requestUri = resource.getRequest().getRequestURL().toString();
+					URI uri = UriBuilderImpl.fromUri(requestUri)
+							.scheme(scheme)
+							.replacePath("/login.html")
+							.replaceQuery(null).build();
+					try {
+						if (logger.isDebugEnabled())
+							logger.debug("onMessage for client from {} : {}", requestUri, message);
+						String recv = Util.readBodyBufferToString(message);
+						message.acknowledge();
+						
+						if (StringUtils.isBlank(recv))
+							recv = "{}";
+
+						if (logger.isDebugEnabled())
+							logger.debug("onMessage for client at {}, {}", getTempQ(), recv);
+						
+						
+						String target = resource.getRequest().getParameter("target");
+						
+						
+						Json tokenJson =  Json.read(recv);
+						if(tokenJson.at("result").asInteger()>399) {
+							resource.getResponse().sendRedirect(uri.toASCIIString());
+						}
+						String token = tokenJson.at("login").at("token").asString();
+						
+						resource.getRequest().localAttributes().put(SignalKConstants.JWT_TOKEN, token);
+						javax.servlet.http.Cookie c = new javax.servlet.http.Cookie(AUTH_COOKIE_NAME,token);
+						c.setMaxAge(3600);
+						c.setHttpOnly(false);
+						c.setPath("/");
+						
+						resource.getResponse().addCookie(c);
+						
+						//login valid, redirect to initial page if we have a target.
+						if(StringUtils.isNotBlank(target) && !StringUtils.equals("undefined", target)) {
+							uri = UriBuilderImpl.fromUri(requestUri)
+									.scheme(scheme)
+									.replacePath(target)
+									.replaceQuery(null).build();
+							if(logger.isDebugEnabled())logger.debug("Authenticated, redirect to {}", uri.toASCIIString());
+							resource.getResponse().setHeader("Location", resource.getResponse().encodeRedirectUrl(uri.toASCIIString()));
+							resource.getResponse().setStatus(Status.SEE_OTHER.getStatusCode());
+							resource.resume();
+						}else {
+							resource.getResponse().setStatus(Status.OK.getStatusCode());
+							resource.write(recv);
+							resource.resume();
+						}
+								
+					} catch (Exception e) {
+						//failed try again
+						logger.error(e,e);
+						if(logger.isDebugEnabled())logger.debug("Unauthenticated, redirect to {}", uri.toASCIIString());
+						
+						resource.getResponse().setHeader("Location", resource.getResponse().encodeRedirectUrl(uri.toASCIIString()));
+						resource.getResponse().setStatus(Status.SEE_OTHER.getStatusCode());
+						resource.resume();
+						
+					}
+				}
+			};
+			super.setConsumer(resource, true, handler);
+			//addWebsocketCloseListener(resource);
+		}catch(Exception e){
+			logger.error(e,e);
+			throw e;
+		}
+	}
+	
 	//@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@POST
+	@Suspend()
 	@Operation( hidden=true, summary= "Login with redirect to target,return token as Cookie")
-	public Response authenticate( 
+	public String authenticate( 
 			@Context UriInfo uriInfo, 
 			@FormParam("username") String username, 
 			@FormParam("password") String password, 
 			@FormParam("target") String target) throws Exception {
 		
 		if(logger.isDebugEnabled())logger.debug("Authentication request, {}", uriInfo.getRequestUri());
-		//no auth, return unauthorised
-		if( StringUtils.isBlank(username)||StringUtils.isBlank(password)) {
-			URI uri = uriInfo.getRequestUriBuilder().scheme(scheme).replacePath("/login.html").replaceQuery(null).build();
+
 			
-			return Response.temporaryRedirect(uri)
-					.build();
-		}
 		// Validate the Authorization header	
 		logger.debug("username: {}",username);
 			
-		try {
-			String token = authenticateUser(username, password);
-			resource.getRequest().localAttributes().put(SignalKConstants.JWT_TOKEN, token);
-			NewCookie c = new NewCookie(AUTH_COOKIE_NAME,token,"/","","",3600,false);
+		Json loginJson = Json.object("requestId", UUID.randomUUID().toString(), 
+									"login",Json.object(
+											"username", username, 
+											"password", password));
+		sendMessage(getTempQ(), loginJson.toString(), loginJson.at("requestId").asString(), (String) null);
+
+		return "";	
 			
-			//login valid, redirect to initial page if we have a target.
-			if(StringUtils.isNotBlank(target)) {
-				URI uri = uriInfo.getRequestUriBuilder().scheme(scheme).replacePath(target).replaceQuery(null).build();
-				
-				if(logger.isDebugEnabled())logger.debug("Authenticated, redirect to {}", uri.toString());
-				
-				return Response.seeOther(uri)
-						.cookie(c)
-						.build();
-			}
-			return Response.ok()
-					.cookie(c)
-					.build();
-		} catch (Exception e) {
-			//failed try again
-			logger.error(e,e);
-			URI uri = uriInfo.getRequestUriBuilder().scheme(scheme).replacePath("/login.html").replaceQuery(null).build();
-			
-			if(logger.isDebugEnabled())logger.debug("Unauthenticated, redirect to {}", uri.toString());
-			
-			return Response.seeOther(uri)
-					.build();
-		}
 		
 	}
 	
-	
-	@Operation(summary = "Login (json)", description = "Login with username and password as json data, return token as Cookie",
-			requestBody = @RequestBody( 
-					content = {@Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED, 
-					
-									examples = @ExampleObject( value = "username",
-										name = "username", summary = "form encoded username&password")),
-								@Content(mediaType = MediaType.APPLICATION_JSON, 
-									examples = @ExampleObject( value = "username",
-										name = "json"))
-						}
-				) )
-	
-	@ApiResponses( value = {
-			@ApiResponse(responseCode = "200", description = "OK", headers = @Header(name="Set-Cookie",description  = "The new cookie is returned.")),
-			@ApiResponse(responseCode = "500", description = "Internal server error"),
-		    @ApiResponse(responseCode = "401", description = "Unauthorized"),
-		    @ApiResponse(responseCode = "501", description = "Not Implemented")
-		})
-	@Consumes(MediaType.APPLICATION_JSON)
-	@POST
-	@Path("login")
-	public Response loginJson( 
-			@Context UriInfo uriInfo, 
-			@Parameter(required=true, example = "\"{\\\"username\\\": \\\"test\\\", \\\"password\\\":\\\"test\\\"}\"") String body) {
-		try {
-			//String body = Util.readString(req.getInputStream(),req.getCharacterEncoding());
-			if (logger.isDebugEnabled())
-				logger.debug("Post: {}" , body);
-			Json json = Json.read(body);
-			String username = json.at("username").asString();
-			String password = json.at("password").asString();
-			
-			return authenticate(uriInfo, username, password, null);
-		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
-			return Response.serverError().build();
-		}
-		
-		
-	}
-	
-	
-	@Operation( summary = "Login (url-encoded)", description = "Login with username and password with form-encoded data, return token as Cookie")
-	
-	@ApiResponses( value = {
-			@ApiResponse(responseCode = "200", description = "OK", headers = @Header(name="Set-Cookie",description  = "The new cookie is returned.")),
-			@ApiResponse(responseCode = "500", description = "Internal server error"),
-			@ApiResponse(responseCode = "401", description = "Unauthorized"),
-		    @ApiResponse(responseCode = "501", description = "Not Implemented")
-		})
-	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	@POST
-	@Path("login")
-	public Response login( 
-			@Context UriInfo uriInfo, 
-			@FormParam("username") String username, 
-			@FormParam("password") String password) throws Exception {
-		return authenticate(uriInfo, username, password, null);
-		
-	}
-	
-	
+
 	
 	@GET
 	@Operation(summary = "Logout", description = "Logout, returns an expired token in a Cookie",
