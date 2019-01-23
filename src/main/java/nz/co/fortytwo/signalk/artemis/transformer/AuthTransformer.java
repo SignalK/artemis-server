@@ -1,10 +1,11 @@
 package nz.co.fortytwo.signalk.artemis.transformer;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
-import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_LOGIN;
+import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_AUTH;
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.authenticateUser;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT_DELTA;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.LOGIN;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.LOGOUT;
 
 import java.util.UUID;
 
@@ -17,6 +18,7 @@ import org.apache.logging.log4j.Logger;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.intercept.BaseInterceptor;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 /*
@@ -66,19 +68,37 @@ public class AuthTransformer extends BaseInterceptor implements Transformer {
 
 	@Override
 	public Message transform(Message message) {
-		if (!JSON_LOGIN.equals(message.getStringProperty(AMQ_CONTENT_TYPE)))
+		if (!JSON_AUTH.equals(message.getStringProperty(AMQ_CONTENT_TYPE)))
 			return message;
 		
 		Json node = Util.readBodyBuffer(message.toCore());
+		if (logger.isDebugEnabled())
+			logger.debug("AUTH msg: {}", node.toString());
 		String correlation = message.getStringProperty(Config.AMQ_CORR_ID);
 		String destination = message.getStringProperty(Config.AMQ_REPLY_Q);
 		
-		//auth
+		//auth and validate
 		if (node.has(LOGIN)) {
 			if (logger.isDebugEnabled())
 				logger.debug("LOGIN msg: {}", node.toString());
 				try {
-					Json reply = authenticate(node);
+					Json reply = node.at(LOGIN).has("token")?validate(node):authenticate(node);
+					String token = null;
+					if(reply.has("login")) {
+						token = reply.at("login").at("token").asString();
+					}
+					sendReply(destination,FORMAT_DELTA,correlation,reply, token);
+				} catch (Exception e) {
+					logger.error(e,e);
+				}
+		}
+		
+		//logout
+		if (node.has(LOGOUT)) {
+			if (logger.isDebugEnabled())
+				logger.debug("LOGOUT msg: {}", node.toString());
+				try {
+					Json reply = logout(node);
 					String token = null;
 					if(reply.has("login")) {
 						token = reply.at("login").at("token").asString();
@@ -89,9 +109,7 @@ public class AuthTransformer extends BaseInterceptor implements Transformer {
 				}
 
 		}
-		//validate
 		
-		//logout
 		return message;
 	}
 
@@ -101,50 +119,85 @@ public class AuthTransformer extends BaseInterceptor implements Transformer {
 				|| !authRequest.has("login")
 				|| !authRequest.at("login").has("username") 
 				|| !authRequest.at("login").has("password") ) {
-			return Json.object()
-					.set("requestId", getRequestId(authRequest))
-					.set("state", "FAILED")
-					.set("result", 500)
-					.set("message", "Must have requestId, username and password");
+			return error(getRequestId(authRequest),"FAILED",500,"Must have requestId, username and password");
 		}
-		String requestId = authRequest.at("requestId").asString();
+		String requestId = getRequestId(authRequest);
 		String username = authRequest.at("login").at("username").asString();
 		String password = authRequest.at("login").at("password").asString();
 		if(logger.isDebugEnabled())logger.debug("Authentication request, {} : {}", requestId, username);
 		//no auth, return unauthorised
 		
 		if( StringUtils.isBlank(requestId)||StringUtils.isBlank(username)||StringUtils.isBlank(password)) {
-			return Json.object()
-					.set("requestId", getRequestId(authRequest))
-					.set("state", "FAILED")
-					.set("result", 500)
-					.set("message", "requestId, username or password cannot be blank");
+			return error(getRequestId(authRequest),"FAILED",500,"requestId, username or password cannot be blank");
 		}
 		// Validate the Authorization header			
 		try {
 			String token = authenticateUser(username, password);
 			//create the reply
-			return Json.object()
-					.set("requestId", requestId)
-					.set("state", "COMPLETED")
-					.set("result", 200)
+			return reply(requestId,"COMPLETED",200)
 					.set("login", Json.object("token",token));
 		} catch (Exception e) {
-			return Json.object()
-					.set("requestId", requestId)
-					.set("state", "COMPLETED")
-					.set("result", 401)
-					.set("message", e.getMessage());
+			return error(requestId,"COMPLETED",401,e.getMessage());
 		}
 		
 	}
 
-	private String getRequestId(Json authRequest) {
-		if( authRequest!=null 
-				&& authRequest.has("requestId")) {
-			return authRequest.at("requestId").asString();
+	private Json logout( Json authRequest) throws Exception {
+		if( authRequest==null 
+				|| !authRequest.has("requestId")
+				|| !authRequest.has("logout")
+				|| !authRequest.at("logout").has("token") ) {
+			return error(getRequestId(authRequest),"FAILED",500,"Must have requestId and logout.token");
 		}
-		return UUID.randomUUID().toString();
+		String requestId = getRequestId(authRequest);
+		String token = authRequest.at("logout").at("token").asString();
+		
+		if(logger.isDebugEnabled())logger.debug("Logout request, {} : {}", requestId, token);
+		//no auth, return unauthorised
+		
+		if( StringUtils.isBlank(requestId)||StringUtils.isBlank(token)) {
+			return error(getRequestId(authRequest),"FAILED",500,"requestId, logout.token cannot be blank");
+		}
+		// Invalidate the Authorization header			
+		try {
+			SecurityUtils.invalidateToken(token);
+			//create the reply
+			return reply(requestId,"COMPLETED",200)
+					.set("login", Json.object("token",token));
+		} catch (Exception e) {
+			return error(requestId,"COMPLETED",401,e.getMessage());
+		}
+		
 	}
+	
+	private Json validate( Json authRequest) throws Exception {
+		if( authRequest==null 
+				|| !authRequest.has("requestId")
+				|| !authRequest.has("login")
+				|| !authRequest.at("login").has("token") ) {
+			return error(getRequestId(authRequest),"FAILED",500,"Must have requestId and login.token");
+		}
+		String requestId = getRequestId(authRequest);
+		String token = authRequest.at("login").at("token").asString();
+		
+		if(logger.isDebugEnabled())logger.debug("Validate request, {} : {}", requestId, token);
+		//no auth, return unauthorised
+		
+		if( StringUtils.isBlank(requestId)||StringUtils.isBlank(token)) {
+			return error(getRequestId(authRequest),"FAILED",500,"requestId, login.token cannot be blank");
+		}
+		// Invalidate the Authorization header			
+		try {
+			SecurityUtils.validateToken(token);
+			//create the reply
+			return reply(requestId,"COMPLETED",200)
+					.set("login", Json.object("token",token));
+		} catch (Exception e) {
+			return error(requestId,"COMPLETED",401,e.getMessage());
+		}
+		
+	}
+
+	
 
 }

@@ -54,8 +54,8 @@ public class BaseInterceptor extends MessageSupport{
 		return Util.isFullFormat(node);
 	}
 	
-	protected boolean isLogin(Json node) {
-		return Util.isLogin(node);
+	protected boolean isAuth(Json node) {
+		return Util.isAuth(node);
 	}
 	
 	protected boolean isN2k(Json node) {
@@ -111,4 +111,5 @@ public class BaseInterceptor extends MessageSupport{
 		}
 		return false;
 	}
+	
 }

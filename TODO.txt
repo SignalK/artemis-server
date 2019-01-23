@@ -2,10 +2,10 @@
 TODO:
     apis:
 		/signalk/v1/access/requests Device access requests
-		/signalk/v1/auth - -Login API 
 		Request Response
 	send date to rpi from browser
 	Add login on main screen
+	Better control of secured url paths
 	more efficient subscriptions
 	srcRef back to source
 	

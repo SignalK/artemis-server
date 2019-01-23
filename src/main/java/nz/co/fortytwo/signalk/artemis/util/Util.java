@@ -542,10 +542,11 @@ public class Util {
 		return false;
 	}
 	
-	public static boolean isLogin(Json node) {
+	public static boolean isAuth(Json node) {
 		if(node==null)return false;
 		// deal with diff format
 		if (node.has(LOGIN) ) return true;
+		if (node.has(LOGOUT) ) return true;
 		return false;
 	}
 	

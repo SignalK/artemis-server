@@ -89,8 +89,8 @@ public class GarbageInterceptor extends BaseInterceptor implements Interceptor {
 				}
 				if (isFullFormat(node))
 					return Config.JSON_FULL;
-				if (isLogin(node))
-					return Config.JSON_LOGIN;
+				if (isAuth(node))
+					return Config.JSON_AUTH;
 				if (isGet(node)) {
 					//if the message has a token, inject into header
 					SecurityUtils.injectTokenFromMessage(message, node);

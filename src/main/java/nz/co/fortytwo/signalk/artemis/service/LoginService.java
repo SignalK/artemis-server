@@ -206,44 +206,4 @@ public class LoginService extends BaseApiService{
 		
 	}
 	
-	@GET
-	@Operation(summary = "Validate", 
-		description = "Validates the token if provided in a cookie, returning the token or an updated replacement (in a cookie). Returns 400 if no cookie is not provided",
-				parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN", required=true))
-	@ApiResponses( value = {
-			@ApiResponse(responseCode = "200", description = "OK", headers = @Header(name="Set-Cookie",description  = "The cookie is renewed and returned.")),
-			@ApiResponse(responseCode = "500", description = "Internal server error"),
-		    @ApiResponse(responseCode = "403", description = "No permission", headers = @Header(name="Set-Cookie",description  = "The cookie is expired and returned.")),
-		    @ApiResponse(responseCode = "400", description = "No token")
-		})
-	@Path("validate")
-	public Response validate(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie) {
-		try {
-			if(cookie==null) {
-				return Response.status(javax.ws.rs.core.Response.Status.BAD_REQUEST).build();
-			}
-			if (logger.isDebugEnabled())
-				logger.debug("Cookie: {}, {}", cookie.getName(), cookie.getValue());
-
-			try {
-				// Validate and update the token
-				return Response.ok()
-						.cookie(new NewCookie(AUTH_COOKIE_NAME, validateToken(cookie.getValue()),"/","","",3600,false))
-						.build();
-			} catch (Exception e) {
-				logger.error(e.getMessage());
-				return Response.status(javax.ws.rs.core.Response.Status.FORBIDDEN)
-						.cookie(new NewCookie(AUTH_COOKIE_NAME, cookie.getValue(),"/","","",1,false))
-						.build();
-
-			}
-			
-		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
-			return Response.serverError().build();
-		}
-		
-		
-	}
-	
 }

@@ -118,7 +118,7 @@
 			<divert name="raw-auth-divert">
 				<address>incoming.raw</address>
 				<forwarding-address>internal.discard</forwarding-address>
-				<filter string="AMQ_content_type='JSON_LOGIN'" />
+				<filter string="AMQ_content_type='JSON_AUTH'" />
 				<transformer-class-name>
 					nz.co.fortytwo.signalk.artemis.transformer.AuthTransformer
 				</transformer-class-name>

@@ -19,6 +19,7 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.version;
 
 import java.util.NavigableMap;
+import java.util.UUID;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.Message;
@@ -235,6 +236,24 @@ public class MessageSupport {
 
 	}
 
+	public String getRequestId(Json authRequest) {
+		if( authRequest!=null 
+				&& authRequest.has("requestId")) {
+			return authRequest.at("requestId").asString();
+		}
+		return UUID.randomUUID().toString();
+	}
+	public Json reply(String requestId, String state, int result) {
+		return Json.object()
+				.set("requestId", requestId)
+				.set("state", state)
+				.set("result", result);
+	}
+	public Json error(String requestId, String state, int result, String message) {
+		return reply(requestId, state, result)
+				.set("message", message);
+	}
+	
 	@Override
 	protected void finalize() throws Throwable {
 		stop();

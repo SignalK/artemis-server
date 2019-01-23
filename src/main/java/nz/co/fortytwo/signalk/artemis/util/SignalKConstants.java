@@ -136,6 +136,7 @@ public class SignalKConstants {
 	public static final String GET = "get";
 	public static final String PUT = "put";
 	public static final String LOGIN = "login";
+	public static final String LOGOUT = "logout";
 	public static final String PATHLIST = "pathlist";
 	//public static final String source = "source";
 	//public static final String DEVICE = "device";
