@@ -150,8 +150,13 @@ public final class SecurityUtils {
 		
 	}
 	
-	public static Json getRoles(String token) throws Exception {
-		return Json.read(Jwts.parser().setSigningKey(key).parseClaimsJws(token).getBody().get(ROLES, String.class));
+	public static Json getRoles(String token) {
+		if(StringUtils.isBlank(token))return Json.read("[\"public\"]");
+		try {
+			return Json.read(Jwts.parser().setSigningKey(key).parseClaimsJws(token).getBody().get(ROLES, String.class));
+		}catch (Exception e) {
+			return Json.read("[\"public\"]");
+		}
 	}
 	
 

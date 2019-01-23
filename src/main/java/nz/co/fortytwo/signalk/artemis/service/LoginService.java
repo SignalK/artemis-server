@@ -101,6 +101,7 @@ public class LoginService extends BaseApiService{
 						Json tokenJson =  Json.read(recv);
 						if(tokenJson.at("result").asInteger()>399) {
 							resource.getResponse().sendRedirect(uri.toASCIIString());
+							return;
 						}
 						String token = tokenJson.at("login").at("token").asString();
 						

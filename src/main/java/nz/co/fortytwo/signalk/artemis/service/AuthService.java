@@ -1,5 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.SECURITY_SSL_ENABLE;
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.AUTH_COOKIE_NAME;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SK_TOKEN;
 
@@ -8,6 +9,7 @@ import java.util.UUID;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -36,6 +38,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
@@ -50,6 +53,9 @@ public class AuthService extends BaseApiService{
 	
 	public AuthService() throws Exception{
 		if(logger.isDebugEnabled())logger.debug("AuthService started");
+		scheme = Config.getConfigPropertyBoolean(SECURITY_SSL_ENABLE)?"https":"http";
+		String correlation = java.util.UUID.randomUUID().toString();
+		initSession(correlation);
 	}
 	
 	@Override
@@ -60,14 +66,11 @@ public class AuthService extends BaseApiService{
 
 				@Override
 				public void onMessage(ClientMessage message) {
-					String requestUri = resource.getRequest().getRequestURL().toString();
-					URI uri = UriBuilderImpl.fromUri(requestUri)
-							.scheme(scheme)
-							.replacePath("/login.html")
-							.replaceQuery(null).build();
+					//String requestUri = resource.getRequest().getRequestURL().toString();
+					String requestId = null;
 					try {
 						if (logger.isDebugEnabled())
-							logger.debug("onMessage for client from {} : {}", requestUri, message);
+							logger.debug("onMessage for client : {}", message);
 						String recv = Util.readBodyBufferToString(message);
 						message.acknowledge();
 						
@@ -77,37 +80,34 @@ public class AuthService extends BaseApiService{
 						if (logger.isDebugEnabled())
 							logger.debug("onMessage for client at {}, {}", getTempQ(), recv);
 						
+						resource.getResponse().write(recv);
+						
 						Json tokenJson =  Json.read(recv);
-						if(tokenJson.at("result").asInteger()>399) {
-							redirect(uri.toASCIIString());
+						requestId = getRequestId(tokenJson);
+						String token = getToken(tokenJson);
+						
+						if(StringUtils.isNotBlank(token)) {
+							javax.servlet.http.Cookie c = new javax.servlet.http.Cookie(AUTH_COOKIE_NAME,token);
+							c.setMaxAge(3600);
+							c.setHttpOnly(false);
+							c.setPath("/");
+							resource.getResponse().addCookie(c);
 						}
-						String token = tokenJson.at("login").at("token").asString();
-						
-						resource.getRequest().localAttributes().put(SignalKConstants.JWT_TOKEN, token);
-						javax.servlet.http.Cookie c = new javax.servlet.http.Cookie(AUTH_COOKIE_NAME,token);
-						c.setMaxAge(3600);
-						c.setHttpOnly(false);
-						c.setPath("/");
-						
-						resource.getResponse().addCookie(c);
 						resource.getResponse().setStatus(Status.OK.getStatusCode());
-						resource.write(recv);
-						resource.resume();
+						
 						
 								
 					} catch (Exception e) {
 						//failed try again
 						logger.error(e,e);
-						if(logger.isDebugEnabled())logger.debug("Unauthenticated, redirect to {}", uri.toASCIIString());
-						redirect(uri.toASCIIString());
+						if(logger.isDebugEnabled())logger.debug("Unauthenticated");
+						Json json = error(requestId, "FAILED", 500, e.getMessage());
+						resource.getResponse().write(json.toString());
+						resource.getResponse().setStatus(Status.OK.getStatusCode());
 					}
-				}
-
-				private void redirect(String uri) {
-					resource.getResponse().setHeader("Location", resource.getResponse().encodeRedirectUrl(uri));
-					resource.getResponse().setStatus(Status.SEE_OTHER.getStatusCode());
 					resource.resume();
 				}
+
 			};
 			super.setConsumer(resource, true, handler);
 			//addWebsocketCloseListener(resource);
@@ -132,9 +132,17 @@ public class AuthService extends BaseApiService{
 	                        		"}")
 	                        )
 	                ),
-			@ApiResponse(responseCode = "500", description = "Internal server error"),
-		    @ApiResponse(responseCode = "401", 
-		    	description = "Unauthorized",
+			@ApiResponse(responseCode = "500", description = "Internal server error",
+					content = @Content(
+			            mediaType = "application/json",
+			            schema = @Schema(example = "{\n" + 
+			            		"  \"requestId\": \"1234-45653-343454\",\n" + 
+			            		"  \"state\": \"COMPLETED\",\n" + 
+			            		"  \"result\": 401\n" + 
+			            		"}")
+			            )
+				),
+		    @ApiResponse(responseCode = "401", description = "Unauthorized",
 		    	content = @Content(
                         mediaType = "application/json",
                         schema = @Schema(example = "{\n" + 
@@ -144,8 +152,26 @@ public class AuthService extends BaseApiService{
                         		"}")
                         )
                 ),
-		    @ApiResponse(responseCode = "501", description = "Not Implemented")
-		})
+		    @ApiResponse(responseCode = "403", description = "No permission", 
+					content = @Content(
+		                    mediaType = "application/json",
+		                    schema = @Schema(example = "{\n" + 
+		                    		"  \"requestId\": \"1234-45653-343454\",\n" + 
+		                    		"  \"state\": \"COMPLETED\",\n" + 
+		                    		"  \"result\": 403,\n" + 
+		                    		"}")
+                    )),
+		    @ApiResponse(responseCode = "400", description = "No username or password", 
+			content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(example = "{\n" + 
+                    		"  \"requestId\": \"1234-45653-343454\",\n" + 
+                    		"  \"state\": \"COMPLETED\",\n" + 
+                    		"  \"result\": 400,\n" + 
+                    		"}")
+                    ))
+			})
+		
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
 	@POST
@@ -178,7 +204,7 @@ public class AuthService extends BaseApiService{
 	
 	@PUT
 	@Operation(summary = "Logout", description = "Logout, invalidates and expires the token",
-			parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN", required=true))
+			parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN", required=true, allowEmptyValue=true, description="You must have a real cookie, swagger cant create one for you. Use login"))
 	@ApiResponses( value = {
 			@ApiResponse(responseCode = "200", description = "OK", 
 					content = @Content(
@@ -191,16 +217,36 @@ public class AuthService extends BaseApiService{
 	                        )
 	                ),
 			@ApiResponse(responseCode = "500", description = "Internal server error"),
-		    @ApiResponse(responseCode = "501", description = "Not Implemented"),
-		    @ApiResponse(responseCode = "400", description = "No token")
-	})
+		    @ApiResponse(responseCode = "403", description = "No permission", 
+			content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(example = "{\n" + 
+                    		"  \"requestId\": \"1234-45653-343454\",\n" + 
+                    		"  \"state\": \"COMPLETED\",\n" + 
+                    		"  \"result\": 403,\n" + 
+                    		"}")
+                    )),
+		    @ApiResponse(responseCode = "400", description = "No token", 
+			content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(example = "{\n" + 
+                    		"  \"requestId\": \"1234-45653-343454\",\n" + 
+                    		"  \"state\": \"COMPLETED\",\n" + 
+                    		"  \"result\": 400,\n" + 
+                    		"}")
+                    ))
+			})
+	
 	@Path("logout")
 	@Produces(MediaType.APPLICATION_JSON)
+	@Suspend()
 	public String logout(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie) {
-		if (logger.isDebugEnabled())
-			logger.debug("PUT token: {}" , cookie.getValue());
+		
 		String requestId = UUID.randomUUID().toString();
 		try {
+			if(cookie==null || StringUtils.isBlank(cookie.getValue())) {
+				return error(requestId,"COMPLETED",400,"No token").toString();
+			}
 			Json json = Json.object("requestId", requestId,
 					"logout",Json.object("token",cookie.getValue()));
 			
@@ -216,9 +262,10 @@ public class AuthService extends BaseApiService{
 		
 	}
 	
-	@POST
+	@GET
 	@Operation(summary = "Validate", 
-		description = "Validates the token, returning the token or an updated replacement.")
+		description = "Validates the token, returning the token or an updated replacement.",
+				parameters = @Parameter(in = ParameterIn.COOKIE, name = "SK-TOKEN", required=true, allowEmptyValue=true, description = "You must have a real cookie, swagger cant create one for you. Use login"))
 	@ApiResponses( value = {
 			@ApiResponse(responseCode = "200", description = "OK" , 
 					content = @Content(
@@ -236,7 +283,7 @@ public class AuthService extends BaseApiService{
 	                        mediaType = "application/json",
 	                        schema = @Schema(example = "{\n" + 
 	                        		"  \"requestId\": \"1234-45653-343454\",\n" + 
-	                        		"  \"state\": \"FAILED\",\n" + 
+	                        		"  \"state\": \"COMPLETED\",\n" + 
 	                        		"  \"result\": 403,\n" + 
 	                        		"}")
 	                        )),
@@ -245,7 +292,7 @@ public class AuthService extends BaseApiService{
 	                        mediaType = "application/json",
 	                        schema = @Schema(example = "{\n" + 
 	                        		"  \"requestId\": \"1234-45653-343454\",\n" + 
-	                        		"  \"state\": \"FAILED\",\n" + 
+	                        		"  \"state\": \"COMPLETED\",\n" + 
 	                        		"  \"result\": 400,\n" + 
 	                        		"}")
 	                        ))
@@ -253,10 +300,14 @@ public class AuthService extends BaseApiService{
 			
 	@Path("validate")
 	@Produces(MediaType.APPLICATION_JSON)
+	@Suspend()
 	public String validate(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie) {
 		String requestId = UUID.randomUUID().toString();
 	
 		try {
+			if(cookie==null || StringUtils.isBlank(cookie.getValue())) {
+				return error(requestId,"COMPLETED",400,"No token").toString();
+			}
 			Json json = Json.object("requestId", requestId,
 					"login",Json.object("token",cookie.getValue()));
 			

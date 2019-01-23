@@ -236,12 +236,27 @@ public class MessageSupport {
 
 	}
 
+	public String getToken(Json authRequest) {
+		if( authRequest!=null 
+				&& authRequest.has("login")
+				&& authRequest.at("login").has("token")) {
+			return authRequest.at("login").at("token").asString();
+		}
+		return null;
+	}
 	public String getRequestId(Json authRequest) {
 		if( authRequest!=null 
 				&& authRequest.has("requestId")) {
 			return authRequest.at("requestId").asString();
 		}
 		return UUID.randomUUID().toString();
+	}
+	public int getResultCode(Json authRequest) {
+		if( authRequest!=null 
+				&& authRequest.has("result")) {
+			return authRequest.at("result").asInteger();
+		}
+		return 500;
 	}
 	public Json reply(String requestId, String state, int result) {
 		return Json.object()

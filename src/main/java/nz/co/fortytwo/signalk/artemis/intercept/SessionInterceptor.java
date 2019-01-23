@@ -66,13 +66,8 @@ public class SessionInterceptor extends BaseInterceptor implements Interceptor {
 				}
 			//should not have roles here
 			msg.removeProperty(Config.AMQ_USER_ROLES);
-			try {
-				Json roles = StringUtils.isBlank(msg.getStringProperty(Config.AMQ_USER_TOKEN))?Json.read("[\"public\"]")
-						:SecurityUtils.getRoles(msg.getStringProperty(Config.AMQ_USER_TOKEN));
-				msg.putStringProperty(Config.AMQ_USER_ROLES, roles.toString());
-			} catch (Exception e) {
-				logger.error(e,e);
-			}
+			msg.putStringProperty(Config.AMQ_USER_ROLES, SecurityUtils.getRoles(msg.getStringProperty(Config.AMQ_USER_TOKEN)).toString());
+		
 
 		} else {
 			if (logger.isDebugEnabled())

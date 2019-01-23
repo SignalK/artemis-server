@@ -100,8 +100,8 @@ public class AuthTransformer extends BaseInterceptor implements Transformer {
 				try {
 					Json reply = logout(node);
 					String token = null;
-					if(reply.has("login")) {
-						token = reply.at("login").at("token").asString();
+					if(reply.has("logout")) {
+						token = reply.at("logout").at("token").asString();
 					}
 					sendReply(destination,FORMAT_DELTA,correlation,reply, token);
 				} catch (Exception e) {
@@ -128,7 +128,7 @@ public class AuthTransformer extends BaseInterceptor implements Transformer {
 		//no auth, return unauthorised
 		
 		if( StringUtils.isBlank(requestId)||StringUtils.isBlank(username)||StringUtils.isBlank(password)) {
-			return error(getRequestId(authRequest),"FAILED",500,"requestId, username or password cannot be blank");
+			return error(getRequestId(authRequest),"COMPLETED",400,"requestId, username or password cannot be blank");
 		}
 		// Validate the Authorization header			
 		try {
@@ -147,7 +147,7 @@ public class AuthTransformer extends BaseInterceptor implements Transformer {
 				|| !authRequest.has("requestId")
 				|| !authRequest.has("logout")
 				|| !authRequest.at("logout").has("token") ) {
-			return error(getRequestId(authRequest),"FAILED",500,"Must have requestId and logout.token");
+			return error(getRequestId(authRequest),"COMPLETED",400,"Must have requestId and logout.token");
 		}
 		String requestId = getRequestId(authRequest);
 		String token = authRequest.at("logout").at("token").asString();
@@ -156,14 +156,14 @@ public class AuthTransformer extends BaseInterceptor implements Transformer {
 		//no auth, return unauthorised
 		
 		if( StringUtils.isBlank(requestId)||StringUtils.isBlank(token)) {
-			return error(getRequestId(authRequest),"FAILED",500,"requestId, logout.token cannot be blank");
+			return error(getRequestId(authRequest),"COMPLETED",400,"requestId, logout.token cannot be blank");
 		}
 		// Invalidate the Authorization header			
 		try {
 			SecurityUtils.invalidateToken(token);
 			//create the reply
 			return reply(requestId,"COMPLETED",200)
-					.set("login", Json.object("token",token));
+					.set("logout", Json.object("token",token));
 		} catch (Exception e) {
 			return error(requestId,"COMPLETED",401,e.getMessage());
 		}
@@ -175,7 +175,7 @@ public class AuthTransformer extends BaseInterceptor implements Transformer {
 				|| !authRequest.has("requestId")
 				|| !authRequest.has("login")
 				|| !authRequest.at("login").has("token") ) {
-			return error(getRequestId(authRequest),"FAILED",500,"Must have requestId and login.token");
+			return error(getRequestId(authRequest),"COMPLETED",400,"Must have requestId and login.token");
 		}
 		String requestId = getRequestId(authRequest);
 		String token = authRequest.at("login").at("token").asString();
@@ -184,7 +184,7 @@ public class AuthTransformer extends BaseInterceptor implements Transformer {
 		//no auth, return unauthorised
 		
 		if( StringUtils.isBlank(requestId)||StringUtils.isBlank(token)) {
-			return error(getRequestId(authRequest),"FAILED",500,"requestId, login.token cannot be blank");
+			return error(getRequestId(authRequest),"COMPLETED",400,"requestId, login.token cannot be blank");
 		}
 		// Invalidate the Authorization header			
 		try {
