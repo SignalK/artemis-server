@@ -138,7 +138,7 @@ public class AuthService extends BaseApiService{
 			            schema = @Schema(example = "{\n" + 
 			            		"  \"requestId\": \"1234-45653-343454\",\n" + 
 			            		"  \"state\": \"COMPLETED\",\n" + 
-			            		"  \"result\": 401\n" + 
+			            		"  \"result\": 500\n" + 
 			            		"}")
 			            )
 				),
@@ -216,7 +216,16 @@ public class AuthService extends BaseApiService{
 	                        		"}")
 	                        )
 	                ),
-			@ApiResponse(responseCode = "500", description = "Internal server error"),
+			@ApiResponse(responseCode = "500", description = "Internal server error",
+			content = @Content(
+	            mediaType = "application/json",
+	            schema = @Schema(example = "{\n" + 
+	            		"  \"requestId\": \"1234-45653-343454\",\n" + 
+	            		"  \"state\": \"COMPLETED\",\n" + 
+	            		"  \"result\": 500\n" + 
+	            		"}")
+	            )
+		    ),
 		    @ApiResponse(responseCode = "403", description = "No permission", 
 			content = @Content(
                     mediaType = "application/json",
@@ -277,7 +286,16 @@ public class AuthService extends BaseApiService{
 	                        		"  \"token\": \"eyJhbGciOiJIUzI1NiIsI...ibtv41fOnJObT4RdOyZ_UI9is8\"\n" + 
 	                        		"}")
 	                        )),
-			@ApiResponse(responseCode = "500", description = "Internal server error"),
+			@ApiResponse(responseCode = "500", description = "Internal server error",
+			content = @Content(
+	            mediaType = "application/json",
+	            schema = @Schema(example = "{\n" + 
+	            		"  \"requestId\": \"1234-45653-343454\",\n" + 
+	            		"  \"state\": \"COMPLETED\",\n" + 
+	            		"  \"result\": 500\n" + 
+	            		"}")
+	            )
+			),
 		    @ApiResponse(responseCode = "403", description = "No permission", 
 					content = @Content(
 	                        mediaType = "application/json",
