@@ -80,11 +80,11 @@ public class AuthService extends BaseApiService{
 						if (logger.isDebugEnabled())
 							logger.debug("onMessage for client at {}, {}", getTempQ(), recv);
 						
-						resource.getResponse().write(recv);
-						
 						Json tokenJson =  Json.read(recv);
 						requestId = getRequestId(tokenJson);
 						String token = getToken(tokenJson);
+						
+						resource.getResponse().write(getLogin(tokenJson));
 						
 						if(StringUtils.isNotBlank(token)) {
 							javax.servlet.http.Cookie c = new javax.servlet.http.Cookie(AUTH_COOKIE_NAME,token);
@@ -142,6 +142,16 @@ public class AuthService extends BaseApiService{
 			            		"}")
 			            )
 				),
+			@ApiResponse(responseCode = "501", description = "Not implemented",
+			content = @Content(
+	            mediaType = "application/json",
+	            schema = @Schema(example = "{\n" + 
+	            		"  \"requestId\": \"1234-45653-343454\",\n" + 
+	            		"  \"state\": \"COMPLETED\",\n" + 
+	            		"  \"result\": 501\n" + 
+	            		"}")
+	            )
+		    ),
 		    @ApiResponse(responseCode = "401", description = "Unauthorized",
 		    	content = @Content(
                         mediaType = "application/json",
@@ -337,6 +347,14 @@ public class AuthService extends BaseApiService{
 			return error(requestId,"FAILED",500,e.getMessage()).toString();
 		}
 		
+	}
+	
+	private String getLogin(Json authRequest) {
+		if( authRequest!=null 
+				&& authRequest.has("login")) {
+			return authRequest.at("login").asString();
+		}
+		return null;
 	}
 	
 }

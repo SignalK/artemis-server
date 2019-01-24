@@ -160,8 +160,8 @@ public class AuthTransformerTest extends BaseServerTest{
 		Json reply = sendBody(body);
 		logger.debug(reply);
 		//assertEquals(uuid,reply.at("requestId").asString());
-		assertEquals("FAILED",reply.at("state").asString());
-		assertEquals(500,reply.at("result").asInteger());
+		assertEquals("COMPLETED",reply.at("state").asString());
+		assertEquals(400,reply.at("result").asInteger());
 		assertTrue(!reply.has("login"));
 	}
 
@@ -178,8 +178,8 @@ public class AuthTransformerTest extends BaseServerTest{
 		Json reply = sendBody(body);
 		logger.debug(reply);
 		//assertEquals(uuid,reply.at("requestId").asString());
-		assertEquals("FAILED",reply.at("state").asString());
-		assertEquals(500,reply.at("result").asInteger());
+		assertEquals("COMPLETED",reply.at("state").asString());
+		assertEquals(400,reply.at("result").asInteger());
 		assertTrue(!reply.has("login"));
 	}
 	@Test
@@ -195,8 +195,8 @@ public class AuthTransformerTest extends BaseServerTest{
 		Json reply = sendBody(body);
 		logger.debug(reply);
 		//assertEquals(uuid,reply.at("requestId").asString());
-		assertEquals("FAILED",reply.at("state").asString());
-		assertEquals(500,reply.at("result").asInteger());
+		assertEquals("COMPLETED",reply.at("state").asString());
+		assertEquals(400,reply.at("result").asInteger());
 		assertTrue(!reply.has("login"));
 	}
 	@Test
@@ -215,14 +215,16 @@ public class AuthTransformerTest extends BaseServerTest{
 		uuid = UUID.randomUUID().toString();
 		body = "{\n" + 
 				"  \"requestId\": \""+uuid+"\",\n" + 
-				"  \"token\": \""+token+"\"\n" +  
+				"  \"logout\": {\n" +
+				"    \"token\": \""+token+"\"\n" + 
+				"  }\n" + 
 				"}";
 		reply = sendBody(body);
 		logger.debug(reply);
 		assertEquals(uuid,reply.at("requestId").asString());
 		assertEquals("COMPLETED",reply.at("state").asString());
 		assertEquals(200,reply.at("result").asInteger());
-		assertTrue(!reply.has("login"));
+		assertTrue(reply.at("logout").has("token"));
 	}
 	@Test
 	public void shouldBeValidated() throws Exception {
@@ -240,14 +242,16 @@ public class AuthTransformerTest extends BaseServerTest{
 		uuid = UUID.randomUUID().toString();
 		body = "{\n" + 
 				"  \"requestId\": \""+uuid+"\",\n" + 
-				"  \"token\": \""+token+"\"\n" +  
+				"  \"login\": {\n" + 
+				"    \"token\": \""+token+"\"\n" +  
+				"  }\n" + 
 				"}";
 		reply = sendBody(body);
 		logger.debug(reply);
 		assertEquals(uuid,reply.at("requestId").asString());
 		assertEquals("COMPLETED",reply.at("state").asString());
 		assertEquals(200,reply.at("result").asInteger());
-		assertTrue(reply.has("token"));
+		assertTrue(reply.at("login").has("token"));
 	}
 	
 	@Test
@@ -255,15 +259,17 @@ public class AuthTransformerTest extends BaseServerTest{
 		String uuid = UUID.randomUUID().toString();
 		String body = "{\n" + 
 				"  \"requestId\": \""+uuid+"\",\n" + 
-				"  \"token\": \"eyJhbGciOiJIUzUxMiJ9.eyJyb2xlcyI6IltcInNraXBwZXJcIl0iLCJpYXQiOjE1NDY1NTA5OTYsImV4cCI6MTU0NjYzNzM5Nn0.w0bkfYhCJLwMyCBKiWFLbXTuu6VFaS_BxBPBjgBS-9aPMv22fOI5GzzG3jK7rbW43_4KvjrfLZ6RAibiDnB2ug\"\n" +  
-				"}";
+				"  \"login\": {\n" +
+				"    \"token\": \"eyJhbGciOiJIUzUxMiJ9.eyJyb2xlcyI6IltcInNraXBwZXJcIl0iLCJpYXQiOjE1NDY1NTA5OTYsImV4cCI6MTU0NjYzNzM5Nn0.w0bkfYhCJLwMyCBKiWFLbXTuu6VFaS_BxBPBjgBS-9aPMv22fOI5GzzG3jK7rbW43_4KvjrfLZ6RAibiDnB2ug\"\n" +  
+				"  }\n" 
+				+"}";
 		Json reply = sendBody(body);
 		reply = sendBody(body);
 		logger.debug(reply);
 		//assertEquals(uuid,reply.at("requestId").asString());
-		assertEquals("FAILED",reply.at("state").asString());
-		assertEquals(403,reply.at("result").asInteger());
-		assertTrue(!reply.has("token"));
+		assertEquals("COMPLETED",reply.at("state").asString());
+		assertEquals(401,reply.at("result").asInteger());
+		assertTrue(!reply.has("login"));
 	}
 
 }

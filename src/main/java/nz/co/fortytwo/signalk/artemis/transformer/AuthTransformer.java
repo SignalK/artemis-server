@@ -83,11 +83,7 @@ public class AuthTransformer extends BaseInterceptor implements Transformer {
 				logger.debug("LOGIN msg: {}", node.toString());
 				try {
 					Json reply = node.at(LOGIN).has("token")?validate(node):authenticate(node);
-					String token = null;
-					if(reply.has("login")) {
-						token = reply.at("login").at("token").asString();
-					}
-					sendReply(destination,FORMAT_DELTA,correlation,reply, token);
+					sendReply(destination,FORMAT_DELTA,correlation,reply, getToken(reply));
 				} catch (Exception e) {
 					logger.error(e,e);
 				}
@@ -99,11 +95,8 @@ public class AuthTransformer extends BaseInterceptor implements Transformer {
 				logger.debug("LOGOUT msg: {}", node.toString());
 				try {
 					Json reply = logout(node);
-					String token = null;
-					if(reply.has("logout")) {
-						token = reply.at("logout").at("token").asString();
-					}
-					sendReply(destination,FORMAT_DELTA,correlation,reply, token);
+					
+					sendReply(destination,FORMAT_DELTA,correlation,reply, getToken(reply));
 				} catch (Exception e) {
 					logger.error(e,e);
 				}
@@ -135,7 +128,7 @@ public class AuthTransformer extends BaseInterceptor implements Transformer {
 			String token = authenticateUser(username, password);
 			//create the reply
 			return reply(requestId,"COMPLETED",200)
-					.set("login", Json.object("token",token));
+					.set("login", Json.object("token",token, "type", "JWT"));
 		} catch (Exception e) {
 			return error(requestId,"COMPLETED",401,e.getMessage());
 		}

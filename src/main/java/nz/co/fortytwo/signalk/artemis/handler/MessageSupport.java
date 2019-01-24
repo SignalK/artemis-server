@@ -74,7 +74,7 @@ public class MessageSupport {
 	}
 
 	protected void sendJson(Message message, String key, Json json) throws ActiveMQException {
-		if (!json.isNull()&&!json.has(timestamp)) {
+		if (!json.isNull() && !json.has(timestamp)) {
 			json.set(timestamp, Util.getIsoTimeString());
 		}
 		if (logger.isDebugEnabled())
@@ -83,7 +83,6 @@ public class MessageSupport {
 		sendKvMessage(message, key, json);
 
 	}
-
 
 	public void sendKvMap(Message message, NavigableMap<String, Json> map) {
 		// remove "self" and "version"
@@ -114,18 +113,19 @@ public class MessageSupport {
 		if (token != null)
 			txMsg.putStringProperty(AMQ_USER_TOKEN, token);
 		txMsg.putStringProperty(AMQ_SUB_DESTINATION, destination);
-		
+
 		txMsg.putStringProperty(SignalKConstants.FORMAT, format);
 		txMsg.putBooleanProperty(SignalKConstants.REPLY, true);
 		txMsg.setExpiration(System.currentTimeMillis() + 5000);
 		txMsg.getBodyBuffer().writeString(json.toString());
 		if (logger.isDebugEnabled())
-			logger.debug("Destination: {}, Msg body = {}", OUTGOING_REPLY+dot +destination, json.toString());
-		getProducer().send(OUTGOING_REPLY+dot + destination, txMsg);
+			logger.debug("Destination: {}, Msg body = {}", OUTGOING_REPLY + dot + destination, json.toString());
+		getProducer().send(OUTGOING_REPLY + dot + destination, txMsg);
 
 	}
 
-	protected String sendMessage(String queue, String body, String correlation, String jwtToken) throws ActiveMQException {
+	protected String sendMessage(String queue, String body, String correlation, String jwtToken)
+			throws ActiveMQException {
 		if (logger.isDebugEnabled())
 			logger.debug("Incoming msg: {}, {}", correlation, body);
 		ClientMessage message = null;
@@ -143,10 +143,10 @@ public class MessageSupport {
 		send(new SimpleString(INCOMING_RAW), message);
 		return correlation;
 	}
-	
+
 	private void send(SimpleString queue, ClientMessage message) throws ActiveMQException {
 		getProducer().send(queue, message);
-	
+
 	}
 
 	protected void sendRawMessage(Message origMessage, String body) throws ActiveMQException {
@@ -164,7 +164,7 @@ public class MessageSupport {
 
 	}
 
-	public void sendKvMessage(Message origMessage, String  k, Json j) throws ActiveMQException {
+	public void sendKvMessage(Message origMessage, String k, Json j) throws ActiveMQException {
 		ClientMessage txMsg = getTxSession().createMessage(false);
 		txMsg.copyHeadersAndProperties(origMessage);
 		txMsg.putStringProperty(AMQ_INFLUX_KEY, k);
@@ -217,7 +217,7 @@ public class MessageSupport {
 
 	public void stop() {
 
-		if (producer!=null && producer.get() != null) {
+		if (producer != null && producer.get() != null) {
 			try {
 				producer.get().close();
 				producer.remove();
@@ -225,7 +225,7 @@ public class MessageSupport {
 				logger.error(e, e);
 			}
 		}
-		if (txSession!=null && txSession.get() != null) {
+		if (txSession != null && txSession.get() != null) {
 			try {
 				txSession.get().close();
 				txSession.remove();
@@ -237,38 +237,39 @@ public class MessageSupport {
 	}
 
 	public String getToken(Json authRequest) {
-		if( authRequest!=null 
-				&& authRequest.has("login")
-				&& authRequest.at("login").has("token")) {
-			return authRequest.at("login").at("token").asString();
+		if (authRequest != null) {
+			if (authRequest.has("login") && authRequest.at("login").has("token")) {
+				return authRequest.at("login").at("token").asString();
+			}
+			if (authRequest.has("logout") && authRequest.at("logout").has("token")) {
+				return authRequest.at("logout").at("token").asString();
+			}
 		}
 		return null;
 	}
+
 	public String getRequestId(Json authRequest) {
-		if( authRequest!=null 
-				&& authRequest.has("requestId")) {
+		if (authRequest != null && authRequest.has("requestId")) {
 			return authRequest.at("requestId").asString();
 		}
 		return UUID.randomUUID().toString();
 	}
+
 	public int getResultCode(Json authRequest) {
-		if( authRequest!=null 
-				&& authRequest.has("result")) {
+		if (authRequest != null && authRequest.has("result")) {
 			return authRequest.at("result").asInteger();
 		}
 		return 500;
 	}
+
 	public Json reply(String requestId, String state, int result) {
-		return Json.object()
-				.set("requestId", requestId)
-				.set("state", state)
-				.set("result", result);
+		return Json.object().set("requestId", requestId).set("state", state).set("result", result);
 	}
+
 	public Json error(String requestId, String state, int result, String message) {
-		return reply(requestId, state, result)
-				.set("message", message);
+		return reply(requestId, state, result).set("message", message);
 	}
-	
+
 	@Override
 	protected void finalize() throws Throwable {
 		stop();
