@@ -235,6 +235,7 @@ public final class ArtemisServer {
 		if (Config.getConfigPropertyBoolean(ENABLE_SERIAL)) {
 			// start a serial port manager
 			if (serialPortManager == null) {
+				logger.info("Starting serial port manager");
 				serialPortManager = new SerialPortManager();
 				scheduler.scheduleAtFixedRate(serialPortManager, 0, 30, TimeUnit.SECONDS);
 			}

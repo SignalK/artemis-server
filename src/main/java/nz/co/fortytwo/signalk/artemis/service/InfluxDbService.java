@@ -836,6 +836,8 @@ public class InfluxDbService implements TDBService {
 				value=((Json)jsonValue).asString();
 			}else if(((Json)jsonValue).isArray()){
 				value=((Json)jsonValue).toString();
+			}else if(((Json)jsonValue).isObject()){
+					value=((Json)jsonValue).toString();
 			}else{
 				value=((Json)jsonValue).getValue();
 			}
@@ -864,6 +866,7 @@ public class InfluxDbService implements TDBService {
 		if(value instanceof Json){
 			if(((Json)value).isNull())return NULL_VALUE;
 			if(((Json)value).isArray())return STR_VALUE;
+			if(((Json)value).isObject())return STR_VALUE;
 			value=((Json)value).getValue();
 		}
 		if(value instanceof Double)return DOUBLE_VALUE;

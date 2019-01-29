@@ -254,6 +254,8 @@ public class Util {
 	public static Json getJsonPutRequest( String path, Json body) {
 		if(body==null)return null;
 		String context=Util.getContext(path);
+		//if the path starts with config, sources, resources, then we dont add the context
+		
 		path = path.substring(context.length()+1, path.length());
 		
 		Json json = Json.read("{\"context\":\"" + context + "\",\"put\": []}");

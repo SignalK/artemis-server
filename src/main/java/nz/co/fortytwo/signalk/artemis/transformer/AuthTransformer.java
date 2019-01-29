@@ -6,6 +6,7 @@ import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.authenticateUser
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT_DELTA;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.LOGIN;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.LOGOUT;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.VALIDATE;
 
 import java.util.UUID;
 
@@ -82,7 +83,7 @@ public class AuthTransformer extends BaseInterceptor implements Transformer {
 			if (logger.isDebugEnabled())
 				logger.debug("LOGIN msg: {}", node.toString());
 				try {
-					Json reply = node.at(LOGIN).has("token")?validate(node):authenticate(node);
+					Json reply = authenticate(node);
 					sendReply(destination,FORMAT_DELTA,correlation,reply, getToken(reply));
 				} catch (Exception e) {
 					logger.error(e,e);
@@ -95,6 +96,19 @@ public class AuthTransformer extends BaseInterceptor implements Transformer {
 				logger.debug("LOGOUT msg: {}", node.toString());
 				try {
 					Json reply = logout(node);
+					
+					sendReply(destination,FORMAT_DELTA,correlation,reply, getToken(reply));
+				} catch (Exception e) {
+					logger.error(e,e);
+				}
+
+		}
+		//validate
+		if (node.has(VALIDATE)) {
+			if (logger.isDebugEnabled())
+				logger.debug("VALIDATE msg: {}", node.toString());
+				try {
+					Json reply = validate(node);
 					
 					sendReply(destination,FORMAT_DELTA,correlation,reply, getToken(reply));
 				} catch (Exception e) {
@@ -155,8 +169,7 @@ public class AuthTransformer extends BaseInterceptor implements Transformer {
 		try {
 			SecurityUtils.invalidateToken(token);
 			//create the reply
-			return reply(requestId,"COMPLETED",200)
-					.set("logout", Json.object("token",token));
+			return reply(requestId,"COMPLETED",200);
 		} catch (Exception e) {
 			return error(requestId,"COMPLETED",401,e.getMessage());
 		}

@@ -1,5 +1,7 @@
 
 TODO:
+	robust way to set time on rpi
+	faster boot
     apis:
 		/signalk/v1/access/requests Device access requests
 		Request Response

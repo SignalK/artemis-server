@@ -28,7 +28,7 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.skey;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+//import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -92,7 +92,7 @@ public class Subscription {
 	
 	private String table;
 	private String uuid;
-	private Map<String, String> map = new HashMap<>();
+	private Map<String, String> map = new ConcurrentSkipListMap<>();
 	private String correlation;
 
 	public Subscription(String sessionId, String destination, String path, long period,
