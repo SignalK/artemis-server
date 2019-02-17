@@ -22,7 +22,7 @@ import nz.co.fortytwo.signalk.artemis.intercept.BaseInterceptor;
 
 public class JsBaseTransformer extends BaseInterceptor {
 	
-	private static Logger logger = LogManager.getLogger(NMEAMsgTransformer.class);
+	private static Logger logger = LogManager.getLogger(JsBaseTransformer.class);
 	
 	protected static NashornScriptEngine engine;
 	private static ScheduledExecutorService globalScheduledThreadPool = Executors.newScheduledThreadPool(20);

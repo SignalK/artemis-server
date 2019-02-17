@@ -195,7 +195,8 @@ public class Util {
 	 * @return
 	 */
 	public static String fixSelfKey(String key) {
-		if(key.endsWith(".self"))return StringUtils.removeEnd(key, "self")+Config.getConfigProperty(ConfigConstants.UUID);
+		if(key.endsWith(".self"))
+			return StringUtils.removeEnd(key, "self")+Config.getConfigProperty(ConfigConstants.UUID);
 		return StringUtils.replace(key, ".self.", dot + Config.getConfigProperty(ConfigConstants.UUID)+dot);
 	}
 

@@ -131,7 +131,7 @@ public class SignalkKvConvertor {
 			}
 			if (node.has(CONFIG)) {
 				for (Json update : node.at(CONFIG).asJsonList()) {
-					parseUpdate(sender, origMessage, update, ctx);
+					parseUpdate(sender, origMessage, update, CONFIG);
 				}
 			}
 

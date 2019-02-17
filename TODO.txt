@@ -1,15 +1,15 @@
 
 TODO:
-	robust way to set time on rpi
+
 	faster boot
     apis:
 		/signalk/v1/access/requests Device access requests
 		Request Response
-	send date to rpi from browser
 	Add login on main screen
 	Better control of secured url paths
 	more efficient subscriptions
 	srcRef back to source
+	XTE handler
 	
 	Git
 	REST LIST

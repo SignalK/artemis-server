@@ -52,7 +52,8 @@ public class GarbageInterceptor extends BaseInterceptor implements Interceptor {
 			} else {
 				return false;
 			}
-
+			//if no context, then context=vessels.self
+			
 			return true;
 		}
 		return true;
@@ -84,26 +85,23 @@ public class GarbageInterceptor extends BaseInterceptor implements Interceptor {
 				return Config._0183;
 			} else if (msg.startsWith("{") && msg.endsWith("}")) {
 				Json node = Json.read(msg);
-				if(isN2k(node)) {
+				//if the message has a token, inject into header
+				SecurityUtils.injectTokenFromMessage(message, node);
+				
+				if(isN2k(node)) 
 					return Config.N2K;
-				}
 				if (isFullFormat(node))
 					return Config.JSON_FULL;
 				if (isAuth(node))
 					return Config.JSON_AUTH;
 				if (isGet(node)) {
-					//if the message has a token, inject into header
-					SecurityUtils.injectTokenFromMessage(message, node);
 					return Config.JSON_GET;
 				}
-				if (isDelta(node)) {
-					SecurityUtils.injectTokenFromMessage(message, node);
+				if (isDelta(node)) 
 					return Config.JSON_DELTA;
-				}
-				if (isSubscribe(node)) {
-					SecurityUtils.injectTokenFromMessage(message, node);
+				
+				if (isSubscribe(node)) 
 					return Config.JSON_SUBSCRIBE;
-				}
 				node.clear(true);
 			}
 		}

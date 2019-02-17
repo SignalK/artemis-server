@@ -146,7 +146,7 @@ public class SignalkMapConvertor {
 			}
 			if (node.has(CONFIG)) {
 				for (Json update : node.at(CONFIG).asJsonList()) {
-					parseUpdate(temp, update, ctx);
+					parseUpdate(temp, update, CONFIG);
 				}
 			}
 

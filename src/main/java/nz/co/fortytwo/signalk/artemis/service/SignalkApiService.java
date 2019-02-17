@@ -170,7 +170,7 @@ public class SignalkApiService extends BaseApiService {
 	}
 	
 		
-	@Operation(summary = "Post a signalk GET message", description = " Post a signalk GET message. Has the same result as using non-http transport. This is a 'fire-and-forget' method,"
+	@Operation(summary = "Post a signalk message", description = " Post a signalk message. Has the same result as using non-http transport. This is a 'fire-and-forget' method,"
 			+ " see PUT ")
 	@ApiResponses ({
 	    @ApiResponse(responseCode = "200", description = "OK", 
@@ -215,6 +215,7 @@ public class SignalkApiService extends BaseApiService {
 			
 			if (logger.isDebugEnabled())
 				logger.debug("Post: {}" , body);
+			//if no context, then context=vessels.self
 			
 			sendMessage(getTempQ(),addToken(body, cookie),null,getToken(cookie));
 			return Response.status(HttpStatus.SC_ACCEPTED).build();
