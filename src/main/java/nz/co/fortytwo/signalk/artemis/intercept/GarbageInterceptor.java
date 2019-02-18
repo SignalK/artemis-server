@@ -86,14 +86,15 @@ public class GarbageInterceptor extends BaseInterceptor implements Interceptor {
 			} else if (msg.startsWith("{") && msg.endsWith("}")) {
 				Json node = Json.read(msg);
 				//if the message has a token, inject into header
-				SecurityUtils.injectTokenFromMessage(message, node);
-				
+				SecurityUtils.injectTokenIntoMessage(message, node);
 				if(isN2k(node)) 
 					return Config.N2K;
 				if (isFullFormat(node))
 					return Config.JSON_FULL;
 				if (isAuth(node))
 					return Config.JSON_AUTH;
+				//ensure we have a CONTEXT
+				
 				if (isGet(node)) {
 					return Config.JSON_GET;
 				}

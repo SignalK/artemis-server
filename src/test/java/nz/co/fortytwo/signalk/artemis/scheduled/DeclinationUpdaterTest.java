@@ -68,7 +68,7 @@ public class DeclinationUpdaterTest {
 		influx.loadData(map, vessels, queryMap);
 		logger.debug(map);
 		
-		assertEquals(0.235848, map.get(vessels+dot+ SELF_UUID+dot+nav+dot+"magneticVariation").at(value).asDouble(), 0.0001);
+		assertEquals(0.235848, map.get(vessels+dot+ SELF_UUID+dot+nav+dot+"magneticVariation").at(value).asDouble(), 0.01);
 		
 	}
 	

@@ -33,7 +33,6 @@ public class DeltaMsgTransformerTest  extends BaseMsgInterceptorTest {
 	private static Logger logger = LogManager.getLogger(DeltaMsgTransformerTest.class);
 	private Json update = Json.read("{\"context\":\"vessels.urn:mrn:imo:mmsi:234567890\",\"updates\":[{\"$source\":\"NMEA2000.N2000-01\",\"timestamp\":\"2010-01-07T07:18:44.000Z\",\"values\":[{\"path\":\"propulsion.0.revolutions\",\"value\":16.341667},{\"path\":\"propulsion.0.boostPressure\",\"value\":45500.0}]}]}");
 	private Json put = Json.read("{\"context\":\"vessels.urn:mrn:imo:mmsi:234567890\",\"put\":[{\"path\":\"propulsion.0.boostPressure\",\"value\":45500.0,\"timestamp\":\"2018-08-08T02:48:28.885Z\"}]}");
-	private Json put1 = Json.read("{\"put\":[{\"path\":\"propulsion.0.boostPressure\",\"value\":45500.0,\"timestamp\":\"2018-08-08T02:48:28.885Z\"}]}");
 	private Json config = Json.read("{\"context\":\"vessels.urn:mrn:imo:mmsi:234567890\",\"config\":[{\"timestamp\":\"2010-01-07T07:18:44.000Z\",\"values\":[{\"path\":\"server.demo.start\",\"value\":true}]}]}");
 	
     private DeltaMsgTransformer transformer;// 1

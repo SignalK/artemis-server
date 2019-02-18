@@ -47,6 +47,7 @@ public class AuthTransformerTest extends BaseServerTest{
 		assertEquals(200,reply.at("result").asInteger());
 		assertTrue(reply.has("login"));
 		assertTrue(reply.at("login").has("token"));
+		assertTrue(reply.at("login").has("expiry"));
 	}
 
 	private Json sendBody(String body) throws  Exception {
@@ -224,7 +225,7 @@ public class AuthTransformerTest extends BaseServerTest{
 		assertEquals(uuid,reply.at("requestId").asString());
 		assertEquals("COMPLETED",reply.at("state").asString());
 		assertEquals(200,reply.at("result").asInteger());
-		assertTrue(reply.at("logout").has("token"));
+		
 	}
 	@Test
 	public void shouldBeValidated() throws Exception {
@@ -242,7 +243,7 @@ public class AuthTransformerTest extends BaseServerTest{
 		uuid = UUID.randomUUID().toString();
 		body = "{\n" + 
 				"  \"requestId\": \""+uuid+"\",\n" + 
-				"  \"login\": {\n" + 
+				"  \"validate\": {\n" + 
 				"    \"token\": \""+token+"\"\n" +  
 				"  }\n" + 
 				"}";
@@ -251,7 +252,7 @@ public class AuthTransformerTest extends BaseServerTest{
 		assertEquals(uuid,reply.at("requestId").asString());
 		assertEquals("COMPLETED",reply.at("state").asString());
 		assertEquals(200,reply.at("result").asInteger());
-		assertTrue(reply.at("login").has("token"));
+		assertTrue(reply.at("validate").has("token"));
 	}
 	
 	@Test
@@ -259,7 +260,7 @@ public class AuthTransformerTest extends BaseServerTest{
 		String uuid = UUID.randomUUID().toString();
 		String body = "{\n" + 
 				"  \"requestId\": \""+uuid+"\",\n" + 
-				"  \"login\": {\n" +
+				"  \"validate\": {\n" +
 				"    \"token\": \"eyJhbGciOiJIUzUxMiJ9.eyJyb2xlcyI6IltcInNraXBwZXJcIl0iLCJpYXQiOjE1NDY1NTA5OTYsImV4cCI6MTU0NjYzNzM5Nn0.w0bkfYhCJLwMyCBKiWFLbXTuu6VFaS_BxBPBjgBS-9aPMv22fOI5GzzG3jK7rbW43_4KvjrfLZ6RAibiDnB2ug\"\n" +  
 				"  }\n" 
 				+"}";
@@ -269,7 +270,7 @@ public class AuthTransformerTest extends BaseServerTest{
 		//assertEquals(uuid,reply.at("requestId").asString());
 		assertEquals("COMPLETED",reply.at("state").asString());
 		assertEquals(401,reply.at("result").asInteger());
-		assertTrue(!reply.has("login"));
+		assertTrue(!reply.has("validate"));
 	}
 
 }

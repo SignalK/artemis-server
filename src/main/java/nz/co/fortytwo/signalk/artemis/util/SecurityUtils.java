@@ -58,7 +58,7 @@ public final class SecurityUtils {
 	public static final String REALM = "signalk";
 	public static final String AUTHENTICATION_SCHEME = "Bearer";
 	public static final String AUTH_COOKIE_NAME = "SK_TOKEN";
-	
+	public static final int EXPIRY = 24*60;
 	private static final String HASH = "hash";
 	private static SecretKey key = MacProvider.generateKey();
 
@@ -186,7 +186,7 @@ public final class SecurityUtils {
 				.setSubject(username)
 				.setClaims(claims)
 				.setIssuedAt(DateTime.now().toDate())
-				.setExpiration(DateTime.now().plusHours(24).toDate())
+				.setExpiration(DateTime.now().plusMinutes(EXPIRY).toDate())
 				.signWith(SignatureAlgorithm.HS512, key)
 				.compact();
 		// Return the issued token
@@ -360,7 +360,7 @@ public final class SecurityUtils {
 
 	}
 
-	public static void injectTokenFromMessage(ICoreMessage message, Json node) {
+	public static void injectTokenIntoMessage(ICoreMessage message, Json node) {
 		if(node.has(SK_MSG_TOKEN)) {
 			message.putStringProperty(AMQ_USER_TOKEN, node.at(SK_MSG_TOKEN).asString());
 		}

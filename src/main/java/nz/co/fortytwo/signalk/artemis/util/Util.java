@@ -528,20 +528,20 @@ public class Util {
 	public static boolean isDelta(Json node) {
 		if(node==null)return false;
 		// deal with diff format
-		if (node.has(CONTEXT) && (node.has(UPDATES) || node.has(PUT) || node.has(CONFIG))) return true;
+		if (node.has(UPDATES) || node.has(PUT) || node.has(CONFIG)) return true;
 		return false;
 	}
 	
 	public static boolean isSubscribe(Json node) {
 		if(node==null)return false;
 		// deal with diff format
-		if (node.has(CONTEXT) && (node.has(SUBSCRIBE) || node.has(UNSUBSCRIBE))) return true;
+		if (node.has(SUBSCRIBE) || node.has(UNSUBSCRIBE)) return true;
 		return false;
 	}
 	public static boolean isGet(Json node) {
 		if(node==null)return false;
 		// deal with diff format
-		if (node.has(CONTEXT) && node.has(GET)) return true;
+		if (node.has(GET)) return true;
 		return false;
 	}
 	
@@ -550,6 +550,7 @@ public class Util {
 		// deal with diff format
 		if (node.has(LOGIN) ) return true;
 		if (node.has(LOGOUT) ) return true;
+		if (node.has(VALIDATE) ) return true;
 		return false;
 	}
 	

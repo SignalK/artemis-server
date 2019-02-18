@@ -89,6 +89,8 @@
 			</class-name>
 			<class-name>nz.co.fortytwo.signalk.artemis.intercept.SessionInterceptor
 			</class-name>
+			<class-name>nz.co.fortytwo.signalk.artemis.intercept.DeltaContextInterceptor
+			</class-name>
 			<class-name>nz.co.fortytwo.signalk.artemis.intercept.SysTimeInterceptor
 			</class-name>
 			<class-name>nz.co.fortytwo.signalk.artemis.intercept.FullSourceInterceptor
