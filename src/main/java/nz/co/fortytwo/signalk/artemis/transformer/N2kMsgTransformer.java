@@ -89,7 +89,7 @@ public class N2kMsgTransformer extends JsBaseTransformer implements Transformer 
 		
 		if(logger.isDebugEnabled())logger.debug("Starting nashorn env from: {}", rootFolder.getPath());
 		
-		engine = getEngine();
+		initEngine();
 		
 		engineHolder = ThreadLocal.withInitial(() -> {
 				return engine.createBindings();
@@ -99,14 +99,13 @@ public class N2kMsgTransformer extends JsBaseTransformer implements Transformer 
 	
 	}
 
-	protected NashornScriptEngine getEngine() throws IOException, ScriptException, NoSuchMethodException {
+	protected void initEngine() throws IOException, ScriptException, NoSuchMethodException {
 		
 		if(logger.isDebugEnabled())logger.debug("Load parser: {}", "n2k-signalk/dist/bundle.js");
 		
 		engine.eval(IOUtils.toString(getIOStream("n2k-signalk/dist/bundle.js")));
 		
 		if(logger.isDebugEnabled())logger.debug("N2K mapper: {}",engine.get("n2kMapper"));	
-		return engine;
 		
 	}
 

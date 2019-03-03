@@ -4,6 +4,7 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT_DELTA;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.POLICY_IDEAL;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SK_TOKEN;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
@@ -18,8 +19,10 @@ import javax.ws.rs.core.MediaType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.atmosphere.annotation.Suspend;
+import org.atmosphere.client.TrackMessageSizeInterceptor;
+import org.atmosphere.config.service.AtmosphereService;
 import org.atmosphere.cpr.AtmosphereResource;
+import org.atmosphere.interceptor.AtmosphereResourceLifecycleInterceptor;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -30,7 +33,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import nz.co.fortytwo.signalk.artemis.util.Util;
-
+@AtmosphereService(
+		dispatch = true,
+		interceptors = {AtmosphereResourceLifecycleInterceptor.class, TrackMessageSizeInterceptor.class},
+		path = "/signalk/v1/playback/",
+		servlet = "org.glassfish.jersey.servlet.ServletContainer")
 @Path("/signalk/v1/playback")
 @Tag(name = "Websocket Playback API")
 public class SignalkPlaybackService extends BaseApiService {
@@ -38,7 +45,7 @@ public class SignalkPlaybackService extends BaseApiService {
 	
 	private static Logger logger = LogManager.getLogger(SignalkPlaybackService.class);
 	@Context
-	private AtmosphereResource resource;
+	private HttpServletRequest request;
 
 	@Operation(summary = "Request a websocket stream", description = "Submit a Signalk path, startTime and playbackRate to replay history. ")
 	@ApiResponses ({
@@ -74,7 +81,7 @@ public class SignalkPlaybackService extends BaseApiService {
 	    @ApiResponse(responseCode = "500", description = "Internal server error"),
 	    @ApiResponse(responseCode = "403", description = "No permission")
 	    })
-	@Suspend(contentType = MediaType.APPLICATION_JSON)
+	//@Suspend(contentType = MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@GET
 	public String getPlaybackWS(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
@@ -84,12 +91,14 @@ public class SignalkPlaybackService extends BaseApiService {
 			@Parameter( description = "Playback rate multiplier, eg '2' = twice normal speed", example="2") @QueryParam("playbackRate")Double playbackRate) throws Exception {
 		
 		if (logger.isDebugEnabled())
-			logger.debug("get : ws for {}, subscribe={}", resource.getRequest().getRemoteUser(),subscribe);
+			logger.debug("get : ws for {}, subscribe={}", request.getRemoteUser(),subscribe);
+		getResource(request).suspend();
 		if(StringUtils.isBlank(subscribe)|| "all".equals(subscribe)) {
-			return getWebsocket(resource, Util.getSubscriptionJson("vessels.self","*",1000,1000,FORMAT_DELTA,POLICY_IDEAL, startTime, playbackRate).toString(),cookie);
+			return getWebsocket(getResource(request), Util.getSubscriptionJson("vessels.self","*",1000,1000,FORMAT_DELTA,POLICY_IDEAL, startTime, playbackRate).toString(),cookie);
 		}else{
-			return getWebsocket(resource, Util.getSubscriptionJson("vessels.self",subscribe,1000,1000,FORMAT_DELTA,POLICY_IDEAL, startTime, playbackRate).toString(),cookie);
+			return getWebsocket(getResource(request), Util.getSubscriptionJson("vessels.self",subscribe,1000,1000,FORMAT_DELTA,POLICY_IDEAL, startTime, playbackRate).toString(),cookie);
 		}
+		
 		//return "";
 	}
 
@@ -126,7 +135,7 @@ public class SignalkPlaybackService extends BaseApiService {
 	    @ApiResponse(responseCode = "500", description = "Internal server error"),
 	    @ApiResponse(responseCode = "403", description = "No permission")
 	    })
-	@Suspend(contentType = MediaType.APPLICATION_JSON)
+	//@Suspend(contentType = MediaType.APPLICATION_JSON)
 	@Consumes(value = MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@POST
@@ -147,8 +156,8 @@ public class SignalkPlaybackService extends BaseApiService {
 				"    },\n" + 
 				"  ]\n" + 
 				"}")) String body) {
-		
-			return getWebsocket(resource, body,cookie);
+			getResource(request).suspend();
+			return getWebsocket(getResource(request), body,cookie);
 		
 		
 	}

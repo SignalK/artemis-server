@@ -10,6 +10,9 @@ import javax.ws.rs.core.Response;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.atmosphere.client.TrackMessageSizeInterceptor;
+import org.atmosphere.config.service.AtmosphereService;
+import org.atmosphere.interceptor.AtmosphereResourceLifecycleInterceptor;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -23,7 +26,11 @@ import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
 
-
+@AtmosphereService(
+		dispatch = true,
+		interceptors = {AtmosphereResourceLifecycleInterceptor.class, TrackMessageSizeInterceptor.class},
+		path = "/swagger",
+		servlet = "org.glassfish.jersey.servlet.ServletContainer")
 @Path( "/swagger")
 public class SwaggerService {
 

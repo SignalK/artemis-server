@@ -56,8 +56,6 @@ public class MessageSupport {
 	}
 
 	public void initSession() throws Exception {
-		if (logger.isDebugEnabled())
-			logger.debug("initSession: {}");
 		getTxSession();
 		getProducer();
 

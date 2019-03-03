@@ -20,12 +20,19 @@ import javax.ws.rs.core.Response;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.atmosphere.client.TrackMessageSizeInterceptor;
+import org.atmosphere.config.service.AtmosphereService;
 import org.atmosphere.cpr.AtmosphereResource;
+import org.atmosphere.interceptor.AtmosphereResourceLifecycleInterceptor;
 
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
-
+@AtmosphereService(
+		dispatch = true,
+		interceptors = {AtmosphereResourceLifecycleInterceptor.class, TrackMessageSizeInterceptor.class},
+		path = "/signalk/v1/security",
+		servlet = "org.glassfish.jersey.servlet.ServletContainer")
 @Path("/signalk/v1/security")
 public class SignalkSecurityApiService {
 

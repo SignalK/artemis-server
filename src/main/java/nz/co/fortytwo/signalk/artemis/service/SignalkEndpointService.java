@@ -11,6 +11,9 @@ import javax.ws.rs.core.Response;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.atmosphere.client.TrackMessageSizeInterceptor;
+import org.atmosphere.config.service.AtmosphereService;
+import org.atmosphere.interceptor.AtmosphereResourceLifecycleInterceptor;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -20,7 +23,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 
-
+@AtmosphereService(
+		dispatch = true,
+		interceptors = {AtmosphereResourceLifecycleInterceptor.class, TrackMessageSizeInterceptor.class},
+		path = "/signalk",
+		servlet = "org.glassfish.jersey.servlet.ServletContainer")
 @Path("/signalk")
 @Tag(name = "Signalk Root Endpoint")
 public class SignalkEndpointService {

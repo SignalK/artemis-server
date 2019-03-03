@@ -2,14 +2,12 @@ package nz.co.fortytwo.signalk.artemis.service;
 
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.SECURITY_SSL_ENABLE;
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.AUTH_COOKIE_NAME;
-import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.authenticateUser;
-import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.validateToken;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SK_TOKEN;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.UUID;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.FormParam;
@@ -22,27 +20,24 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.MessageHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.atmosphere.annotation.Suspend;
+import org.atmosphere.client.TrackMessageSizeInterceptor;
+import org.atmosphere.config.service.AtmosphereService;
+import org.atmosphere.cpr.ApplicationConfig;
 import org.atmosphere.cpr.AtmosphereResource;
-
-import com.sun.jersey.api.uri.UriBuilderImpl;
+import org.atmosphere.interceptor.AtmosphereResourceLifecycleInterceptor;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.headers.Header;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -50,38 +45,43 @@ import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
-
+@AtmosphereService(
+		dispatch = true,
+		interceptors = {AtmosphereResourceLifecycleInterceptor.class, TrackMessageSizeInterceptor.class},
+		path = "/signalk/authenticate",
+		servlet = "org.glassfish.jersey.servlet.ServletContainer")
 @Path("/signalk/authenticate")
 @Tag(name = "Authentication API")
 public class LoginService extends BaseApiService{
 
 	private static Logger logger = LogManager.getLogger(LoginService.class);
 	
-	@Context 
-	private AtmosphereResource resource;
-
+	@Context
+	private HttpServletRequest request;
+	
 	private String scheme;
 
 	public LoginService() throws Exception{
 		if(logger.isDebugEnabled())logger.debug("LoginService started");
 		scheme = Config.getConfigPropertyBoolean(SECURITY_SSL_ENABLE)?"https":"http";
-		String correlation = java.util.UUID.randomUUID().toString();
-		initSession(correlation);
+		
 	}
 
 	@Override
 	protected void initSession(String tempQ) throws Exception {
+		
 		try{
 			super.initSession(tempQ);
 			MessageHandler handler = new MessageHandler() {
 
 				@Override
 				public void onMessage(ClientMessage message) {
-					String requestUri = resource.getRequest().getRequestURL().toString();
-					URI uri = UriBuilderImpl.fromUri(requestUri)
+					String requestUri = request.getRequestURL().toString();
+					URI uri = UriBuilder.fromUri(requestUri)
 							.scheme(scheme)
 							.replacePath("/login.html")
 							.replaceQuery(null).build();
+					
 					try {
 						if (logger.isDebugEnabled())
 							logger.debug("onMessage for client from {} : {}", requestUri, message);
@@ -95,38 +95,38 @@ public class LoginService extends BaseApiService{
 							logger.debug("onMessage for client at {}, {}", getTempQ(), recv);
 						
 						
-						String target = resource.getRequest().getParameter("target");
+						String target = request.getParameter("target");
 						
 						
 						Json tokenJson =  Json.read(recv);
 						if(tokenJson.at("result").asInteger()>399) {
-							resource.getResponse().sendRedirect(uri.toASCIIString());
+							getResponse(request).sendRedirect(uri.toASCIIString());
 							return;
 						}
 						String token = tokenJson.at("login").at("token").asString();
 						
-						resource.getRequest().localAttributes().put(SignalKConstants.JWT_TOKEN, token);
+						getResource(request).getRequest().localAttributes().put(SignalKConstants.JWT_TOKEN, token);
 						javax.servlet.http.Cookie c = new javax.servlet.http.Cookie(AUTH_COOKIE_NAME,token);
 						c.setMaxAge(3600);
 						c.setHttpOnly(false);
 						c.setPath("/");
 						
-						resource.getResponse().addCookie(c);
+						getResponse(request).addCookie(c);
 						
 						//login valid, redirect to initial page if we have a target.
 						if(StringUtils.isNotBlank(target) && !StringUtils.equals("undefined", target)) {
-							uri = UriBuilderImpl.fromUri(requestUri)
+							uri = UriBuilder.fromUri(requestUri)
 									.scheme(scheme)
 									.replacePath(target)
 									.replaceQuery(null).build();
 							if(logger.isDebugEnabled())logger.debug("Authenticated, redirect to {}", uri.toASCIIString());
-							resource.getResponse().setHeader("Location", resource.getResponse().encodeRedirectUrl(uri.toASCIIString()));
-							resource.getResponse().setStatus(Status.SEE_OTHER.getStatusCode());
-							resource.resume();
+							getResponse(request).setHeader("Location", getResponse(request).encodeRedirectUrl(uri.toASCIIString()));
+							getResponse(request).setStatus(Status.SEE_OTHER.getStatusCode());
+							getResource(request).resume();
 						}else {
-							resource.getResponse().setStatus(Status.OK.getStatusCode());
-							resource.write(recv);
-							resource.resume();
+							getResponse(request).setStatus(Status.OK.getStatusCode());
+							getResource(request).write(recv);
+							getResource(request).resume();
 						}
 								
 					} catch (Exception e) {
@@ -134,15 +134,15 @@ public class LoginService extends BaseApiService{
 						logger.error(e,e);
 						if(logger.isDebugEnabled())logger.debug("Unauthenticated, redirect to {}", uri.toASCIIString());
 						
-						resource.getResponse().setHeader("Location", resource.getResponse().encodeRedirectUrl(uri.toASCIIString()));
-						resource.getResponse().setStatus(Status.SEE_OTHER.getStatusCode());
-						resource.resume();
+						getResponse(request).setHeader("Location", getResponse(request).encodeRedirectUrl(uri.toASCIIString()));
+						getResponse(request).setStatus(Status.SEE_OTHER.getStatusCode());
+						getResource(request).resume();
 						
 					}
 				}
 			};
-			super.setConsumer(resource, true, handler);
-			//addWebsocketCloseListener(resource);
+			super.setConsumer(getResource(request), true, handler);
+			//addWebsocketCloseListener(getResource(request));
 		}catch(Exception e){
 			logger.error(e,e);
 			throw e;
@@ -152,7 +152,7 @@ public class LoginService extends BaseApiService{
 	//@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@POST
-	@Suspend()
+	//@Suspend()
 	@Operation( hidden=true, summary= "Login with redirect to target,return token as Cookie")
 	public String authenticate( 
 			@Context UriInfo uriInfo, 
@@ -162,7 +162,7 @@ public class LoginService extends BaseApiService{
 		
 		if(logger.isDebugEnabled())logger.debug("Authentication request, {}", uriInfo.getRequestUri());
 
-			
+		initSession(java.util.UUID.randomUUID().toString());
 		// Validate the Authorization header	
 		logger.debug("username: {}",username);
 			
@@ -171,7 +171,7 @@ public class LoginService extends BaseApiService{
 											"username", username, 
 											"password", password));
 		sendMessage(getTempQ(), loginJson.toString(), loginJson.at("requestId").asString(), (String) null);
-
+		getResource(request).suspend();
 		return "";	
 			
 		

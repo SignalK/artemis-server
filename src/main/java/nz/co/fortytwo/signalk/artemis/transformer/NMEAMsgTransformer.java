@@ -93,7 +93,7 @@ public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer
 		}
 		if(logger.isDebugEnabled())logger.debug("Starting nashorn env from: {}", rootFolder.getPath());
 		
-		engine = getEngine();
+		initEngine();
 		
 		engineHolder = ThreadLocal.withInitial(() -> {
 				return engine.createBindings();
@@ -105,7 +105,7 @@ public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer
 		
 	}
 
-	protected NashornScriptEngine getEngine() throws IOException, ScriptException, NoSuchMethodException {
+	protected void initEngine() throws IOException, ScriptException, NoSuchMethodException {
 		
 		if(logger.isDebugEnabled())logger.debug("Load parser: {}", "signalk-parser-nmea0183/dist/bundle.js");
 		engine.eval(IOUtils.toString(getIOStream("signalk-parser-nmea0183/dist/bundle.js")));
@@ -124,15 +124,8 @@ public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer
 			if(logger.isDebugEnabled())logger.debug(f);
 			engine.invokeMethod(engine.get("parser"), "loadHook", f.trim());
 		}
-		return engine;
 		
 	}
-
-	private Object getParser(Bindings bindings) {
-		
-		return bindings.get("parser");
-	}
-
 
 
 	@Override

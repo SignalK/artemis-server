@@ -2,6 +2,7 @@ package nz.co.fortytwo.signalk.artemis.service;
 
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SK_TOKEN;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
@@ -18,8 +19,10 @@ import javax.ws.rs.core.Response;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.atmosphere.annotation.Suspend;
+import org.atmosphere.client.TrackMessageSizeInterceptor;
+import org.atmosphere.config.service.AtmosphereService;
 import org.atmosphere.cpr.AtmosphereResource;
+import org.atmosphere.interceptor.AtmosphereResourceLifecycleInterceptor;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -34,14 +37,19 @@ import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
+@AtmosphereService(
+	dispatch = true,
+	interceptors = {AtmosphereResourceLifecycleInterceptor.class, TrackMessageSizeInterceptor.class},
+	path = "/signalk/v1/api/",
+	servlet = "org.glassfish.jersey.servlet.ServletContainer")
 @Path("/signalk/v1/api/")
 @Tag(name = "REST API")
 public class SignalkApiService extends BaseApiService {
 
 	private static Logger logger = LogManager.getLogger(SignalkApiService.class);
 	
-	@Context 
-	private AtmosphereResource resource;
+	@Context
+	private HttpServletRequest request;
 
 	public SignalkApiService() throws Exception{
 	}
@@ -49,8 +57,8 @@ public class SignalkApiService extends BaseApiService {
 	protected void initSession(String tempQ) throws Exception {
 		try{
 			super.initSession(tempQ);
-			super.setConsumer(resource, true);
-			addWebsocketCloseListener(resource);
+			super.setConsumer(getResource(request), true);
+			addWebsocketCloseListener(getResource(request));
 		}catch(Exception e){
 			logger.error(e,e);
 			throw e;
@@ -119,11 +127,12 @@ public class SignalkApiService extends BaseApiService {
 	    @ApiResponse(responseCode = "500", description = "Internal server error"),
 	    @ApiResponse(responseCode = "403", description = "No permission"),
 	    })
-	@Suspend(contentType = MediaType.APPLICATION_JSON)
+	//@Suspend(contentType = MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@GET
 	public String getAll(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie) throws Exception {
 		getPath(null,cookie, null);
+		getResource(request).suspend();
 		return "";
 	}
 	
@@ -158,7 +167,7 @@ public class SignalkApiService extends BaseApiService {
 	    @ApiResponse(responseCode = "500", description = "Internal server error"),
 	    @ApiResponse(responseCode = "403", description = "No permission"),
 	    })
-	@Suspend(contentType = MediaType.APPLICATION_JSON)
+	//@Suspend(contentType = MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@GET
 	@Path( "{path:[^?]*}")
@@ -166,6 +175,7 @@ public class SignalkApiService extends BaseApiService {
 			@Parameter( description = "A signalk path, eg /vessels/self/navigation", example="/vessels/self/navigation") @PathParam(value = "path") String path) throws Exception {
 		//String path = req.getPathInfo();
 		getPath(path,cookie, null);
+		getResource(request).suspend();
 		return "";
 	}
 	
@@ -218,6 +228,7 @@ public class SignalkApiService extends BaseApiService {
 			//if no context, then context=vessels.self
 			
 			sendMessage(getTempQ(),addToken(body, cookie),null,getToken(cookie));
+			//getResource(request).suspend();
 			return Response.status(HttpStatus.SC_ACCEPTED).build();
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
@@ -261,6 +272,7 @@ public class SignalkApiService extends BaseApiService {
 			//make a full message now
 			Json msg = Util.getJsonPutRequest(sanitizeApiPath(path),Json.read(body));
 			sendMessage(getTempQ(),addToken(msg, cookie),null,getToken(cookie));
+			//getResource(request).suspend();
 			return Response.status(HttpStatus.SC_ACCEPTED).build();
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);

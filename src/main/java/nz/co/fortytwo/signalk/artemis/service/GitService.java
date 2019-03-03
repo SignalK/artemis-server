@@ -44,6 +44,9 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.atmosphere.client.TrackMessageSizeInterceptor;
+import org.atmosphere.config.service.AtmosphereService;
+import org.atmosphere.interceptor.AtmosphereResourceLifecycleInterceptor;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.lib.Repository;
@@ -55,6 +58,11 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
  * 
  * @author robert
  */
+@AtmosphereService(
+		dispatch = true,
+		interceptors = {AtmosphereResourceLifecycleInterceptor.class, TrackMessageSizeInterceptor.class},
+		path = "/signalk/apps/",
+		servlet = "org.glassfish.jersey.servlet.ServletContainer")
 @Path("/signalk/apps")
 public class GitService extends BaseApiService {
 

@@ -4,9 +4,9 @@ import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.SECURITY_SSL_E
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.AUTH_COOKIE_NAME;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SK_TOKEN;
 
-import java.net.URI;
 import java.util.UUID;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
@@ -24,10 +24,10 @@ import org.apache.activemq.artemis.api.core.client.MessageHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.atmosphere.annotation.Suspend;
+import org.atmosphere.client.TrackMessageSizeInterceptor;
+import org.atmosphere.config.service.AtmosphereService;
 import org.atmosphere.cpr.AtmosphereResource;
-
-import com.sun.jersey.api.uri.UriBuilderImpl;
+import org.atmosphere.interceptor.AtmosphereResourceLifecycleInterceptor;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -39,23 +39,26 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Config;
-import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
-
+@AtmosphereService(
+		dispatch = true,
+		interceptors = {AtmosphereResourceLifecycleInterceptor.class, TrackMessageSizeInterceptor.class},
+		path = "/signalk/v1/auth/",
+		servlet = "org.glassfish.jersey.servlet.ServletContainer")
 @Path("/signalk/v1/auth")
 @Tag(name = "Authentication API")
 public class AuthService extends BaseApiService{
 
 	private static Logger logger = LogManager.getLogger(AuthService.class);
 	
-	@Context 
-	private AtmosphereResource resource;
+	@Context
+	private HttpServletRequest request;
 	
 	public AuthService() throws Exception{
 		if(logger.isDebugEnabled())logger.debug("AuthService started");
 		scheme = Config.getConfigPropertyBoolean(SECURITY_SSL_ENABLE)?"https":"http";
-		String correlation = java.util.UUID.randomUUID().toString();
-		initSession(correlation);
+		//String correlation = java.util.UUID.randomUUID().toString();
+		//initSession(correlation);
 	}
 	
 	@Override
@@ -66,7 +69,7 @@ public class AuthService extends BaseApiService{
 
 				@Override
 				public void onMessage(ClientMessage message) {
-					//String requestUri = resource.getRequest().getRequestURL().toString();
+					//String requestUri = request.getRequestURL().toString();
 					String requestId = null;
 					try {
 						if (logger.isDebugEnabled())
@@ -84,16 +87,16 @@ public class AuthService extends BaseApiService{
 						requestId = getRequestId(tokenJson);
 						String token = getToken(tokenJson);
 						
-						resource.getResponse().write(getLogin(tokenJson));
+						getResponse(request).write(getLogin(tokenJson));
 						
 						if(StringUtils.isNotBlank(token)) {
 							javax.servlet.http.Cookie c = new javax.servlet.http.Cookie(AUTH_COOKIE_NAME,token);
 							c.setMaxAge(3600);
 							c.setHttpOnly(false);
 							c.setPath("/");
-							resource.getResponse().addCookie(c);
+							getResponse(request).addCookie(c);
 						}
-						resource.getResponse().setStatus(Status.OK.getStatusCode());
+						getResponse(request).setStatus(Status.OK.getStatusCode());
 						
 						
 								
@@ -102,15 +105,15 @@ public class AuthService extends BaseApiService{
 						logger.error(e,e);
 						if(logger.isDebugEnabled())logger.debug("Unauthenticated");
 						Json json = error(requestId, "FAILED", 500, e.getMessage());
-						resource.getResponse().write(json.toString());
-						resource.getResponse().setStatus(Status.OK.getStatusCode());
+						getResponse(request).write(json.toString());
+						getResponse(request).setStatus(Status.OK.getStatusCode());
 					}
-					resource.resume();
+					getResource(request).resume();
 				}
 
 			};
-			super.setConsumer(resource, true, handler);
-			//addWebsocketCloseListener(resource);
+			super.setConsumer(getResource(request), true, handler);
+			//addWebsocketCloseListener(getResource(request));
 		}catch(Exception e){
 			logger.error(e,e);
 			throw e;
@@ -185,7 +188,7 @@ public class AuthService extends BaseApiService{
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
 	@POST
-	@Suspend(contentType = MediaType.APPLICATION_JSON)
+//	@Suspend(contentType = MediaType.APPLICATION_JSON)
 	@Path("login")
 	public String login( 
 			@Parameter(required=true, 
@@ -193,15 +196,17 @@ public class AuthService extends BaseApiService{
 						example = "{\n" + 
 								"    \"username\": \"john_doe\",\n" + 
 								"    \"password\": \"password\"\n" + 
-								"}")) String body) {
+								"}")) String body) throws Exception {
 		if (logger.isDebugEnabled())
 			logger.debug("Post: {}" , body);
 		String requestId = UUID.randomUUID().toString();
+		initSession(requestId);
 		try {
 			Json json = Json.object("requestId", requestId,
 					"login",Json.read(body));
 			
 				sendMessage(getTempQ(),json.toString(),requestId,null);
+				getResource(request).suspend();
 				return "";
 			
 		} catch (Exception e) {
@@ -258,7 +263,7 @@ public class AuthService extends BaseApiService{
 	
 	@Path("logout")
 	@Produces(MediaType.APPLICATION_JSON)
-	@Suspend()
+	//@Suspend()
 	public String logout(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie) {
 		
 		String requestId = UUID.randomUUID().toString();
@@ -270,6 +275,7 @@ public class AuthService extends BaseApiService{
 					"logout",Json.object("token",cookie.getValue()));
 			
 				sendMessage(getTempQ(),json.toString(),requestId,cookie.getValue());
+				getResource(request).suspend();
 				return "";
 			
 		} catch (Exception e) {
@@ -328,7 +334,7 @@ public class AuthService extends BaseApiService{
 			
 	@Path("validate")
 	@Produces(MediaType.APPLICATION_JSON)
-	@Suspend()
+	//@Suspend()
 	public String validate(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie) {
 		String requestId = UUID.randomUUID().toString();
 	
@@ -340,6 +346,7 @@ public class AuthService extends BaseApiService{
 					"login",Json.object("token",cookie.getValue()));
 			
 				sendMessage(getTempQ(),json.toString(),requestId,cookie.getValue());
+				getResource(request).suspend();
 				return "";
 			
 		} catch (Exception e) {

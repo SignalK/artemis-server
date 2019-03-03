@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
 
@@ -28,12 +30,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.atmosphere.cpr.ApplicationConfig;
 import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.cpr.AtmosphereResourceEvent;
 import org.atmosphere.cpr.AtmosphereResourceEventListenerAdapter;
 import org.atmosphere.cpr.AtmosphereResourceSession;
 import org.atmosphere.cpr.AtmosphereResourceSessionFactory;
+import org.atmosphere.cpr.AtmosphereResponse;
 import org.atmosphere.cpr.BroadcasterFactory;
+import org.atmosphere.cpr.DefaultBroadcasterFactory;
 import org.atmosphere.websocket.WebSocket;
 import org.atmosphere.websocket.WebSocketEventListenerAdapter;
 import org.jgroups.util.UUID;
@@ -61,9 +66,7 @@ public class BaseApiService extends MessageSupport{
 	
 	private static Timer timer = new Timer();
 
-	
-	@Context
-	protected BroadcasterFactory broadCasterFactory;
+	//protected BroadcasterFactory broadCasterFactory = new DefaultBroadcasterFactory();
 
 	protected String scheme;
 
@@ -83,6 +86,14 @@ public class BaseApiService extends MessageSupport{
 		getConsumer();
 	}
 
+	public AtmosphereResource getResource(HttpServletRequest request) {
+		return (AtmosphereResource) request.getAttribute(ApplicationConfig.ATMOSPHERE_RESOURCE);
+	}
+	
+	public AtmosphereResponse getResponse(HttpServletRequest request) {
+		return getResource(request).getResponse();
+	}
+	
 	protected File getLogOutputFile(String logFile) {
 		File installLogDir = new File(staticDir, "logs");
 		installLogDir.mkdirs();
@@ -208,7 +219,7 @@ public class BaseApiService extends MessageSupport{
 				logger.debug("Adding consumer messageHandler : {}", getTempQ());
 
 			if (!resumeAfter) {
-				resource.setBroadcaster(broadCasterFactory.get());
+				resource.setBroadcaster(resource.getAtmosphereConfig().getBroadcasterFactory().get());
 				logger.debug("Adding broadcaster");
 			}
 			if(handler!=null) {

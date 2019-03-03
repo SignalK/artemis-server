@@ -15,7 +15,14 @@ import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
+import org.atmosphere.client.TrackMessageSizeInterceptor;
+import org.atmosphere.config.service.AtmosphereService;
+import org.atmosphere.interceptor.AtmosphereResourceLifecycleInterceptor;
+@AtmosphereService(
+		dispatch = true,
+		interceptors = {AtmosphereResourceLifecycleInterceptor.class, TrackMessageSizeInterceptor.class},
+		path = "/signalk/v1/logger/config",
+		servlet = "org.glassfish.jersey.servlet.ServletContainer")
 
 @Path("/signalk/v1/logger/config")
 public class LoggerService {

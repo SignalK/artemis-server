@@ -20,6 +20,7 @@ import nz.co.fortytwo.signalk.artemis.intercept.BaseInterceptor;
 
 
 
+@SuppressWarnings("restriction")
 public class JsBaseTransformer extends BaseInterceptor {
 	
 	private static Logger logger = LogManager.getLogger(JsBaseTransformer.class);
@@ -28,7 +29,7 @@ public class JsBaseTransformer extends BaseInterceptor {
 	private static ScheduledExecutorService globalScheduledThreadPool = Executors.newScheduledThreadPool(20);
 	
 	static {
-	
+		
 		NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
 		// console.error
 		engine = (NashornScriptEngine) factory.getScriptEngine(new String[] { "--language=es6" });

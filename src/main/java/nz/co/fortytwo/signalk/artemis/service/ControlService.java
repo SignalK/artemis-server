@@ -14,10 +14,17 @@ import org.apache.commons.lang3.SystemUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.atmosphere.client.TrackMessageSizeInterceptor;
+import org.atmosphere.config.service.AtmosphereService;
+import org.atmosphere.interceptor.AtmosphereResourceLifecycleInterceptor;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.util.Util;
-
+@AtmosphereService(
+		dispatch = true,
+		interceptors = {AtmosphereResourceLifecycleInterceptor.class, TrackMessageSizeInterceptor.class},
+		path = "/signalk/control/",
+		servlet = "org.glassfish.jersey.servlet.ServletContainer")
 @Path("/signalk/control")
 //@Api(value = "Signalk Server Control")
 public class ControlService {

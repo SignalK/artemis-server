@@ -2,6 +2,7 @@ package nz.co.fortytwo.signalk.artemis.service;
 
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SK_TOKEN;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -15,8 +16,10 @@ import javax.ws.rs.core.Response;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.atmosphere.annotation.Suspend;
+import org.atmosphere.client.TrackMessageSizeInterceptor;
+import org.atmosphere.config.service.AtmosphereService;
 import org.atmosphere.cpr.AtmosphereResource;
+import org.atmosphere.interceptor.AtmosphereResourceLifecycleInterceptor;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -28,7 +31,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
-
+@AtmosphereService(
+		dispatch = true,
+		interceptors = {AtmosphereResourceLifecycleInterceptor.class, TrackMessageSizeInterceptor.class},
+		path = "/signalk/v1/snapshot/",
+		servlet = "org.glassfish.jersey.servlet.ServletContainer")
 @Path("/signalk/v1/snapshot/")
 @Tag(name = "REST Snapshot API")
 public class SignalkSnapshotService extends BaseApiService {
@@ -36,8 +43,8 @@ public class SignalkSnapshotService extends BaseApiService {
 	
 	private static Logger logger = LogManager.getLogger(SignalkSnapshotService.class);
 	
-	@Context 
-	private AtmosphereResource resource;
+	@Context
+	private HttpServletRequest request;
 	
 	public SignalkSnapshotService() throws Exception {
 		super();
@@ -47,8 +54,8 @@ public class SignalkSnapshotService extends BaseApiService {
 	protected void initSession(String tempQ) throws Exception {
 		try{
 			super.initSession(tempQ);
-			super.setConsumer(resource, true);
-			addWebsocketCloseListener(resource);
+			super.setConsumer(getResource(request), true);
+			addWebsocketCloseListener(getResource(request));
 		}catch(Exception e){
 			logger.error(e,e);
 			throw e;
@@ -122,12 +129,13 @@ public class SignalkSnapshotService extends BaseApiService {
 	    @ApiResponse(responseCode = "403", description = "No permission"),
 	    @ApiResponse(responseCode = "400", description = "Bad request if time parameter is not understood")
 	    })
-	@Suspend(contentType = MediaType.APPLICATION_JSON)
+	//@Suspend(contentType = MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@GET
 	public String getAllSnapshot(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie, 
 			@Parameter( description = "An ISO 8601 format date/time string", example="2015-03-07T12:37:10.523Z") @QueryParam("time")String time) throws Exception {
 		getPath(null,cookie, time);
+		getResource(request).suspend();
 		return "";
 	}
 	
@@ -164,7 +172,7 @@ public class SignalkSnapshotService extends BaseApiService {
 	    @ApiResponse(responseCode = "403", description = "No permission"),
 	    @ApiResponse(responseCode = "400", description = "Bad request if time parameter is not understood")
 	    })
-	@Suspend(contentType = MediaType.APPLICATION_JSON)
+	//@Suspend(contentType = MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@GET
 	@Path( "{path:[^?]*}")
@@ -173,6 +181,7 @@ public class SignalkSnapshotService extends BaseApiService {
 			@Parameter( description = "An ISO 8601 format date/time string", example="2015-03-07T12:37:10.523Z") @QueryParam("time")String time) throws Exception {
 		//String path = req.getPathInfo();
 		getPath(path,cookie, time);
+		getResource(request).suspend();
 		return "";
 	}
 	
