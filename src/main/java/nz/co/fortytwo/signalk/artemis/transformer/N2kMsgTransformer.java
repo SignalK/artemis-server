@@ -48,6 +48,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.graalvm.polyglot.Context;
 
 import com.coveo.nashorn_modules.FilesystemFolder;
 import com.coveo.nashorn_modules.Folder;
@@ -69,7 +70,7 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 public class N2kMsgTransformer extends JsBaseTransformer implements Transformer {
 
 	private static Logger logger = LogManager.getLogger(N2kMsgTransformer.class);
-	private ThreadLocal<Bindings> engineHolder;
+	private ThreadLocal<Context> engineHolder;
 	
 	@SuppressWarnings("restriction")
 	public N2kMsgTransformer() throws Exception {
@@ -92,20 +93,27 @@ public class N2kMsgTransformer extends JsBaseTransformer implements Transformer 
 		initEngine();
 		
 		engineHolder = ThreadLocal.withInitial(() -> {
-				return engine.createBindings();
-			
+			try {
+				return initEngine();
+			} catch (IOException e) {
+				logger.error(e,e);
+				return null;
+			}
+		
 		});
 		
 	
 	}
 
-	protected void initEngine() throws IOException, ScriptException, NoSuchMethodException {
+	protected Context initEngine() throws IOException {
 		
 		if(logger.isDebugEnabled())logger.debug("Load parser: {}", "n2k-signalk/dist/bundle.js");
+		Context context = Context.newBuilder("js").allowHostAccess(true).build();
 		
-		engine.eval(IOUtils.toString(getIOStream("n2k-signalk/dist/bundle.js")));
+		context.eval("js",IOUtils.toString(getIOStream("n2k-signalk/dist/bundle.js")));
 		
-		if(logger.isDebugEnabled())logger.debug("N2K mapper: {}",engine.get("n2kMapper"));	
+		if(logger.isDebugEnabled())logger.debug("N2K mapper: {}",context.getBindings("js").getMember("n2kMapper"));	
+		return context;
 		
 	}
 
@@ -125,7 +133,7 @@ public class N2kMsgTransformer extends JsBaseTransformer implements Transformer 
 				if (logger.isDebugEnabled())
 					logger.debug("Processing N2K: {}",bodyStr);
 
-				Object result = ((Invocable) engineHolder.get()).invokeMethod(engineHolder.get().get("n2kMapper"),"toDelta", bodyStr);
+				Object result = engineHolder.get().getBindings("js").getMember("n2kMapper").invokeMember("toDelta", bodyStr);
 
 				if (logger.isDebugEnabled())
 					logger.debug("Processed N2K: {} ",result);

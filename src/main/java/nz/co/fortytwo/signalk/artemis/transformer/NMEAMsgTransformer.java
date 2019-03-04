@@ -50,6 +50,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Value;
 
 import com.coveo.nashorn_modules.FilesystemFolder;
 import com.coveo.nashorn_modules.Folder;
@@ -73,7 +75,7 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer {
 
 	private static Logger logger = LogManager.getLogger(NMEAMsgTransformer.class);
-	private ThreadLocal<Bindings> engineHolder;
+	private ThreadLocal<Context> engineHolder;
 	
 	
 	@SuppressWarnings("restriction")
@@ -91,12 +93,16 @@ public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer
 		} else {
 			rootFolder = ResourceFolder.create(getClass().getClassLoader(), resourceDir, Charsets.UTF_8.name());
 		}
-		if(logger.isDebugEnabled())logger.debug("Starting nashorn env from: {}", rootFolder.getPath());
-		
-		initEngine();
+		if(logger.isDebugEnabled())logger.debug("Starting graal env from: {}", rootFolder.getPath());
 		
 		engineHolder = ThreadLocal.withInitial(() -> {
-				return engine.createBindings();
+			
+				try {
+					return initEngine();
+				} catch (IOException e) {
+					logger.error(e,e);
+					return null;
+				}
 			
 		});
 		
@@ -105,12 +111,14 @@ public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer
 		
 	}
 
-	protected void initEngine() throws IOException, ScriptException, NoSuchMethodException {
+	protected Context initEngine() throws IOException  {
+		
+		Context context = Context.newBuilder("js").allowHostAccess(true).build();
 		
 		if(logger.isDebugEnabled())logger.debug("Load parser: {}", "signalk-parser-nmea0183/dist/bundle.js");
-		engine.eval(IOUtils.toString(getIOStream("signalk-parser-nmea0183/dist/bundle.js")));
+		 Value jsCtx = context.eval("js", IOUtils.toString(getIOStream("signalk-parser-nmea0183/dist/bundle.js")));
 		 
-		if(logger.isDebugEnabled())logger.debug("Parser: {}",engine.get("parser"));
+		if(logger.isDebugEnabled())logger.debug("Parser: {}",jsCtx.getMemberKeys());
 		
 		String hooks = IOUtils.toString(getIOStream("signalk-parser-nmea0183/hooks-es5/supported.txt"), Charsets.UTF_8);
 		if(logger.isDebugEnabled())logger.debug("Hooks: {}",hooks);
@@ -122,9 +130,10 @@ public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer
 			if (f.startsWith("ALK"))
 				continue;
 			if(logger.isDebugEnabled())logger.debug(f);
-			engine.invokeMethod(engine.get("parser"), "loadHook", f.trim());
+			//Invocable inv = (Invocable) engine;
+			context.getBindings("js").getMember("parser").invokeMember("loadHook", f.trim());
 		}
-		
+		return context;
 	}
 
 
@@ -141,15 +150,20 @@ public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer
 		if (StringUtils.isNotBlank(bodyStr) && bodyStr.startsWith("$")) {
 			try {
 				if(engineHolder==null)engineHolder=ThreadLocal.withInitial(() -> {
-					return engine.createBindings();
-					
+					try {
+						return initEngine();
+					} catch (IOException e) {
+						logger.error(e,e);
+						return null;
+					}
 				});
 				if (logger.isDebugEnabled()) {
 					logger.debug("Processing NMEA:[" + bodyStr + "]");
-					logger.debug("Parser inv: {}",engineHolder.get().get("parser"));
+					logger.debug("Parser inv: {}",engineHolder.get().getBindings("js").getMember("parser"));
+					
 				}
 				
-				Object result =  ((Invocable)engine).invokeMethod(engineHolder.get().get("parser"),"parse", bodyStr);
+				Object result =  engineHolder.get().getBindings("js").getMember("parser").invokeMember("parse", bodyStr);
 
 				if (logger.isDebugEnabled())
 					logger.debug("Processed NMEA: " + result );
