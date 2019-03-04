@@ -11,11 +11,11 @@ In a signalk world there should be no dependency except on signalk message and A
 
 The Artemis server has several architectural features of note:
 
-1) Java is natively multi-threaded, Artemis uses Java 8+ non-blocking aysnc IO, lamdbas and streams processing to transprently spread workloads across available CPU's. Hence a slow, blocking or failed operation will only stall one CPU, with others able to repair things.  Node (javascript) is single threaded, so only one CPU does the work, and if one process blocks, the server can stall.
+1) Java is natively multi-threaded, Artemis uses Java 11+ non-blocking aysnc IO, lamdbas and streams processing to transprently spread workloads across available CPU's. Hence a slow, blocking or failed operation will only stall one CPU, with others able to repair things.  Node (javascript) is single threaded, so only one CPU does the work, and if one process blocks, the server can stall.
 
 2) The underlying transport is Activemq Artemis (hence the name!). https://activemq.apache.org/artemis/  Its a state-of-the-art async messaging server, with full support for most common protocols (AMQP,JMS,MQTT.COAP,STOMP, etc) and provides a highly redundant message layer for processing and routing imessages. This can scale horizontally to massive workloads, aka marinetraffic.com. The difference between a messaging layer and a pipeline (node-server) is that the messaging layer buffers messages in a queue between the processing steps. So the steps can execute at their own speed, and slow steps can be parallelised. Intermittent connections or periodic processes are naturally handled by the queue. If you optionally make a queue persistent, then no message will be lost even on reboot.
 
-3) Artemis uses the Java 8 Nashorn Javascript engine to provide a Javascript compatibility layer. It already uses the signalk-parser-nmea0183 and n2k-signalk projects for NMEA conversion, and could use others if required. Where it differs from node is it runs javascript multi-threaded! So the NMEA processing is spread across CPU's, and does not block other tasks.
+3) Artemis uses the Java 11 Graal Javascript compiler to provide a Javascript compatibility layer. It already uses the signalk-parser-nmea0183 and n2k-signalk projects for NMEA conversion, and could use others if required. Where it differs from node is it runs javascript multi-threaded! So the NMEA processing is spread across CPU's, and does not block other tasks.
 
 4) Artemis uses a Time Series Database (TSB) as native storage. Hence all data is persistent, and full data history is maintained. Exploring the use of history is one area of special interest for me, as its virtually unknown in the recreational marine world. See item2), storing history and running sophisticated diagnostics and explorations will create workloads and data transfers way beyond the little RPi. The underlying Artemis message server can be used to spread this workload across many servers, even when they are only intermittently available.
 
@@ -145,13 +145,19 @@ Development
 
 Clone this project and signalk-java from github in the normal way. The artemis project uses maven to build, if you use an IDE like eclipse, netbeans, or intelliJ it should build automatically. 
 
+Setup
+-----
+Running under JDK11 with the Graal compiler requires java options:
+```
+-Xmx256M -XX:+HeapDumpOnOutOfMemoryError -Dio.netty.leakDetection.level=ADVANCED -XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI --module-path=./target/compiler/graal-sdk.jar:./target/compiler/truffle-api.jar --upgrade-module-path=./target/compiler/compiler.jar
+```
 TODO: more needed here about local builds for dev...
 
 
 NMEA
 ====
 
-Artemis server uses the signalk-parser-nmea0183 project modified to run under java8 nashorn, and to be useable directly from the java jar file without the full npm install process. This means the src/main/resources/dist/bundle.js file is commited to git, but as its not expected to change often, and greatly simplifies deployment that disadvantage is accepted for now.
+Artemis server uses the signalk-parser-nmea0183 project modified to run under java11 graal, and to be useable directly from the java jar file without the full npm install process. This means the src/main/resources/dist/bundle.js file is commited to git, but as its not expected to change often, and greatly simplifies deployment that disadvantage is accepted for now.
 
 To merge future changes from the signalk-parser-nmea0183 project, clone the signalk-parser-nmea0183 project separately, and run the following to create an es5 transpiled version:
 

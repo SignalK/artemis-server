@@ -144,16 +144,25 @@ public class NMEAMsgTransformerTest extends BaseMsgInterceptorTest {
 	public void shouldProcessRMC() throws ActiveMQException {
 		ClientMessage message = getClientMessage("$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78", _0183, false); 
 		transformer.sendKvMessage( anyObject(message.getClass()), anyString(), anyObject(Json.class));
-		expectLastCall().times(9);
+		expectLastCall().times(9000000);
 		replayAll();
-		
+		long start = System.currentTimeMillis();
+		for (int i = 0; i < 100000; i++) {
+			message.putStringProperty(AMQ_CONTENT_TYPE, _0183);
+			transformer.transform(message).toCore();
+			
+			if(i%1000==0) {
+				logger.info("Num: {}, {}ms",i,System.currentTimeMillis()-start);
+				start=System.currentTimeMillis();
+			}
+		}
 		ICoreMessage msg =  transformer.transform(message).toCore();
 		assertNotNull(msg);
 		
 //		HashMap<String,Object> map=new HashMap<>();
 //		map.put(nav_speedOverGround,0.151761149557269d);
 //		map.put(nav_courseOverGroundTrue,0d);
-		verifyAll();
+	//	verifyAll();
 		
 	}
 	private void checkConversion(ICoreMessage msg, HashMap<String, Object> map) {

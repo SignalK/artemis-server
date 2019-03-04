@@ -10,7 +10,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<artemis.version>2.6.2</artemis.version>
+		<artemis.version>2.6.2</artemis.version> 
 		<!-- <netty.version>4.1.5.Final</netty.version> -->
 		<log4j.version>2.8.2</log4j.version>
 		<slf4j.version>1.7.25</slf4j.version>
@@ -18,7 +18,7 @@
 		<jackson-version>2.9.6</jackson-version>
 		<jersey.version>2.28</jersey.version>
 		<swagger-version>1.5.21</swagger-version>
-		<graalvm.version>1.0.0-rc10</graalvm.version>
+		<graalvm.version>1.0.0-rc12</graalvm.version>
 		<compiler.dir>${project.build.directory}/compiler</compiler.dir>
 	</properties>
 	<licenses>
@@ -458,8 +458,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.8.0</version>
 				<configuration>
-					<source>1.11</source>
-					<target>1.11</target>
+					<source>11</source>
+					<target>11</target>
 				</configuration>
 			</plugin>
 
@@ -498,15 +498,14 @@
 							<goal>exec</goal>
 						</goals>
 						<configuration>
+							<longModulepath>false</longModulepath>
 							<arguments>
-								<argument>--module-path</argument>
-								<!-- automatically creates the modulepath using all project dependencies, 
-									also adding the project build directory -->
-								<modulepath />
+								<argument>--module-path=${compiler.dir}/graal-sdk.jar:${compiler.dir}/truffle-api.jar</argument>
 								<argument>-classpath</argument>
-								<!-- automatically creates the classpath using all project dependencies, 
-									also adding the project build directory -->
 								<classpath />
+								<argument>-Xmx256M</argument>
+								<argument>-XX:+HeapDumpOnOutOfMemoryError</argument>
+								<argument>-Dio.netty.leakDetection.level=ADVANCED</argument>
 								<argument>-XX:+UnlockExperimentalVMOptions</argument>
 								<argument>-XX:+EnableJVMCI</argument>
 								<argument>--upgrade-module-path=${compiler.dir}/compiler.jar</argument>
@@ -518,6 +517,7 @@
 				<configuration>
 					<mainClass>nz.co.fortytwo.signalk.artemis.server.ArtemisServer</mainClass>
 					<includePluginDependencies>false</includePluginDependencies>
+					<executable>${JAVA_HOME}/bin/java</executable>
 				</configuration>
 			</plugin>
 		</plugins>

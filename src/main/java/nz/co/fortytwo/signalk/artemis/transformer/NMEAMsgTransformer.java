@@ -112,7 +112,7 @@ public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer
 	}
 
 	protected Context initEngine() throws IOException  {
-		
+		logger.info("create js context");
 		Context context = Context.newBuilder("js").allowHostAccess(true).build();
 		
 		if(logger.isDebugEnabled())logger.debug("Load parser: {}", "signalk-parser-nmea0183/dist/bundle.js");
