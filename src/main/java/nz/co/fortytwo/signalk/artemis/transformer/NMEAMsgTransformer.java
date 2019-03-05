@@ -32,17 +32,10 @@ import static nz.co.fortytwo.signalk.artemis.util.Config._0183;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self_str;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.source;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
-import java.io.File;
 import java.io.IOException;
 
-import javax.script.Bindings;
-import javax.script.Invocable;
-import javax.script.ScriptException;
-
-import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.core.server.transformer.Transformer;
 import org.apache.commons.io.Charsets;
@@ -53,14 +46,8 @@ import org.apache.logging.log4j.Logger;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 
-import com.coveo.nashorn_modules.FilesystemFolder;
-import com.coveo.nashorn_modules.Folder;
-import com.coveo.nashorn_modules.ResourceFolder;
-
-import jdk.nashorn.api.scripting.NashornScriptEngine;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.service.SignalkKvConvertor;
-import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
@@ -82,18 +69,6 @@ public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer
 	public NMEAMsgTransformer() throws Exception {
 		super();
 
-		String resourceDir = getClass().getClassLoader().getResource("signalk-parser-nmea0183/parser.js").toString();
-		resourceDir = StringUtils.substringBefore(resourceDir, "index-es5.js");
-		resourceDir = StringUtils.substringAfter(resourceDir, "file:");
-		if(logger.isDebugEnabled())logger.debug("Javascript jsRoot: {}", resourceDir);
-
-		Folder rootFolder = null;
-		if (new File(resourceDir).exists()) {
-			rootFolder = FilesystemFolder.create(new File(resourceDir), "UTF-8");
-		} else {
-			rootFolder = ResourceFolder.create(getClass().getClassLoader(), resourceDir, Charsets.UTF_8.name());
-		}
-		if(logger.isDebugEnabled())logger.debug("Starting graal env from: {}", rootFolder.getPath());
 		
 		engineHolder = ThreadLocal.withInitial(() -> {
 			

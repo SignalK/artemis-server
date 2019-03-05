@@ -75,22 +75,6 @@ public class N2kMsgTransformer extends JsBaseTransformer implements Transformer 
 	@SuppressWarnings("restriction")
 	public N2kMsgTransformer() throws Exception {
 		super();
-	
-		String resourceDir = getClass().getClassLoader().getResource("n2k-signalk/dist/bundle.js").toString();
-		resourceDir = StringUtils.substringBefore(resourceDir, "dist/bundle.js");
-		resourceDir = StringUtils.substringAfter(resourceDir, "file:");
-		if(logger.isDebugEnabled())logger.debug("Javascript jsRoot: {}", resourceDir);
-
-		Folder rootFolder = null;
-		if (new File(resourceDir).exists()) {
-			rootFolder = FilesystemFolder.create(new File(resourceDir), "UTF-8");
-		} else {
-			rootFolder = ResourceFolder.create(getClass().getClassLoader(), resourceDir, Charsets.UTF_8.name());
-		}
-		
-		if(logger.isDebugEnabled())logger.debug("Starting nashorn env from: {}", rootFolder.getPath());
-		
-		initEngine();
 		
 		engineHolder = ThreadLocal.withInitial(() -> {
 			try {
