@@ -12,7 +12,7 @@ import nz.co.fortytwo.signalk.artemis.intercept.BaseInterceptor;
 public class JsBaseTransformer extends BaseInterceptor {
 	
 	private static Logger logger = LogManager.getLogger(JsBaseTransformer.class);
-	protected static GenericObjectPool<Context> pool = new GenericObjectPool<Context>(new JsPoolFactory());
+	protected static GenericObjectPool<Context> pool = new GenericObjectPool<Context>(new GraalPoolFactory());
 	
 	public JsBaseTransformer() {
 		logger.debug("Starting Graal JS engine..");

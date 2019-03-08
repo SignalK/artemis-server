@@ -15,8 +15,8 @@ import org.graalvm.polyglot.Engine;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 
-public class JsPoolFactory extends BasePooledObjectFactory<Context> {
-	private static Logger logger = LogManager.getLogger(JsPoolFactory.class);
+public class GraalPoolFactory extends BasePooledObjectFactory<Context> {
+	private static Logger logger = LogManager.getLogger(GraalPoolFactory.class);
 	protected static Engine engine = Engine.create();
 	private static Source bundle0183;
 	private static Source bundleN2k;
