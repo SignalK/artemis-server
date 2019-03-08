@@ -52,14 +52,14 @@ public class JsPoolFactory extends BasePooledObjectFactory<Context> {
 		Context context = Context.newBuilder("js").allowHostAccess(true).build();
 			
 		if(bundleN2k==null) {
-			logger.info("Load parser: {}", "n2k-signalk/dist/bundle.js");
-			bundle0183 = Source.newBuilder("js", Thread.currentThread().getContextClassLoader().getResource("n2k-signalk/dist/bundle.js")).build();
+			logger.info("Load n2kMapper: {}", "n2k-signalk/dist/bundle.js");
+			bundleN2k = Source.newBuilder("js", Thread.currentThread().getContextClassLoader().getResource("n2k-signalk/dist/bundle.js")).build();
 		}
 		 Value n2kCtx = context.eval(bundleN2k);
 		 if(logger.isDebugEnabled())logger.debug("n2kMapper: {}",n2kCtx.getMemberKeys());
 		
 		if(bundle0183==null) {
-			logger.info("Load parser: {}", "signalk-parser-nmea0183/dist/bundle.js");
+			logger.info("Load 0183 parser: {}", "signalk-parser-nmea0183/dist/bundle.js");
 			bundle0183 = Source.newBuilder("js", Thread.currentThread().getContextClassLoader().getResource("signalk-parser-nmea0183/dist/bundle.js")).build();
 		}
 		 Value jsCtx = context.eval(bundle0183);
