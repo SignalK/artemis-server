@@ -48,7 +48,7 @@ public class SignalkDemoService extends BaseApiService implements Runnable {
 			  Thread.currentThread().sleep(delay);
 			}
 			if(c%10000==0) {
-				logger.info("Processed {} messages/sec",c/((System.currentTimeMillis()-start)/1000));
+				logger.info("Processed {} messages/sec",((double)c)/((double)(System.currentTimeMillis()-start)/1000));
 				start=System.currentTimeMillis();
 				c=0;
 			}

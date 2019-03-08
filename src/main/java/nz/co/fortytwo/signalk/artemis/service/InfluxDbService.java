@@ -31,8 +31,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.influxdb.BatchOptions;
 import org.influxdb.InfluxDB;
+import org.influxdb.InfluxDB.LogLevel;
 import org.influxdb.InfluxDBFactory;
 import org.influxdb.InfluxDBIOException;
+import org.influxdb.dto.BatchPoints;
 import org.influxdb.dto.Point;
 import org.influxdb.dto.Point.Builder;
 import org.influxdb.dto.Query;
@@ -93,17 +95,21 @@ public class InfluxDbService implements TDBService {
 		if (!influxDB.databaseExists(dbName))
 			influxDB.createDatabase(dbName);
 		influxDB.setDatabase(dbName);
+		influxDB.setLogLevel(LogLevel.BASIC);
+//		influxDB.enableBatch(BatchOptions.DEFAULTS.exceptionHandler((failedPoints, throwable) -> {
+//			logger.error("FAILED:"+failedPoints);
+//			logger.error(throwable);
+//		}));
 		
-		influxDB.enableBatch(BatchOptions.DEFAULTS.exceptionHandler((failedPoints, throwable) -> {
-			logger.error("FAILED:"+failedPoints);
-			logger.error(throwable);
-		}));
+		influxDB.enableBatch(10000, 250, TimeUnit.MILLISECONDS);
+		influxDB.setRetentionPolicy("autogen");
 		if(primaryMap.size()==0)loadPrimary();
 		
 	}
 
 	@Override
 	public void setWrite(boolean write) {
+		logger.info("Set write: {}", write);
 		allowWrite=write;
 //		try {
 //			Config.saveConfig();
@@ -680,8 +686,8 @@ public class InfluxDbService implements TDBService {
 				}catch (Exception e) {
 					//ignore
 				}
-				if(clock!=null && clock.equals("system")) {
-					if (logger.isInfoEnabled())logger.info("write enabled for {} : {}",()->val.getClass().getSimpleName(),()->key);
+				if(StringUtils.equals(clock,"system")) {
+					//if (logger.isInfoEnabled())logger.info("write enabled for {} : {}",()->val.getClass().getSimpleName(),()->key);
 					setWrite(true);
 				}else {
 					if (logger.isInfoEnabled())logger.info("write not enabled for {} : {}",()->val.getClass().getSimpleName(),()->key);

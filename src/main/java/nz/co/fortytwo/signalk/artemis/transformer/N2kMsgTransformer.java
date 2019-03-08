@@ -33,28 +33,13 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self_str;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
-import java.io.File;
-import java.io.IOException;
-
-import javax.script.Bindings;
-import javax.script.Invocable;
-import javax.script.ScriptException;
-
-import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.core.server.transformer.Transformer;
-import org.apache.commons.io.Charsets;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.graalvm.polyglot.Context;
 
-import com.coveo.nashorn_modules.FilesystemFolder;
-import com.coveo.nashorn_modules.Folder;
-import com.coveo.nashorn_modules.ResourceFolder;
-
-import jdk.nashorn.api.scripting.NashornScriptEngine;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.service.SignalkKvConvertor;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
@@ -70,37 +55,12 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 public class N2kMsgTransformer extends JsBaseTransformer implements Transformer {
 
 	private static Logger logger = LogManager.getLogger(N2kMsgTransformer.class);
-	private ThreadLocal<Context> engineHolder;
 	
-	@SuppressWarnings("restriction")
+	
 	public N2kMsgTransformer() throws Exception {
-		super();
-		
-		engineHolder = ThreadLocal.withInitial(() -> {
-			try {
-				return initEngine();
-			} catch (IOException e) {
-				logger.error(e,e);
-				return null;
-			}
-		
-		});
-		
+		logger.info("Started N2kMsgTransformer");
 	
 	}
-
-	protected Context initEngine() throws IOException {
-		
-		if(logger.isDebugEnabled())logger.debug("Load parser: {}", "n2k-signalk/dist/bundle.js");
-		Context context = Context.newBuilder("js").allowHostAccess(true).build();
-		
-		context.eval("js",IOUtils.toString(getIOStream("n2k-signalk/dist/bundle.js")));
-		
-		if(logger.isDebugEnabled())logger.debug("N2K mapper: {}",context.getBindings("js").getMember("n2kMapper"));	
-		return context;
-		
-	}
-
 
 	@Override
 	public Message transform(Message message) {
@@ -116,8 +76,9 @@ public class N2kMsgTransformer extends JsBaseTransformer implements Transformer 
 			try {
 				if (logger.isDebugEnabled())
 					logger.debug("Processing N2K: {}",bodyStr);
-
-				Object result = engineHolder.get().getBindings("js").getMember("n2kMapper").invokeMember("toDelta", bodyStr);
+				Context ctx = pool.borrowObject();
+				
+				Object result = ctx.getBindings("js").getMember("n2kMapper").invokeMember("toDelta", bodyStr);
 
 				if (logger.isDebugEnabled())
 					logger.debug("Processed N2K: {} ",result);
@@ -126,7 +87,15 @@ public class N2kMsgTransformer extends JsBaseTransformer implements Transformer 
 					logger.error("{},{}", bodyStr, result);
 					return message;
 				}
+				if (result==null || StringUtils.isBlank(result.toString())|| result.toString().startsWith("WARN")) {
+					logger.warn(bodyStr + "," + result);
+					//ctx.leave();
+					pool.returnObject(ctx);
+					return message;
+				}
+				
 				Json json = Json.read(result.toString());
+				pool.returnObject(ctx);
 				if(!json.isObject())return message;
 						
 				json.set(SignalKConstants.CONTEXT, vessels + dot + Util.fixSelfKey(self_str));

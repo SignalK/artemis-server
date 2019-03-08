@@ -27,7 +27,7 @@ pi@raspberrypi:~ $ sudo apt-get upgrade
 Install helpful things
 ----------------------
 ```
-pi@raspberrypi:~ $ sudo apt-get install -y curl git build-essential dialog
+pi@raspberrypi:~ $ sudo apt-get install -y curl wget git build-essential dialog
 ```
 
 Install extra package sources
@@ -75,7 +75,7 @@ pi@raspberrypi:~ $ sudo nano /etc/dnsmasq.conf
 ```
 	Cnrtl-X to save
 ```
-pi@raspberrypi:~ $ sudo nano /etc/hostapd/hostapd.conf
+pi@raspberrypi:~ $ sudo nano /etc/hostapd/hostapd.confq
 ```
 	Enter:
 ```
@@ -127,11 +127,11 @@ Install signalk-java
 ```
 pi@raspberrypi:~ $ git clone https://github.com/SignalK/signalk-java.git
 pi@raspberrypi:~ $ cd signalk-java
-pi@raspberrypi:~ $ git checkout artemis
-pi@raspberrypi:~ $ mvn exec:java
+pi@raspberrypi:~ $ git checkout jdk11
+pi@raspberrypi:~ $ mvn exec:exec
 ```
 	If it fails,
   `pi@raspberrypi:~ $ rm -rf ~/.m2/repository/com/github/SignalK/artemis-server/`
-	and try 'mvn exec:java' again
+	and try 'mvn exec:exec' again
 
 Adding apps can be done via the ui at https://[rpi_ip_address]:8443

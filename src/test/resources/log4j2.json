@@ -95,7 +95,7 @@
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.util",
-					"level": "debug"
+					"level": "info"
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.server.SerialPortReader",
@@ -183,7 +183,7 @@
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.transformer",
-					"level": "debug"
+					"level": "info"
 				},
 				{
 					"name": "org.atmosphere.nettosphere.BridgeRuntime",
@@ -227,7 +227,7 @@
 				},
 				{
 					"name": "nz.co.fortytwo.signalk.artemis.service.SignalkKvConvertor",
-					"level": "debug",
+					"level": "info",
 					"additivity": true,
 					"appender-ref": []
 				},

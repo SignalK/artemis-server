@@ -8,3 +8,5 @@
 /signalk-static
 /.settings/
 
+/dumps/
+/recording.jfr

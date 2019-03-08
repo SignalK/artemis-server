@@ -34,17 +34,12 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self_str;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
-import java.io.IOException;
-
 import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.core.server.transformer.Transformer;
-import org.apache.commons.io.Charsets;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.Value;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.service.SignalkKvConvertor;
@@ -62,55 +57,10 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer {
 
 	private static Logger logger = LogManager.getLogger(NMEAMsgTransformer.class);
-	private ThreadLocal<Context> engineHolder;
 	
-	
-	@SuppressWarnings("restriction")
 	public NMEAMsgTransformer() throws Exception {
-		super();
-
-		
-		engineHolder = ThreadLocal.withInitial(() -> {
-			
-				try {
-					return initEngine();
-				} catch (IOException e) {
-					logger.error(e,e);
-					return null;
-				}
-			
-		});
-		
-		
-		
-		
+		logger.info("Started NMEAMsgTransformer");
 	}
-
-	protected Context initEngine() throws IOException  {
-		logger.info("create js context");
-		Context context = Context.newBuilder("js").allowHostAccess(true).build();
-		
-		if(logger.isDebugEnabled())logger.debug("Load parser: {}", "signalk-parser-nmea0183/dist/bundle.js");
-		 Value jsCtx = context.eval("js", IOUtils.toString(getIOStream("signalk-parser-nmea0183/dist/bundle.js")));
-		 
-		if(logger.isDebugEnabled())logger.debug("Parser: {}",jsCtx.getMemberKeys());
-		
-		String hooks = IOUtils.toString(getIOStream("signalk-parser-nmea0183/hooks-es5/supported.txt"), Charsets.UTF_8);
-		if(logger.isDebugEnabled())logger.debug("Hooks: {}",hooks);
-
-		String[] files = hooks.split("\n");
-		
-		for (String f : files) {
-			// seatalk breaks
-			if (f.startsWith("ALK"))
-				continue;
-			if(logger.isDebugEnabled())logger.debug(f);
-			//Invocable inv = (Invocable) engine;
-			context.getBindings("js").getMember("parser").invokeMember("loadHook", f.trim());
-		}
-		return context;
-	}
-
 
 	@Override
 	public Message transform(Message message) {
@@ -124,30 +74,30 @@ public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer
 		
 		if (StringUtils.isNotBlank(bodyStr) && bodyStr.startsWith("$")) {
 			try {
-				if(engineHolder==null)engineHolder=ThreadLocal.withInitial(() -> {
-					try {
-						return initEngine();
-					} catch (IOException e) {
-						logger.error(e,e);
-						return null;
-					}
-				});
+				Context ctx = pool.borrowObject();
+				//ctx.enter();
 				if (logger.isDebugEnabled()) {
 					logger.debug("Processing NMEA:[" + bodyStr + "]");
-					logger.debug("Parser inv: {}",engineHolder.get().getBindings("js").getMember("parser"));
-					
+					logger.debug("Parser inv: {}",ctx.getBindings("js").getMember("parser"));
 				}
 				
-				Object result =  engineHolder.get().getBindings("js").getMember("parser").invokeMember("parse", bodyStr);
-
+				Object result =  ctx.getBindings("js").getMember("parser").invokeMember("parse", bodyStr);
+				
 				if (logger.isDebugEnabled())
 					logger.debug("Processed NMEA: " + result );
 
 				if (result==null || StringUtils.isBlank(result.toString())|| result.toString().startsWith("WARN")) {
 					logger.warn(bodyStr + "," + result);
+					//ctx.leave();
+					pool.returnObject(ctx);
 					return message;
 				}
+				
 				Json json = Json.read(result.toString());
+				
+				//ctx.leave();
+				pool.returnObject(ctx);
+				
 				if(!json.isObject())return message;
 				
 				json.set(SignalKConstants.CONTEXT, vessels + dot + Util.fixSelfKey(self_str));
