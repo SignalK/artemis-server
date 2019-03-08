@@ -3,6 +3,7 @@
 *.prefs
 *~
 /target/
+/data/
 /logs/
 /activemq.log
 /signalk-static
@@ -10,3 +11,4 @@
 
 /dumps/
 /recording.jfr
+hs_err_*
