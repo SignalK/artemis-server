@@ -38,7 +38,6 @@ import org.apache.activemq.artemis.core.server.transformer.Transformer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.graalvm.polyglot.Context;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.service.SignalkKvConvertor;
@@ -58,7 +57,7 @@ public class N2kMsgTransformer extends JsBaseTransformer implements Transformer 
 	
 	
 	public N2kMsgTransformer() throws Exception {
-		logger.info("Started N2kMsgTransformer");
+		logger.info("Started N2kMsgTransformer with {} JS engine..", engineName);
 	
 	}
 
@@ -76,9 +75,9 @@ public class N2kMsgTransformer extends JsBaseTransformer implements Transformer 
 			try {
 				if (logger.isDebugEnabled())
 					logger.debug("Processing N2K: {}",bodyStr);
-				Context ctx = pool.borrowObject();
+				ContextHolder ctx = pool.borrowObject();
 				
-				Object result = ctx.getBindings("js").getMember("n2kMapper").invokeMember("toDelta", bodyStr);
+				Object result = ctx.invokeMember("n2kMapper","toDelta", bodyStr);
 
 				if (logger.isDebugEnabled())
 					logger.debug("Processed N2K: {} ",result);

@@ -59,7 +59,7 @@ public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer
 	private static Logger logger = LogManager.getLogger(NMEAMsgTransformer.class);
 	
 	public NMEAMsgTransformer() throws Exception {
-		logger.info("Started NMEAMsgTransformer");
+		logger.info("Started NMEAMsgTransformer with {} JS engine..", engineName);
 	}
 
 	@Override
@@ -74,14 +74,14 @@ public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer
 		
 		if (StringUtils.isNotBlank(bodyStr) && bodyStr.startsWith("$")) {
 			try {
-				Context ctx = pool.borrowObject();
+				ContextHolder ctx = pool.borrowObject();
 				//ctx.enter();
 				if (logger.isDebugEnabled()) {
 					logger.debug("Processing NMEA:[" + bodyStr + "]");
-					logger.debug("Parser inv: {}",ctx.getBindings("js").getMember("parser"));
+					//logger.debug("Parser inv: {}",ctx.getMember("parser"));
 				}
 				
-				Object result =  ctx.getBindings("js").getMember("parser").invokeMember("parse", bodyStr);
+				Object result =  ctx.invokeMember("parser","parse", bodyStr);
 				
 				if (logger.isDebugEnabled())
 					logger.debug("Processed NMEA: " + result );
