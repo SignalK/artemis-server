@@ -29,6 +29,8 @@ public class JsBaseTransformer extends BaseInterceptor {
 			}
 			pool.setBlockWhenExhausted(true);
 			pool.setMaxTotal(3);
+			//preload at least one
+			pool.addObject();
 		} catch (Exception e) {
 			logger.error(e,e);
 		} 
