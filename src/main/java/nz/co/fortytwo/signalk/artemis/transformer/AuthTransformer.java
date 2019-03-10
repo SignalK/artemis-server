@@ -8,8 +8,6 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.LOGIN;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.LOGOUT;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.VALIDATE;
 
-import java.util.UUID;
-
 import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.core.server.transformer.Transformer;
 import org.apache.commons.lang3.StringUtils;

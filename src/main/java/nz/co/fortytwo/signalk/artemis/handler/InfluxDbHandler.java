@@ -1,15 +1,12 @@
 package nz.co.fortytwo.signalk.artemis.handler;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_INFLUX_KEY;
-import static nz.co.fortytwo.signalk.artemis.util.Config.INTERNAL_KV;
 
 import org.apache.activemq.artemis.api.core.Message;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
-import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
-import nz.co.fortytwo.signalk.artemis.service.TDBService;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 /*

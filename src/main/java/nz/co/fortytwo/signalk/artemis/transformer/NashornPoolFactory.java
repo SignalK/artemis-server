@@ -63,8 +63,8 @@ public class NashornPoolFactory extends BasePooledObjectFactory<ContextHolder> {
 		
 		for (String f : files) {
 			// seatalk breaks
-			if (f.startsWith("ALK"))
-				continue;
+//			if (f.startsWith("ALK"))
+//				continue;
 			if(logger.isDebugEnabled())logger.debug(f);
 			engine.invokeMethod(engine.get("parser"), "loadHook", f.trim());
 		}

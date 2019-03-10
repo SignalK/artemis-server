@@ -1,9 +1,5 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
-
-import java.io.IOException;
-
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -17,9 +13,6 @@ import org.apache.logging.log4j.Logger;
 import org.atmosphere.client.TrackMessageSizeInterceptor;
 import org.atmosphere.config.service.AtmosphereService;
 import org.atmosphere.interceptor.AtmosphereResourceLifecycleInterceptor;
-
-import mjson.Json;
-import nz.co.fortytwo.signalk.artemis.util.Util;
 @AtmosphereService(
 		dispatch = true,
 		interceptors = {AtmosphereResourceLifecycleInterceptor.class, TrackMessageSizeInterceptor.class},

@@ -26,7 +26,6 @@ package nz.co.fortytwo.signalk.artemis.service;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
-import java.net.URI;
 import java.util.Map;
 
 import javax.ws.rs.GET;

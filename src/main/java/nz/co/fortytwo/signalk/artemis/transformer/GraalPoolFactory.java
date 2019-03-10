@@ -73,8 +73,8 @@ public class GraalPoolFactory extends BasePooledObjectFactory<ContextHolder> {
 		
 		for (String f : files) {
 			// seatalk breaks
-			if (f.startsWith("ALK"))
-				continue;
+//			if (f.startsWith("ALK"))
+//				continue;
 			if(logger.isDebugEnabled())logger.debug(f);
 			//Invocable inv = (Invocable) engine;
 			context.getBindings("js").getMember("parser").invokeMember("loadHook", f.trim());

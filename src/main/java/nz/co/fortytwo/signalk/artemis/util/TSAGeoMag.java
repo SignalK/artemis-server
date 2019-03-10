@@ -48,7 +48,8 @@ import java.io.StreamTokenizer;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-import org.apache.logging.log4j.LogManager; import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**<p>
  * 

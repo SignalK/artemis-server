@@ -22,7 +22,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListMap;
 
 import javax.crypto.SecretKey;
 import javax.servlet.http.Cookie;
@@ -39,7 +38,6 @@ import org.atmosphere.cpr.AtmosphereResource;
 import org.joda.time.DateTime;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.impl.crypto.MacProvider;

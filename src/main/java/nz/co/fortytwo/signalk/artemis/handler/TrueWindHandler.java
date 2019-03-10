@@ -2,7 +2,7 @@ package nz.co.fortytwo.signalk.artemis.handler;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_INFLUX_KEY;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.TWO_PI;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_wind_angleApparent;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_wind_angleTrueGround;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_wind_angleTrueWater;
@@ -10,21 +10,18 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_wind_dire
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_wind_directionTrue;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_wind_speedApparent;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.env_wind_speedTrue;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.meta;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_courseOverGroundMagnetic;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_courseOverGroundTrue;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_speedOverGround;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.timestamp;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
-import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.Message;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
-import nz.co.fortytwo.signalk.artemis.util.Config;
-import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 /*

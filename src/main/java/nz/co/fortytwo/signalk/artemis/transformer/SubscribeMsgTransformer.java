@@ -1,27 +1,23 @@
 package nz.co.fortytwo.signalk.artemis.transformer;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
-import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_DELTA;
 import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_SUBSCRIBE;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT_DELTA;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.MIN_PERIOD;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PATH;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PERIOD;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PLAYBACK_RATE;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.POLICY;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.POLICY_FIXED;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.START_TIME;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SUBSCRIBE;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UNSUBSCRIBE;
 
-import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ICoreMessage;
-import org.apache.activemq.artemis.api.core.Interceptor;
 import org.apache.activemq.artemis.api.core.Message;
-import org.apache.activemq.artemis.core.protocol.core.Packet;
-import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.SessionSendMessage;
 import org.apache.activemq.artemis.core.server.transformer.Transformer;
-import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

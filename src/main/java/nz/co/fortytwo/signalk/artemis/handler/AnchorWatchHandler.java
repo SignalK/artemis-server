@@ -1,8 +1,17 @@
 package nz.co.fortytwo.signalk.artemis.handler;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_INFLUX_KEY;
-import static nz.co.fortytwo.signalk.artemis.util.Config.INTERNAL_KV;
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_anchor;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_anchor_currentRadius;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_anchor_maxRadius;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_anchor_position_latitude;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_anchor_position_longitude;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_position_latitude;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_position_longitude;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.skey;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,15 +20,10 @@ import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.apache.activemq.artemis.api.core.Message;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
-import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
-import nz.co.fortytwo.signalk.artemis.service.TDBService;
-import nz.co.fortytwo.signalk.artemis.util.Config;
-import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 

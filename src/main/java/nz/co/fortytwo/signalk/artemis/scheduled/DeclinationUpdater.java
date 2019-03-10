@@ -23,7 +23,13 @@
  */
 package nz.co.fortytwo.signalk.artemis.scheduled;
 
-import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.LATITUDE;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.LONGITUDE;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.skey;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.util.HashMap;
 import java.util.Map;
