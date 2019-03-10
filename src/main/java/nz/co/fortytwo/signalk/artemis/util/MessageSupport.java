@@ -1,4 +1,4 @@
-package nz.co.fortytwo.signalk.artemis.handler;
+package nz.co.fortytwo.signalk.artemis.util;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.ADMIN_PWD;
 import static nz.co.fortytwo.signalk.artemis.util.Config.ADMIN_USER;
@@ -32,10 +32,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
-import nz.co.fortytwo.signalk.artemis.util.Config;
-import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
-import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
-import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class MessageSupport {
 
@@ -61,7 +57,7 @@ public class MessageSupport {
 
 	}
 
-	protected void send(Message message, String key, double d) throws ActiveMQException {
+	public void send(Message message, String key, double d) throws ActiveMQException {
 		if (logger.isDebugEnabled())
 			logger.debug("Sending: key: {}, value: {}", key, d);
 		Json json = Json.object().set(value, d).set(timestamp, Util.getIsoTimeString());
@@ -71,7 +67,7 @@ public class MessageSupport {
 
 	}
 
-	protected void sendJson(Message message, String key, Json json) throws ActiveMQException {
+	public void sendJson(Message message, String key, Json json) throws ActiveMQException {
 		if (!json.isNull() && !json.has(timestamp)) {
 			json.set(timestamp, Util.getIsoTimeString());
 		}
