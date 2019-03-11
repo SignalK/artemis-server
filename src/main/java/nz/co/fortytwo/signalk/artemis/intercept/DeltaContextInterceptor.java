@@ -71,7 +71,7 @@ public class DeltaContextInterceptor extends BaseInterceptor implements Intercep
 			ICoreMessage message = realPacket.getMessage();
 			if (!StringUtils.equals(message.getAddress(), INCOMING_RAW))
 				return true;
-			if (!Config.JSON_DELTA.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))
+			if (!Config.AMQ_CONTENT_TYPE_JSON_DELTA.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))
 				return true;
 
 			Json node = Util.readBodyBuffer(message);

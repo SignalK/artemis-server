@@ -24,7 +24,7 @@
 package nz.co.fortytwo.signalk.artemis.transformer;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
-import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_FULL;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE_JSON_FULL;
 
 import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.core.server.transformer.Transformer;
@@ -56,7 +56,7 @@ public class FullMsgTransformer extends MessageSupport implements Transformer {
 	@Override
 	public Message transform(Message message) {
 		
-		if (!JSON_FULL.equals(message.getStringProperty(AMQ_CONTENT_TYPE)))	return message;
+		if (!AMQ_CONTENT_TYPE_JSON_FULL.equals(message.getStringProperty(AMQ_CONTENT_TYPE)))	return message;
 		Json node = Util.readBodyBuffer( message.toCore());
 		
 		// deal with full format

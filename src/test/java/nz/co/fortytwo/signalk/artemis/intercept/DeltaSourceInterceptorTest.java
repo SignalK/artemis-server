@@ -2,7 +2,7 @@ package nz.co.fortytwo.signalk.artemis.intercept;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
 import static nz.co.fortytwo.signalk.artemis.util.Config.INCOMING_RAW;
-import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_DELTA;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE_JSON_DELTA;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONFIG;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PUT;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
@@ -70,7 +70,7 @@ public class DeltaSourceInterceptorTest extends BaseMsgInterceptorTest {
 //		interceptor.saveSource(Json.read("{\"sources\":{\"NMEA0183\":{\"GPS-1\":{\"sentence\":\"RMC\",\"talker\":\"GP\",\"label\":\"GPS-1\",\"type\":\"NMEA0183\"}}}}"));
 //		interceptor.saveSource(Json.read("{\"sources\":{\"NMEA2000\":{\"actisense\":{\"src\":\"115\",\"pgn\":128267,\"label\":\"actisense\",\"type\":\"NMEA2000\"}}}}"));
 		
-		ClientMessage message = getClientMessage(update.toString(), JSON_DELTA, false);
+		ClientMessage message = getClientMessage(update.toString(), AMQ_CONTENT_TYPE_JSON_DELTA, false);
 		interceptor.sendKvMessage( anyObject(message.getClass()), anyString(), anyObject(Json.class));
 		expectLastCall().times(8);
 		replayAll();
@@ -80,7 +80,7 @@ public class DeltaSourceInterceptorTest extends BaseMsgInterceptorTest {
 
 		assertTrue(interceptor.intercept(packet, null));
 		ICoreMessage msg = packet.getMessage();
-		assertEquals(JSON_DELTA, msg.getStringProperty(AMQ_CONTENT_TYPE));
+		assertEquals(AMQ_CONTENT_TYPE_JSON_DELTA, msg.getStringProperty(AMQ_CONTENT_TYPE));
 		// {"context":"vessels.self","updates":[{"values":[{"path":"navigation.position","value":{"latitude":51.9485185,"longitude":4.580064166666666}},{"path":"navigation.courseOverGroundTrue","value":0},{"path":"navigation.speedOverGround","value":0.151761149557269},{"path":"navigation.magneticVariation","value":0},{"path":"navigation.magneticVariationAgeOfService","value":1383317189},{"path":"navigation.datetime","value":"2013-11-01T14:46:29.000Z"}],"source":{"sentence":"RMC","talker":"GP","type":"NMEA0183"},"timestamp":"2013-11-01T14:46:29.000Z"}]}"
 		String content = Util.readBodyBufferToString(msg);
 		
@@ -103,7 +103,7 @@ public class DeltaSourceInterceptorTest extends BaseMsgInterceptorTest {
 //		interceptor.saveSource(Json.read("{\"sources\":{\"NMEA2000\":{\"actisense\":{\"src\":\"115\",\"pgn\":128267,\"label\":\"actisense\",\"type\":\"NMEA2000\"}}}}"));
 		
 		
-		ClientMessage message = getClientMessage(put.toString(), JSON_DELTA, false);
+		ClientMessage message = getClientMessage(put.toString(), AMQ_CONTENT_TYPE_JSON_DELTA, false);
 		interceptor.sendKvMessage( anyObject(message.getClass()), anyString(), anyObject(Json.class));
 		expectLastCall().times(4);
 		replayAll();
@@ -112,7 +112,7 @@ public class DeltaSourceInterceptorTest extends BaseMsgInterceptorTest {
 
 		assertTrue(interceptor.intercept(packet, null));
 		ICoreMessage msg = packet.getMessage();
-		assertEquals(JSON_DELTA, msg.getStringProperty(AMQ_CONTENT_TYPE));
+		assertEquals(AMQ_CONTENT_TYPE_JSON_DELTA, msg.getStringProperty(AMQ_CONTENT_TYPE));
 		// {"context":"vessels.self","updates":[{"values":[{"path":"navigation.position","value":{"latitude":51.9485185,"longitude":4.580064166666666}},{"path":"navigation.courseOverGroundTrue","value":0},{"path":"navigation.speedOverGround","value":0.151761149557269},{"path":"navigation.magneticVariation","value":0},{"path":"navigation.magneticVariationAgeOfService","value":1383317189},{"path":"navigation.datetime","value":"2013-11-01T14:46:29.000Z"}],"source":{"sentence":"RMC","talker":"GP","type":"NMEA0183"},"timestamp":"2013-11-01T14:46:29.000Z"}]}"
 		String content = Util.readBodyBufferToString(msg);
 		
@@ -134,7 +134,7 @@ public class DeltaSourceInterceptorTest extends BaseMsgInterceptorTest {
 		
 //		interceptor.saveSource(Json.read("{\"sources\":{\"NMEA2000\":{\"actisense\":{\"src\":\"115\",\"pgn\":128267,\"label\":\"actisense\",\"type\":\"NMEA2000\"}}}}"));
 		
-		ClientMessage message = getClientMessage(config.toString(), JSON_DELTA, false);
+		ClientMessage message = getClientMessage(config.toString(), AMQ_CONTENT_TYPE_JSON_DELTA, false);
 		interceptor.sendKvMessage( anyObject(message.getClass()), anyString(), anyObject(Json.class));
 		expectLastCall().times(4);
 		replayAll();
@@ -144,7 +144,7 @@ public class DeltaSourceInterceptorTest extends BaseMsgInterceptorTest {
 
 		assertTrue(interceptor.intercept(packet, null));
 		ICoreMessage msg = packet.getMessage();
-		assertEquals(JSON_DELTA, msg.getStringProperty(AMQ_CONTENT_TYPE));
+		assertEquals(AMQ_CONTENT_TYPE_JSON_DELTA, msg.getStringProperty(AMQ_CONTENT_TYPE));
 		// {"context":"vessels.self","updates":[{"values":[{"path":"navigation.position","value":{"latitude":51.9485185,"longitude":4.580064166666666}},{"path":"navigation.courseOverGroundTrue","value":0},{"path":"navigation.speedOverGround","value":0.151761149557269},{"path":"navigation.magneticVariation","value":0},{"path":"navigation.magneticVariationAgeOfService","value":1383317189},{"path":"navigation.datetime","value":"2013-11-01T14:46:29.000Z"}],"source":{"sentence":"RMC","talker":"GP","type":"NMEA0183"},"timestamp":"2013-11-01T14:46:29.000Z"}]}"
 		String content = Util.readBodyBufferToString(msg);
 		

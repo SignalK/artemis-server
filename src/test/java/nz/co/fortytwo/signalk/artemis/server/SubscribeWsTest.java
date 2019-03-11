@@ -23,7 +23,7 @@
  */
 package nz.co.fortytwo.signalk.artemis.server;
 
-import static nz.co.fortytwo.signalk.artemis.util.Config.SERIAL;
+import static nz.co.fortytwo.signalk.artemis.util.Config.MSG_SRC_TYPE_SERIAL;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONFIG;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT_DELTA;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.POLICY_IDEAL;
@@ -79,7 +79,7 @@ public class SubscribeWsTest extends BaseServerTest {
 				ClientProducer producer = session.createProducer();	
 				){
 			String token = SecurityUtils.authenticateUser("admin", "admin");
-			sendMessage(session, producer, "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78", token, "/dev/ttyUSB0", SERIAL, null);
+			sendMessage(session, producer, "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78", token, "/dev/ttyUSB0", MSG_SRC_TYPE_SERIAL, null);
 			//wait a sec to flush through
 			CountDownLatch latch = new CountDownLatch(1);
 			latch.await(2,TimeUnit.SECONDS);

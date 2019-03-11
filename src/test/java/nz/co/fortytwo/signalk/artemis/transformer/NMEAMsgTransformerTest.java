@@ -1,8 +1,8 @@
 package nz.co.fortytwo.signalk.artemis.transformer;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
-import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_DELTA;
-import static nz.co.fortytwo.signalk.artemis.util.Config._0183;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE_JSON_DELTA;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE__0183;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PATH;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
@@ -69,14 +69,14 @@ public class NMEAMsgTransformerTest extends BaseMsgInterceptorTest {
     @Test
 	public void shouldAvoidJson() throws ActiveMQException {
     	Json json = Json.read("{\"context\":\"vessels.self\",\"updates\":[{\"values\":[{\"path\":\"propulsion.engine_1.revolutions\",\"value\":40.30333333333333}],\"source\":{\"sentence\":\"RPM\",\"talker\":\"II\",\"type\":\"NMEA0183\"},\"timestamp\":\"2018-05-14T02:43:29.224Z\"}]}");
-		ClientMessage message = getClientMessage(json.toString(), JSON_DELTA, false); 
+		ClientMessage message = getClientMessage(json.toString(), AMQ_CONTENT_TYPE_JSON_DELTA, false); 
 		
 		replayAll();
 		
 		ICoreMessage msg =  transformer.transform(message).toCore();
 		assertNotNull(msg);
 		
-		assertEquals(JSON_DELTA,msg.getStringProperty(AMQ_CONTENT_TYPE));
+		assertEquals(AMQ_CONTENT_TYPE_JSON_DELTA,msg.getStringProperty(AMQ_CONTENT_TYPE));
 //		{"context":"vessels.self","updates":[{"values":[{"path":"navigation.position","value":{"latitude":51.9485185,"longitude":4.580064166666666}},{"path":"navigation.courseOverGroundTrue","value":0},{"path":"navigation.speedOverGround","value":0.151761149557269},{"path":"navigation.magneticVariation","value":0},{"path":"navigation.magneticVariationAgeOfService","value":1383317189},{"path":"navigation.datetime","value":"2013-11-01T14:46:29.000Z"}],"source":{"sentence":"RMC","talker":"GP","type":"NMEA0183"},"timestamp":"2013-11-01T14:46:29.000Z"}]}"
 		String content = Util.readBodyBufferToString(msg);;
 		logger.debug("NMEA converted message: {}",content);
@@ -89,7 +89,7 @@ public class NMEAMsgTransformerTest extends BaseMsgInterceptorTest {
     
     @Test
 	public void shouldProcessRPM() throws ActiveMQException {	
-		ClientMessage message = getClientMessage("$IIRPM,E,1,2418.2,10.5,A*5F", _0183, false); 
+		ClientMessage message = getClientMessage("$IIRPM,E,1,2418.2,10.5,A*5F", AMQ_CONTENT_TYPE__0183, false); 
 		transformer.sendKvMessage( anyObject(message.getClass()), anyString(), anyObject(Json.class));
 		expectLastCall().times(4);
 		replayAll();
@@ -104,7 +104,7 @@ public class NMEAMsgTransformerTest extends BaseMsgInterceptorTest {
     
     @Test
 	public void shouldProcessDBT() throws ActiveMQException {	
-		ClientMessage message = getClientMessage("$IIDPT,4.1,0.0*45", _0183, false); 
+		ClientMessage message = getClientMessage("$IIDPT,4.1,0.0*45", AMQ_CONTENT_TYPE__0183, false); 
 		transformer.sendKvMessage( anyObject(message.getClass()), anyString(), anyObject(Json.class));
 		expectLastCall().times(4);
 		replayAll();
@@ -120,7 +120,7 @@ public class NMEAMsgTransformerTest extends BaseMsgInterceptorTest {
 	
 	@Test
 	public void shouldProcessRMB() throws ActiveMQException {	
-		ClientMessage message = getClientMessage("$ECRMB,A,0.000,L,001,002,4653.550,N,07115.984,W,2.505,334.205,0.000,V*04", _0183, false); 
+		ClientMessage message = getClientMessage("$ECRMB,A,0.000,L,001,002,4653.550,N,07115.984,W,2.505,334.205,0.000,V*04", AMQ_CONTENT_TYPE__0183, false); 
 		
 		transformer.sendKvMessage( anyObject(message.getClass()), anyString(), anyObject(Json.class));
 		expectLastCall().times(8);
@@ -142,13 +142,13 @@ public class NMEAMsgTransformerTest extends BaseMsgInterceptorTest {
 	
 	@Test
 	public void shouldProcessRMC() throws ActiveMQException {
-		ClientMessage message = getClientMessage("$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78", _0183, false); 
+		ClientMessage message = getClientMessage("$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78", AMQ_CONTENT_TYPE__0183, false); 
 		transformer.sendKvMessage( anyObject(message.getClass()), anyString(), anyObject(Json.class));
 		expectLastCall().times(9000000);
 		replayAll();
 		long start = System.currentTimeMillis();
 		for (int i = 0; i < 100000; i++) {
-			message.putStringProperty(AMQ_CONTENT_TYPE, _0183);
+			message.putStringProperty(AMQ_CONTENT_TYPE, AMQ_CONTENT_TYPE__0183);
 			transformer.transform(message).toCore();
 			
 			if(i%1000==0) {
@@ -167,7 +167,7 @@ public class NMEAMsgTransformerTest extends BaseMsgInterceptorTest {
 	}
 	private void checkConversion(ICoreMessage msg, HashMap<String, Object> map) {
 		
-		assertEquals(JSON_DELTA,msg.getStringProperty(AMQ_CONTENT_TYPE));
+		assertEquals(AMQ_CONTENT_TYPE_JSON_DELTA,msg.getStringProperty(AMQ_CONTENT_TYPE));
 //		{"context":"vessels.self","updates":[{"values":[{"path":"navigation.position","value":{"latitude":51.9485185,"longitude":4.580064166666666}},{"path":"navigation.courseOverGroundTrue","value":0},{"path":"navigation.speedOverGround","value":0.151761149557269},{"path":"navigation.magneticVariation","value":0},{"path":"navigation.magneticVariationAgeOfService","value":1383317189},{"path":"navigation.datetime","value":"2013-11-01T14:46:29.000Z"}],"source":{"sentence":"RMC","talker":"GP","type":"NMEA0183"},"timestamp":"2013-11-01T14:46:29.000Z"}]}"
 		String content = Util.readBodyBufferToString(msg);;
 		logger.debug("NMEA converted message: {}",content);

@@ -61,7 +61,7 @@ public class FullMsgTransformerTest  extends BaseMsgInterceptorTest {
 	public void shouldProcessVessels() throws ActiveMQException {
 		
 		
-		ClientMessage message = getClientMessage(full.toString(), Config.JSON_FULL, false); 
+		ClientMessage message = getClientMessage(full.toString(), Config.AMQ_CONTENT_TYPE_JSON_FULL, false); 
 		transformer.sendKvMessage( same(message), anyString(), anyObject(Json.class));
 		expectLastCall().times(13);
 		replayAll();
@@ -72,7 +72,7 @@ public class FullMsgTransformerTest  extends BaseMsgInterceptorTest {
 	@Test
 	public void shouldProcessConfig() throws ActiveMQException {
 		
-		ClientMessage message = getClientMessage(full.toString(), Config.JSON_FULL, false); 
+		ClientMessage message = getClientMessage(full.toString(), Config.AMQ_CONTENT_TYPE_JSON_FULL, false); 
 		transformer.sendKvMessage( same(message), anyString(), anyObject(Json.class));
 		expectLastCall().times(13);
 		replayAll();
@@ -86,14 +86,14 @@ public class FullMsgTransformerTest  extends BaseMsgInterceptorTest {
 	
 		replayAll();
 		
-		ClientMessage message = getClientMessage(delta.toString(), Config.JSON_DELTA, false); 
+		ClientMessage message = getClientMessage(delta.toString(), Config.AMQ_CONTENT_TYPE_JSON_DELTA, false); 
 		transformer.transform(message);
 		verifyAll();
 	}
 	@Test
 	public void shouldHandleContext() throws Exception {
 		
-		ClientMessage message = getClientMessage(config.toString(), Config.JSON_FULL, false); 
+		ClientMessage message = getClientMessage(config.toString(), Config.AMQ_CONTENT_TYPE_JSON_FULL, false); 
 		transformer.sendKvMessage( same(message), anyString(), anyObject(Json.class));
 		expectLastCall().times(51);
 		replayAll();

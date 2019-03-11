@@ -178,9 +178,9 @@ public class ArtemisTcpNettyHandler extends SimpleChannelInboundHandler<String> 
 		if (logger.isDebugEnabled())
 			logger.debug("IP: local:{}, remote:{}", localAddress , remoteAddress);
 		if (remoteAddress.isLoopbackAddress()|| remoteAddress.isAnyLocalAddress())  {
-			ex.putStringProperty(Config.MSG_SRC_TYPE, Config.INTERNAL_IP);
+			ex.putStringProperty(Config.MSG_SRC_TYPE, Config.MSG_SRC_TYPE_INTERNAL_IP);
 		} else {
-			ex.putStringProperty(Config.MSG_SRC_TYPE, Config.EXTERNAL_IP);
+			ex.putStringProperty(Config.MSG_SRC_TYPE, Config.MSG_SRC_TYPE_EXTERNAL_IP);
 		}
 		return ex;
 	}

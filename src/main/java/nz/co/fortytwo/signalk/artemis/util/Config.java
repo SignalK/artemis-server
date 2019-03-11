@@ -66,19 +66,18 @@ public class Config {
 	public static final String AMQ_SESSION_ID = "AMQ_session_id";
 	public static final String AMQ_USER_TOKEN = "AMQ_USER_TOKEN";
 	public static final String AMQ_USER_ROLES = "AMQ_USER_ROLES";
-	public static final String JSON = "JSON";
-	public static final String JSON_FULL = "JSON_FULL";
-	public static final String JSON_DELTA = "JSON_DELTA";
-	public static final String JSON_GET = "JSON_GET";
-	public static final String JSON_AUTH = "JSON_AUTH";
-	public static final String JSON_MAP = "JSON_MAP";
-	public static final String JSON_SUBSCRIBE = "JSON_SUBSCRIBE";
-	public static final String _0183 = "0183";
-	public static final String STOMP = "STOMP";
-	public static final String AIS = "AIS";
-	public static final String N2K = "N2K";
-	public static final String MQTT = "MQTT";
-	public static final String SERIAL = "SERIAL";
+	public static final String AMQ_CONTENT_TYPE_JSON = "JSON";
+	public static final String AMQ_CONTENT_TYPE_JSON_FULL = "JSON_FULL";
+	public static final String AMQ_CONTENT_TYPE_JSON_DELTA = "JSON_DELTA";
+	public static final String AMQ_CONTENT_TYPE_JSON_GET = "JSON_GET";
+	public static final String AMQ_CONTENT_TYPE_JSON_AUTH = "JSON_AUTH";
+	//public static final String JSON_MAP = "JSON_MAP";
+	public static final String AMQ_CONTENT_TYPE_JSON_SUBSCRIBE = "JSON_SUBSCRIBE";
+	public static final String AMQ_CONTENT_TYPE__0183 = "0183";
+	public static final String AMQ_CONTENT_TYPE_STOMP = "STOMP";
+	public static final String AMQ_CONTENT_TYPE_AIS = "AIS";
+	public static final String AMQ_CONTENT_TYPE_N2K = "N2K";
+	public static final String AMQ_CONTENT_TYPE_MQTT = "MQTT";
 	
 	public static final String AMQ_CORR_ID = "AMQ_CORR_ID";
 	public static final String AMQ_REPLY_Q = "AMQ_REPLY_Q";
@@ -91,8 +90,10 @@ public class Config {
 	public static final String MSG_SRC_IP = "MSG_SRC_IP";
 	public static final String MSG_SRC_BUS = "MSG_SRC_BUS";
 	public static final String MSG_SRC_TYPE = "MSG_SRC_TYPE";
-	public static final String INTERNAL_IP = "INTERNAL_IP";
-	public static final String EXTERNAL_IP = "EXTERNAL_IP";
+	public static final String MSG_SRC_TYPE_INTERNAL_PROCESS = "INTERNAL_PROCESS";
+	public static final String MSG_SRC_TYPE_INTERNAL_IP = "INTERNAL_IP";
+	public static final String MSG_SRC_TYPE_EXTERNAL_IP = "EXTERNAL_IP";
+	public static final String MSG_SRC_TYPE_SERIAL = "SERIAL";
 	public static final String AMQ_SUB_DESTINATION = "AMQ_SUB_DESTINATION";
 	public static final String AMQ_INFLUX_KEY="AMQ_INFLUX_KEY";
 

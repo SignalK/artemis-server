@@ -233,7 +233,7 @@ public class SerialPortReader extends MessageSupport{
 						ClientMessage txMsg = getTxSession().createMessage(true);
 						txMsg.getBodyBuffer().writeString(buffer);
 						txMsg.putStringProperty(Config.MSG_SRC_BUS, portName);
-						txMsg.putStringProperty(Config.MSG_SRC_TYPE, Config.SERIAL);
+						txMsg.putStringProperty(Config.MSG_SRC_TYPE, Config.MSG_SRC_TYPE_SERIAL);
 							
 						getProducer().send(new SimpleString(Config.INCOMING_RAW), txMsg);
 						if (logger.isDebugEnabled())

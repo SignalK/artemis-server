@@ -2,7 +2,7 @@ package nz.co.fortytwo.signalk.artemis.intercept;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
 import static nz.co.fortytwo.signalk.artemis.util.Config.INCOMING_RAW;
-import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_DELTA;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE_JSON_DELTA;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONFIG;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PUT;
@@ -61,7 +61,7 @@ public class DeltaContextInterceptorTest extends BaseMsgInterceptorTest {
 	@Test
 	public void shouldProcessUpdate() throws ActiveMQException {
 		
-		ClientMessage message = getClientMessage(update.toString(), JSON_DELTA, false);
+		ClientMessage message = getClientMessage(update.toString(), AMQ_CONTENT_TYPE_JSON_DELTA, false);
 		Json after = process(message);
 		assertTrue(Util.isDelta(after));
 		assertTrue(after.has(CONTEXT));
@@ -71,7 +71,7 @@ public class DeltaContextInterceptorTest extends BaseMsgInterceptorTest {
 	@Test
 	public void shouldProcessUpdate1() throws ActiveMQException {
 		
-		ClientMessage message = getClientMessage(update1.toString(), JSON_DELTA, false);
+		ClientMessage message = getClientMessage(update1.toString(), AMQ_CONTENT_TYPE_JSON_DELTA, false);
 		Json after = process(message);
 		assertTrue(Util.isDelta(after));
 		assertTrue(after.has(CONTEXT));
@@ -83,7 +83,7 @@ public class DeltaContextInterceptorTest extends BaseMsgInterceptorTest {
 	@Test
 	public void shouldProcessPut() throws ActiveMQException {
 		
-		ClientMessage message = getClientMessage(put.toString(), JSON_DELTA, false);
+		ClientMessage message = getClientMessage(put.toString(), AMQ_CONTENT_TYPE_JSON_DELTA, false);
 		Json after = process(message);
 		assertTrue(Util.isDelta(after));
 		assertTrue(after.has(CONTEXT));
@@ -93,7 +93,7 @@ public class DeltaContextInterceptorTest extends BaseMsgInterceptorTest {
 	@Test
 	public void shouldProcessPut1() throws ActiveMQException {
 		
-		ClientMessage message = getClientMessage(put1.toString(), JSON_DELTA, false);
+		ClientMessage message = getClientMessage(put1.toString(), AMQ_CONTENT_TYPE_JSON_DELTA, false);
 		Json after = process(message);
 		assertTrue(Util.isDelta(after));
 		assertTrue(after.has(CONTEXT));
@@ -104,7 +104,7 @@ public class DeltaContextInterceptorTest extends BaseMsgInterceptorTest {
 	@Test
 	public void shouldProcessConfig() throws ActiveMQException {
 		
-		ClientMessage message = getClientMessage(config.toString(), JSON_DELTA, false);
+		ClientMessage message = getClientMessage(config.toString(), AMQ_CONTENT_TYPE_JSON_DELTA, false);
 		Json after = process(message);
 		assertTrue(Util.isDelta(after));
 		assertFalse(after.has(CONTEXT));
@@ -113,7 +113,7 @@ public class DeltaContextInterceptorTest extends BaseMsgInterceptorTest {
 	@Test
 	public void shouldProcessConfig1() throws ActiveMQException {
 		
-		ClientMessage message = getClientMessage(config1.toString(), JSON_DELTA, false);
+		ClientMessage message = getClientMessage(config1.toString(), AMQ_CONTENT_TYPE_JSON_DELTA, false);
 		Json after = process(message);
 		assertTrue(Util.isDelta(after));
 		assertFalse(after.has(CONTEXT));
@@ -125,7 +125,7 @@ public class DeltaContextInterceptorTest extends BaseMsgInterceptorTest {
 
 		assertTrue(interceptor.intercept(packet, null));
 		ICoreMessage msg = packet.getMessage();
-		assertEquals(JSON_DELTA, msg.getStringProperty(AMQ_CONTENT_TYPE));
+		assertEquals(AMQ_CONTENT_TYPE_JSON_DELTA, msg.getStringProperty(AMQ_CONTENT_TYPE));
 		String content = Util.readBodyBufferToString(msg);
 		logger.debug("converted message: {}", content);
 		return Json.read(content);

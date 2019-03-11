@@ -1,7 +1,7 @@
 package nz.co.fortytwo.signalk.artemis.transformer;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
-import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_GET;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE_JSON_GET;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.ALL;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONFIG;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
@@ -86,7 +86,7 @@ public class GetMsgTransformer extends MessageSupport implements Transformer {
 
 	@Override
 	public Message transform(Message message) {
-		if (!JSON_GET.equals(message.getStringProperty(AMQ_CONTENT_TYPE)))
+		if (!AMQ_CONTENT_TYPE_JSON_GET.equals(message.getStringProperty(AMQ_CONTENT_TYPE)))
 			return message;
 		
 		Json node = Util.readBodyBuffer(message.toCore());

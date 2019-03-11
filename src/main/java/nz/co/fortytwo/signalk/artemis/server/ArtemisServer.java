@@ -94,6 +94,7 @@ import nz.co.fortytwo.signalk.artemis.handler.AnchorWatchHandler;
 import nz.co.fortytwo.signalk.artemis.handler.InfluxDbHandler;
 import nz.co.fortytwo.signalk.artemis.handler.TrueWindHandler;
 import nz.co.fortytwo.signalk.artemis.scheduled.DeclinationUpdater;
+import nz.co.fortytwo.signalk.artemis.scheduled.TimeUpdater;
 import nz.co.fortytwo.signalk.artemis.serial.SerialPortManager;
 import nz.co.fortytwo.signalk.artemis.service.ChartService;
 import nz.co.fortytwo.signalk.artemis.service.SignalkDemoService;
@@ -231,6 +232,20 @@ public final class ArtemisServer {
 
 	private void startScheduledServices() {
 		logger.info("Starting scheduled services");
+		//system tokens
+		Runnable systemTokens = new Runnable() {
+			
+			@Override
+			public void run() {
+				try {
+					SecurityUtils.validateTokenStore();
+				} catch (Exception e) {
+					logger.error(e,e);
+				}
+			}
+		};
+		scheduler.scheduleAtFixedRate(systemTokens, 1, 1, TimeUnit.HOURS);
+		
 		//serial manager
 		// start serial?
 		if (Config.getConfigPropertyBoolean(ENABLE_SERIAL)) {
@@ -243,21 +258,14 @@ public final class ArtemisServer {
 
 		}
 		// declination
-		final Runnable declination = new DeclinationUpdater();
+		Runnable declination = new DeclinationUpdater();
 		scheduler.scheduleAtFixedRate(declination, 0, 1, TimeUnit.HOURS);
-		//system tokens
-		final Runnable systemTokens = new Runnable() {
-			
-			@Override
-			public void run() {
-				try {
-					SecurityUtils.validateTokenStore();
-				} catch (Exception e) {
-					logger.error(e,e);
-				}
-			}
-		};
-		scheduler.scheduleAtFixedRate(systemTokens, 1, 1, TimeUnit.HOURS);
+		
+		// system clock tick tock
+		Runnable clock = new TimeUpdater();
+		scheduler.scheduleAtFixedRate(clock, 0, 1, TimeUnit.SECONDS);
+	
+		
 	}
 
 	private void ensureSecurityConf() {

@@ -1,7 +1,7 @@
 package nz.co.fortytwo.signalk.artemis.util;
 
 import static org.junit.Assert.*;
-import static nz.co.fortytwo.signalk.artemis.util.Config._0183;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE__0183;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.*;
 
 import java.io.File;
@@ -93,7 +93,7 @@ public class UtilTest {
 	@Test
 	public void shouldConvertSourceToRef(){
 		Json json = Json.read("{\"source\":{\"sentence\":\"RMC\",\"talker\":\"GP\",\"type\":\"NMEA0183\"},\"timestamp\":\"2013-11-01T14:46:29.000Z\",\"values\":[{\"path\":\"navigation.position\",\"value\":{\"longitude\":4.580064166666666,\"latitude\":51.9485185}}]}");
-		Json rslt = Util.convertSourceToRef(json, _0183,"/dev/ttyUSB0");
+		Json rslt = Util.convertSourceToRef(json, AMQ_CONTENT_TYPE__0183,"/dev/ttyUSB0");
 		logger.debug("Outcome: {}",rslt);
 		assertEquals(Json.read("{\"sources\":{\"NMEA0183\":{\"/dev/ttyUSB0\":{\"sentence\":\"RMC\",\"talker\":\"GP\",\"type\":\"NMEA0183\"}}}}"), rslt);
 		assertEquals("NMEA0183./dev/ttyUSB0",json.at(sourceRef).asString());

@@ -72,7 +72,7 @@ public class DeltaSourceInterceptor extends BaseInterceptor implements Intercept
 
 			ICoreMessage message = realPacket.getMessage();
 			if(!StringUtils.equals(message.getAddress(), INCOMING_RAW))return true;
-			if (!Config.JSON_DELTA.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))
+			if (!Config.AMQ_CONTENT_TYPE_JSON_DELTA.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))
 				return true;
 			
 			String srcBus = message.getStringProperty(Config.MSG_SRC_BUS);

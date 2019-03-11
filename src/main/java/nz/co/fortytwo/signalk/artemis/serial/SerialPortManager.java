@@ -57,11 +57,9 @@ public class SerialPortManager implements Runnable {
 	
 	@SuppressWarnings("static-access")
 	public void run() {
-		// not running, start now.
+		if(!running) return;
 		try {
-			
-			while (running) {
-			
+
 				// remove any stopped readers
 				List<SerialPortReader> tmpPortList = new ArrayList<SerialPortReader>();
 				for (SerialPortReader reader : serialPortList) {
@@ -136,17 +134,10 @@ public class SerialPortManager implements Runnable {
 						logger.error("Port " + portStr + " failed", e);
 					}
 				}
-				// delay for 30 secs, we dont want to burn up CPU for nothing
-				try {
-					Thread.currentThread().sleep(10 * 1000);
-				} catch (InterruptedException ie) {
-				}
-			}
+			
 			//finished, so clean up
 		} catch (Exception e1) {
 			logger.error(e1.getMessage(),e1);
-		}finally{
-			serialPortList.clear();
 		}
 			
 	}

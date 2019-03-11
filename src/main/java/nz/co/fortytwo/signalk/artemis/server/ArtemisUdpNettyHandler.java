@@ -208,9 +208,9 @@ public class ArtemisUdpNettyHandler extends SimpleChannelInboundHandler<Datagram
 		if (logger.isDebugEnabled())
 			logger.debug("IP: local:{}, remote:{}", localIp, remoteAddress.getHostAddress());
 		if (remoteAddress.isLoopbackAddress()|| remoteAddress.isAnyLocalAddress()) {
-			headers.put(Config.MSG_SRC_TYPE, Config.INTERNAL_IP);
+			headers.put(Config.MSG_SRC_TYPE, Config.MSG_SRC_TYPE_INTERNAL_IP);
 		} else {
-			headers.put(Config.MSG_SRC_TYPE, Config.EXTERNAL_IP);
+			headers.put(Config.MSG_SRC_TYPE, Config.MSG_SRC_TYPE_EXTERNAL_IP);
 		}
 		headers.put(ConfigConstants.OUTPUT_TYPE, outputType);
 		return headers;

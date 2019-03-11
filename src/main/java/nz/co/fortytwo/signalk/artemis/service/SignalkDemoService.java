@@ -13,8 +13,9 @@ import org.apache.logging.log4j.Logger;
 
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
+import nz.co.fortytwo.signalk.artemis.util.MessageSupport;
 
-public class SignalkDemoService extends BaseApiService implements Runnable {
+public class SignalkDemoService extends MessageSupport implements Runnable {
 
 	private static Logger logger = LogManager.getLogger(SignalkDemoService.class);
 	private int c;
@@ -41,7 +42,7 @@ public class SignalkDemoService extends BaseApiService implements Runnable {
 			ClientMessage txMsg = getTxSession().createMessage(true);
 			txMsg.getBodyBuffer().writeString(itr.next());
 			txMsg.putStringProperty(Config.MSG_SRC_BUS, "/dev/DEMO");
-			txMsg.putStringProperty(Config.MSG_SRC_TYPE, Config.SERIAL);
+			txMsg.putStringProperty(Config.MSG_SRC_TYPE, Config.MSG_SRC_TYPE_SERIAL);
 			getProducer().send(new SimpleString(Config.INCOMING_RAW), txMsg);
 			c++;
 			if(delay>0) {

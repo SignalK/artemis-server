@@ -1,17 +1,17 @@
 package nz.co.fortytwo.signalk.artemis.util;
 
-import static nz.co.fortytwo.signalk.artemis.util.Config.AIS;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE_AIS;
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_USER_TOKEN;
-import static nz.co.fortytwo.signalk.artemis.util.Config.EXTERNAL_IP;
-import static nz.co.fortytwo.signalk.artemis.util.Config.INTERNAL_IP;
-import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_DELTA;
-import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_FULL;
+import static nz.co.fortytwo.signalk.artemis.util.Config.MSG_SRC_TYPE_EXTERNAL_IP;
+import static nz.co.fortytwo.signalk.artemis.util.Config.MSG_SRC_TYPE_INTERNAL_IP;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE_JSON_DELTA;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE_JSON_FULL;
 import static nz.co.fortytwo.signalk.artemis.util.Config.MSG_SRC_BUS;
 import static nz.co.fortytwo.signalk.artemis.util.Config.MSG_SRC_TYPE;
-import static nz.co.fortytwo.signalk.artemis.util.Config.N2K;
-import static nz.co.fortytwo.signalk.artemis.util.Config.SERIAL;
-import static nz.co.fortytwo.signalk.artemis.util.Config._0183;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE_N2K;
+import static nz.co.fortytwo.signalk.artemis.util.Config.MSG_SRC_TYPE_SERIAL;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE__0183;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SK_MSG_TOKEN;
 
 import java.io.IOException;
@@ -375,37 +375,37 @@ public final class SecurityUtils {
 		String msgBus = msg.getStringProperty(MSG_SRC_BUS);
 		if(logger.isDebugEnabled())logger.debug("Inject token: {} ,{},{}",msgType, msgSrc, msgBus);
 		switch (msgType) {
-		case AIS:
-			if(StringUtils.equals(SERIAL,msgSrc) || StringUtils.equals(N2K,msgSrc)) {
+		case AMQ_CONTENT_TYPE_AIS:
+			if(StringUtils.equals(MSG_SRC_TYPE_SERIAL,msgSrc) || StringUtils.equals(AMQ_CONTENT_TYPE_N2K,msgSrc)) {
 				msg.putStringProperty(AMQ_USER_TOKEN, tokenStore.get("ais"));
 			}
-			if(StringUtils.equals(INTERNAL_IP,msgSrc)) {
+			if(StringUtils.equals(MSG_SRC_TYPE_INTERNAL_IP,msgSrc)) {
 				msg.putStringProperty(AMQ_USER_TOKEN, tokenStore.get("tcp_internal"));
 			}
 			break;
-		case _0183:
-			if(StringUtils.equals(SERIAL,msgSrc)) {
+		case AMQ_CONTENT_TYPE__0183:
+			if(StringUtils.equals(MSG_SRC_TYPE_SERIAL,msgSrc)) {
 				msg.putStringProperty(AMQ_USER_TOKEN, tokenStore.get("serial"));
 			}
 
-			if(StringUtils.equals(INTERNAL_IP,msgSrc)) {
+			if(StringUtils.equals(MSG_SRC_TYPE_INTERNAL_IP,msgSrc)) {
 				msg.putStringProperty(AMQ_USER_TOKEN, tokenStore.get("tcp_internal"));
 			}
-			if(StringUtils.equals(EXTERNAL_IP,msgSrc)) {
+			if(StringUtils.equals(MSG_SRC_TYPE_EXTERNAL_IP,msgSrc)) {
 				msg.putStringProperty(AMQ_USER_TOKEN, tokenStore.get("tcp_external"));
 			}
 			break;
-		case N2K:
-			if(StringUtils.equals(N2K,msgSrc)) {
+		case AMQ_CONTENT_TYPE_N2K:
+			if(StringUtils.equals(AMQ_CONTENT_TYPE_N2K,msgSrc)) {
 				msg.putStringProperty(AMQ_USER_TOKEN, tokenStore.get("n2k"));
 			}
-			if(StringUtils.equals(INTERNAL_IP,msgSrc)) {
+			if(StringUtils.equals(MSG_SRC_TYPE_INTERNAL_IP,msgSrc)) {
 				msg.putStringProperty(AMQ_USER_TOKEN, tokenStore.get("tcp_internal"));
 			}
 			break;
-		case JSON_FULL:
+		case AMQ_CONTENT_TYPE_JSON_FULL:
 			//signalk without auth over serial
-			if(StringUtils.equals(SERIAL,msgSrc)) {
+			if(StringUtils.equals(MSG_SRC_TYPE_SERIAL,msgSrc)) {
 				msg.putStringProperty(AMQ_USER_TOKEN, tokenStore.get("serial"));
 			}
 			//signalk over internal
@@ -416,9 +416,9 @@ public final class SecurityUtils {
 //				msg.putStringProperty(AMQ_USER_TOKEN, tokenStore.get("tcp_external"));
 //			}
 			break;
-		case JSON_DELTA:
+		case AMQ_CONTENT_TYPE_JSON_DELTA:
 			//signalk without auth over serial
-			if(StringUtils.equals(SERIAL,msgSrc)) {
+			if(StringUtils.equals(MSG_SRC_TYPE_SERIAL,msgSrc)) {
 				msg.putStringProperty(AMQ_USER_TOKEN, tokenStore.get("serial"));
 			}
 			//signalk over internal

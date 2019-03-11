@@ -29,7 +29,7 @@ public class GarbageInterceptorTest extends BaseMsgInterceptorTest{
 		GarbageInterceptor garbage = new GarbageInterceptor();
 		ClientMessage msg = new ClientMessageImpl((byte)0, false, 0, System.currentTimeMillis(), (byte) 4,64);
 		msg.getBodyBuffer().writeString("$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78");
-		assertEquals(Config._0183, garbage.getContentType(msg));
+		assertEquals(Config.AMQ_CONTENT_TYPE__0183, garbage.getContentType(msg));
 	}
 	
 	@Test
@@ -38,7 +38,7 @@ public class GarbageInterceptorTest extends BaseMsgInterceptorTest{
 		String body = FileUtils.readFileToString(new File("./src/test/resources/samples/delta.json"));
 		ClientMessage msg = new ClientMessageImpl((byte)0, false, 0, System.currentTimeMillis(), (byte) 4,64);
 		msg.getBodyBuffer().writeString(body);
-		assertEquals(Config.JSON_DELTA, garbage.getContentType(msg));
+		assertEquals(Config.AMQ_CONTENT_TYPE_JSON_DELTA, garbage.getContentType(msg));
 	}
 	
 	@Test
@@ -47,7 +47,7 @@ public class GarbageInterceptorTest extends BaseMsgInterceptorTest{
 		String body = FileUtils.readFileToString(new File("./src/test/resources/samples/full.json"));
 		ClientMessage msg = new ClientMessageImpl((byte)0, false, 0, System.currentTimeMillis(), (byte) 4,64);
 		msg.getBodyBuffer().writeString(body);
-		assertEquals(Config.JSON_FULL, garbage.getContentType(msg));
+		assertEquals(Config.AMQ_CONTENT_TYPE_JSON_FULL, garbage.getContentType(msg));
 	}
 	
 	@Test
@@ -56,7 +56,7 @@ public class GarbageInterceptorTest extends BaseMsgInterceptorTest{
 		String body = FileUtils.readFileToString(new File("./src/test/resources/samples/signalk-config.json"));
 		ClientMessage msg = new ClientMessageImpl((byte)0, false, 0, System.currentTimeMillis(), (byte) 4,64);
 		msg.getBodyBuffer().writeString(body);
-		assertEquals(Config.JSON_FULL, garbage.getContentType(msg));
+		assertEquals(Config.AMQ_CONTENT_TYPE_JSON_FULL, garbage.getContentType(msg));
 	}
 
 	@Test
@@ -65,7 +65,7 @@ public class GarbageInterceptorTest extends BaseMsgInterceptorTest{
 		String body = FileUtils.readFileToString(new File("./src/test/resources/samples/full_resources.json"));
 		ClientMessage msg = new ClientMessageImpl((byte)0, false, 0, System.currentTimeMillis(), (byte) 4,64);
 		msg.getBodyBuffer().writeString(body);
-		assertEquals(Config.JSON_FULL, garbage.getContentType(msg));
+		assertEquals(Config.AMQ_CONTENT_TYPE_JSON_FULL, garbage.getContentType(msg));
 	}
 	@Test
 	public void shouldProcessFullSources() throws IOException {
@@ -73,6 +73,6 @@ public class GarbageInterceptorTest extends BaseMsgInterceptorTest{
 		String body = FileUtils.readFileToString(new File("./src/test/resources/samples/full_sources.json"));
 		ClientMessage msg = new ClientMessageImpl((byte)0, false, 0, System.currentTimeMillis(), (byte) 4,64);
 		msg.getBodyBuffer().writeString(body);
-		assertEquals(Config.JSON_FULL, garbage.getContentType(msg));
+		assertEquals(Config.AMQ_CONTENT_TYPE_JSON_FULL, garbage.getContentType(msg));
 	}
 }

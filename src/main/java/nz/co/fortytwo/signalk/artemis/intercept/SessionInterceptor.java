@@ -38,7 +38,7 @@ public class SessionInterceptor extends BaseInterceptor implements Interceptor {
 				msg.putStringProperty(Config.MSG_SRC_BUS, connection.getRemoteAddress());
 			if(msg.getStringProperty(Config.MSG_SRC_TYPE)==null)
 				//TODO: this is not correct for web api calls.
-				msg.putStringProperty(Config.MSG_SRC_TYPE, Config.EXTERNAL_IP);
+				msg.putStringProperty(Config.MSG_SRC_TYPE, Config.MSG_SRC_TYPE_EXTERNAL_IP);
 			if(msg.getStringProperty(Config.AMQ_SESSION_ID)==null) {
 				for (ServerSession s : ArtemisServer.getActiveMQServer().getSessions(connection.getID().toString())) {
 					if (s.getConnectionID().equals(connection.getID())) {

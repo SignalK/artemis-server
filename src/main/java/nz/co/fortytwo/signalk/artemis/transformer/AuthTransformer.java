@@ -1,7 +1,7 @@
 package nz.co.fortytwo.signalk.artemis.transformer;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
-import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_AUTH;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE_JSON_AUTH;
 import static nz.co.fortytwo.signalk.artemis.util.SecurityUtils.authenticateUser;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT_DELTA;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.LOGIN;
@@ -67,7 +67,7 @@ public class AuthTransformer extends MessageSupport implements Transformer {
 
 	@Override
 	public Message transform(Message message) {
-		if (!JSON_AUTH.equals(message.getStringProperty(AMQ_CONTENT_TYPE)))
+		if (!AMQ_CONTENT_TYPE_JSON_AUTH.equals(message.getStringProperty(AMQ_CONTENT_TYPE)))
 			return message;
 		
 		Json node = Util.readBodyBuffer(message.toCore());

@@ -23,12 +23,12 @@
  */
 package nz.co.fortytwo.signalk.artemis.transformer;
 
-import static nz.co.fortytwo.signalk.artemis.util.Config.AIS;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE_AIS;
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
-import static nz.co.fortytwo.signalk.artemis.util.Config.JSON_DELTA;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE_JSON_DELTA;
 import static nz.co.fortytwo.signalk.artemis.util.Config.MSG_SRC_BUS;
 import static nz.co.fortytwo.signalk.artemis.util.Config.MSG_SRC_TYPE;
-import static nz.co.fortytwo.signalk.artemis.util.Config._0183;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE__0183;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self_str;
@@ -65,7 +65,7 @@ public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer
 	@Override
 	public Message transform(Message message) {
 		
-		if (!(_0183.equals(message.getStringProperty(AMQ_CONTENT_TYPE))|| AIS.equals(message.getStringProperty(AMQ_CONTENT_TYPE))))
+		if (!(AMQ_CONTENT_TYPE__0183.equals(message.getStringProperty(AMQ_CONTENT_TYPE))|| AMQ_CONTENT_TYPE_AIS.equals(message.getStringProperty(AMQ_CONTENT_TYPE))))
 			return message;
 		
 		String bodyStr = Util.readBodyBufferToString(message.toCore()).trim();
@@ -105,7 +105,7 @@ public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer
 				String type = message.getStringProperty(MSG_SRC_TYPE);
 				String bus = message.getStringProperty(MSG_SRC_BUS);
 				//now its a signalk delta msg
-				message.putStringProperty(AMQ_CONTENT_TYPE, JSON_DELTA);
+				message.putStringProperty(AMQ_CONTENT_TYPE, AMQ_CONTENT_TYPE_JSON_DELTA);
 				for(Json j:json.at(UPDATES).asJsonList()){
 					Util.convertSource(this, message, j, bus, type);
 				}

@@ -74,35 +74,35 @@ public class GarbageInterceptor extends BaseInterceptor implements Interceptor {
 			msg = msg.trim();
 			// stomp messages are prefixed with 'ascii:'
 			if (msg.startsWith("ascii:")) {
-				return Config.STOMP;
+				return Config.AMQ_CONTENT_TYPE_STOMP;
 			}
 			msg = StringUtils.chomp(msg);
 			if (msg.startsWith("!AIVDM")) {
 				// AIS
 				// !AIVDM,1,1,,B,15MwkRUOidG?GElEa<iQk1JV06Jd,0*6D
-				return Config.AIS;
+				return Config.AMQ_CONTENT_TYPE_AIS;
 			} else if (msg.startsWith("$")) {
-				return Config._0183;
+				return Config.AMQ_CONTENT_TYPE__0183;
 			} else if (msg.startsWith("{") && msg.endsWith("}")) {
 				Json node = Json.read(msg);
 				//if the message has a token, inject into header
 				SecurityUtils.injectTokenIntoMessage(message, node);
 				if(Util.isN2k(node)) 
-					return Config.N2K;
+					return Config.AMQ_CONTENT_TYPE_N2K;
 				if (Util.isFullFormat(node))
-					return Config.JSON_FULL;
+					return Config.AMQ_CONTENT_TYPE_JSON_FULL;
 				if (Util.isAuth(node))
-					return Config.JSON_AUTH;
+					return Config.AMQ_CONTENT_TYPE_JSON_AUTH;
 				//ensure we have a CONTEXT
 				
 				if (Util.isGet(node)) {
-					return Config.JSON_GET;
+					return Config.AMQ_CONTENT_TYPE_JSON_GET;
 				}
 				if (Util.isDelta(node)) 
-					return Config.JSON_DELTA;
+					return Config.AMQ_CONTENT_TYPE_JSON_DELTA;
 				
 				if (Util.isSubscribe(node)) 
-					return Config.JSON_SUBSCRIBE;
+					return Config.AMQ_CONTENT_TYPE_JSON_SUBSCRIBE;
 				node.clear(true);
 			}
 		}

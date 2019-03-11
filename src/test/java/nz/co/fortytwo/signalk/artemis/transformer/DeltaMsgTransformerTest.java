@@ -46,7 +46,7 @@ public class DeltaMsgTransformerTest  extends BaseMsgInterceptorTest {
 	@Test
 	public void shouldProcessUpdate() throws ActiveMQException {
 		
-		ClientMessage message = getClientMessage(update.toString(), Config.JSON_DELTA, false); 
+		ClientMessage message = getClientMessage(update.toString(), Config.AMQ_CONTENT_TYPE_JSON_DELTA, false); 
 		transformer.sendKvMessage( anyObject(message.getClass()), anyString(), anyObject(Json.class));
 		expectLastCall().times(4);
 		replayAll();
@@ -78,7 +78,7 @@ public class DeltaMsgTransformerTest  extends BaseMsgInterceptorTest {
 	public void shouldProcessPut() throws ActiveMQException {
 		
 		
-		ClientMessage message = getClientMessage(put.toString(), Config.JSON_DELTA, false); 
+		ClientMessage message = getClientMessage(put.toString(), Config.AMQ_CONTENT_TYPE_JSON_DELTA, false); 
 		transformer.sendKvMessage( same(message), anyString(), anyObject(Json.class));
 		expectLastCall().times(2);
 		replayAll();
@@ -93,7 +93,7 @@ public class DeltaMsgTransformerTest  extends BaseMsgInterceptorTest {
 	@Test
 	public void shouldProcessConfig() throws ActiveMQException {
 		
-		ClientMessage message = getClientMessage(config.toString(), Config.JSON_DELTA, false); 
+		ClientMessage message = getClientMessage(config.toString(), Config.AMQ_CONTENT_TYPE_JSON_DELTA, false); 
 		transformer.sendKvMessage(same(message), anyString(), anyObject(Json.class));
 		expectLastCall().times(2);
 		replayAll();
@@ -127,7 +127,7 @@ public class DeltaMsgTransformerTest  extends BaseMsgInterceptorTest {
 		
 		NavigableMap<String, Json> map = SignalkMapConvertor.parseDelta(update, new ConcurrentSkipListMap<String,Json>());
 		Json full = SignalkMapConvertor.mapToFull(map);
-		ClientMessage message = getClientMessage(full.toString(), Config.JSON_FULL, false); 
+		ClientMessage message = getClientMessage(full.toString(), Config.AMQ_CONTENT_TYPE_JSON_FULL, false); 
 		transformer.sendKvMap(message, map);
 		
 		assertNotNull(transformer.transform(message));
