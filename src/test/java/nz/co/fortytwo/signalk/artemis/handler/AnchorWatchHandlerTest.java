@@ -30,7 +30,7 @@ public class AnchorWatchHandlerTest extends BaseMsgInterceptorTest {
 	public void shouldStoreKey() throws ActiveMQException {
 		
 		ClientMessage out = getMessage("{\"value\":173.24706,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",nav_position_longitude, "internal");
-		handler.send(out,"vessels."+uuid+dot+nav_anchor_currentRadius+".values.internal",29.681280090589773d);
+		handler.send(out,"vessels."+uuid+dot+nav_anchor_currentRadius+".values.internal",29.681280090589777d);
 		
 		replayAll();
 	
@@ -61,7 +61,7 @@ public class AnchorWatchHandlerTest extends BaseMsgInterceptorTest {
 	
 		ClientMessage out = getMessage("{\"value\":173.24706,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",nav_position_longitude, "internal");
 		ClientMessage out1 = getMessage("{\"value\":173.248,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",nav_position_longitude, "internal");
-		handler.send(out,"vessels."+uuid+dot+nav_anchor_currentRadius+".values.internal",29.681280090589773d);
+		handler.send(out,"vessels."+uuid+dot+nav_anchor_currentRadius+".values.internal",29.681280090589777d);
 		handler.send(out1,"vessels."+uuid+dot+nav_anchor_currentRadius+".values.internal",82.92607364299573d);
 		
 		replayAll();

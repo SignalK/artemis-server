@@ -1,4 +1,4 @@
-package nz.co.fortytwo.signalk.artemis.service;
+package nz.co.fortytwo.signalk.artemis.util;
 
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.GET;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PUT;

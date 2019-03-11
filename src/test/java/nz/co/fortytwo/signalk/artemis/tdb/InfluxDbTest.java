@@ -1,4 +1,4 @@
-package nz.co.fortytwo.signalk.artemis.server;
+package nz.co.fortytwo.signalk.artemis.tdb;
 
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
@@ -29,6 +29,7 @@ import org.junit.Test;
 import io.netty.util.internal.MathUtil;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.intercept.BaseInterceptor;
+import nz.co.fortytwo.signalk.artemis.server.BaseServerTest;
 import nz.co.fortytwo.signalk.artemis.tdb.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.SignalkMapConvertor;
