@@ -40,6 +40,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.graal.ContextHolder;
 import nz.co.fortytwo.signalk.artemis.service.SignalkKvConvertor;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
@@ -57,7 +58,7 @@ public class N2kMsgTransformer extends JsBaseTransformer implements Transformer 
 	
 	
 	public N2kMsgTransformer() throws Exception {
-		logger.info("Started N2kMsgTransformer with {} JS engine..", engineName);
+		logger.info("Started N2kMsgTransformer with {} JS engine..", pool.getEngineName());
 	
 	}
 

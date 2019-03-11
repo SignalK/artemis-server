@@ -1,4 +1,4 @@
-package nz.co.fortytwo.signalk.artemis.transformer;
+package nz.co.fortytwo.signalk.artemis.graal;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,13 +44,13 @@ public class GraalPoolFactory extends BasePooledObjectFactory<ContextHolder> {
      */
     @Override
     public void passivateObject(PooledObject<ContextHolder> pooledObject) {
-        //pooledObject.getObject().leave();
+        //pooledObject.getObject().leave();  
     }
 
     private Context initEngine() throws IOException  {
 		logger.info("create js context");
 		Context context = Context.newBuilder("js").allowHostAccess(true).build();
-			
+	
 		if(bundleN2k==null) {
 			logger.info("Load n2kMapper: {}", "n2k-signalk/dist/bundle.js");
 			bundleN2k = Source.newBuilder("js", Thread.currentThread().getContextClassLoader().getResource("n2k-signalk/dist/bundle.js")).build();
@@ -76,7 +76,6 @@ public class GraalPoolFactory extends BasePooledObjectFactory<ContextHolder> {
 //			if (f.startsWith("ALK"))
 //				continue;
 			if(logger.isDebugEnabled())logger.debug(f);
-			//Invocable inv = (Invocable) engine;
 			context.getBindings("js").getMember("parser").invokeMember("loadHook", f.trim());
 		}
 		logger.info("js context complete");

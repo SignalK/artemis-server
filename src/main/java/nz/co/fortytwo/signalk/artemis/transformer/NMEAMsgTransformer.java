@@ -41,6 +41,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.graal.ContextHolder;
 import nz.co.fortytwo.signalk.artemis.service.SignalkKvConvertor;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.Util;
@@ -58,7 +59,7 @@ public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer
 	private static Logger logger = LogManager.getLogger(NMEAMsgTransformer.class);
 	
 	public NMEAMsgTransformer() throws Exception {
-		logger.info("Started NMEAMsgTransformer with {} JS engine..", engineName);
+		logger.info("Started NMEAMsgTransformer with {} JS engine..", pool.getEngineName());
 	}
 
 	@Override

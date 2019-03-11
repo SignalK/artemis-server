@@ -1,4 +1,4 @@
-package nz.co.fortytwo.signalk.artemis.transformer;
+package nz.co.fortytwo.signalk.artemis.graal;
 
 import javax.script.Bindings;
 import javax.script.Invocable;
