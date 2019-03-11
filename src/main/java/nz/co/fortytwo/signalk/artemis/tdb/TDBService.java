@@ -1,4 +1,4 @@
-package nz.co.fortytwo.signalk.artemis.service;
+package nz.co.fortytwo.signalk.artemis.tdb;
 
 import java.util.Map;
 import java.util.NavigableMap;

@@ -29,9 +29,9 @@ import org.junit.Test;
 import io.netty.util.internal.MathUtil;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.intercept.BaseInterceptor;
-import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
-import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
+import nz.co.fortytwo.signalk.artemis.tdb.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
+import nz.co.fortytwo.signalk.artemis.util.SignalkMapConvertor;
 
 public class InfluxDbTest {
 

@@ -48,7 +48,7 @@ import org.junit.BeforeClass;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.DefaultCookie;
 import mjson.Json;
-import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
+import nz.co.fortytwo.signalk.artemis.tdb.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;

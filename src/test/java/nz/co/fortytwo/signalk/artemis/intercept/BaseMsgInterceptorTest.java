@@ -12,7 +12,7 @@ import org.easymock.EasyMockSupport;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.server.BaseServerTest;
-import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
+import nz.co.fortytwo.signalk.artemis.tdb.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;

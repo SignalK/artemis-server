@@ -13,6 +13,9 @@ import org.apache.logging.log4j.Logger;
 import org.atmosphere.client.TrackMessageSizeInterceptor;
 import org.atmosphere.config.service.AtmosphereService;
 import org.atmosphere.interceptor.AtmosphereResourceLifecycleInterceptor;
+
+import nz.co.fortytwo.signalk.artemis.tdb.InfluxDbService;
+import nz.co.fortytwo.signalk.artemis.tdb.TDBService;
 @AtmosphereService(
 		dispatch = true,
 		interceptors = {AtmosphereResourceLifecycleInterceptor.class, TrackMessageSizeInterceptor.class},

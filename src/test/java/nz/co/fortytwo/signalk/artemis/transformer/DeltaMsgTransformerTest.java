@@ -25,8 +25,8 @@ import org.junit.Test;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.intercept.BaseMsgInterceptorTest;
-import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.SignalkMapConvertor;
 
 public class DeltaMsgTransformerTest  extends BaseMsgInterceptorTest {
 

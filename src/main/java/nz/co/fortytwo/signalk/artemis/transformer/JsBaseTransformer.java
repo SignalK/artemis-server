@@ -5,8 +5,9 @@ import org.apache.logging.log4j.Logger;
 
 import nz.co.fortytwo.signalk.artemis.graal.GraalPool;
 import nz.co.fortytwo.signalk.artemis.intercept.BaseInterceptor;
+import nz.co.fortytwo.signalk.artemis.util.MessageSupport;
 
-public class JsBaseTransformer extends BaseInterceptor {
+public class JsBaseTransformer extends MessageSupport {
 	
 	private static Logger logger = LogManager.getLogger(JsBaseTransformer.class);
 	protected static String engineName;

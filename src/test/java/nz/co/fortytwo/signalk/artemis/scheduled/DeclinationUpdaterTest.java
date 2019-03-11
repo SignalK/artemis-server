@@ -22,8 +22,8 @@ import org.junit.Test;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.server.BaseServerTest;
-import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
-import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
+import nz.co.fortytwo.signalk.artemis.tdb.InfluxDbService;
+import nz.co.fortytwo.signalk.artemis.util.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class DeclinationUpdaterTest {

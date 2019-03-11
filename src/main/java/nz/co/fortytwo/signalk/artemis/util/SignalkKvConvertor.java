@@ -1,4 +1,4 @@
-package nz.co.fortytwo.signalk.artemis.service;
+package nz.co.fortytwo.signalk.artemis.util;
 
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONFIG;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
@@ -24,9 +24,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
-import nz.co.fortytwo.signalk.artemis.util.MessageSupport;
-import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
-import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class SignalkKvConvertor {
 

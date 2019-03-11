@@ -31,9 +31,12 @@ import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.intercept.BaseInterceptor;
-import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
+import nz.co.fortytwo.signalk.artemis.tdb.InfluxDbService;
+import nz.co.fortytwo.signalk.artemis.tdb.TDBService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.MessageSupport;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
+import nz.co.fortytwo.signalk.artemis.util.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 /*
@@ -67,11 +70,11 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
  * 
  */
 
-public class GetMsgTransformer extends BaseInterceptor implements Transformer {
+public class GetMsgTransformer extends MessageSupport implements Transformer {
 
 	
 	private static Logger logger = LogManager.getLogger(GetMsgTransformer.class);
-	
+	private static TDBService influx = new InfluxDbService();
 	
 	/**
 	 * Reads Delta GET message and returns the result in full format. Does nothing if json

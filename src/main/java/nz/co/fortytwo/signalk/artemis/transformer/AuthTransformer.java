@@ -15,8 +15,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
-import nz.co.fortytwo.signalk.artemis.intercept.BaseInterceptor;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.MessageSupport;
 import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
@@ -51,7 +51,7 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
  * 
  */
 
-public class AuthTransformer extends BaseInterceptor implements Transformer {
+public class AuthTransformer extends MessageSupport implements Transformer {
 
 	
 	private static Logger logger = LogManager.getLogger(AuthTransformer.class);

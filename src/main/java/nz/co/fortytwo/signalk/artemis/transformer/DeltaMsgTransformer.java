@@ -11,7 +11,8 @@ import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.intercept.BaseInterceptor;
-import nz.co.fortytwo.signalk.artemis.service.SignalkKvConvertor;
+import nz.co.fortytwo.signalk.artemis.util.MessageSupport;
+import nz.co.fortytwo.signalk.artemis.util.SignalkKvConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 /*
@@ -45,7 +46,7 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
  * 
  */
 
-public class DeltaMsgTransformer extends BaseInterceptor implements Transformer {
+public class DeltaMsgTransformer extends MessageSupport implements Transformer {
 
 	private static Logger logger = LogManager.getLogger(DeltaMsgTransformer.class);
 
@@ -69,7 +70,7 @@ public class DeltaMsgTransformer extends BaseInterceptor implements Transformer 
 			logger.debug("Delta msg: {}", node.toString());
 
 		// deal with diff format
-		if (isDelta(node)) {
+		if (Util.isDelta(node)) {
 			// try {
 			try {
 				processDelta(message, node);

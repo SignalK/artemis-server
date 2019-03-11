@@ -87,21 +87,21 @@ public class GarbageInterceptor extends BaseInterceptor implements Interceptor {
 				Json node = Json.read(msg);
 				//if the message has a token, inject into header
 				SecurityUtils.injectTokenIntoMessage(message, node);
-				if(isN2k(node)) 
+				if(Util.isN2k(node)) 
 					return Config.N2K;
-				if (isFullFormat(node))
+				if (Util.isFullFormat(node))
 					return Config.JSON_FULL;
-				if (isAuth(node))
+				if (Util.isAuth(node))
 					return Config.JSON_AUTH;
 				//ensure we have a CONTEXT
 				
-				if (isGet(node)) {
+				if (Util.isGet(node)) {
 					return Config.JSON_GET;
 				}
-				if (isDelta(node)) 
+				if (Util.isDelta(node)) 
 					return Config.JSON_DELTA;
 				
-				if (isSubscribe(node)) 
+				if (Util.isSubscribe(node)) 
 					return Config.JSON_SUBSCRIBE;
 				node.clear(true);
 			}

@@ -58,6 +58,13 @@ public class SysTimeInterceptor extends BaseInterceptor implements Interceptor {
 
 	private static Logger logger = LogManager.getLogger(SysTimeInterceptor.class);
 
+	public SysTimeInterceptor() {
+		super();
+		if(Config.getConfigProperty(ConfigConstants.CLOCK_SOURCE).equals("system")) {
+			influx.setWrite(true);
+		}
+	}
+
 	/**
 	 * Reads key and if its self.navigation.datetime it sets the server time and makes the influxdb writable.
 	 * Used when the RPi has no rtc, and we get system time from GPS.

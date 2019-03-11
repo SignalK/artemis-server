@@ -1,4 +1,4 @@
-package nz.co.fortytwo.signalk.artemis.service;
+package nz.co.fortytwo.signalk.artemis.tdb;
 
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONFIG;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.aircraft;

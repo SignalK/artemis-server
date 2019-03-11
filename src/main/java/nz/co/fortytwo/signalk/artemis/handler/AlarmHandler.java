@@ -24,7 +24,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
-import nz.co.fortytwo.signalk.artemis.service.TDBService;
+import nz.co.fortytwo.signalk.artemis.tdb.TDBService;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 /*

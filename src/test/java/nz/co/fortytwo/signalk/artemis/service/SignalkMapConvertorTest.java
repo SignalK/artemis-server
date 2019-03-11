@@ -19,6 +19,7 @@ import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 
 import mjson.Json;
+import nz.co.fortytwo.signalk.artemis.util.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class SignalkMapConvertorTest {

@@ -42,8 +42,8 @@ import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
 
 import mjson.Json;
-import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
-import nz.co.fortytwo.signalk.artemis.service.TDBService;
+import nz.co.fortytwo.signalk.artemis.tdb.InfluxDbService;
+import nz.co.fortytwo.signalk.artemis.tdb.TDBService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.TSAGeoMag;

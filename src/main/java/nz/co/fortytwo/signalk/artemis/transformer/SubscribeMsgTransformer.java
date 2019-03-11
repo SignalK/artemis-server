@@ -27,6 +27,7 @@ import nz.co.fortytwo.signalk.artemis.intercept.BaseInterceptor;
 import nz.co.fortytwo.signalk.artemis.subscription.Subscription;
 import nz.co.fortytwo.signalk.artemis.subscription.SubscriptionManagerFactory;
 import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.MessageSupport;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 /*
@@ -60,7 +61,7 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
  * 
  */
 
-public class SubscribeMsgTransformer extends BaseInterceptor implements Transformer {
+public class SubscribeMsgTransformer extends MessageSupport implements Transformer {
 
 	private static Logger logger = LogManager.getLogger(SubscribeMsgTransformer.class);
 
@@ -82,7 +83,7 @@ public class SubscribeMsgTransformer extends BaseInterceptor implements Transfor
 		Json node = Util.readBodyBuffer(message.toCore());
 
 		// deal with diff format
-		if (isSubscribe(node)) {
+		if (Util.isSubscribe(node)) {
 			if (node.has(SUBSCRIBE)) {
 				if (logger.isDebugEnabled())
 					logger.debug("Processing SUBSCRIBE: {}", message);

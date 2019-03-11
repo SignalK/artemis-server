@@ -45,6 +45,7 @@ import javax.servlet.ServletInputStream;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ICoreMessage;
+import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.api.core.TransportConfiguration;
 import org.apache.activemq.artemis.api.core.client.ActiveMQClient;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
@@ -70,12 +71,12 @@ import mjson.Json;
 public class Util {
 
 	static Logger logger = LogManager.getLogger(Util.class);
-	
+
 	public static final String SIGNALK_MODEL_SAVE_FILE = "./conf/self.json";
 	public static final String SIGNALK_CFG_SAVE_FILE = "./conf/signalk-config.json";
 	public static final String SIGNALK_RESOURCES_SAVE_FILE = "./conf/resources.json";
 	public static final String SIGNALK_SOURCES_SAVE_FILE = "./conf/sources.json";
-	//private static boolean timeSet = false;
+	// private static boolean timeSet = false;
 	public static final double R = 6372800; // In meters
 	private static ServerLocator nettyLocator;
 	private static ServerLocator inVmLocator;
@@ -85,24 +86,18 @@ public class Util {
 		try {
 			inVmLocator = ActiveMQClient
 					.createServerLocatorWithoutHA(new TransportConfiguration(InVMConnectorFactory.class.getName()))
-					.setMinLargeMessageSize(1024 * 1024)
-					.setConnectionTTL(60000)
-					.setBlockOnAcknowledge(false)
-					.setBlockOnDurableSend(false)
-					.setBlockOnNonDurableSend(false);
+					.setMinLargeMessageSize(1024 * 1024).setConnectionTTL(60000).setBlockOnAcknowledge(false)
+					.setBlockOnDurableSend(false).setBlockOnNonDurableSend(false);
 			// .createSessionFactory();
 			Map<String, Object> connectionParams = new HashMap<String, Object>();
 			connectionParams.put(TransportConstants.HOST_PROP_NAME, "localhost");
 			connectionParams.put(TransportConstants.PORT_PROP_NAME, 61617);
-			connectionParams.put(TransportConstants.CONNECTION_TTL,60000);
+			connectionParams.put(TransportConstants.CONNECTION_TTL, 60000);
 			nettyLocator = ActiveMQClient
 					.createServerLocatorWithoutHA(
 							new TransportConfiguration(NettyConnectorFactory.class.getName(), connectionParams))
-					.setMinLargeMessageSize(1024 * 1024)
-					.setConnectionTTL(60000)
-					.setBlockOnAcknowledge(false)
-					.setBlockOnDurableSend(false)
-					.setBlockOnNonDurableSend(false);
+					.setMinLargeMessageSize(1024 * 1024).setConnectionTTL(60000).setBlockOnAcknowledge(false)
+					.setBlockOnDurableSend(false).setBlockOnNonDurableSend(false);
 			// .createSessionFactory();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -112,32 +107,26 @@ public class Util {
 	public static Json getWelcomeMsg() {
 		return getWelcomeMsg(null, null);
 	}
+
 	public static Json getWelcomeMsg(String startTime, Double playbackRate) {
-		//TODO: add history playbackRate and startTime
+		// TODO: add history playbackRate and startTime
 		/*
-		 * {
-			    "name": "foobar marine server",
-			    "version": "1.1.4",
-			    "startTime": "2018-08-24T15:19:09Z",
-			    "playbackRate": 1,
-			    "self": "vessels.urn:mrn:signalk:uuid:c0d79334-4e25-4245-8892-54e8ccc8021d",
-			    "roles": [
-			        "master",
-			        "main"
-			    ]
-			}
+		 * { "name": "foobar marine server", "version": "1.1.4", "startTime":
+		 * "2018-08-24T15:19:09Z", "playbackRate": 1, "self":
+		 * "vessels.urn:mrn:signalk:uuid:c0d79334-4e25-4245-8892-54e8ccc8021d", "roles":
+		 * [ "master", "main" ] }
 		 */
 		Json msg = Json.object();
 		msg.set("name", "Artemis Signalk Server");
 		msg.set(version, Config.getVersion());
 		msg.set(timestamp, getIsoTimeString());
-		if(startTime!=null) {
+		if (startTime != null) {
 			msg.set("startTime", startTime);
 		}
-		if(playbackRate!=null) {
+		if (playbackRate != null) {
 			msg.set("playbackRate", playbackRate);
 		}
-		msg.set(self_str, vessels+dot+Config.getConfigProperty(ConfigConstants.UUID));
+		msg.set(self_str, vessels + dot + Config.getConfigProperty(ConfigConstants.UUID));
 		msg.set("roles", Json.read("[\"master\",\"main\"]"));
 		return msg;
 	}
@@ -145,8 +134,7 @@ public class Util {
 	/**
 	 * Convert a speed in knots to meters/sec
 	 *
-	 * @param speed
-	 *            in knots
+	 * @param speed in knots
 	 * @return speed in m/s
 	 */
 	public static double kntToMs(double speed) {
@@ -156,8 +144,7 @@ public class Util {
 	/**
 	 * Convert a speed in meter/sec to knots
 	 *
-	 * @param speed
-	 *            in m/s
+	 * @param speed in m/s
 	 * @return speed in knots
 	 */
 	public static double msToKnts(double speed) {
@@ -199,9 +186,9 @@ public class Util {
 	 * @return
 	 */
 	public static String fixSelfKey(String key) {
-		if(key.endsWith(".self"))
-			return StringUtils.removeEnd(key, "self")+Config.getConfigProperty(ConfigConstants.UUID);
-		return StringUtils.replace(key, ".self.", dot + Config.getConfigProperty(ConfigConstants.UUID)+dot);
+		if (key.endsWith(".self"))
+			return StringUtils.removeEnd(key, "self") + Config.getConfigProperty(ConfigConstants.UUID);
+		return StringUtils.replace(key, ".self.", dot + Config.getConfigProperty(ConfigConstants.UUID) + dot);
 	}
 
 	public static ClientSession getVmSession(String user, String password) throws Exception {
@@ -215,26 +202,59 @@ public class Util {
 	}
 
 	public static void sendRawMessage(String user, String password, String content) throws Exception {
-		
+
 		try (ClientSession txSession = Util.getVmSession(user, password);
-				ClientProducer producer = txSession.createProducer();){
+				ClientProducer producer = txSession.createProducer();) {
 			// start polling consumer.
-			
+
 			ClientMessage message = txSession.createMessage(false);
 			message.getBodyBuffer().writeString(content);
-			message.putStringProperty(AMQ_USER_TOKEN, SecurityUtils.authenticateUser(Config.getConfigProperty(ADMIN_USER), Config.getConfigProperty(ADMIN_USER)));
+			message.putStringProperty(AMQ_USER_TOKEN, SecurityUtils
+					.authenticateUser(Config.getConfigProperty(ADMIN_USER), Config.getConfigProperty(ADMIN_USER)));
 			producer.send(Config.INCOMING_RAW, message);
-		} 
+		}
 	}
+
+	public static void convertSource(MessageSupport support, Message message, Json j, String srcBus, String msgType) {
+
+		Json srcJson = Util.convertSourceToRef(j, srcBus, msgType);
+		try {
+			SignalkKvConvertor.parseFull(support, message, srcJson, "");
+		} catch (ActiveMQException e) {
+			logger.error(e, e);
+		}
+
+	}
+
+	public static void convertFullSrcToRef(MessageSupport support, Message message, Json node, String srcBus,
+			String msgSrcType) {
+		if (logger.isDebugEnabled())
+			logger.debug("Converting source in full: {}", node.toString());
+		// recurse keys
+		if (!node.isObject())
+			return;
+		node.asJsonMap().forEach((k, j) -> {
+			if (j.isObject()) {
+
+				if (j.has(SignalKConstants.source)) {
+					convertSource(support, message, j, srcBus, msgSrcType);
+				}
+			} else {
+				convertFullSrcToRef(support, message, j, srcBus, msgSrcType);
+			}
+
+		});
+	}
+
 	public static Json getJsonGetSnapshotRequest(String path, String token, String time) {
-		path=Util.sanitizePath(path);
+		path = Util.sanitizePath(path);
 		String ctx = Util.getContext(path);
 		return getJsonGetRequest(ctx, StringUtils.substringAfter(path, ctx + dot), token, time);
 
 	}
 
 	public static Json getJsonGetRequest(String path, String token) {
-		path=Util.sanitizePath(path);
+		path = Util.sanitizePath(path);
 		String ctx = Util.getContext(path);
 		return getJsonGetRequest(ctx, StringUtils.substringAfter(path, ctx + dot), token);
 
@@ -243,36 +263,40 @@ public class Util {
 	public static Json getJsonGetRequest(String context, String path, String token) {
 		return getJsonGetRequest(context, path, token, null);
 	}
+
 	public static Json getJsonGetRequest(String context, String path, String token, String time) {
 		Json json = Json.read("{\"context\":\"" + context + "\",\"get\": []}");
 		json.set(SignalKConstants.TOKEN, token);
 		Json sub = Json.object();
 		sub.set("path", StringUtils.defaultIfBlank(path, "*"));
-		if(StringUtils.isNotBlank(time)) {
+		if (StringUtils.isNotBlank(time)) {
 			sub.set("time", StringUtils.defaultIfBlank(time, time));
 		}
 		json.at("get").add(sub);
-		if (logger.isDebugEnabled())logger.debug("Created json get: {}", json);
+		if (logger.isDebugEnabled())
+			logger.debug("Created json get: {}", json);
 		return json;
 	}
-	
-	public static Json getJsonPutRequest( String path, Json body) {
-		if(body==null)return null;
-		String context=Util.getContext(path);
-		//if the path starts with config, sources, resources, then we dont add the context
-		
-		path = path.substring(context.length()+1, path.length());
-		
+
+	public static Json getJsonPutRequest(String path, Json body) {
+		if (body == null)
+			return null;
+		String context = Util.getContext(path);
+		// if the path starts with config, sources, resources, then we dont add the
+		// context
+
+		path = path.substring(context.length() + 1, path.length());
+
 		Json json = Json.read("{\"context\":\"" + context + "\",\"put\": []}");
-		
+
 		Json sub = Json.object();
 		sub.set("path", StringUtils.defaultIfBlank(path, "*"));
 		sub.set(value, body.at(value));
 		sub.set(timestamp, Util.getIsoTimeString());
-		
-			
+
 		json.at("put").add(sub);
-		if (logger.isDebugEnabled())logger.debug("Created json put: {}", json);
+		if (logger.isDebugEnabled())
+			logger.debug("Created json put: {}", json);
 		return json;
 	}
 
@@ -288,22 +312,32 @@ public class Util {
 		return R * c;
 	}
 
-	public static  String sanitizeRoot(String root) {
-		if(StringUtils.isBlank(root)) root = ALL;
-		if(StringUtils.equals(dot,root)) root = ALL;
-		if(StringUtils.equals(".*",root)) root = ALL;
-		if(StringUtils.startsWith(vessels, root))root = vessels;
-		if(StringUtils.startsWith(aircraft, root))root = aircraft;
-		if(StringUtils.startsWith(sar, root))root = sar;
-		if(StringUtils.startsWith(aton, root))root = aton;
-		if(StringUtils.startsWith(CONFIG, root))root = CONFIG;
-		if(StringUtils.startsWith(resources, root))root = resources;
-		if(StringUtils.startsWith(sources, root))root = sources;
+	public static String sanitizeRoot(String root) {
+		if (StringUtils.isBlank(root))
+			root = ALL;
+		if (StringUtils.equals(dot, root))
+			root = ALL;
+		if (StringUtils.equals(".*", root))
+			root = ALL;
+		if (StringUtils.startsWith(vessels, root))
+			root = vessels;
+		if (StringUtils.startsWith(aircraft, root))
+			root = aircraft;
+		if (StringUtils.startsWith(sar, root))
+			root = sar;
+		if (StringUtils.startsWith(aton, root))
+			root = aton;
+		if (StringUtils.startsWith(CONFIG, root))
+			root = CONFIG;
+		if (StringUtils.startsWith(resources, root))
+			root = resources;
+		if (StringUtils.startsWith(sources, root))
+			root = sources;
 		return root;
 	}
-	
+
 	public static String sanitizePath(String newPath) {
-	
+
 		newPath = newPath.replace('/', '.');
 		if (newPath.startsWith(dot)) {
 			newPath = newPath.substring(1);
@@ -314,7 +348,6 @@ public class Util {
 
 		return newPath;
 	}
-
 
 	public static Json readBodyBuffer(ICoreMessage msg) {
 		if (msg.getBodyBuffer().readableBytes() == 0) {
@@ -335,40 +368,36 @@ public class Util {
 
 	}
 
-
-
 	public static void sendMessage(ClientSession session, ClientProducer producer, String address, String body)
 			throws ActiveMQException {
-			ClientMessage msg = session.createMessage(true);
-			msg.getBodyBuffer().writeString(body);
-			producer.send(address, msg);
+		ClientMessage msg = session.createMessage(true);
+		msg.getBodyBuffer().writeString(body);
+		producer.send(address, msg);
 	}
 
 	public static Pattern regexPath(String newPath) {
 		// regex it
-		if(StringUtils.isBlank(newPath))newPath = "*";
+		if (StringUtils.isBlank(newPath))
+			newPath = "*";
 		String regex = newPath.replaceAll(".", "[$0]").replace("[*]", ".*").replace("[?]", ".");
 		return Pattern.compile(regex);
 	}
 
 	public static String getContext(String path) {
-		path=path.trim();
+		path = path.trim();
 
 		// TODO; robustness for "signalk/api/v1/", and "vessels.*" and
 		// "list/vessels"
-		
+
 		if (StringUtils.isBlank(path)) {
 			return "";
 		}
-		
-		if (path.equals(resources) || path.startsWith(resources + dot) 
-			|| path.equals(sources) || path.startsWith(sources + dot)
-			|| path.equals(CONFIG)
-			||path.equals(vessels)) {
+
+		if (path.equals(resources) || path.startsWith(resources + dot) || path.equals(sources)
+				|| path.startsWith(sources + dot) || path.equals(CONFIG) || path.equals(vessels)) {
 			return path;
 		}
 
-		
 		if (path.startsWith(CONFIG + dot)) {
 
 			int pos = path.indexOf(".", CONFIG.length() + 1);
@@ -377,7 +406,7 @@ public class Util {
 			}
 			return path.substring(0, pos);
 		}
-		
+
 		if (path.startsWith(vessels + dot) || path.startsWith(LIST + dot + vessels + dot)) {
 			int p1 = path.indexOf(vessels) + vessels.length() + 1;
 
@@ -403,12 +432,11 @@ public class Util {
 
 	}
 
-
 	/**
 	 * Recursive findNode(). Returns null if not found
 	 * 
-	 * Does a regex search if a path element has * or [, and for the last path
-	 * to ensure we get partial matches.
+	 * Does a regex search if a path element has * or [, and for the last path to
+	 * ensure we get partial matches.
 	 *
 	 * @param node
 	 * @param fullPath
@@ -420,8 +448,9 @@ public class Util {
 		for (int x = 0; x < paths.length; x++) {
 			if (logger.isDebugEnabled())
 				logger.debug("findNode: {}", paths[x]);
-			if (StringUtils.isNotBlank(paths[x])&&!node.isObject()) return node;
-			if (StringUtils.isNotBlank(paths[x])&&node.has(paths[x])) {
+			if (StringUtils.isNotBlank(paths[x]) && !node.isObject())
+				return node;
+			if (StringUtils.isNotBlank(paths[x]) && node.has(paths[x])) {
 				if (x == paths.length - 1) {
 					return node.at(paths[x]);
 				} else {
@@ -429,7 +458,7 @@ public class Util {
 				}
 			} else {
 				for (String k : node.asJsonMap().keySet()) {
-					if (StringUtils.isNotBlank(paths[x]) && Util.regexPath(paths[x]).matcher(k).find()){
+					if (StringUtils.isNotBlank(paths[x]) && Util.regexPath(paths[x]).matcher(k).find()) {
 						if (x == paths.length - 1 || !node.isObject()) {
 							return node;
 						} else {
@@ -465,14 +494,14 @@ public class Util {
 			if (logger.isDebugEnabled())
 				logger.debug("setJson: {} : {}", paths[x], json);
 			if (x == paths.length - 1) {
-				//merge with existing
-				if(node.has(paths[x])&& node.at(paths[x]).isObject()){
+				// merge with existing
+				if (node.has(paths[x]) && node.at(paths[x]).isObject()) {
 					Json j = node.at(paths[x]);
-					for( String key :json.asJsonMap().keySet()) {
+					for (String key : json.asJsonMap().keySet()) {
 						j.set(key, json.at(key));
 					}
-					
-				}else {
+
+				} else {
 					node.set(paths[x], json);
 				}
 				return json;
@@ -489,15 +518,13 @@ public class Util {
 	}
 
 	/**
-	 * Converts a source key to a $source key, and returns the relevant
-	 * sources.* tree Returns null if there is no source key. Only looks in the
-	 * immediate object, does not recurse.
+	 * Converts a source key to a $source key, and returns the relevant sources.*
+	 * tree Returns null if there is no source key. Only looks in the immediate
+	 * object, does not recurse.
 	 * 
 	 * @param input
-	 * @param defaultType,
-	 *            if source object has no type, can be null
-	 * @param defaultLabel,
-	 *            if source object has no label, can be null
+	 * @param       defaultType, if source object has no type, can be null
+	 * @param       defaultLabel, if source object has no label, can be null
 	 * @return
 	 */
 	public static Json convertSourceToRef(Json input, String defaultType, String defaultLabel) {
@@ -530,71 +557,84 @@ public class Util {
 	}
 
 	public static boolean isDelta(Json node) {
-		if(node==null)return false;
+		if (node == null)
+			return false;
 		// deal with diff format
-		if (node.has(UPDATES) || node.has(PUT) || node.has(CONFIG)) return true;
+		if (node.has(UPDATES) || node.has(PUT) || node.has(CONFIG))
+			return true;
 		return false;
 	}
-	
+
 	public static boolean isSubscribe(Json node) {
-		if(node==null)return false;
+		if (node == null)
+			return false;
 		// deal with diff format
-		if (node.has(SUBSCRIBE) || node.has(UNSUBSCRIBE)) return true;
+		if (node.has(SUBSCRIBE) || node.has(UNSUBSCRIBE))
+			return true;
 		return false;
 	}
+
 	public static boolean isGet(Json node) {
-		if(node==null)return false;
+		if (node == null)
+			return false;
 		// deal with diff format
-		if (node.has(GET)) return true;
+		if (node.has(GET))
+			return true;
 		return false;
 	}
-	
+
 	public static boolean isAuth(Json node) {
-		if(node==null)return false;
+		if (node == null)
+			return false;
 		// deal with diff format
-		if (node.has(LOGIN) ) return true;
-		if (node.has(LOGOUT) ) return true;
-		if (node.has(VALIDATE) ) return true;
+		if (node.has(LOGIN))
+			return true;
+		if (node.has(LOGOUT))
+			return true;
+		if (node.has(VALIDATE))
+			return true;
 		return false;
 	}
-	
+
 	public static boolean isN2k(Json node) {
-		if(node==null)return false;
-		// '{"timestamp":"2013-10-08-15:47:28.263Z","prio":"2","src":"204","dst":"255","pgn":"127250","description":"Vessel Heading","fields":{"Heading":"129.7","Reference":"Magnetic"}}'
-		if (node.has("prio") && node.has("src")&& node.has("dst")&& node.has("pgn")) return true;
+		if (node == null)
+			return false;
+		// '{"timestamp":"2013-10-08-15:47:28.263Z","prio":"2","src":"204","dst":"255","pgn":"127250","description":"Vessel
+		// Heading","fields":{"Heading":"129.7","Reference":"Magnetic"}}'
+		if (node.has("prio") && node.has("src") && node.has("dst") && node.has("pgn"))
+			return true;
 		return false;
 	}
-	
+
 	public static boolean isFullFormat(Json node) {
-		if(node==null)return false;
+		if (node == null)
+			return false;
 		// avoid full signalk syntax
-		if (node.has(vessels) 
-				|| node.has(CONFIG) 
-				|| node.has(sources) 
-				|| node.has(resources)
-				|| node.has(aircraft)
-				|| node.has(sar)
-				|| node.has(aton))
+		if (node.has(vessels) || node.has(CONFIG) || node.has(sources) || node.has(resources) || node.has(aircraft)
+				|| node.has(sar) || node.has(aton))
 			return true;
 		return false;
 	}
 
 	public static String readString(ServletInputStream inputStream, String characterEncoding) throws IOException {
-		try(ByteArrayOutputStream result = new ByteArrayOutputStream();){
-		byte[] buffer = new byte[1024];
-		int length;
-		while ((length = inputStream.read(buffer)) != -1) {
-		    result.write(buffer, 0, length);
-		}
-		// StandardCharsets.UTF_8.name() > JDK 7
-		return result.toString(characterEncoding);
+		try (ByteArrayOutputStream result = new ByteArrayOutputStream();) {
+			byte[] buffer = new byte[1024];
+			int length;
+			while ((length = inputStream.read(buffer)) != -1) {
+				result.write(buffer, 0, length);
+			}
+			// StandardCharsets.UTF_8.name() > JDK 7
+			return result.toString(characterEncoding);
 		}
 	}
-	
-	public static Json getSubscriptionJson(String context, String path, int period, int minPeriod, String format, String policy) {
+
+	public static Json getSubscriptionJson(String context, String path, int period, int minPeriod, String format,
+			String policy) {
 		return getSubscriptionJson(context, path, period, minPeriod, format, policy, null, -1.0d);
 	}
-	public static Json getSubscriptionJson(String context, String path, int period, int minPeriod, String format, String policy, String startTime, double playbackRate) {
+
+	public static Json getSubscriptionJson(String context, String path, int period, int minPeriod, String format,
+			String policy, String startTime, double playbackRate) {
 		Json json = Json.read("{\"context\":\"" + context + "\", \"subscribe\": []}");
 		Json sub = Json.object();
 		sub.set("path", path);
@@ -602,7 +642,7 @@ public class Util {
 		sub.set("minPeriod", minPeriod);
 		sub.set("format", format);
 		sub.set("policy", policy);
-		if(StringUtils.isNotBlank(startTime)) {
+		if (StringUtils.isNotBlank(startTime)) {
 			sub.set(START_TIME, startTime);
 			sub.set(PLAYBACK_RATE, playbackRate);
 		}
@@ -611,60 +651,66 @@ public class Util {
 		return json;
 	}
 
-	public static Json getUrlAsJson(AsyncHttpClient c,String url) throws Exception {
-		return Json.read(getUrlAsString(c,url, null, null));
+	public static Json getUrlAsJson(AsyncHttpClient c, String url) throws Exception {
+		return Json.read(getUrlAsString(c, url, null, null));
 	}
-	public static Json getUrlAsJson(AsyncHttpClient c,String url, String user, String pass) throws Exception {
-		return Json.read(getUrlAsString(c,url, user, pass));
+
+	public static Json getUrlAsJson(AsyncHttpClient c, String url, String user, String pass) throws Exception {
+		return Json.read(getUrlAsString(c, url, user, pass));
 	}
-	
-	public static String getUrlAsString(AsyncHttpClient c,String url) throws Exception {
-		return getUrlAsString(c,url, null,null);
+
+	public static String getUrlAsString(AsyncHttpClient c, String url) throws Exception {
+		return getUrlAsString(c, url, null, null);
 	}
+
 	public static String getUrlAsString(AsyncHttpClient c, String url, String user, String pass) throws Exception {
-			// get a sessionid
-			Response r2 = null;
-			if(user!=null){
-				r2 = c.prepareGet(url).setCookies(getCookies(user, pass)).execute().get();
-			}else{
-				r2 = c.prepareGet(url).execute().get();
-			}
-			
-			String response = r2.getResponseBody();
-			logger.debug("Endpoint string:" + response);
-			return response;
+		// get a sessionid
+		Response r2 = null;
+		if (user != null) {
+			r2 = c.prepareGet(url).setCookies(getCookies(user, pass)).execute().get();
+		} else {
+			r2 = c.prepareGet(url).execute().get();
+		}
+
+		String response = r2.getResponseBody();
+		logger.debug("Endpoint string:" + response);
+		return response;
 	}
-	
+
 	public static Collection<Cookie> getCookies(String user, String pass) throws Exception {
 		String jwtToken = SecurityUtils.authenticateUser(user, pass);
 		Collection<Cookie> cookies = new ArrayList<>();
 		cookies.add(new DefaultCookie(SecurityUtils.AUTH_COOKIE_NAME, jwtToken));
 		return cookies;
 	}
-	  /**
-     * Round to specified decimals
-     *
-     * @param val
-     * @param places
-     * @return
-     */
-    public static double round(double val, int places) {
-        double scale = Math.pow(10, places);
-        long iVal = Math.round(val * scale);
-        return iVal / scale;
-    }
-	/**Returns the Double or null if this is Json.nil()
+
+	/**
+	 * Round to specified decimals
+	 *
+	 * @param val
+	 * @param places
+	 * @return
+	 */
+	public static double round(double val, int places) {
+		double scale = Math.pow(10, places);
+		long iVal = Math.round(val * scale);
+		return iVal / scale;
+	}
+
+	/**
+	 * Returns the Double or null if this is Json.nil()
+	 * 
 	 * @param value
 	 * @return
 	 */
 	public static Double asDouble(Json json) {
-		if(json==null || json.isNull()||json.getValue()==null) return null;
+		if (json == null || json.isNull() || json.getValue() == null)
+			return null;
 		try {
 			return json.asDouble();
-		}catch (UnsupportedOperationException e) {
+		} catch (UnsupportedOperationException e) {
 			return (Double) json.getValue();
 		}
-		
+
 	}
 }
-

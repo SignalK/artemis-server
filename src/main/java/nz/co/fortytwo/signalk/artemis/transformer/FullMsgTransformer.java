@@ -33,7 +33,8 @@ import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.intercept.BaseInterceptor;
-import nz.co.fortytwo.signalk.artemis.service.SignalkKvConvertor;
+import nz.co.fortytwo.signalk.artemis.util.MessageSupport;
+import nz.co.fortytwo.signalk.artemis.util.SignalkKvConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 
@@ -43,7 +44,7 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
  * @author robert
  * 
  */
-public class FullMsgTransformer extends BaseInterceptor implements Transformer {
+public class FullMsgTransformer extends MessageSupport implements Transformer {
 
 	private static Logger logger = LogManager.getLogger(FullMsgTransformer.class);
 	
@@ -59,7 +60,7 @@ public class FullMsgTransformer extends BaseInterceptor implements Transformer {
 		Json node = Util.readBodyBuffer( message.toCore());
 		
 		// deal with full format
-		if (isFullFormat(node)) {
+		if (Util.isFullFormat(node)) {
 			if (logger.isDebugEnabled())
 				logger.debug("processing full {} ", node);
 			try {

@@ -14,8 +14,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
-import nz.co.fortytwo.signalk.artemis.service.TDBService;
+import nz.co.fortytwo.signalk.artemis.tdb.InfluxDbService;
+import nz.co.fortytwo.signalk.artemis.tdb.TDBService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.MessageSupport;
@@ -51,8 +51,6 @@ public abstract class BaseHandler extends MessageSupport{
 	}
 	
 	public abstract void consume(Message message);
-	
-	
 	
 	/**
 	 *  Will start a consumer and call the consume(message) method for each matching message

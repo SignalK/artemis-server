@@ -46,12 +46,12 @@ import com.google.common.collect.ImmutableList;
 
 import io.netty.util.internal.ConcurrentSet;
 import mjson.Json;
-import nz.co.fortytwo.signalk.artemis.service.InfluxDbService;
-import nz.co.fortytwo.signalk.artemis.service.SignalkMapConvertor;
-import nz.co.fortytwo.signalk.artemis.service.TDBService;
+import nz.co.fortytwo.signalk.artemis.tdb.InfluxDbService;
+import nz.co.fortytwo.signalk.artemis.tdb.TDBService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
+import nz.co.fortytwo.signalk.artemis.util.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 /**
