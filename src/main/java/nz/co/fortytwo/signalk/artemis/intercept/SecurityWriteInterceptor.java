@@ -1,5 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.intercept;
 
+import static nz.co.fortytwo.signalk.artemis.util.Config.INCOMING_RAW;
 import static nz.co.fortytwo.signalk.artemis.util.Config.INTERNAL_KV;
 
 import java.util.ArrayList;
@@ -31,10 +32,8 @@ public class SecurityWriteInterceptor extends BaseInterceptor implements Interce
 	public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException {
 
 		if (packet instanceof SessionSendMessage) {
-			SessionSendMessage realPacket = (SessionSendMessage) packet;
-
-			ICoreMessage msg = realPacket.getMessage();
-
+			ICoreMessage msg = ((SessionSendMessage) packet).getMessage();
+			
 			if (!StringUtils.equals(msg.getAddress(), INTERNAL_KV))
 				return true;
 			

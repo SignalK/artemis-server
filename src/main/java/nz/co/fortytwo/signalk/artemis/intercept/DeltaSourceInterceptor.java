@@ -68,13 +68,10 @@ public class DeltaSourceInterceptor extends BaseInterceptor implements Intercept
 	public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException {
 		
 		if (packet instanceof SessionSendMessage) {
-			SessionSendMessage realPacket = (SessionSendMessage) packet;
-
-			ICoreMessage message = realPacket.getMessage();
-			if(!StringUtils.equals(message.getAddress(), INCOMING_RAW))return true;
-			if (!Config.AMQ_CONTENT_TYPE_JSON_DELTA.equals(message.getStringProperty(Config.AMQ_CONTENT_TYPE)))
-				return true;
+			ICoreMessage message = ((SessionSendMessage) packet).getMessage();
 			
+			if(ignoreMessage(INCOMING_RAW, Config.AMQ_CONTENT_TYPE_JSON_DELTA, message))return true;
+
 			String srcBus = message.getStringProperty(Config.MSG_SRC_BUS);
 			String msgSrcType = message.getStringProperty(Config.MSG_SRC_TYPE);
 			Json node = Util.readBodyBuffer(message);

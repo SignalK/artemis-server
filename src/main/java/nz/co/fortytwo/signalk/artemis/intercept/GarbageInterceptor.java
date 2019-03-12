@@ -32,12 +32,12 @@ public class GarbageInterceptor extends BaseInterceptor implements Interceptor {
 	public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException {
 		
 		if (packet instanceof SessionSendMessage) {
-			SessionSendMessage realPacket = (SessionSendMessage) packet;
-
-			ICoreMessage msg = realPacket.getMessage();
+			ICoreMessage msg = ((SessionSendMessage) packet).getMessage();
+			
 			if(msg instanceof ClientMessage) {
 				((ClientMessage)msg).acknowledge();
 			}
+
 			if(!StringUtils.equals(msg.getAddress(), INCOMING_RAW))return true;
 			if(msg.getStringProperty(Config.AMQ_CONTENT_TYPE)!=null) {
 				return true;

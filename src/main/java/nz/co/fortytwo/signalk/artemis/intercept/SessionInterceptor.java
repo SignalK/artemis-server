@@ -3,6 +3,7 @@ package nz.co.fortytwo.signalk.artemis.intercept;
 import static nz.co.fortytwo.signalk.artemis.util.Config.INCOMING_RAW;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
+import org.apache.activemq.artemis.api.core.ICoreMessage;
 import org.apache.activemq.artemis.api.core.Interceptor;
 import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.core.protocol.core.Packet;
@@ -29,16 +30,17 @@ public class SessionInterceptor extends BaseInterceptor implements Interceptor {
 	public boolean intercept(final Packet packet, final RemotingConnection connection) throws ActiveMQException {
 		
 		if (packet instanceof SessionSendMessage) {
-			SessionSendMessage realPacket = (SessionSendMessage) packet;
+			ICoreMessage msg = ((SessionSendMessage) packet).getMessage();
 			
-			Message msg = realPacket.getMessage();
 			if(!StringUtils.equals(msg.getAddress(), INCOMING_RAW))return true;
 			
 			if(msg.getStringProperty(Config.MSG_SRC_BUS)==null)
 				msg.putStringProperty(Config.MSG_SRC_BUS, connection.getRemoteAddress());
+			
 			if(msg.getStringProperty(Config.MSG_SRC_TYPE)==null)
 				//TODO: this is not correct for web api calls.
 				msg.putStringProperty(Config.MSG_SRC_TYPE, Config.MSG_SRC_TYPE_EXTERNAL_IP);
+			
 			if(msg.getStringProperty(Config.AMQ_SESSION_ID)==null) {
 				for (ServerSession s : ArtemisServer.getActiveMQServer().getSessions(connection.getID().toString())) {
 					if (s.getConnectionID().equals(connection.getID())) {
@@ -51,6 +53,7 @@ public class SessionInterceptor extends BaseInterceptor implements Interceptor {
 					}
 				}
 			}
+			
 			//make sure we get tokens for serial, tcp, etc
 			if(msg.getStringProperty(Config.AMQ_USER_TOKEN)==null)
 				try {
@@ -62,6 +65,7 @@ public class SessionInterceptor extends BaseInterceptor implements Interceptor {
 					logger.error(Util.readBodyBufferToString(msg.toCore()));
 					logger.error(e1,e1);
 				}
+			
 			//should not have roles here
 			msg.removeProperty(Config.AMQ_USER_ROLES);
 			msg.putStringProperty(Config.AMQ_USER_ROLES, SecurityUtils.getRoles(msg.getStringProperty(Config.AMQ_USER_TOKEN)).toString());

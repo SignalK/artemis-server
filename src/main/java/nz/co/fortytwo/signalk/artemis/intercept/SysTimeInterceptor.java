@@ -1,5 +1,6 @@
 package nz.co.fortytwo.signalk.artemis.intercept;
 
+import static nz.co.fortytwo.signalk.artemis.util.Config.INCOMING_RAW;
 import static nz.co.fortytwo.signalk.artemis.util.Config.INTERNAL_KV;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_datetime;
@@ -78,16 +79,13 @@ public class SysTimeInterceptor extends BaseInterceptor implements Interceptor {
 		if (influx.getWrite())return true;
 		
 		if (packet instanceof SessionSendMessage) {
-			SessionSendMessage realPacket = (SessionSendMessage) packet;
-
-			ICoreMessage message = realPacket.getMessage();
+			ICoreMessage message = ((SessionSendMessage) packet).getMessage();
+			
 			if(!StringUtils.equals(message.getAddress(), INTERNAL_KV))return true;
 			String timeKey = vessels+dot+Config.getConfigProperty(ConfigConstants.UUID)+dot + nav_datetime;
 			
 			if (!timeKey.equals(message.getStringProperty(Config.AMQ_INFLUX_KEY)))
 				return true;
-			
-			
 			
 				Json time = Util.readBodyBuffer(message);
 				if (time != null && !time.isNull()) {
