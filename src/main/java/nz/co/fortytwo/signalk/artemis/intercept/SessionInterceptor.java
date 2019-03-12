@@ -55,7 +55,7 @@ public class SessionInterceptor extends BaseInterceptor implements Interceptor {
 			}
 			
 			//make sure we get tokens for serial, tcp, etc
-			if(msg.getStringProperty(Config.AMQ_USER_TOKEN)==null)
+			if(msg.getStringProperty(Config.AMQ_USER_TOKEN)==null) {
 				try {
 					if (logger.isDebugEnabled())
 						logger.debug("Injecting AMQ_USER_TOKEN in {}",msg);
@@ -65,6 +65,7 @@ public class SessionInterceptor extends BaseInterceptor implements Interceptor {
 					logger.error(Util.readBodyBufferToString(msg.toCore()));
 					logger.error(e1,e1);
 				}
+			}
 			
 			//should not have roles here
 			msg.removeProperty(Config.AMQ_USER_ROLES);

@@ -68,11 +68,14 @@ public class DeclinationUpdater implements Runnable {
 	public void calculate(String uuid) {
 		logger.debug("Declination  calculation fired ");
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
+		
 		Map<String, String> queryMap = new HashMap<>();
 		queryMap.put(skey,Util.regexPath(nav+dot+"position").toString());
 		queryMap.put("uuid",Util.regexPath(uuid).toString());
+		
 		influx.loadData(map, vessels, queryMap);
 		logger.debug("Position: {}", map);
+		
 		Double lat = null;
 		Double lon = null;
 		for( Entry<String, Json> entry : map.entrySet()) {
