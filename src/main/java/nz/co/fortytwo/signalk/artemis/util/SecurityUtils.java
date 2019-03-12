@@ -22,6 +22,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.stream.Collectors;
 
 import javax.crypto.SecretKey;
 import javax.servlet.http.Cookie;
@@ -307,6 +309,13 @@ public final class SecurityUtils {
 		
 	}
 
+	public static void trimMap( final NavigableMap<String, Json> map, String roles) throws Exception {
+	
+		ArrayList<String> denied = SecurityUtils.getDeniedReadPaths(roles);
+		ArrayList<String> allowed = SecurityUtils.getAllowedReadPaths(roles);
+		trimMap(map, allowed, denied);
+	
+	}
 	public static void trimMap(NavigableMap<String, Json> rslt, ArrayList<String> allowed, ArrayList<String> denied) {
 		// check allowed first
 		try {
@@ -435,7 +444,7 @@ public final class SecurityUtils {
 			break;
 		}
 		if(logger.isDebugEnabled())logger.debug("Injected token: {} : {} ,{},{}",msg.getStringProperty(AMQ_USER_TOKEN),msgType, msgSrc, msgBus);
-	}
+	} 
 
 	public static void checkSystemUsers() throws Exception {
 		Json conf = getSecurityConfAsJson();

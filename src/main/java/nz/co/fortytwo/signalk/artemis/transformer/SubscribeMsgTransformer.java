@@ -80,7 +80,7 @@ public class SubscribeMsgTransformer extends MessageSupport implements Transform
 		
 		if (logger.isTraceEnabled())
 			logger.trace("Processing: {}", message);
-		Json node = Util.readBodyBuffer(message.toCore());
+		Json node = Util.readBodyBuffer(message.toCore()); 
 
 		// deal with diff format
 		if (Util.isSubscribe(node)) {

@@ -74,7 +74,7 @@ public class Subscription {
 	private String startTime = null;
 	private long playbackPeriod = -1;
 	boolean active = true;
-	private long minPeriod;
+	private long minPeriod; 
 	private String format;
 	private String policy;
 	private String token;

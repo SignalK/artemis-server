@@ -205,8 +205,7 @@ public class GetMsgTransformer extends MessageSupport implements Transformer {
 					logger.debug("GET  token: {}, map : {}", jwtToken, map);
 
 				// security filter here
-
-				map = allowedFilter(message, map);
+				SecurityUtils.trimMap(map, message.getStringProperty(Config.AMQ_USER_ROLES));
 
 				Json json = SignalkMapConvertor.mapToFull(map);
 
@@ -235,65 +234,5 @@ public class GetMsgTransformer extends MessageSupport implements Transformer {
 		return message;
 	}
 
-	private NavigableMap<String, Json> allowedFilter(Message msg, final NavigableMap<String, Json> map) {
-		// check denied
-		
-		try {
-			ArrayList<String> denied = SecurityUtils.getDeniedReadPaths(msg.getStringProperty(Config.AMQ_USER_ROLES));
-			if (logger.isDebugEnabled())
-				logger.debug("GET  denied: {}", denied);
-			if (denied != null) {
-				for (String key : denied) {
-					if (key.equals("all")) {
-						map.clear();
-						return map;
-					}
-					map.forEach((k, v) -> {
-						if (k.startsWith(key)) {
-							map.remove(k, v);
-						}
-					});
-				}
-			}
-		} catch (Exception e) {
-			logger.error(e, e);
-		}
-		// check allowed
-		try {
-			ArrayList<String> allowed = SecurityUtils.getAllowedReadPaths(msg.getStringProperty(Config.AMQ_USER_ROLES));
-			if (logger.isDebugEnabled())
-				logger.debug("GET  allowed: {}", allowed);
-			if (allowed != null ) {
-				for (String key : allowed) {
-					if (key.equals("all")) {
-						return  map;
-					}
-				}
-				return map.entrySet().stream().filter(e -> {
-						for (String key : allowed) {
-							if (e.getKey().startsWith(key)) {
-								return true;
-							}
-						}
-						return false;
-					}
-				).collect(Collectors.toMap(NavigableMap.Entry<String,Json>::getKey, 
-								NavigableMap.Entry<String,Json>::getValue, 
-								(v1,v2) ->{ throw new RuntimeException(String.format("Duplicate key for values %s and %s", v1, v2));},
-								ConcurrentSkipListMap::new));
-			}
-		} catch (Exception e) {
-			logger.error(e, e);
-		}
-		map.clear();
-		return map;
-	}
 	
-	 public <K, V> Map<K, V> filterByValue(Map<K, V> map, Predicate<V> predicate) {
-	        return map.entrySet()
-	                .stream()
-	                .filter(x -> predicate.test(x.getValue()))
-	                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-	    }
-
 }
