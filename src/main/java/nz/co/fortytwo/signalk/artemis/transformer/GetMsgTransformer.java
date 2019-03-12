@@ -20,8 +20,11 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.core.server.transformer.Transformer;
@@ -35,6 +38,7 @@ import nz.co.fortytwo.signalk.artemis.tdb.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.tdb.TDBService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.MessageSupport;
+import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.SignalkMapConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Util;
@@ -72,13 +76,12 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
 
 public class GetMsgTransformer extends MessageSupport implements Transformer {
 
-	
 	private static Logger logger = LogManager.getLogger(GetMsgTransformer.class);
 	private static TDBService influx = new InfluxDbService();
-	
+
 	/**
-	 * Reads Delta GET message and returns the result in full format. Does nothing if json
-	 * is not a GET, and returns the original message
+	 * Reads Delta GET message and returns the result in full format. Does nothing
+	 * if json is not a GET, and returns the original message
 	 * 
 	 * @param node
 	 * @return
@@ -88,65 +91,62 @@ public class GetMsgTransformer extends MessageSupport implements Transformer {
 	public Message transform(Message message) {
 		if (!AMQ_CONTENT_TYPE_JSON_GET.equals(message.getStringProperty(AMQ_CONTENT_TYPE)))
 			return message;
-		
+
 		Json node = Util.readBodyBuffer(message.toCore());
 		String correlation = message.getStringProperty(Config.AMQ_CORR_ID);
 		String destination = message.getStringProperty(Config.AMQ_REPLY_Q);
-		
+
 		// deal with diff format
 		if (node.has(CONTEXT) && (node.has(GET))) {
 			if (logger.isDebugEnabled())
 				logger.debug("GET msg: {}", node.toString());
 			String ctx = node.at(CONTEXT).asString();
 			String jwtToken = null;
-			if(node.has(SignalKConstants.TOKEN)&&!node.at(SignalKConstants.TOKEN).isNull()) {
-				jwtToken=node.at(SignalKConstants.TOKEN).asString();
+			if (node.has(SignalKConstants.TOKEN) && !node.at(SignalKConstants.TOKEN).isNull()) {
+				jwtToken = node.at(SignalKConstants.TOKEN).asString();
 			}
-			String root = StringUtils.substringBefore(ctx,dot);
+			String root = StringUtils.substringBefore(ctx, dot);
 			root = Util.sanitizeRoot(root);
-			
-			
-			//limit to explicit series
-			if (!vessels.equals(root) 
-				&& !CONFIG.equals(root) 
-				&& !sources.equals(root) 
-				&& !resources.equals(root)
-				&& !aircraft.equals(root)
-				&& !sar.equals(root)
-				&& !aton.equals(root)
-				&& !ALL.equals(root)){
-				try{
-					sendReply(destination,FORMAT_FULL,correlation,Json.object(),jwtToken);
+
+			// limit to explicit series
+			if (!vessels.equals(root) && !CONFIG.equals(root) && !sources.equals(root) && !resources.equals(root)
+					&& !aircraft.equals(root) && !sar.equals(root) && !aton.equals(root) && !ALL.equals(root)) {
+				try {
+					sendReply(destination, FORMAT_FULL, correlation, Json.object(), jwtToken);
 					return null;
 				} catch (Exception e) {
 					logger.error(e, e);
-					
+
 				}
 			}
-			String qUuid = StringUtils.substringAfter(ctx,dot);
-			if(StringUtils.isBlank(qUuid))qUuid="*";
-			ArrayList<String> fullPaths=new ArrayList<>();
-			
+			String qUuid = StringUtils.substringAfter(ctx, dot);
+			if (StringUtils.isBlank(qUuid))
+				qUuid = "*";
+			ArrayList<String> fullPaths = new ArrayList<>();
+
 			try {
 				NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
-				for(Json p: node.at(GET).asJsonList()){
-					
+				for (Json p : node.at(GET).asJsonList()) {
+
 					String path = p.at(PATH).asString();
-					String time = p.has("time")? p.at("time").asString(): null;
+					String time = p.has("time") ? p.at("time").asString() : null;
 					if (logger.isDebugEnabled())
-						logger.debug("GET time : {}={}", time, StringUtils.isNotBlank(time)?Util.getMillisFromIsoTime(time):null);
-					path=Util.sanitizePath(path);
-					fullPaths.add(Util.sanitizeRoot(ctx+dot+path));
-					
-					path=Util.regexPath(path).toString();
+						logger.debug("GET time : {}={}", time,
+								StringUtils.isNotBlank(time) ? Util.getMillisFromIsoTime(time) : null);
+					path = Util.sanitizePath(path);
+					fullPaths.add(Util.sanitizeRoot(ctx + dot + path));
+
+					path = Util.regexPath(path).toString();
 					Map<String, String> queryMap = new HashMap<>();
-					if(StringUtils.isNotBlank(qUuid))queryMap.put(skey,path);
-					if(StringUtils.isBlank(path))queryMap.put("uuid",Util.regexPath(qUuid).toString());
+					if (StringUtils.isNotBlank(qUuid))
+						queryMap.put(skey, path);
+					if (StringUtils.isBlank(path))
+						queryMap.put("uuid", Util.regexPath(qUuid).toString());
 					switch (root) {
 					case CONFIG:
 						influx.loadConfig(map, queryMap);
-						if(map.size()==0 && queryMap.size()==0) {
-							//send defaults
+						if (map.size() == 0 && queryMap.size() == 0) {
+							// send defaults
 							Config.setDefaults(map);
 						}
 						break;
@@ -157,78 +157,143 @@ public class GetMsgTransformer extends MessageSupport implements Transformer {
 						influx.loadSources(map, queryMap);
 						break;
 					case vessels:
-						if(StringUtils.isNotBlank(time)) {
+						if (StringUtils.isNotBlank(time)) {
 							influx.loadDataSnapshot(map, vessels, queryMap, time);
-						}else {
+						} else {
 							influx.loadData(map, vessels, queryMap);
 						}
 						break;
 					case aircraft:
-						if(StringUtils.isNotBlank(time)) {
+						if (StringUtils.isNotBlank(time)) {
 							influx.loadDataSnapshot(map, aircraft, queryMap, time);
-						}else {
+						} else {
 							influx.loadData(map, aircraft, queryMap);
 						}
-						
+
 						break;
 					case sar:
-						if(StringUtils.isNotBlank(time)) {
+						if (StringUtils.isNotBlank(time)) {
 							influx.loadDataSnapshot(map, sar, queryMap, time);
-						}else {
+						} else {
 							influx.loadData(map, sar, queryMap);
 						}
-			
+
 						break;
 					case aton:
-						if(StringUtils.isNotBlank(time)) {
+						if (StringUtils.isNotBlank(time)) {
 							influx.loadDataSnapshot(map, aton, queryMap, time);
-						}else {
+						} else {
 							influx.loadData(map, aton, queryMap);
 						}
-						
+
 						break;
 					case ALL:
-						if(StringUtils.isNotBlank(time)) {
+						if (StringUtils.isNotBlank(time)) {
 							influx.loadDataSnapshot(map, vessels, null, time);
-						}else {
+						} else {
 							influx.loadData(map, vessels, null);
 						}
-						//loadAllDataFromInflux(map,aircraft);
-						//loadAllDataFromInflux(map,sar);
-						//loadAllDataFromInflux(map,aton);
+						// loadAllDataFromInflux(map,aircraft);
+						// loadAllDataFromInflux(map,sar);
+						// loadAllDataFromInflux(map,aton);
 					default:
 					}
-					
-					
+
 				}
-				
-				if (logger.isDebugEnabled())logger.debug("GET  token: {}, map : {}",jwtToken, map);
-				
+
+				if (logger.isDebugEnabled())
+					logger.debug("GET  token: {}, map : {}", jwtToken, map);
+
+				// security filter here
+
+				map = allowedFilter(message, map);
+
 				Json json = SignalkMapConvertor.mapToFull(map);
-				
-				if (logger.isDebugEnabled())logger.debug("GET json : {}", json);
-				
-				String fullPath = StringUtils.getCommonPrefix(fullPaths.toArray(new String[]{}));
-				//fullPath=StringUtils.remove(fullPath,".*");
-				//fullPath=StringUtils.removeEnd(fullPath,".");
-				
+
+				if (logger.isDebugEnabled())
+					logger.debug("GET json : {}", json);
+
+				String fullPath = StringUtils.getCommonPrefix(fullPaths.toArray(new String[] {}));
+				// fullPath=StringUtils.remove(fullPath,".*");
+				// fullPath=StringUtils.removeEnd(fullPath,".");
+
 				// for REST we only send back the sub-node, so find it
-				if (logger.isDebugEnabled())logger.debug("GET node : {}", fullPath);
-				
+				if (logger.isDebugEnabled())
+					logger.debug("GET node : {}", fullPath);
+
 				if (StringUtils.isNotBlank(fullPath) && !root.startsWith(CONFIG) && !root.startsWith(ALL))
 					json = Util.findNodeMatch(json, fullPath);
-				
-				sendReply(destination,FORMAT_FULL,correlation,json,jwtToken);
+
+				sendReply(destination, FORMAT_FULL, correlation, json, jwtToken);
 
 			} catch (Exception e) {
 				logger.error(e, e);
-				
+
 			}
 
 		}
 		return message;
 	}
 
+	private NavigableMap<String, Json> allowedFilter(Message msg, final NavigableMap<String, Json> map) {
+		// check denied
+		
+		try {
+			ArrayList<String> denied = SecurityUtils.getDeniedReadPaths(msg.getStringProperty(Config.AMQ_USER_ROLES));
+			if (logger.isDebugEnabled())
+				logger.debug("GET  denied: {}", denied);
+			if (denied != null) {
+				for (String key : denied) {
+					if (key.equals("all")) {
+						map.clear();
+						return map;
+					}
+					map.forEach((k, v) -> {
+						if (k.startsWith(key)) {
+							map.remove(k, v);
+						}
+					});
+				}
+			}
+		} catch (Exception e) {
+			logger.error(e, e);
+		}
+		// check allowed
+		try {
+			ArrayList<String> allowed = SecurityUtils.getAllowedReadPaths(msg.getStringProperty(Config.AMQ_USER_ROLES));
+			if (logger.isDebugEnabled())
+				logger.debug("GET  allowed: {}", allowed);
+			if (allowed != null ) {
+				for (String key : allowed) {
+					if (key.equals("all")) {
+						return  map;
+					}
+				}
+				return map.entrySet().stream().filter(e -> {
+						for (String key : allowed) {
+							if (e.getKey().startsWith(key)) {
+								return true;
+							}
+						}
+						return false;
+					}
+				).collect(Collectors.toMap(NavigableMap.Entry<String,Json>::getKey, 
+								NavigableMap.Entry<String,Json>::getValue, 
+								(v1,v2) ->{ throw new RuntimeException(String.format("Duplicate key for values %s and %s", v1, v2));},
+								ConcurrentSkipListMap::new));
+			}
+		} catch (Exception e) {
+			logger.error(e, e);
+		}
+		map.clear();
+		return map;
+	}
 	
+	 public <K, V> Map<K, V> filterByValue(Map<K, V> map, Predicate<V> predicate) {
+	        return map.entrySet()
+	                .stream()
+	                .filter(x -> predicate.test(x.getValue()))
+	                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+	    }
 
 }

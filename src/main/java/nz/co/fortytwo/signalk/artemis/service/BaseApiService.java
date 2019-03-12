@@ -350,9 +350,10 @@ public class BaseApiService extends MessageSupport{
 		if (logger.isDebugEnabled())
 			logger.debug("get raw: {}",path);
 		path=sanitizeApiPath(path);
+		
 		if (logger.isDebugEnabled())
 			logger.debug("get path: {}",path);
-		//String jwtToken = (String) resource.getRequest().getAttribute(SignalKConstants.JWT_TOKEN);
+	
 		if (logger.isDebugEnabled()) {//
 			logger.debug("JwtToken: {}", getToken(cookie));
 		}

@@ -93,12 +93,8 @@ public class InfluxDbService implements TDBService {
 		if (!influxDB.databaseExists(dbName))
 			influxDB.createDatabase(dbName);
 		influxDB.setDatabase(dbName);
-		influxDB.setLogLevel(LogLevel.BASIC);
-//		influxDB.enableBatch(BatchOptions.DEFAULTS.exceptionHandler((failedPoints, throwable) -> {
-//			logger.error("FAILED:"+failedPoints);
-//			logger.error(throwable);
-//		}));
-		
+		influxDB.setLogLevel(LogLevel.NONE);
+
 		influxDB.enableBatch(10000, 250, TimeUnit.MILLISECONDS);
 		influxDB.setRetentionPolicy("autogen");
 		if(primaryMap.size()==0)loadPrimary();
