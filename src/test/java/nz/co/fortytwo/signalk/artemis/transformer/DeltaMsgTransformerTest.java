@@ -33,6 +33,10 @@ public class DeltaMsgTransformerTest  extends BaseMsgInterceptorTest {
 	private static Logger logger = LogManager.getLogger(DeltaMsgTransformerTest.class);
 	private Json update = Json.read("{\"context\":\"vessels.urn:mrn:imo:mmsi:234567890\",\"updates\":[{\"$source\":\"NMEA2000.N2000-01\",\"timestamp\":\"2010-01-07T07:18:44.000Z\",\"values\":[{\"path\":\"propulsion.0.revolutions\",\"value\":16.341667},{\"path\":\"propulsion.0.boostPressure\",\"value\":45500.0}]}]}");
 	private Json put = Json.read("{\"context\":\"vessels.urn:mrn:imo:mmsi:234567890\",\"put\":[{\"path\":\"propulsion.0.boostPressure\",\"value\":45500.0,\"timestamp\":\"2018-08-08T02:48:28.885Z\"}]}");
+	private Json post = Json.read("{\"context\":\"vessels\",\"post\":[{\"path\":\"\",\"value\":{},\"timestamp\":\"2018-08-08T02:48:28.885Z\"}]}");
+	private Json postBad = Json.read("{\"context\":\"vessels.urn:mrn:imo:mmsi:234567890\",\"post\":[{\"path\":\"propulsion.0\",\"value\":45500.0,\"timestamp\":\"2018-08-08T02:48:28.885Z\"}]}");
+	private Json post1 = Json.read("{\"context\":\"vessels.urn:mrn:imo:mmsi:234567890\",\"post\":[{\"path\":\"propulsion\",\"value\":45500.0,\"timestamp\":\"2018-08-08T02:48:28.885Z\"}]}");
+	private Json postBad1 = Json.read("{\"context\":\"vessels.urn:mrn:imo:mmsi:234567890\",\"post\":[{\"path\":\"propulsion.0\",\"value\":45500.0,\"timestamp\":\"2018-08-08T02:48:28.885Z\"}]}");
 	private Json config = Json.read("{\"context\":\"vessels.urn:mrn:imo:mmsi:234567890\",\"config\":[{\"timestamp\":\"2010-01-07T07:18:44.000Z\",\"values\":[{\"path\":\"server.demo.start\",\"value\":true}]}]}");
 	
     private DeltaMsgTransformer transformer;// 1
@@ -41,6 +45,7 @@ public class DeltaMsgTransformerTest  extends BaseMsgInterceptorTest {
     public void before(){
     	transformer = partialMockBuilder(DeltaMsgTransformer.class)
 	    	.addMockedMethod("sendKvMessage")
+	    	.addMockedMethod("sendReply")
     			.createMock(); 
     }
 	@Test
@@ -58,6 +63,7 @@ public class DeltaMsgTransformerTest  extends BaseMsgInterceptorTest {
 		verifyAll();
 	}
 	
+
 	@Test
 	public void shouldCreateValuesExtension() throws ActiveMQException {
 		
@@ -84,6 +90,68 @@ public class DeltaMsgTransformerTest  extends BaseMsgInterceptorTest {
 		replayAll();
 		
 		NavigableMap<String, Json> map = SignalkMapConvertor.parseDelta(put, new ConcurrentSkipListMap<String,Json>());
+		transformer.sendKvMap(message, map);
+		assertNotNull(transformer.transform(message));
+		
+		verifyAll();
+	}
+	
+	@Test
+	public void shouldProcessPost() throws ActiveMQException {
+		
+		
+		ClientMessage message = getClientMessage(post.toString(), Config.AMQ_CONTENT_TYPE_JSON_DELTA, false); 
+		transformer.sendKvMessage( same(message), anyString(), anyObject(Json.class));
+		expectLastCall().times(1);
+		replayAll();
+		
+		NavigableMap<String, Json> map = SignalkMapConvertor.parseDelta(post, new ConcurrentSkipListMap<String,Json>());
+		transformer.sendKvMap(message, map);
+		assertNotNull(transformer.transform(message));
+		
+		verifyAll();
+	}
+	@Test
+	public void shouldProcessPost1() throws ActiveMQException {
+		
+		
+		ClientMessage message = getClientMessage(post1.toString(), Config.AMQ_CONTENT_TYPE_JSON_DELTA, false); 
+		transformer.sendKvMessage( same(message), anyString(), anyObject(Json.class));
+		expectLastCall().times(1);
+		replayAll();
+		
+		NavigableMap<String, Json> map = SignalkMapConvertor.parseDelta(post1, new ConcurrentSkipListMap<String,Json>());
+		transformer.sendKvMap(message, map);
+		assertNotNull(transformer.transform(message));
+		
+		verifyAll();
+	}
+	
+	@Test
+	public void shouldNotProcessPost() throws Exception {
+		
+		
+		ClientMessage message = getClientMessage(postBad.toString(), Config.AMQ_CONTENT_TYPE_JSON_DELTA, false); 
+		transformer.sendReply(anyString(), anyString(), anyString(), anyObject(Json.class), anyString());
+		expectLastCall().times(1);
+		replayAll();
+		
+		NavigableMap<String, Json> map = SignalkMapConvertor.parseDelta(postBad, new ConcurrentSkipListMap<String,Json>());
+		transformer.sendKvMap(message, map);
+		assertNotNull(transformer.transform(message));
+		
+		verifyAll();
+	}
+	@Test
+	public void shouldNotProcessPost1() throws Exception {
+		
+		
+		ClientMessage message = getClientMessage(postBad1.toString(), Config.AMQ_CONTENT_TYPE_JSON_DELTA, false); 
+		transformer.sendReply(anyString(), anyString(), anyString(), anyObject(Json.class), anyString());
+		expectLastCall().times(1);
+		replayAll();
+		
+		NavigableMap<String, Json> map = SignalkMapConvertor.parseDelta(postBad1, new ConcurrentSkipListMap<String,Json>());
 		transformer.sendKvMap(message, map);
 		assertNotNull(transformer.transform(message));
 		

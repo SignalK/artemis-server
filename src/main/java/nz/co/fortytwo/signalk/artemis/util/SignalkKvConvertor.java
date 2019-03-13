@@ -197,7 +197,7 @@ public class SignalkKvConvertor {
 			String correlation = origMessage.getStringProperty(Config.AMQ_CORR_ID);
 			String destination = origMessage.getStringProperty(Config.AMQ_REPLY_Q);
 			Json err = sender.error(sender.getRequestId(post), "COMPLETED", 403,
-					"Cannot POST to " + post.at(PATH).asString());
+					"Cannot POST to " + ctx+post.at(PATH).asString());
 			sender.sendReply(destination, FORMAT_DELTA, correlation, err, null);
 			return;
 		}
