@@ -135,6 +135,7 @@ public class SignalKConstants {
 	public static final String LIST = "list";
 	public static final String GET = "get";
 	public static final String PUT = "put";
+	public static final String POST = "post";
 	public static final String LOGIN = "login";
 	public static final String LOGOUT = "logout";
 	public static final String VALIDATE = "validate";

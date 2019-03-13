@@ -2,6 +2,8 @@ package nz.co.fortytwo.signalk.artemis.service;
 
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SK_TOKEN;
 
+import java.util.UUID;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
@@ -16,6 +18,8 @@ import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.activemq.artemis.api.core.ActiveMQException;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -179,8 +183,8 @@ public class SignalkApiService extends BaseApiService {
 	}
 	
 		
-	@Operation(summary = "Post a signalk message", description = " Post a signalk message. Has the same result as using non-http transport. This is a 'fire-and-forget' method,"
-			+ " see PUT ")
+	@Operation(summary = "Post a signalk message", description = " Post a signalk message. Has the same result as using non-http transport. "
+			+ "This is a 'fire-and-forget' method, see PUT ")
 	@ApiResponses ({
 	    @ApiResponse(responseCode = "200", description = "OK", 
 	    		content = @Content(
@@ -227,12 +231,61 @@ public class SignalkApiService extends BaseApiService {
 			//if no context, then context=vessels.self
 			
 			sendMessage(getTempQ(),addToken(body, cookie),null,getToken(cookie));
+			getResource(request).suspend();
 			//getResource(request).suspend();
 			return Response.status(HttpStatus.SC_ACCEPTED).build();
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			return Response.serverError().build();
 		}
+	}
+	
+	@Operation(summary = "Create a new object at the given path", description = " Creates a new signalk object. "
+			+ "Creates a uuid and attaches the posted object at the path/uuid/, then returns the uuid."
+			+ " This is a 'fire-and-forget' method, see PUT ")
+	@ApiResponses ({
+	    @ApiResponse(responseCode = "200", description = "OK", 
+	    		content = @Content(
+                        mediaType = MediaType.TEXT_PLAIN, 
+                        schema = @Schema(example = "\"resources.notes.urn:mrn:signalk:uuid:a8fb07c0-1ffd-4663-899c-f16c2baf8270\"")                       		
+                        )
+                ),
+	    @ApiResponse(responseCode = "500", description = "Internal server error"),
+	    @ApiResponse(responseCode = "403", description = "No permission"),
+	    @ApiResponse(responseCode = "400", description = "Bad request if message is not understood")
+	    })
+	@Consumes(MediaType.APPLICATION_JSON)
+	@POST
+	@Path( "{path:[^?]*}")
+	//https://stackoverflow.com/questions/630453/put-vs-post-in-rest
+	public String postAt(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie, 
+			@Parameter( description = "A signalk path, eg /resources/notes", 
+				example="/resources/notes") @PathParam(value = "path") String path,
+			@Parameter( name="body", 
+				description = "A signalk message",
+				schema = @Schema(
+						example = "{\n" + 
+								"  \"value\": {\n" + 
+								"      \"position\":{\n" + 
+								"          \"latitude\":-35.02577800787516,\"longitude\":138.02825595260182\n" + 
+								"        },\n" + 
+								"        \"title\":\"My Note\",\n" + 
+								"        \"description\":\"My note description\",\"url\":\"http://mynote/url\",\"mimeType\":\"text/html\"\n" + 
+								"  },\n" + 
+								"  \"source\": \"myApp\",\n" + 
+								"}")) String body) throws Exception {
+		
+			if (logger.isDebugEnabled())
+				logger.debug("Post: path={}, {}",path, body);
+			
+			//make a full message now
+			path=path+"/"+UUID.randomUUID().toString();
+			
+			Json msg = Util.getJsonPostRequest(sanitizeApiPath(path),Json.read(body));
+			sendMessage(getTempQ(),addToken(msg, cookie),null,getToken(cookie));
+			getResource(request).suspend();
+			return "";
+		
 	}
 	
 	@Operation(summary = "PUT a signalk message", description = " PUT a signalk message. Processes the message, with request/response semantics, "
@@ -255,7 +308,7 @@ public class SignalkApiService extends BaseApiService {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@PUT
 	@Path( "{path:[^?]*}")
-	public Response put(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
+	public String put(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie,
 			@Parameter( description = "A signalk path to a leaf, eg /vessel/self/navigation/anchor/maxRadius", example="/vessel/self/navigation/anchor/maxRadius") @PathParam(value = "path") String path,
 			@Parameter( name = "body", 
 				description = "A signalk value to set for this key", 
@@ -263,20 +316,18 @@ public class SignalkApiService extends BaseApiService {
 					example = "{\n" + 
 						"   \"value\": 75.0\n" + 
 						"}"
-					)) String body) {
+					)) String body) throws Exception {
 		//requestId, context, state, code (result), message (optional)
-		try {
+		
 			if (logger.isDebugEnabled())
-				logger.debug("Put:" + body);
+				logger.debug("Post: path={}, {}",path, body);
 			//make a full message now
 			Json msg = Util.getJsonPutRequest(sanitizeApiPath(path),Json.read(body));
 			sendMessage(getTempQ(),addToken(msg, cookie),null,getToken(cookie));
-			//getResource(request).suspend();
-			return Response.status(HttpStatus.SC_ACCEPTED).build();
-		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
-			return Response.serverError().build();
-		}
+			getResource(request).suspend();
+			//return Response.status(HttpStatus.SC_ACCEPTED).build();
+			return "";
+		
 	}
 	
 	

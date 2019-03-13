@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.UUID;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.BeforeClass;
@@ -75,7 +76,58 @@ public class UtilTest {
 		assertTrue(msg.has(SignalKConstants.self_str));
 	}
 
+	@Test
+	public void shouldValidatePost() {
+		assertTrue(Util.checkPostValid("vessels"));
+		assertTrue(Util.checkPostValid("resources.charts"));
+		assertTrue(Util.checkPostValid("resources.routes"));
+		assertTrue(Util.checkPostValid("resources.notes"));
+		assertTrue(Util.checkPostValid("resources.regions"));
+		assertTrue(Util.checkPostValid("resources.waypoints"));
+		assertTrue(Util.checkPostValid("vessels"));
+		
+		assertTrue(Util.checkPostValid("vessels.urn:mrn:signalk:uuid:28f9a6ae-ee66-4464-9ce4-a6dca3e33c7c.electrical.ac"));
+		assertTrue(Util.checkPostValid("vessels.urn:mrn:signalk:uuid:28f9a6ae-ee66-4464-9ce4-a6dca3e33c7c.electrical.alternators"));
+		assertTrue(Util.checkPostValid("vessels.urn:mrn:signalk:uuid:28f9a6ae-ee66-4464-9ce4-a6dca3e33c7c.electrical.batteries"));
+		assertTrue(Util.checkPostValid("vessels.urn:mrn:signalk:uuid:28f9a6ae-ee66-4464-9ce4-a6dca3e33c7c.electrical.chargers"));
+		assertTrue(Util.checkPostValid("vessels.urn:mrn:signalk:uuid:28f9a6ae-ee66-4464-9ce4-a6dca3e33c7c.electrical.inverters"));
+		assertTrue(Util.checkPostValid("vessels.urn:mrn:signalk:uuid:28f9a6ae-ee66-4464-9ce4-a6dca3e33c7c.electrical.solar"));
+		assertTrue(Util.checkPostValid("vessels.urn:mrn:signalk:uuid:28f9a6ae-ee66-4464-9ce4-a6dca3e33c7c.propulsion"));
+		assertTrue(Util.checkPostValid("vessels.urn:mrn:signalk:uuid:28f9a6ae-ee66-4464-9ce4-a6dca3e33c7c.sails.inventory"));
+		assertTrue(Util.checkPostValid("vessels.urn:mrn:signalk:uuid:28f9a6ae-ee66-4464-9ce4-a6dca3e33c7c.tanks.baitWell"));
+		assertTrue(Util.checkPostValid("vessels.urn:mrn:signalk:uuid:28f9a6ae-ee66-4464-9ce4-a6dca3e33c7c.tanks.ballast"));
+		assertTrue(Util.checkPostValid("vessels.urn:mrn:signalk:uuid:28f9a6ae-ee66-4464-9ce4-a6dca3e33c7c.tanks.blackWater"));
+		assertTrue(Util.checkPostValid("vessels.urn:mrn:signalk:uuid:28f9a6ae-ee66-4464-9ce4-a6dca3e33c7c.tanks.freshWater"));
+		assertTrue(Util.checkPostValid("vessels.urn:mrn:signalk:uuid:28f9a6ae-ee66-4464-9ce4-a6dca3e33c7c.tanks.fuel"));
+		assertTrue(Util.checkPostValid("vessels.urn:mrn:signalk:uuid:28f9a6ae-ee66-4464-9ce4-a6dca3e33c7c.tanks.gas"));
+		assertTrue(Util.checkPostValid("vessels.urn:mrn:signalk:uuid:28f9a6ae-ee66-4464-9ce4-a6dca3e33c7c.tanks.liveWell"));
+		assertTrue(Util.checkPostValid("vessels.urn:mrn:signalk:uuid:28f9a6ae-ee66-4464-9ce4-a6dca3e33c7c.tanks.lubrication"));
+		assertTrue(Util.checkPostValid("vessels.urn:mrn:signalk:uuid:28f9a6ae-ee66-4464-9ce4-a6dca3e33c7c.tanks.wasteWater"));
+		
+		assertTrue(Util.checkPostValid("aircraft"));
+		assertTrue(Util.checkPostValid("aton"));
+		assertTrue(Util.checkPostValid("sar"));
+		//bad
+		assertFalse(Util.checkPostValid("config"));
+		assertFalse(Util.checkPostValid("resources.charts.28f9a6ae-ee66-4464-9ce4-a6dca3e33c7c"));
+		assertFalse(Util.checkPostValid("resources.routes.28f9a6ae-ee66-4464-9ce4-a6dca3e33c7c\""));
+		assertFalse(Util.checkPostValid("resources.notes.28f9a6ae-ee66-4464-9ce4-a6dca3e33c7c\""));
+		assertFalse(Util.checkPostValid("resources.regions.28f9a6ae-ee66-4464-9ce4-a6dca3e33c7c\""));
+		assertFalse(Util.checkPostValid("resources.waypoints.28f9a6ae-ee66-4464-9ce4-a6dca3e33c7c\""));
+		assertFalse(Util.checkPostValid("resources"));
 	
+		assertFalse(Util.checkPostValid("vessels.urn:mrn:signalk:uuid:28f9a6ae-ee66-4464-9ce4-a6dca3e33c7c.electrical.ac.1"));
+		assertFalse(Util.checkPostValid("vessels.urn:mrn:signalk:uuid:28f9a6ae-ee66-4464-9ce4-a6dca3e33c7c.alternators.2"));
+		
+		assertFalse(Util.checkPostValid("vessels.urn:mrn:signalk:uuid:28f9a6ae-ee66-4464-9ce4-a6dca3e33c7c.tanks.28f9a6ae-ee66-4464-9ce4-a6dca3e33c7c"));
+		assertFalse(Util.checkPostValid("vessels.tanks.blackWater"));
+		
+		
+		assertFalse(Util.checkPostValid("aircraft.urn:mrn:signalk:uuid:28f9a6ae-ee66-4464-9ce4-a6dca3e33c7c"));
+		assertFalse(Util.checkPostValid("aton.master"));
+		assertFalse(Util.checkPostValid("sar.urn:mrn:signalk:uuid:28f9a6ae-ee66-4464-9ce4-a6dca3e33c7c"));
+		
+	}
 	@Test
 	public void shouldMakePut() {
 		logger.debug("Starting put message");

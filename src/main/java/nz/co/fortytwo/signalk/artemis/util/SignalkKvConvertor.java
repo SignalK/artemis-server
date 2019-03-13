@@ -2,8 +2,10 @@ package nz.co.fortytwo.signalk.artemis.util;
 
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONFIG;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.CONTEXT;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.FORMAT_DELTA;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.GET;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PATH;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.POST;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PUT;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UNKNOWN;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
@@ -16,6 +18,7 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.values;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import java.util.Map.Entry;
+import java.util.UUID;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.Message;
@@ -28,9 +31,10 @@ import mjson.Json;
 public class SignalkKvConvertor {
 
 	private static Logger logger = LogManager.getLogger(SignalkKvConvertor.class);
-	
-	public static void parseFull(MessageSupport sender,Message origMessage, Json json, String prefix) throws ActiveMQException {
-		
+
+	public static void parseFull(MessageSupport sender, Message origMessage, Json json, String prefix)
+			throws ActiveMQException {
+
 		if (json == null || json.isNull())
 			return;
 
@@ -41,15 +45,15 @@ public class SignalkKvConvertor {
 
 			if (logger.isDebugEnabled())
 				logger.debug("Recurse {} = {}", () -> key, () -> val);
-			//primitive we write out
+			// primitive we write out
 			if (val.isPrimitive() || val.isNull() || val.isArray()) {
-				sender.sendKvMessage(origMessage,prefix + key, val.dup());
+				sender.sendKvMessage(origMessage, prefix + key, val.dup());
 				continue;
 			}
-			//value object we save in .values.sourceref.
+			// value object we save in .values.sourceref.
 			if (val.has(value)) {
 				String srcRef = null;
-				Json tmpVal = Json.object(value,val.at(value));
+				Json tmpVal = Json.object(value, val.at(value));
 				if (val.has(sourceRef)) {
 					srcRef = val.at(sourceRef).asString();
 					tmpVal.set(sourceRef, srcRef);
@@ -65,37 +69,42 @@ public class SignalkKvConvertor {
 				} else {
 					tmpVal.set(timestamp, Util.getIsoTimeString());
 				}
-				if(prefix.contains(dot+values)) {
-					sender.sendKvMessage(origMessage,prefix + key , val.dup());
+				if (prefix.contains(dot + values)) {
+					sender.sendKvMessage(origMessage, prefix + key, val.dup());
 					if (logger.isDebugEnabled())
 						logger.debug("put: {}:{}", prefix + key, val);
-				}else {
-					sender.sendKvMessage(origMessage,prefix + key + dot + values + dot + srcRef, tmpVal.dup());
+				} else {
+					sender.sendKvMessage(origMessage, prefix + key + dot + values + dot + srcRef, tmpVal.dup());
 					if (logger.isDebugEnabled())
 						logger.debug("put: {}:{}", prefix + key + dot + values + dot + srcRef, tmpVal.dup());
 				}
-				//sourceRef is wrong for meta
-				if(val.has(meta)) parseFull(sender, origMessage, val.at(meta),  prefix + key + dot + values+dot+ srcRef+dot+meta+dot);
-				if(val.has(values)) parseFull(sender, origMessage, val.at(values),  prefix + key + dot + values+dot);
+				// sourceRef is wrong for meta
+				if (val.has(meta))
+					parseFull(sender, origMessage, val.at(meta),
+							prefix + key + dot + values + dot + srcRef + dot + meta + dot);
+				if (val.has(values))
+					parseFull(sender, origMessage, val.at(values), prefix + key + dot + values + dot);
 				continue;
 			}
-			
+
 			parseFull(sender, origMessage, val, prefix + key + ".");
 
 		}
 
 	}
+
 	/**
-	 * Convert Delta JSON to kv and send to kv queue. 
+	 * Convert Delta JSON to kv and send to kv queue.
+	 * 
 	 * @param node
 	 * @return
-	 * @throws ActiveMQException 
+	 * @throws ActiveMQException
 	 * @throws Exception
 	 */
-	public static void parseDelta(MessageSupport sender,Message origMessage, Json node) throws ActiveMQException {
+	public static void parseDelta(MessageSupport sender, Message origMessage, Json node) throws Exception {
 
 		if (node == null || node.isNull())
-			return ;
+			return;
 		// avoid full signalk syntax
 		if (node.has(vessels))
 			return;
@@ -115,7 +124,12 @@ public class SignalkKvConvertor {
 
 			if (node.has(UPDATES)) {
 				for (Json update : node.at(UPDATES).asJsonList()) {
-					parseUpdate(sender, origMessage,update, ctx);
+					parseUpdate(sender, origMessage, update, ctx);
+				}
+			}
+			if (node.has(POST)) {
+				for (Json post : node.at(POST).asJsonList()) {
+					parsePost(sender, origMessage, post, ctx);
 				}
 			}
 			if (node.has(PUT)) {
@@ -129,13 +143,13 @@ public class SignalkKvConvertor {
 				}
 			}
 
-		
 		}
-		return ;
+		return;
 
 	}
 
-	protected static void parseUpdate(MessageSupport sender,  Message origMessage, Json update, String ctx) throws ActiveMQException {
+	protected static void parseUpdate(MessageSupport sender, Message origMessage, Json update, String ctx)
+			throws ActiveMQException {
 
 		// grab values and add
 		Json array = update.at(values);
@@ -167,17 +181,35 @@ public class SignalkKvConvertor {
 			if (e.has(value)) {
 				if (logger.isDebugEnabled())
 					logger.debug("map.put: {}:{}", ctx + key, e);
-				sender.sendKvMessage(origMessage,ctx + key + dot + values + dot + srcRef, e);
+				sender.sendKvMessage(origMessage, ctx + key + dot + values + dot + srcRef, e);
 			}
 		}
 
 	}
 
-	protected static void parsePut(MessageSupport sender, Message origMessage, Json put, String ctx) throws ActiveMQException {
+	protected static void parsePost(MessageSupport sender, Message origMessage, Json post, String ctx)
+			throws Exception {
+
+		if (post == null || post.isNull() || !post.has(PATH))
+			return;
+
+		if (!Util.checkPostValid(ctx +post.at(PATH).asString())) {
+			String correlation = origMessage.getStringProperty(Config.AMQ_CORR_ID);
+			String destination = origMessage.getStringProperty(Config.AMQ_REPLY_Q);
+			Json err = sender.error(sender.getRequestId(post), "COMPLETED", 403,
+					"Cannot POST to " + post.at(PATH).asString());
+			sender.sendReply(destination, FORMAT_DELTA, correlation, err, null);
+			return;
+		}
+		//add uuid
+		post.set(PATH, post.at(PATH)+dot+UUID.randomUUID().toString());
+		parsePut(sender,origMessage, post,ctx);
+	}
+
+	protected static void parsePut(MessageSupport sender, Message origMessage, Json put, String ctx) throws Exception {
 
 		if (put == null || put.isNull() || !put.has(PATH))
 			return;
-
 		Json e = put.dup();
 
 		String key = dot + e.at(PATH).asString();
@@ -194,7 +226,7 @@ public class SignalkKvConvertor {
 		if (e.has(value)) {
 			if (logger.isDebugEnabled())
 				logger.debug("put: {}:{}", ctx + key, e);
-			sender.sendKvMessage(origMessage,ctx + key + dot + values + dot + e.at(sourceRef).asString(), e);
+			sender.sendKvMessage(origMessage, ctx + key + dot + values + dot + e.at(sourceRef).asString(), e);
 		}
 
 	}

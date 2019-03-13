@@ -11,6 +11,7 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.LOGIN;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.LOGOUT;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.MS_TO_KNOTS;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PLAYBACK_RATE;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.POST;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.PUT;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.START_TIME;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.SUBSCRIBE;
@@ -81,6 +82,7 @@ public class Util {
 	private static ServerLocator nettyLocator;
 	private static ServerLocator inVmLocator;
 	protected static Pattern selfMatch = Pattern.compile("\\.self\\.|\\.self$");
+	protected static Pattern uuidMatch = Pattern.compile("(urn:mrn:(imo:mmsi:[2-7][0-9]{8}|signalk:uuid:[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}))|(http(s?):.*|mailto:.*|tel:(\\+?)[0-9]{4,})");
 
 	static {
 		try {
@@ -279,7 +281,13 @@ public class Util {
 	}
 
 	public static Json getJsonPutRequest(String path, Json body) {
-		if (body == null)
+		return getJsonPutPostRequest(path, body, PUT);
+	}
+	public static Json getJsonPostRequest(String path, Json body) {
+		return getJsonPutPostRequest(path, body, POST);
+	}
+	public static Json getJsonPutPostRequest(String path, Json body, String type) {
+		if (body == null) 
 			return null;
 		String context = Util.getContext(path);
 		// if the path starts with config, sources, resources, then we dont add the
@@ -287,16 +295,16 @@ public class Util {
 
 		path = path.substring(context.length() + 1, path.length());
 
-		Json json = Json.read("{\"context\":\"" + context + "\",\"put\": []}");
+		Json json = Json.read("{\"context\":\"" + context + "\",\""+type+"\": []}");
 
 		Json sub = Json.object();
-		sub.set("path", StringUtils.defaultIfBlank(path, "*"));
+		sub.set("path", StringUtils.defaultIfBlank(path, ""));
 		sub.set(value, body.at(value));
 		sub.set(timestamp, Util.getIsoTimeString());
 
-		json.at("put").add(sub);
+		json.at(type).add(sub);
 		if (logger.isDebugEnabled())
-			logger.debug("Created json put: {}", json);
+			logger.debug("Created json {}: {}", type, json);
 		return json;
 	}
 
@@ -560,7 +568,7 @@ public class Util {
 		if (node == null)
 			return false;
 		// deal with diff format
-		if (node.has(UPDATES) || node.has(PUT) || node.has(CONFIG))
+		if (node.has(UPDATES) || node.has(PUT) || node.has(POST) || node.has(CONFIG))
 			return true;
 		return false;
 	}
@@ -713,4 +721,39 @@ public class Util {
 		}
 
 	}
+
+	public static boolean checkPostValid(String path) {
+			if(StringUtils.equals(path,"resources.charts"))return true;
+			if(StringUtils.equals(path,"resources.routes"))return true;
+			if(StringUtils.equals(path,"resources.notes"))return true;
+			if(StringUtils.equals(path,"resources.regions"))return true;
+			if(StringUtils.equals(path,"resources.waypoints"))return true;
+			if(StringUtils.equals(path,"vessels"))return true;
+			if(StringUtils.startsWith(path, "vessels.")&& uuidMatch.matcher(path).find()) {
+				if(StringUtils.endsWith(path,"electrical.ac"))return true;
+				if(StringUtils.endsWith(path,"electrical.alternators"))return true;
+				if(StringUtils.endsWith(path,"electrical.batteries"))return true;
+				if(StringUtils.endsWith(path,"electrical.chargers"))return true;
+				if(StringUtils.endsWith(path,"electrical.inverters"))return true;
+				if(StringUtils.endsWith(path,"electrical.solar"))return true;
+				if(StringUtils.endsWith(path,"propulsion"))return true;
+				if(StringUtils.endsWith(path,"sails.inventory"))return true;
+				if(StringUtils.endsWith(path,"tanks.baitWell"))return true;
+				if(StringUtils.endsWith(path,"tanks.ballast"))return true;
+				if(StringUtils.endsWith(path,"tanks.blackWater"))return true;
+				if(StringUtils.endsWith(path,"tanks.freshWater"))return true;
+				if(StringUtils.endsWith(path,"tanks.fuel"))return true;
+				if(StringUtils.endsWith(path,"tanks.gas"))return true;
+				if(StringUtils.endsWith(path,"tanks.liveWell"))return true;
+				if(StringUtils.endsWith(path,"tanks.lubrication"))return true;
+				if(StringUtils.endsWith(path,"tanks.wasteWater"))return true;
+			}
+			if(StringUtils.equals(path,"aircraft"))return true;
+			if(StringUtils.equals(path,"aton"))return true;
+			if(StringUtils.equals(path,"sar"))return true;
+			
+			return false;
+		
+	}
+	
 }

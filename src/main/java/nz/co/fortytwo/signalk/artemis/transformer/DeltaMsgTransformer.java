@@ -74,7 +74,7 @@ public class DeltaMsgTransformer extends MessageSupport implements Transformer {
 			// try {
 			try {
 				processDelta(message, node);
-			} catch (ActiveMQException e) {
+			} catch (Exception e) {
 				logger.error(e,e);
 			}
 
@@ -82,7 +82,7 @@ public class DeltaMsgTransformer extends MessageSupport implements Transformer {
 		return message;
 	}
 
-	protected void processDelta(Message message, Json node) throws ActiveMQException {
+	protected void processDelta(Message message, Json node) throws Exception {
 		if (logger.isDebugEnabled())
 			logger.debug("Saving delta: {}", node.toString());
 		SignalkKvConvertor.parseDelta(this,message, node);
