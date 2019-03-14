@@ -19,6 +19,5 @@ TODO:
 	MQTT
 	STOMP
 
-"datetime":{"value":"2018-12-03T05:00:37.000Z"}, is not updated when no input devices
 
 hawtio and jolokia ssl
