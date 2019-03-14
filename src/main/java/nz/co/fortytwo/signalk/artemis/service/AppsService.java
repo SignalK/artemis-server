@@ -75,18 +75,8 @@ public class AppsService extends BaseApiService {
 	
 	public Response list(@Parameter(in = ParameterIn.COOKIE, name = SK_TOKEN) @CookieParam(SK_TOKEN) Cookie cookie) {
 		try {
-			Json list = Json.array();
-			for (File f : staticDir.listFiles()) {
-				if (f.isFile())
-					continue;
-				File p = new File(f, "package.json");
-				if (p.exists()) {
-					String s = FileUtils.readFileToString(p);
-					list.add(Json.read(s));
-				}
 
-			}
-			return Response.status(HttpStatus.SC_OK).entity(list.toString()).build();
+			return Response.status(HttpStatus.SC_OK).entity(getAppList().toString()).build();
 
 		} catch (Exception e) {
 			logger.error(e, e);
@@ -177,8 +167,17 @@ public class AppsService extends BaseApiService {
 			@Parameter(description = "Npm tag, default 'signalk-webapp'", example="signalk-webapp")@QueryParam("keyword") String keyword) {
 		try (final AsyncHttpClient c = asyncHttpClient();) {
 			Json json = Util.getUrlAsJson(c, "https://api.npms.io/v2/search?size=250&q=keywords:"+StringUtils.defaultString(keyword, "signalk-webapp"));
-
-			return Response.status(HttpStatus.SC_OK).entity(json.at("results").toString()).build();
+			Json out = Json.array();
+			for(Json pkg:json.at("results").asJsonList()) {
+				pkg=pkg.at("package");
+				pkg.delAt("maintainers");
+				pkg.delAt("keywords");
+				pkg.delAt("scope");
+				pkg.delAt("publisher");
+				pkg.delAt("links");
+				out.add(pkg);
+			}
+			return Response.status(HttpStatus.SC_OK).entity(out.toString()).build();
 
 		} catch (Exception e) {
 			logger.error(e, e);
@@ -186,77 +185,6 @@ public class AppsService extends BaseApiService {
 		}
 	}
 
-	@GET
-	@Path("menu")
-	@Operation(summary = "Get json data for the menus", description = "Returns a list of signalk webapp names and urls")
-	@ApiResponses ({
-	    @ApiResponse(responseCode = "200", description = "Successful retrieval of data"),
-	    @ApiResponse(responseCode = "500", description = "Internal server error"),
-	    @ApiResponse(responseCode = "403", description = "No permission")
-	    })
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response getMenu() {
-		/*
-		 *   "properties": {
-			    "name": {
-			      "type": "string",
-			      "description": "First and Last name",
-			      "minLength": 4,
-			      "default": "Jeremy Dorn",
-					"links": [
-					    {
-							"rel": "Push me",
-					      	"href": "/videos/{{self}}.mp4",
-							"class": "btn-primary"
-					      
-					    }
-					  ]
-				},
-		 */
-		try {
-			Json list = Json.array();
-			for (File f : staticDir.listFiles()) {
-				if (f.isFile())
-					continue;
-				if(f.getName().equals("mapcache"))continue;
-				if(f.getName().equals("logs"))continue;
-				if(f.getName().equals("js"))continue;
-				if(f.getName().equals("fonts"))continue;
-				if(f.getName().equals("download"))continue;
-				if(f.getName().equals("docs"))continue;
-				if(f.getName().equals("css"))continue;
-				if(f.getName().equals("config"))continue;
-				addApp(f,list);
-
-			}
-			return Response.status(HttpStatus.SC_OK).entity(list.toString()).build();
-
-		} catch (Exception e) {
-			logger.error(e, e);
-			return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
-		}
-	}
-	private void addApp(File f, Json list) throws Exception {
-		File p = new File(f, "package.json");
-		if (p.exists()) {
-			File i = new File(f, "index.html");
-			if(!i.exists()) {
-				i = new File(f, "public/index.html");
-			}
-			if(!i.exists()) {
-				i = new File(f, "public/index.html");
-			}
-			String s = FileUtils.readFileToString(p);
-			list.add(Json.object("url", i.getPath(),"rel", p.getPath()));
-		}else {
-			for (File d : f.listFiles()) {
-				if (d.isFile())
-					continue;
-				addApp(d, list);
-			}
-		}
-		
-	}
 
 	private void runNpmInstall(final File output, File destDir, String name, String version) throws Exception {
 		destDir.mkdirs();

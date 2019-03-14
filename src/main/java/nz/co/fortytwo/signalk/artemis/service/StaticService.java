@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
@@ -64,10 +67,20 @@ public class StaticService {
 			
 			if (logger.isDebugEnabled())logger.debug("serve {}",targetPath);
 			java.nio.file.Path target = Paths.get(Config.getConfigProperty(ConfigConstants.STATIC_DIR),targetPath);
-			
 			if (!target.startsWith(staticDir)) {
 				logger.warn("Forbidden request for {} from {}",target,req);
 				return Response.status(HttpStatus.SC_FORBIDDEN).build();
+			}
+			if(!target.toFile().exists()) {
+				//check the weird node.js package/app dirs.
+				ArrayList<String> targetList = new ArrayList<String>(Arrays.asList(targetPath.split("/")));
+				if(targetList.get(0).startsWith("@")) {
+					//add "package/public/" after next
+					targetList.add(2, "package/public");
+				}else {
+					targetList.add(1, "package/public");
+				}
+				target = Paths.get(Config.getConfigProperty(ConfigConstants.STATIC_DIR),targetList.toArray(new String[0]));
 			}
 			if(Files.isDirectory(target)){
 				target = Paths.get(target.toString(),"index.html");

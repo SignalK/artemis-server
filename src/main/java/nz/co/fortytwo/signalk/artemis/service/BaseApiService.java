@@ -22,6 +22,7 @@ import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.api.core.client.ClientConsumer;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.MessageHandler;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
@@ -452,6 +453,68 @@ public class BaseApiService extends MessageSupport{
 		// send a ping
 			WebSocket ws = resource.getAtmosphereConfig().websocketFactory().find(resource.uuid());
 			ws.sendPing("XX".getBytes());
+		
+	}
+	
+	protected Json getAppList() throws Exception {
+		Json list = Json.array();
+		for (File f : staticDir.listFiles()) {
+			if (f.isFile())
+				continue;
+			if(f.getName().equals("mapcache"))continue;
+			if(f.getName().equals("logs"))continue;
+			if(f.getName().equals("js"))continue;
+			if(f.getName().equals("fonts"))continue;
+			if(f.getName().equals("download"))continue;
+			if(f.getName().equals("docs"))continue;
+			if(f.getName().equals("css"))continue;
+			if(f.getName().equals("config"))continue;
+			addApp(f,list);
+
+		}
+		return list;
+	}
+
+
+
+	protected void addApp(File f, Json list) throws Exception {
+		File p = new File(f, "package.json");
+		if (p.exists()) {
+			Json pkg = Json.read(FileUtils.readFileToString(p));
+			String name = pkg.at("name").asString();
+			String description = pkg.has("description")?pkg.at("description").asString():"";
+			String repository = "";
+			if(pkg.has("repository")) {
+				if(pkg.at("repository").isObject()) {
+					repository=pkg.at("repository").at("url").asString();
+				}else {
+					repository = pkg.at("repository").asString();
+				}
+			}
+			String author = pkg.has("author")?pkg.at("author").asString():"";
+			String version = pkg.has("version")?pkg.at("version").asString():"";
+			String licence = pkg.has("licence")?pkg.at("licence").asString():"";
+			name=StringUtils.removePattern(name, "^.*/");
+			name = StringUtils.capitalize(name);
+			File i = new File(f, "index.html");
+			if(!i.exists()) {
+				i = new File(f, "public/index.html");
+			}
+			if(!i.exists()) {
+				i = new File(f, "public/index.html");
+			}
+			String s = FileUtils.readFileToString(p);
+			//signalk-static/
+			String url = i.getPath();
+			url=StringUtils.replaceOnce(url, "/signalk-static/", "./");
+			list.add(Json.object("href",url ,"name", name,"description",description,"repository",repository,"author",author,"version",version,"licence",licence ));
+		}else {
+			for (File d : f.listFiles()) {
+				if (d.isFile())
+					continue;
+				addApp(d, list);
+			}
+		}
 		
 	}
 }
