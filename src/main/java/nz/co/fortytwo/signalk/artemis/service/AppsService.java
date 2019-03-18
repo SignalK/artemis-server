@@ -170,6 +170,8 @@ public class AppsService extends BaseApiService {
 			Json out = Json.array();
 			for(Json pkg:json.at("results").asJsonList()) {
 				pkg=pkg.at("package");
+				if(isPlugin(pkg))continue;
+				
 				pkg.delAt("maintainers");
 				pkg.delAt("keywords");
 				pkg.delAt("scope");
@@ -185,6 +187,17 @@ public class AppsService extends BaseApiService {
 		}
 	}
 
+
+	private boolean isPlugin(Json pkg) {
+		if(pkg.has("keywords")){
+			for(Json k:pkg.at("keywords").asJsonList()) {
+				if(StringUtils.equals("signalk-node-server-plugin", k.asString())) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 
 	private void runNpmInstall(final File output, File destDir, String name, String version) throws Exception {
 		destDir.mkdirs();
