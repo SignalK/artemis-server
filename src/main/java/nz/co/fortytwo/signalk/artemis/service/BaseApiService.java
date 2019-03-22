@@ -491,9 +491,9 @@ public class BaseApiService extends MessageSupport{
 					repository = pkg.at("repository").asString();
 				}
 			}
-			String author = pkg.has("author")?pkg.at("author").asString():"";
-			String version = pkg.has("version")?pkg.at("version").asString():"";
-			String licence = pkg.has("licence")?pkg.at("licence").asString():"";
+			String author = pkg.has("author")&&pkg.at("author").isString()?pkg.at("author").asString():"";
+			String version = pkg.has("version")&&pkg.at("version").isString()?pkg.at("version").asString():"";
+			String licence = pkg.has("licence")&&pkg.at("licence").isString()?pkg.at("licence").asString():"";
 			name=StringUtils.removePattern(name, "^.*/");
 			name = StringUtils.capitalize(name);
 			File i = new File(f, "index.html");
