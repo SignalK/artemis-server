@@ -469,6 +469,7 @@ public class BaseApiService extends MessageSupport{
 			if(f.getName().equals("docs"))continue;
 			if(f.getName().equals("css"))continue;
 			if(f.getName().equals("config"))continue;
+			if(f.getName().equals("node_modules"))continue;
 			addApp(f,list);
 
 		}
