@@ -65,7 +65,7 @@ public class AppsService extends BaseApiService {
 	@GET
 	@Path("list")
 	@Operation(summary = "Return a list of installed webapps", 
-		description = "Concatenates the package.json files from the installed apps as a json array ")
+		description = "Concatenates data from the package.json files of the installed apps as a json array ")
 	@ApiResponses ({
 	    @ApiResponse(responseCode = "200", description = "Successful retrieval of apps list"),
 	    @ApiResponse(responseCode = "500", description = "Internal server error"),
