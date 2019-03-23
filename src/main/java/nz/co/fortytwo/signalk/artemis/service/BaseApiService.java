@@ -457,6 +457,13 @@ public class BaseApiService extends MessageSupport{
 	}
 	
 	protected Json getAppList() throws Exception {
+		/*
+		 * { 
+			   name: ..., , 
+			   description: ... ,
+			   _location: ..., 
+			}
+			*/
 		Json list = Json.array();
 		for (File f : staticDir.listFiles()) {
 			if (f.isFile())
@@ -501,14 +508,12 @@ public class BaseApiService extends MessageSupport{
 			if(!i.exists()) {
 				i = new File(f, "public/index.html");
 			}
-			if(!i.exists()) {
-				i = new File(f, "public/index.html");
-			}
+		
 			String s = FileUtils.readFileToString(p);
 			//signalk-static/
 			String url = i.getPath();
-			url=StringUtils.replaceOnce(url, "/signalk-static/", "./");
-			list.add(Json.object("href",url ,"name", name,"description",description,"repository",repository,"author",author,"version",version,"licence",licence ));
+			url=StringUtils.substringAfterLast(url, "signalk-static");
+			list.add(Json.object("href",url, "_location",url ,"name", name,"description",description,"repository",repository,"author",author,"version",version,"licence",licence ));
 		}else {
 			for (File d : f.listFiles()) {
 				if (d.isFile())
