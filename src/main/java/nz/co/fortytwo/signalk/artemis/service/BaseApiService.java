@@ -489,7 +489,7 @@ public class BaseApiService extends MessageSupport{
 		File p = new File(f, "package.json");
 		if (p.exists()) {
 			Json pkg = Json.read(FileUtils.readFileToString(p));
-			String name = pkg.at("name").asString();
+			String appName = pkg.at("name").asString();
 			String description = pkg.has("description")?pkg.at("description").asString():"";
 			String repository = "";
 			if(pkg.has("repository")) {
@@ -502,7 +502,7 @@ public class BaseApiService extends MessageSupport{
 			String author = pkg.has("author")&&pkg.at("author").isString()?pkg.at("author").asString():"";
 			String version = pkg.has("version")&&pkg.at("version").isString()?pkg.at("version").asString():"";
 			String licence = pkg.has("licence")&&pkg.at("licence").isString()?pkg.at("licence").asString():"";
-			name=StringUtils.removePattern(name, "^.*/");
+			String name=StringUtils.removePattern(appName, "^.*/");
 			name = StringUtils.capitalize(name);
 			File i = new File(f, "index.html");
 			if(!i.exists()) {
@@ -513,7 +513,7 @@ public class BaseApiService extends MessageSupport{
 			//signalk-static/
 			String url = i.getPath();
 			url=StringUtils.substringAfterLast(url, "signalk-static");
-			list.add(Json.object("href",url, "_location",url ,"name", name,"description",description,"repository",repository,"author",author,"version",version,"licence",licence ));
+			list.add(Json.object("location",url, "_location",url ,"appName",appName,"name", name,"description",description,"repository",repository,"author",author,"version",version,"licence",licence ));
 		}else {
 			for (File d : f.listFiles()) {
 				if (d.isFile())

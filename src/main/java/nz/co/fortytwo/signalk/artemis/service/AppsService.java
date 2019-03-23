@@ -138,13 +138,14 @@ public class AppsService extends BaseApiService {
 				return Response.status(HttpStatus.SC_BAD_REQUEST).entity("Can only remove signalk web-apps").build();
 			}
 			if(!appDir.exists()) {
-				return Response.status(HttpStatus.SC_BAD_REQUEST).entity("No such web-app: "+appName).build();
+				return Response.status(HttpStatus.SC_BAD_REQUEST).entity("No such web-app: "+appDir).build();
 			}
-			if(appDir.delete()) {
+			try{
+				FileUtils.deleteDirectory(appDir);
 				return Response.status(HttpStatus.SC_OK).entity(appName+" removed").build();
+			}catch (Exception e) {
+				return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).entity(appName+" removal failed").build();
 			}
-			return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).entity(appName+" removal failed").build();
-			
 
 		} catch (Exception e) {
 			logger.error(e, e);
@@ -167,11 +168,15 @@ public class AppsService extends BaseApiService {
 			@Parameter(description = "Npm tag, default 'signalk-webapp'", example="signalk-webapp")@QueryParam("keyword") String keyword) {
 		try (final AsyncHttpClient c = asyncHttpClient();) {
 			Json json = Util.getUrlAsJson(c, "https://api.npms.io/v2/search?size=250&q=keywords:"+StringUtils.defaultString(keyword, "signalk-webapp"));
+			//get current webapps
+			Json installed = getAppList();
 			Json out = Json.array();
 			for(Json pkg:json.at("results").asJsonList()) {
 				pkg=pkg.at("package");
 				if(isPlugin(pkg))continue;
-				
+				if(isInstalled(installed, pkg)) {
+					pkg.set("installed", true);
+				}
 				pkg.delAt("maintainers");
 				pkg.delAt("keywords");
 				pkg.delAt("scope");
@@ -187,6 +192,15 @@ public class AppsService extends BaseApiService {
 		}
 	}
 
+
+	private boolean isInstalled(Json installed, Json pkg) {
+		for(Json i : installed.asJsonList()) {
+			if(StringUtils.equals(i.at("appName").asString(), pkg.at("name").asString())) {
+				return true;
+			};
+		}
+		return false;
+	}
 
 	private boolean isPlugin(Json pkg) {
 		if(pkg.has("keywords")){
