@@ -52,6 +52,7 @@ Functionality
 		Zeroconf/mDNS/BonJour
 		Calculates declination from location
 		Meta data on values
+		Request/response semantics
 		Events
 			True wind calcs on apparent wind
 			Anchor distance calcs on anchor watch
@@ -105,13 +106,10 @@ Functionality
 			route following calcs XTE etc
 		apis:
 			/signalk/v1/access/requests
-			add full request/response semantics
 		Security:
 			Add full RBAC rules based filtering
 		NMEA output
-		SSL config
 		Enable MQTT/STOMP/COAP
-		auto rendered menu to apps
 		Better server UI
 
 It assumes influx db is running on localhost:8086
@@ -143,15 +141,18 @@ Enter connection data to the artemis server: `http://192.168.43.246:8780/jolokia
 Development
 ===========
 
-Clone this project and signalk-java from github in the normal way. The artemis project uses maven to build, if you use an IDE like eclipse, netbeans, or intelliJ it should build automatically. 
+Clone this project and signalk-java from github in the normal way. The artemis project uses maven to build, if you use an IDE like eclipse, netbeans, 
+or intelliJ it should build automatically.
+
+If you build from cli, then set JAVA_HOME to your chosen jdk, either jdk8 or jdk11. 
 
 Setup
 -----
-Running under JDK11 with the Graal compiler requires java options:
+Running under JDK11 with the Graal compiler requires java options set in eclipse:
 ```
 -Xmx256M -XX:+HeapDumpOnOutOfMemoryError -Dio.netty.leakDetection.level=ADVANCED -XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI --module-path=./target/compiler/graal-sdk.jar:./target/compiler/truffle-api.jar --upgrade-module-path=./target/compiler/compiler.jar
 ```
-TODO: more needed here about local builds for dev...
+There are similar params commented out in the pom, if you start from the cli, uncomment for JDK11
 
 
 NMEA
