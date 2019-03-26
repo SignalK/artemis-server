@@ -80,25 +80,26 @@ public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer
 					logger.debug("Processing NMEA:[" + bodyStr + "]");
 					//logger.debug("Parser inv: {}",ctx.getMember("parser"));
 				}
+				Json json = null;
+				try {
+					Object result =  ctx.invokeMember("parser","parse", bodyStr);
+					
+					if (logger.isDebugEnabled())
+						logger.debug("Processed NMEA: " + result );
+	
+					if (result==null || StringUtils.isBlank(result.toString())|| result.toString().startsWith("WARN")) {
+						logger.warn(bodyStr + "," + result);
+						return message;
+					}
 				
-				Object result =  ctx.invokeMember("parser","parse", bodyStr);
+				    json = Json.read(result.toString());
 				
-				if (logger.isDebugEnabled())
-					logger.debug("Processed NMEA: " + result );
-
-				if (result==null || StringUtils.isBlank(result.toString())|| result.toString().startsWith("WARN")) {
-					logger.warn(bodyStr + "," + result);
-					//ctx.leave();
+				}finally {
 					pool.returnObject(ctx);
-					return message;
 				}
 				
-				Json json = Json.read(result.toString());
 				
-				//ctx.leave();
-				pool.returnObject(ctx);
-				
-				if(!json.isObject())return message;
+				if(json==null || !json.isObject())return message;
 				
 				json.set(SignalKConstants.CONTEXT, vessels + dot + Util.fixSelfKey(self_str));
 				//add type.bus to source
@@ -118,6 +119,7 @@ public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer
 				
 				
 			} catch (Exception e) {
+				
 				logger.error(e, e);
 				
 			}

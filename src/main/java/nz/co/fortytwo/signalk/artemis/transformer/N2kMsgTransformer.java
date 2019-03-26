@@ -76,28 +76,31 @@ public class N2kMsgTransformer extends JsBaseTransformer implements Transformer 
 			try {
 				if (logger.isDebugEnabled())
 					logger.debug("Processing N2K: {}",bodyStr);
+				
+				Json json = null;
 				ContextHolder ctx = pool.borrowObject();
-				
-				Object result = ctx.invokeMember("n2kMapper","toDelta", bodyStr);
-
-				if (logger.isDebugEnabled())
-					logger.debug("Processed N2K: {} ",result);
-
-				if (result == null || StringUtils.isBlank(result.toString()) || result.toString().startsWith("Error")) {
-					logger.error("{},{}", bodyStr, result);
-					return message;
-				}
-				if (result==null || StringUtils.isBlank(result.toString())|| result.toString().startsWith("WARN")) {
-					logger.warn(bodyStr + "," + result);
-					//ctx.leave();
+				try {	
+					Object result = ctx.invokeMember("n2kMapper","toDelta", bodyStr);
+	
+					if (logger.isDebugEnabled())
+						logger.debug("Processed N2K: {} ",result);
+	
+					if (result == null || StringUtils.isBlank(result.toString()) || result.toString().startsWith("Error")) {
+						logger.error("{},{}", bodyStr, result);
+						return message;
+					}
+					if (result==null || StringUtils.isBlank(result.toString())|| result.toString().startsWith("WARN")) {
+						logger.warn(bodyStr + "," + result);
+						return message;
+					}
+					
+					json = Json.read(result.toString());
+					
+				}finally {
 					pool.returnObject(ctx);
-					return message;
-				}
+				}		
+				if(json==null || !json.isObject())return message;
 				
-				Json json = Json.read(result.toString());
-				pool.returnObject(ctx);
-				if(!json.isObject())return message;
-						
 				json.set(SignalKConstants.CONTEXT, vessels + dot + Util.fixSelfKey(self_str));
 				
 				if (logger.isDebugEnabled())
