@@ -344,7 +344,7 @@ public class BaseApiService extends MessageSupport{
 	}
 	
 	protected void getPath(String path, Cookie cookie, String time) throws Exception {
-		String correlation = java.util.UUID.randomUUID().toString();
+		String correlation = getClass().getSimpleName()+"-"+java.util.UUID.randomUUID().toString();
 		initSession(correlation);
 
 		path=StringUtils.defaultIfBlank(path,"*");
@@ -380,7 +380,7 @@ public class BaseApiService extends MessageSupport{
 
 	protected String getWebsocket(AtmosphereResource resource, String body, Cookie cookie) {
 		try {
-			String correlationId = "stream-" + resource.uuid(); // UUID.randomUUID().toString();
+			String correlationId = getClass().getSimpleName()+"-stream-" + resource.uuid(); // UUID.randomUUID().toString();
 
 			// resource.suspend();
 			

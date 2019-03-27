@@ -68,7 +68,7 @@ public class SignalkHistoryService extends BaseApiService {
 	{
 		
 			//TODO: actually make this work!
-			String correlation = java.util.UUID.randomUUID().toString();
+			String correlation = getClass().getSimpleName()+"-"+java.util.UUID.randomUUID().toString();
 			initSession(correlation);
 			
 			sendMessage(getTempQ(),addToken("", cookie), correlation,getToken(cookie));

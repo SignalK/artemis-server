@@ -160,7 +160,7 @@ public class LoginService extends BaseApiService{
 		
 		if(logger.isDebugEnabled())logger.debug("Authentication request, {}", uriInfo.getRequestUri());
 
-		initSession(java.util.UUID.randomUUID().toString());
+		initSession(getClass().getSimpleName()+"-"+java.util.UUID.randomUUID().toString());
 		// Validate the Authorization header	
 		logger.debug("username: {}",username);
 			

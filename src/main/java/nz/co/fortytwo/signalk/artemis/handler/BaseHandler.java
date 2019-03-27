@@ -99,7 +99,7 @@ public abstract class BaseHandler extends MessageSupport{
 	public ClientConsumer getConsumer(String filter) {
 
 		if (consumer == null && getTxSession() != null && !getTxSession().isClosed()) {
-			String qName = INTERNAL_KV+"."+UUID.randomUUID().toString();
+			String qName = INTERNAL_KV+"."+clazz+"-"+UUID.randomUUID().toString();
 			if (logger.isDebugEnabled())
 				logger.debug("{}: Start consumer for {} ", clazz, qName);
 			try {

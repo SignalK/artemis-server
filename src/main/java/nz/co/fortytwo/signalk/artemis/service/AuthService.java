@@ -198,7 +198,7 @@ public class AuthService extends BaseApiService{
 								"}")) String body) throws Exception {
 		if (logger.isDebugEnabled())
 			logger.debug("Post: {}" , body);
-		String requestId = UUID.randomUUID().toString();
+		String requestId = getClass().getSimpleName()+"-"+UUID.randomUUID().toString();
 		initSession(requestId);
 		try {
 			Json json = Json.object("requestId", requestId,
