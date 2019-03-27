@@ -794,6 +794,32 @@ public class InfluxDbService implements TDBService {
 				});
 		});
 	}
+	
+	/* (non-Javadoc)
+	 * @see nz.co.fortytwo.signalk.artemis.service.TDBService#loadPrimary()
+	 */
+	@Override
+	public void clearDbFuture(){
+		
+		logger.info("Clear any records in the future");
+		influxDB.query(new Query("delete from vessels where time > now()",dbName));
+		influxDB.query(new Query("delete from sources where time > now()",dbName));
+		influxDB.query(new Query("delete from resources where time > now()",dbName));
+		influxDB.query(new Query("delete from config where time > now()",dbName));
+		
+	}
+	
+	/* (non-Javadoc)
+	 * @see nz.co.fortytwo.signalk.artemis.service.TDBService#loadPrimary()
+	 */
+	@Override
+	public void clearDbVessels(){
+		
+		logger.info("Clear any records in the future");
+		influxDB.query(new Query("delete from vessels where time > now()",dbName));
+		
+	}
+	
 	/* (non-Javadoc)
 	 * @see nz.co.fortytwo.signalk.artemis.service.TDBService#isPrimary(java.lang.String, java.lang.String)
 	 */

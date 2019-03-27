@@ -105,4 +105,8 @@ public interface TDBService {
 	public NavigableMap<String, Json> loadDataSnapshot(NavigableMap<String, Json> rslt, String table, Map<String, String> map,
 			long queryTime);
 
+	void clearDbFuture();
+
+	void clearDbVessels();
+
 }

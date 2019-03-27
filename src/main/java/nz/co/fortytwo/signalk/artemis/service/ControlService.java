@@ -44,6 +44,22 @@ public class ControlService {
 	public Response execute() {
 		return getResponse("reboot");
 	}
+	
+	@GET
+	@Path("clearDbFuture")
+	public Response clearDbFuture() {
+		influx.clearDbFuture();
+		return Response.status(HttpStatus.SC_OK).entity("All records with dates in the future cleared from db")
+				.build();
+	}
+	
+	@GET
+	@Path("clearDbVessels")
+	public Response clearDb() {
+		influx.clearDbVessels();
+		return Response.status(HttpStatus.SC_OK).entity("All vessel records cleared from db")
+				.build();
+	}
 
 	@POST
 	@Path("setTime")
