@@ -42,6 +42,8 @@ import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.graal.ContextHolder;
+import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.SignalkKvConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Util;
@@ -107,8 +109,14 @@ public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer
 				String bus = message.getStringProperty(MSG_SRC_BUS);
 				//now its a signalk delta msg
 				message.putStringProperty(AMQ_CONTENT_TYPE, AMQ_CONTENT_TYPE_JSON_DELTA);
+			
 				for(Json j:json.at(UPDATES).asJsonList()){
 					Util.convertSource(this, message, j, bus, type);
+					//fix the timestamp for demo
+					if(Config.getConfigPropertyBoolean(ConfigConstants.DEMO)) {
+						if (!j.isObject()) continue;
+						j.set(SignalKConstants.timestamp, Util.getIsoTimeString());
+					}
 				}
 				
 				if (logger.isDebugEnabled())

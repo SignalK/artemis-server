@@ -2,6 +2,7 @@ package nz.co.fortytwo.signalk.artemis.transformer;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE_JSON_DELTA;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.Message;
@@ -11,7 +12,10 @@ import org.apache.logging.log4j.Logger;
 
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.intercept.BaseInterceptor;
+import nz.co.fortytwo.signalk.artemis.util.Config;
+import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
 import nz.co.fortytwo.signalk.artemis.util.MessageSupport;
+import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 import nz.co.fortytwo.signalk.artemis.util.SignalkKvConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
@@ -85,6 +89,13 @@ public class DeltaMsgTransformer extends MessageSupport implements Transformer {
 	protected void processDelta(Message message, Json node) throws Exception {
 		if (logger.isDebugEnabled())
 			logger.debug("Saving delta: {}", node.toString());
+		//fix the timestamp for demo
+		if(Config.getConfigPropertyBoolean(ConfigConstants.DEMO)) {
+			for(Json j:node.at(UPDATES).asJsonList()){
+				if (!j.isObject()) continue;
+				j.set(SignalKConstants.timestamp, Util.getIsoTimeString());
+			}
+		}
 		SignalkKvConvertor.parseDelta(this,message, node);
 		node.clear(true);
 	}
