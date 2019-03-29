@@ -90,7 +90,7 @@ public class DeltaMsgTransformer extends MessageSupport implements Transformer {
 		if (logger.isDebugEnabled())
 			logger.debug("Saving delta: {}", node.toString());
 		//fix the timestamp for demo
-		if(Config.getConfigPropertyBoolean(ConfigConstants.DEMO)) {
+		if(Config.getConfigPropertyBoolean(ConfigConstants.DEMO)&&node.has(UPDATES)) {
 			for(Json j:node.at(UPDATES).asJsonList()){
 				if (!j.isObject()) continue;
 				j.set(SignalKConstants.timestamp, Util.getIsoTimeString());

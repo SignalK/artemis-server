@@ -136,11 +136,10 @@ public class GetMsgTransformer extends MessageSupport implements Transformer {
 					path = Util.sanitizePath(path);
 					fullPaths.add(Util.sanitizeRoot(ctx + dot + path));
 
-					path = Util.regexPath(path).toString();
 					Map<String, String> queryMap = new HashMap<>();
+					if (StringUtils.isNotBlank(path))
+						queryMap.put(skey, Util.regexPath(path).toString());
 					if (StringUtils.isNotBlank(qUuid))
-						queryMap.put(skey, path);
-					if (StringUtils.isBlank(path))
 						queryMap.put("uuid", Util.regexPath(qUuid).toString());
 					switch (root) {
 					case CONFIG:

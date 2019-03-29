@@ -211,7 +211,8 @@ public class InfluxDbService implements TDBService {
 				if(s==null)return;
 				
 				Map<String, String> tagMap = s.getTags();
-				String key = s.getName() + dot + s.getTags().get(skey);
+				//String key = s.getName() + dot + s.getTags().get(skey);
+				String key = s.getName()+dot+tagMap.get("uuid")+dot+tagMap.get(skey);
 				
 				Json val = getJsonValue(s,0);
 				if(key.contains(".values.")){

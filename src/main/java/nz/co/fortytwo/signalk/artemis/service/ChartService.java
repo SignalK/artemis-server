@@ -9,6 +9,7 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.attr;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.name;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.resources;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.skey;
+import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.uuid;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.value;
 
 import java.io.File;
@@ -177,7 +178,7 @@ public class ChartService  {
 	public static NavigableMap<String, Json> getCharts() {
 		NavigableMap<String, Json> map = new ConcurrentSkipListMap<>();
 		Map<String, String> query = new HashMap<>();
-		query.put(skey, "charts");
+		query.put(uuid, "charts");
 		// get current charts
 		influx.loadResources(map, query);
 		return map;
