@@ -227,6 +227,7 @@ public final class ArtemisServer {
 		SignalkDemoService demo = new SignalkDemoService();
 		Thread t = new Thread(demo);
 		t.run();
+		logger.info("\n\n### The artemis server is ready! ###\n\n");
 		
 	}
 
