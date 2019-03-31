@@ -18,6 +18,7 @@ TODO:
 	
 	MQTT
 	STOMP
+	XMPP
 
 
 hawtio and jolokia ssl

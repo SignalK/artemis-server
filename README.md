@@ -1,13 +1,13 @@
 Artemis Server
 ==============
 
-This is the replacement for the signalk-java-server which began long before signalk, and has become too difficult to support.
+This is the 2nd gen replacement for the original signalk-java-server. That project began long before signalk, and had become too difficult to support.
 
 Its a drop in replacement for the signalk-java-server, missing functionality is a bug.
 
 The primary reason for at least two implementations of a signalk server is to ensure we dont  create a node application instead of a generic communication standard in signalk.  This has already been avoided several times, as the node-server is quite RPi/web-browser oriented, resulting in node/npm/http dependencies creeping in to webapp deployments, IoT device requirements,  and node specialised server-side requirements. 
 
-In a signalk world there should be no dependency except on signalk message and API proocols, and all devices should be equal participants. If we dont achieve this we will just create another specialised application framework.
+In a signalk world there should be no dependency except on signalk message and API protocols, and all devices should be equal participants. If we dont achieve this we will just create another specialised application framework.
 
 The Artemis server has several architectural features of note:
 

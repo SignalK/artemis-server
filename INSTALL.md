@@ -1,21 +1,47 @@
 Complete fresh manual install
 =============================
 
-Download fresh raspbian lite
+First get you need an SD card, 8GB or larger. Use one of the following methods to prepare it, depending on your skills:
 
-Follow instructions on https://www.raspberrypi.org/documentation/installation/installing-images/linux.md to load image to 8Gb SD card
+1) Buy a preloaded NOOBS SD card with your RPi
+2) Download NOOBS and create a fresh install of Rasbian Lite on your SD card. See https://www.raspberrypi.org/documentation/installation/noobs.md
+3) If you are more skilled you may prefer to download the Raspbian Lite image and flash it yourself, see https://www.raspberrypi.org/documentation/installation/installing-images/README.md
 
-Log in to console (using ssh)
+Get the SD card ready as above, insert into the RPi, connect HDMI screen or TV, USB keyboard, and a USB charger (minimum 2Amps, ideally 2.5+). 
+The RPi will boot with a lot of messages and you will see the `login:` prompt on the screen 
 
+You will need a connection to the internet to proceed. If you have ethernet, plug in a cable. If you have WiFi, then configure it in raspi-config below
+
+Log in to console, as user `pi`, default password is `raspberry`
+
+At the command prompt (looks like this `pi@raspberrypi:~ $`) type the following and hit [Enter] to execute each.
+
+
+```
 pi@raspberrypi:~ $ raspi-config
+```
+In the menu that appears use the arrow keys to select, and the [TAB] key to jump to the <ok> <cancel> options
+Set the following:
+```
+	Localization>
+	       Timezone: select your timezone
+    Interfacing options>
+	       Enable SSH: yes, you want ssh to start at boot time
+    Advanced Options>	
+	       Expand filesystem: yes
+	       Memory split: 16
+	Network>
+		N2 WiFi>
+			Country: Select your country (NZ for me, this must be set to something even if you dont have WiFi access)
+			SSID: the name of your home wifi network, or blank
+ 	        Passphrase: the password for your wifi network, or blank
+	Exit
+```
+Reboot the pi and login again when the prompt appears
+``` 
+pi@raspberrypi:~ $ sudo reboot
 
-	-"Interfacing Options" 
-		setup remote ssh
-		Set Overclock too high
-	-"Advanced Settings"
-		expand root filesystem
-		set GPU ram to 16Mb
-	- exit
+```
 	
 Update to latest
 ----------------

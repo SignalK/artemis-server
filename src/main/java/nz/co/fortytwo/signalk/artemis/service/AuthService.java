@@ -130,6 +130,7 @@ public class AuthService extends BaseApiService{
 	                        		"  \"result\": 200,\n" + 
 	                        		"  \"login\": {\n" + 
 	                        		"    \"token\": \"eyJhbGciOiJIUzI1NiIsI...ibtv41fOnJObT4RdOyZ_UI9is8\"\n" + 
+	                        		"    \"timeToLive\": 86400,\n" + 
 	                        		"  }\n" + 
 	                        		"}")
 	                        )

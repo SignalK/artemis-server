@@ -140,7 +140,7 @@ public class AuthTransformer extends MessageSupport implements Transformer {
 			String token = authenticateUser(username, password);
 			//create the reply
 			return reply(requestId,"COMPLETED",200)
-					.set("login", Json.object("token",token, "expiry", SecurityUtils.EXPIRY));
+					.set("login", Json.object("token",token, "timeToLive", SecurityUtils.EXPIRY));
 		} catch (Exception e) {
 			return error(requestId,"COMPLETED",401,e.getMessage());
 		}

@@ -71,8 +71,19 @@ var Parser = function () {
 
       var data = sentence.split('*')[0];
       var dataParts = data.split(',');
-      var id = dataParts[0].substr(3, 3).toUpperCase();
-      var talker = dataParts[0].substr(1, 2);
+      var id = void 0,
+          talker = void 0,
+          internalId = '';
+      if (dataParts[0].charAt(1).toUpperCase() === 'P') {
+        // proprietary sentence
+        id = dataParts[0].substr(-3, dataParts[0].length).toUpperCase();
+        talker = dataParts[0].substr(1, 2).toUpperCase();
+        internalId = dataParts[0].substr(1, dataParts[0].length);
+      } else {
+        id = dataParts[0].substr(3, 3).toUpperCase();
+        talker = dataParts[0].substr(1, 2);
+        internalId = id;
+      }
       var split = dataParts.slice(1, dataParts.length);
 
       if (typeof tags.source === 'undefined') {
@@ -81,8 +92,8 @@ var Parser = function () {
         tags.source = tags.source + ':' + id;
       }
 
-      if (typeof hooks[id] === 'function') {
-        var result = hooks[id]({
+      if (typeof hooks[internalId] === 'function') {
+        var result = hooks[internalId]({
           id: id,
           sentence: sentence,
           parts: split,
