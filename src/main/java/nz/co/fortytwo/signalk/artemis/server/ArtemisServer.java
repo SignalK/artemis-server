@@ -45,12 +45,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.math.BigInteger;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -155,10 +160,11 @@ public final class ArtemisServer {
 		startKvHandlers();
 
 		addShutdownHook(this);
-		
+		String scheme = "http://";
 		int port = Config.getConfigPropertyInt(REST_PORT);
 		if (Config.getConfigPropertyBoolean(SECURITY_SSL_ENABLE)) {
 			port = Config.getConfigPropertyInt(REST_PORT_SSL);
+			scheme = "https://";
 		}
 		
 		org.atmosphere.nettosphere.Config.Builder config = new org.atmosphere.nettosphere.Config.Builder();
@@ -224,11 +230,34 @@ public final class ArtemisServer {
 		startMdns();
 		startScheduledServices();
 		ChartService.reloadCharts();
+		
+		logger.info("\n\nURLS:\n"+ getHostUrls(scheme, port)+"\n### The artemis server is ready! ###\n\n");
+		
 		SignalkDemoService demo = new SignalkDemoService();
 		Thread t = new Thread(demo);
 		t.run();
-		logger.info("\n\n### The artemis server is ready! ###\n\n");
+	}
+
+	private String getHostUrls(String scheme, int port) throws UnknownHostException, SocketException {
+		StringBuilder buffer = new StringBuilder();
+		Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+        while (interfaces.hasMoreElements()) {
+            NetworkInterface iface = interfaces.nextElement();
+            // filters out inactive interfaces
+            if (!iface.isUp())
+                continue;
+
+            Enumeration<InetAddress> addresses = iface.getInetAddresses();
+            while(addresses.hasMoreElements()) {
+                InetAddress addr = addresses.nextElement();
+                //ignore ipv6 for now
+                if(addr.getHostAddress().contains(":"))continue;
+                buffer.append(scheme+addr.getHostAddress()+":"+port+"\n");
+            }
+           
+        }
 		
+		return buffer.toString();
 	}
 
 	private void startScheduledServices() {
