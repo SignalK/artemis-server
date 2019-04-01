@@ -1,8 +1,12 @@
 package nz.co.fortytwo.signalk.artemis.service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang3.StringUtils;
@@ -14,6 +18,7 @@ import org.atmosphere.client.TrackMessageSizeInterceptor;
 import org.atmosphere.config.service.AtmosphereService;
 import org.atmosphere.interceptor.AtmosphereResourceLifecycleInterceptor;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import nz.co.fortytwo.signalk.artemis.tdb.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.tdb.TDBService;
 @AtmosphereService(
@@ -54,6 +59,18 @@ public class ControlService {
 	}
 	
 	@GET
+	@Path("configureNetwork")
+	public Response configureNetwork(@PathParam(value = "hostname") String hostname,
+			@PathParam(value = "boatMode") String boatMode,
+			@PathParam(value = "ssid") String ssid,
+			@PathParam(value = "password") String password
+			) {
+		
+		return getResponse("./setup_network", new String[] {hostname, boatMode, ssid, password});
+		
+	}
+	
+	@GET
 	@Path("clearDbVessels")
 	public Response clearDb() {
 		influx.clearDbVessels();
@@ -87,15 +104,24 @@ public class ControlService {
 	}
 
 	private Response getResponse(String task) {
+		return getResponse(task, (String)null);
+	}
+	private Response getResponse(String task, String... args ) {
 		try {
 
 			if (SystemUtils.IS_OS_LINUX && System.getProperty("os.arch").startsWith("arm")) {
 				if (logger.isDebugEnabled())
 					logger.debug("Perform {}", task);
-
-				ProcessBuilder builder = new ProcessBuilder("sudo", task);
+				List<String> cmds = new ArrayList<>();
+				cmds.add("sudo");
+				cmds.add(task);
+				if(args!=null) {
+					for(String s:args) {
+						cmds.add(s);
+					}
+				}
+				ProcessBuilder builder = new ProcessBuilder(cmds);
 				builder.start();
-
 				return Response.status(HttpStatus.SC_OK).entity("Performing " + task + " now (may take a few minutes)")
 						.build();
 			}
