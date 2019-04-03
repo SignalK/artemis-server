@@ -10,6 +10,7 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.nav_position_
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
+import static org.easymock.EasyMock.*;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -30,7 +31,7 @@ public class AnchorWatchHandlerTest extends BaseMsgInterceptorTest {
 	public void shouldStoreKey() throws ActiveMQException {
 		
 		ClientMessage out = getMessage("{\"value\":173.24706,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",nav_position_longitude, "internal");
-		handler.send(out,"vessels."+uuid+dot+nav_anchor_currentRadius+".values.internal",29.681280090589777d);
+		handler.send(eq(out),eq("vessels."+uuid+dot+nav_anchor_currentRadius+".values.internal"),eq(29.681280090589777d,0.000001d));
 		
 		replayAll();
 	
@@ -61,8 +62,8 @@ public class AnchorWatchHandlerTest extends BaseMsgInterceptorTest {
 	
 		ClientMessage out = getMessage("{\"value\":173.24706,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",nav_position_longitude, "internal");
 		ClientMessage out1 = getMessage("{\"value\":173.248,\"timestamp\":\"2018-11-14T04:14:04.257Z\"}",nav_position_longitude, "internal");
-		handler.send(out,"vessels."+uuid+dot+nav_anchor_currentRadius+".values.internal",29.681280090589777d);
-		handler.send(out1,"vessels."+uuid+dot+nav_anchor_currentRadius+".values.internal",82.92607364299573d);
+		handler.send(eq(out),eq("vessels."+uuid+dot+nav_anchor_currentRadius+".values.internal"),eq(29.681280090589777d,0.000001d));
+		handler.send(eq(out1),eq("vessels."+uuid+dot+nav_anchor_currentRadius+".values.internal"),eq(82.92607364299573d,0.000001d));
 		
 		replayAll();
 	

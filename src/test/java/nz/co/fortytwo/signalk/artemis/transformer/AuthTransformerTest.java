@@ -47,7 +47,7 @@ public class AuthTransformerTest extends BaseServerTest{
 		assertEquals(200,reply.at("result").asInteger());
 		assertTrue(reply.has("login"));
 		assertTrue(reply.at("login").has("token"));
-		assertTrue(reply.at("login").has("expiry"));
+		assertTrue(reply.at("login").has("timeToLive"));
 	}
 
 	private Json sendBody(String body) throws  Exception {
