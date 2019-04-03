@@ -1,0 +1,16 @@
+{
+  "configuration": {
+    "mode": "BOAT",
+    "hostname": "raspberrypi",
+    "ssid": "raspberrypi",
+    "password": "raspberrypi",
+    "roam": {
+      "networks": [
+        {
+          "ssid": "myPhone",
+          "password": "ABCDEFGHIJKLMNOPQRSTUVWX"
+        }
+      ]
+    }
+  }
+}

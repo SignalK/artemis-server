@@ -151,6 +151,7 @@ public final class ArtemisServer {
 		Config.saveConfig();
 		
 		ensureSecurityConf();
+		ensureNetworkConf();
 
 		embedded = new EmbeddedActiveMQ();
 		embedded.start();
@@ -321,6 +322,19 @@ public final class ArtemisServer {
 			logger.error(e, e);
 		}
 
+	}
+	private void ensureNetworkConf() {
+		
+		File networkConf = new File("./conf/network-conf.json");
+		if (!networkConf.exists()) {
+			try (InputStream in = getClass().getClassLoader().getResource("network-conf.json.default").openStream()) {
+				String defaultNetwork = IOUtils.toString(in);
+				FileUtils.writeStringToFile(networkConf, defaultNetwork.toString());
+			} catch (Exception e) {
+				logger.error(e, e);
+			}
+
+		} 
 	}
 
 	private void createSSLCerts() {
