@@ -139,7 +139,7 @@ public class InfluxDbService implements TDBService {
 		for(Entry<String, String> e: query.entrySet()){
 			builder.append(joiner)
 				.append(e.getKey())
-				.append("=~/")
+				.append("=~ /")
 				.append(e.getValue())
 				.append("/");
 			joiner=" and ";
@@ -159,7 +159,7 @@ public class InfluxDbService implements TDBService {
 			for(Entry<String, String> e: query.entrySet()){
 				builder.append(" and ")
 					.append(e.getKey())
-					.append("=~/")
+					.append("=~ /")
 					.append(e.getValue())
 					.append("/");
 			}
