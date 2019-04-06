@@ -50,7 +50,7 @@ public class NashornPoolFactory extends BasePooledObjectFactory<ContextHolder> {
     }
 
     private NashornScriptEngine initEngine() throws IOException, NoSuchMethodException, ScriptException  {
-		logger.info("create js context");
+		logger.info("Create js context");
 		if(logger.isDebugEnabled())logger.debug("Load parser: {}", "signalk-parser-nmea0183/dist/bundle.js");
 		engine.eval(IOUtils.toString(getIOStream("signalk-parser-nmea0183/dist/bundle.js")));
 		 

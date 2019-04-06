@@ -23,10 +23,12 @@ public class GraalPool extends GenericObjectPool<ContextHolder> {
 			List<String> args = ManagementFactory.getRuntimeMXBean().getInputArguments();
 			for(String arg :args) {
 				if(arg.contains("EnableJVMCI")) {
+					logger.info("Starting Graal polyglot engine");
 					factory=new GraalPoolFactory();
 				}
 			}
 			if(factory==null) {
+				logger.info("Starting Nashorn javascript engine");
 				factory=new NashornPoolFactory();
 			}
 			engineName = factory.getClass().getName();
