@@ -66,7 +66,7 @@ public class SignalkEndpointService {
 	public Response onGet(@Context HttpServletRequest req) {
 		try {
 			return Response.status(HttpStatus.SC_OK)
-			.entity(Config.getDiscoveryMsg(req.getLocalName()).toString()).build();
+			.entity(Config.getDiscoveryMsg(req.getLocalAddr()).toString()).build();
 			
 		} catch (Exception e) {
 			logger.error(e,e);
