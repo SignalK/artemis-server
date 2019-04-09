@@ -8,6 +8,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -65,8 +66,15 @@ public class SignalkEndpointService {
 	@Produces(MediaType.APPLICATION_JSON+";charset=UTF-8")
 	public Response onGet(@Context HttpServletRequest req) {
 		try {
+			//get the incoming host.domain string
+			String hostname = req.getRequestURL().toString();
+			logger.debug("Found url: {}", hostname);
+			hostname=StringUtils.substringAfter(hostname, "://");
+			hostname=StringUtils.substringBefore(hostname, "/");
+			hostname=StringUtils.substringBefore(hostname, ":");
+			logger.debug("Found hostname: {}", hostname);
 			return Response.status(HttpStatus.SC_OK)
-			.entity(Config.getDiscoveryMsg(req.getLocalAddr()).toString()).build();
+			.entity(Config.getDiscoveryMsg(hostname).toString()).build();
 			
 		} catch (Exception e) {
 			logger.error(e,e);
