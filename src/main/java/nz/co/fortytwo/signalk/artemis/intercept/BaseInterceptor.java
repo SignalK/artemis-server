@@ -12,7 +12,7 @@ import nz.co.fortytwo.signalk.artemis.util.MessageSupport;
 
 public class BaseInterceptor extends MessageSupport{
 	private static Logger logger = LogManager.getLogger(BaseInterceptor.class);
-	protected static TDBService influx = new InfluxDbService();
+	protected TDBService influx = new InfluxDbService();
 	
 	protected boolean ignoreMessage(String queue, String msgType, ICoreMessage message) {
 		if (!StringUtils.equals(message.getAddress(), queue))
