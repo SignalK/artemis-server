@@ -141,6 +141,38 @@ public class UtilTest {
 		assertNotNull(put.at(PUT));
 		assertTrue(put.at(PUT).asJsonList().size()>0);
 	}
+	
+	@Test
+	public void shouldMakeResourcesPut() {
+		logger.debug("Starting put message");
+		Json body = Json.read("{\n" + 
+				"	\"value\": {\n" + 
+				"		\"feature\": {\n" + 
+				"			\"geometry\": {\n" + 
+				"				\"coordinates\": [\n" + 
+				"					-76.94293647419825,\n" + 
+				"					35.03617991022162\n" + 
+				"				],\n" + 
+				"				\"type\": \"Point\"\n" + 
+				"			},\n" + 
+				"			\"properties\": {\n" + 
+				"				\"cmt\": \"test\",\n" + 
+				"				\"name\": \"test\"\n" + 
+				"			},\n" + 
+				"			\"type\": \"Feature\",\n" + 
+				"			\"position\": {\n" + 
+				"				\"latitude:\": 35.03617991022162,\n" + 
+				"				\"longitude\": -76.94293647419825\n" + 
+				"			}\n" + 
+				"		}\n" + 
+				"	}\n" + 
+				"}");
+		Json put = Util.getJsonPutRequest("resources.waypoint."+UUID.randomUUID().toString(), body);
+		logger.debug("Outcome: {}",put);
+		assertNotNull(put.at(CONTEXT));
+		assertNotNull(put.at(PUT));
+		assertTrue(put.at(PUT).asJsonList().size()>0);
+	}
 
 	@Test
 	public void shouldConvertSourceToRef(){
