@@ -30,7 +30,7 @@ public abstract class BaseHandler extends MessageSupport{
 	
 	private static Logger logger = LogManager.getLogger(BaseHandler.class);
 	
-	protected TDBService influx = new InfluxDbService();
+	protected static TDBService influx = new InfluxDbService();
 	
 	protected String filter=null;
 	

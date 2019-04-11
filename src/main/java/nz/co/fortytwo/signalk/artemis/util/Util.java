@@ -37,7 +37,6 @@ import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;

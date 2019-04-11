@@ -1,0 +1,215 @@
+{
+    "configuration": {
+        "status": "ERROR",
+        "monitorInterval": "30",
+        "properties": {
+            "property": [
+                {
+                    "name": "Directory",
+                    "value": "./signalk-static/logs"
+                },
+                {
+                    "name": "FileName",
+                    "value": "signalk.log"
+                }
+            ]
+        },
+        "appenders": {
+            "Console": {
+                "name": "STDOUT",
+                "patternlayout": {
+                    "pattern": "%d{HH:mm:ss.SSS} %-5level %c{1.} - %msg%n"
+                }
+            },
+            "RollingFile": [
+                {
+                    "name": "File",
+                    "fileName": "${Directory}/${FileName}",
+                    "filePattern": "${Directory}/${date:yyyy-MM}/test-%d{MM-dd-yyyy}-%i.log.gz",
+                    "PatternLayout": {
+                        "pattern": "%d %p %logger{36} [%t] %m%n"
+                    },
+                    "Policies": {
+                        "SizeBasedTriggeringPolicy": {
+                            "size": "1 MB"
+                        }
+                    },
+                    "DefaultRolloverStrategy": {
+                        "max": "10"
+                    }
+                }
+            ]
+        },
+        "loggers": {
+            "root": {
+                "level": "ERROR",
+                "appender-ref": [
+                    {
+                        "ref": "STDOUT"
+                    },
+                    {
+                        "ref": "File"
+                    }
+                ]
+            },
+            "logger": [
+            	{
+                    "name": "nz.co.fortytwo.signalk",
+                    "level": "ERROR",
+                    "additivity": true,
+                    "appender-ref": []
+                },
+                {
+                    "name": "nz.co.fortytwo.signalk.artemis.intercept",
+                    "level": "INFO",
+                    "additivity": true,
+                    "appender-ref": []
+                },
+                {
+                    "name": "nz.co.fortytwo.signalk.artemis.transformer",
+                    "level": "ERROR",
+                    "additivity": true,
+                    "appender-ref": []
+                },
+                {
+                    "name": "nz.co.fortytwo.signalk.artemis.graal.GraalPool",
+                    "level": "INFO",
+                    "additivity": true,
+                    "appender-ref": []
+                },
+                {
+                    "name": "nz.co.fortytwo.signalk.artemis.transformer.NMEAMsgTransformer",
+                    "level": "ERROR",
+                    "additivity": true,
+                    "appender-ref": []
+                },
+                {
+                    "name": "nz.co.fortytwo.signalk.artemis.transformer.N2kMsgTransformer",
+                    "level": "ERROR",
+                    "additivity": true,
+                    "appender-ref": []
+                },
+                {
+                    "name": "nz.co.fortytwo.signalk.artemis.util.Config",
+                    "level": "WARN",
+                    "additivity": true,
+                    "appender-ref": []
+                },
+                {
+                    "name": "nz.co.fortytwo.signalk.artemis.util.Util",
+                    "level": "WARN",
+                    "additivity": true,
+                    "appender-ref": []
+                },
+                {
+                    "name": "nz.co.fortytwo.signalk.artemis.server.SerialPortReader",
+                    "level": "ERROR",
+                    "additivity": true,
+                    "appender-ref": []
+                },
+                {
+                    "name": "nz.co.fortytwo.signalk.artemis.server.SerialPortManager",
+                    "level": "ERROR",
+                    "additivity": true,
+                    "appender-ref": []
+                },
+                {
+                    "name": "nz.co.fortytwo.signalk.artemis.service",
+                    "level": "ERROR",
+                    "additivity": true,
+                    "appender-ref": []
+                },
+                {
+                    "name": "nz.co.fortytwo.signalk.artemis.service.InfluxDbService",
+                    "level": "WARN",
+                    "additivity": true,
+                    "appender-ref": []
+                },
+                {
+                    "name": "nz.co.fortytwo.signalk.artemis.service.StaticService",
+                    "level": "ERROR",
+                    "additivity": true,
+                    "appender-ref": []
+                },
+                {
+                    "name": "org.atmosphere.nettosphere",
+                    "level": "WARN",
+                    "additivity": true,
+                    "appender-ref": []
+                },
+                {
+                    "name": "io.netty",
+                    "level": "WARN",
+                    "additivity": true,
+                    "appender-ref": []
+                },
+                {
+                    "name": "org.apache.activemq.artemis",
+                    "level": "INFO",
+                    "additivity": true,
+                    "appender-ref": []
+                },
+                {
+                    "name": "mjson",
+                    "level": "ERROR",
+                    "additivity": true,
+                    "appender-ref": []
+                },
+                {
+                    "name": "nz.co.fortytwo.signalk.artemis.service.ChartService",
+                    "level": "INFO",
+                    "additivity": true,
+                    "appender-ref": []
+                },
+                {
+                    "name": "nz.co.fortytwo.signalk.artemis.server.Subscription",
+                    "level": "INFO",
+                    "additivity": true,
+                    "appender-ref": []
+                },
+                {
+                    "name": "nz.co.fortytwo.signalk.artemis.server.SubscriptionManagerService",
+                    "level": "INFO",
+                    "additivity": true,
+                    "appender-ref": []
+                },
+                {
+                    "name": "nz.co.fortytwo.signalk.artemis.server.ArtemisServer",
+                    "level": "INFO",
+                    "additivity": true,
+                    "appender-ref": []
+                },
+                {
+                    "name": "com.sun.jersey",
+                    "level": "WARN",
+                    "additivity": true,
+                    "appender-ref": []
+                },
+                {
+                    "name": "javax.ws.rs",
+                    "level": "WARN",
+                    "additivity": true,
+                    "appender-ref": []
+                },
+                {
+                    "name": "nz.co.fortytwo.signalk.artemis.service.SignalkStreamService",
+                    "level": "INFO",
+                    "additivity": true,
+                    "appender-ref": []
+                },
+                {
+                    "name": "nz.co.fortytwo.signalk.artemis.service.BaseApiService",
+                    "level": "INFO",
+                    "additivity": true,
+                    "appender-ref": []
+                },
+                {
+                    "name": "org.atmosphere",
+                    "level": "INFO",
+                    "additivity": true,
+                    "appender-ref": []
+                }
+            ]
+        }
+    }
+}
