@@ -347,12 +347,10 @@ public class Util {
 	public static String sanitizePath(String newPath) {
 
 		newPath = newPath.replace('/', '.');
-		if (newPath.startsWith(dot)) {
-			newPath = newPath.substring(1);
-		}
-		if (newPath.endsWith(".") || newPath.endsWith("*") || newPath.endsWith("?")) {
-			newPath = newPath.substring(0, newPath.length() - 1);
-		}
+		newPath = StringUtils.removeStart(newPath, dot);
+		newPath = StringUtils.removeEnd(newPath, dot);
+		newPath = StringUtils.removeEnd(newPath, "*");
+		newPath = StringUtils.removeEnd(newPath, "?");
 
 		return newPath;
 	}
