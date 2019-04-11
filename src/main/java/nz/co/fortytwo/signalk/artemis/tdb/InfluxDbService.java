@@ -483,6 +483,9 @@ public class InfluxDbService implements TDBService {
 			if (obj.toString().trim().startsWith("[") && obj.toString().endsWith("]")) {
 				return Json.read(obj.toString());
 			}
+			if (obj.toString().trim().startsWith("{") && obj.toString().endsWith("}")) {
+				return Json.read(obj.toString());
+			}
 			
 			return Json.make(obj);
 

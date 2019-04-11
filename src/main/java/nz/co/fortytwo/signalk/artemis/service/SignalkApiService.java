@@ -320,7 +320,7 @@ public class SignalkApiService extends BaseApiService {
 		//requestId, context, state, code (result), message (optional)
 		
 			if (logger.isDebugEnabled())
-				logger.debug("Post: path={}, {}",path, body);
+				logger.debug("Put: path={}, {}",path, body);
 			//make a full message now
 			Json msg = Util.getJsonPutRequest(sanitizeApiPath(path),Json.read(body));
 			sendMessage(getTempQ(),addToken(msg, cookie),null,getToken(cookie));

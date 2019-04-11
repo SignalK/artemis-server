@@ -32,7 +32,7 @@ public class DeltaMsgTransformerTest  extends BaseMsgInterceptorTest {
 
 	private static Logger logger = LogManager.getLogger(DeltaMsgTransformerTest.class);
 	private Json update = Json.read("{\"context\":\"vessels.urn:mrn:imo:mmsi:234567890\",\"updates\":[{\"$source\":\"NMEA2000.N2000-01\",\"timestamp\":\"2010-01-07T07:18:44.000Z\",\"values\":[{\"path\":\"propulsion.0.revolutions\",\"value\":16.341667},{\"path\":\"propulsion.0.boostPressure\",\"value\":45500.0}]}]}");
-	private Json put = Json.read("{\"context\":\"vessels.urn:mrn:imo:mmsi:234567890\",\"put\":[{\"path\":\"propulsion.0.boostPressure\",\"value\":45500.0,\"timestamp\":\"2018-08-08T02:48:28.885Z\"}]}");
+	private Json put = Json.read("{\"context\":\"resources\",\"put\":[{\"path\":\"waypoints.urn:mrn:signalk:uuid:23a93b18-63ef-4b9d-942c-7e010b789c07\",\"value\":{\"feature\":{\"geometry\":{\"coordinates\":[-76.97297721516502,35.04369923349947],\"type\":\"Point\"},\"id\":\"\",\"type\":\"Feature\",\"properties\":{\"name\":\"test\",\"cmt\":\"test\"}},\"position\":{\"latitude\":35.04369923349947,\"longitude\":-76.97297721516502}},\"timestamp\":\"2019-04-11T20:54:39.584Z\"}]}");
 	private Json post = Json.read("{\"context\":\"vessels\",\"post\":[{\"path\":\"\",\"value\":{},\"timestamp\":\"2018-08-08T02:48:28.885Z\"}]}");
 	private Json postBad = Json.read("{\"context\":\"vessels.urn:mrn:imo:mmsi:234567890\",\"post\":[{\"path\":\"propulsion.0\",\"value\":45500.0,\"timestamp\":\"2018-08-08T02:48:28.885Z\"}]}");
 	private Json post1 = Json.read("{\"context\":\"vessels.urn:mrn:imo:mmsi:234567890\",\"post\":[{\"path\":\"propulsion\",\"value\":45500.0,\"timestamp\":\"2018-08-08T02:48:28.885Z\"}]}");
