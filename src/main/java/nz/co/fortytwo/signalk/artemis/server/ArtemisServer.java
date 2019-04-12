@@ -234,9 +234,10 @@ public final class ArtemisServer {
 		
 		logger.info("\n\nURLS:\n"+ getHostUrls(scheme, port)+"\n### The artemis server is ready! ###\n\n");
 		
-		SignalkDemoService demo = new SignalkDemoService();
+		SignalkDemoService demo = new SignalkDemoService(true);
 		Thread t = new Thread(demo);
 		t.run();
+
 	}
 
 	private String getHostUrls(String scheme, int port) throws UnknownHostException, SocketException {

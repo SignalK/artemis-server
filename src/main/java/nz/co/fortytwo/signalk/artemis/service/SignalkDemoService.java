@@ -2,6 +2,7 @@ package nz.co.fortytwo.signalk.artemis.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.SimpleString;
@@ -18,10 +19,12 @@ import nz.co.fortytwo.signalk.artemis.util.MessageSupport;
 public class SignalkDemoService extends MessageSupport implements Runnable {
 
 	private static Logger logger = LogManager.getLogger(SignalkDemoService.class);
-	private int c;
+	private AtomicInteger c = new AtomicInteger();
 	private long start;
+	private boolean print;
 
-	public SignalkDemoService() throws Exception {
+	public SignalkDemoService(boolean print) throws Exception {
+		this.print=print;
 	}
 
 	@Override
@@ -44,14 +47,14 @@ public class SignalkDemoService extends MessageSupport implements Runnable {
 			txMsg.putStringProperty(Config.MSG_SRC_BUS, "/dev/DEMO");
 			txMsg.putStringProperty(Config.MSG_SRC_TYPE, Config.MSG_SRC_TYPE_SERIAL);
 			getProducer().send(new SimpleString(Config.INCOMING_RAW), txMsg);
-			c++;
+			c.getAndIncrement();
 			if(delay>0) {
 			  Thread.currentThread().sleep(delay);
 			}
-			if(c%10000==0) {
-				logger.info("Processed {} messages/sec",((double)c)/((double)(System.currentTimeMillis()-start)/1000));
+			if(print && c.get()%10000==0) {
+				logger.info("Processed {} messages/sec",((double)c.get())/((double)(System.currentTimeMillis()-start)/1000));
 				start=System.currentTimeMillis();
-				c=0;
+				c.getAndSet(0);
 			}
 		}
 	}
