@@ -241,9 +241,6 @@ public final class ArtemisServer {
 		Thread t = new Thread(demo);
 		t.run();
 		
-		SignalkDemoService demo1 = new SignalkDemoService(false);
-		Thread t1 = new Thread(demo1);
-		t1.run();
 	}
 
 	private String getHostUrls(String scheme, int port) throws UnknownHostException, SocketException {
