@@ -133,7 +133,7 @@ public final class ArtemisServer {
 	private AnchorWatchHandler anchorWatchHandler;
 	private AlarmHandler alarmHandler;
 	private NMEAMsgHandler nmeaHandler1;
-	private NMEAMsgHandler nmeaHandler2;
+	
 
 	public ArtemisServer() throws Exception {
 		init();
@@ -240,6 +240,10 @@ public final class ArtemisServer {
 		SignalkDemoService demo = new SignalkDemoService();
 		Thread t = new Thread(demo);
 		t.run();
+		
+		SignalkDemoService demo1 = new SignalkDemoService();
+		Thread t1 = new Thread(demo1);
+		t1.run();
 	}
 
 	private String getHostUrls(String scheme, int port) throws UnknownHostException, SocketException {
@@ -425,9 +429,8 @@ public final class ArtemisServer {
 		alarmHandler = new AlarmHandler();
 		alarmHandler.startConsumer();
 		nmeaHandler1=new NMEAMsgHandler();
-		nmeaHandler2=new NMEAMsgHandler();
 		nmeaHandler1.startConsumer();
-		nmeaHandler2.startConsumer();
+		
 	}
 
 	private static void addShutdownHook(final ArtemisServer server) {
