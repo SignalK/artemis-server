@@ -67,7 +67,7 @@ public class InfluxDbHandler extends BaseHandler{
 
 
 	protected void save(String key, Json node) {
-		influx.save(key, node.dup());
+		//influx.save(key, node.dup());
 		
 	}
 
