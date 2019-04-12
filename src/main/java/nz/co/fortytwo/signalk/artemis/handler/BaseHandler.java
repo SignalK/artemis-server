@@ -36,6 +36,10 @@ public abstract class BaseHandler extends MessageSupport{
 	
 	protected ClientConsumer consumer;
 	protected String clazz;
+
+	private String queue=null;
+
+	private RoutingType route;
 	
 	public BaseHandler() {
 		uuid = Config.getConfigProperty(ConfigConstants.UUID);
@@ -43,11 +47,16 @@ public abstract class BaseHandler extends MessageSupport{
 	}
 
 	protected void initSession(String filter) throws Exception {
+		initSession(filter, INTERNAL_KV,RoutingType.MULTICAST);
+	}
+	protected void initSession(String filter, String queue, RoutingType route) throws Exception {
 		if (logger.isDebugEnabled())
 			logger.debug("{}: initSession: {}",clazz, filter);
 		super.initSession();
 		this.filter=filter;
-		getConsumer(filter);
+		this.queue=queue;
+		this.route=route;
+		getConsumer(filter, queue, route);
 	}
 	
 	public abstract void consume(Message message);
@@ -61,11 +70,11 @@ public abstract class BaseHandler extends MessageSupport{
 	 */
 	public boolean startConsumer() throws ActiveMQException {
 
-		if (getConsumer(filter).getMessageHandler() == null) {
+		if (getConsumer(filter, queue, route).getMessageHandler() == null) {
 			if (logger.isDebugEnabled())
 				logger.debug("{}: Adding consumer messageHandler for  {}", clazz,INTERNAL_KV);
 
-			getConsumer(filter).setMessageHandler(new MessageHandler() {
+			getConsumer(filter, queue, route).setMessageHandler(new MessageHandler() {
 
 				@Override
 				public void onMessage(ClientMessage message) {
@@ -97,16 +106,20 @@ public abstract class BaseHandler extends MessageSupport{
 	 * @return
 	 */
 	public ClientConsumer getConsumer(String filter) {
+		return getConsumer(filter, INTERNAL_KV, RoutingType.MULTICAST);
+	}
+	
+	public ClientConsumer getConsumer(String filter, String queue, RoutingType route) {
 
 		if (consumer == null && getTxSession() != null && !getTxSession().isClosed()) {
-			String qName = INTERNAL_KV+"."+clazz+"-"+UUID.randomUUID().toString();
+			String qName = queue+"."+clazz+"-"+UUID.randomUUID().toString();
 			if (logger.isDebugEnabled())
 				logger.debug("{}: Start consumer for {} ", clazz, qName);
 			try {
 				if(StringUtils.isBlank(filter)) {
-					getTxSession().createQueue(INTERNAL_KV, RoutingType.MULTICAST, qName, false);
+					getTxSession().createQueue(queue, route, qName, false);
 				}else {
-					getTxSession().createQueue(INTERNAL_KV, RoutingType.MULTICAST, qName, filter, false);
+					getTxSession().createQueue(queue, route, qName, filter, false);
 				}
 				
 				consumer = getTxSession().createConsumer(qName);

@@ -97,6 +97,7 @@ import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.handler.AlarmHandler;
 import nz.co.fortytwo.signalk.artemis.handler.AnchorWatchHandler;
 import nz.co.fortytwo.signalk.artemis.handler.InfluxDbHandler;
+import nz.co.fortytwo.signalk.artemis.handler.NMEAMsgHandler;
 import nz.co.fortytwo.signalk.artemis.handler.TrueWindHandler;
 import nz.co.fortytwo.signalk.artemis.scheduled.DeclinationUpdater;
 import nz.co.fortytwo.signalk.artemis.scheduled.TimeUpdater;
@@ -131,6 +132,8 @@ public final class ArtemisServer {
 	private TrueWindHandler trueWindHandler;
 	private AnchorWatchHandler anchorWatchHandler;
 	private AlarmHandler alarmHandler;
+	private NMEAMsgHandler nmeaHandler1;
+	private NMEAMsgHandler nmeaHandler2;
 
 	public ArtemisServer() throws Exception {
 		init();
@@ -421,6 +424,10 @@ public final class ArtemisServer {
 		anchorWatchHandler.startConsumer();
 		alarmHandler = new AlarmHandler();
 		alarmHandler.startConsumer();
+		nmeaHandler1=new NMEAMsgHandler();
+		nmeaHandler2=new NMEAMsgHandler();
+		nmeaHandler1.startConsumer();
+		nmeaHandler2.startConsumer();
 	}
 
 	private static void addShutdownHook(final ArtemisServer server) {
