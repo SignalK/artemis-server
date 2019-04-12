@@ -237,11 +237,11 @@ public final class ArtemisServer {
 		
 		logger.info("\n\nURLS:\n"+ getHostUrls(scheme, port)+"\n### The artemis server is ready! ###\n\n");
 		
-		SignalkDemoService demo = new SignalkDemoService();
+		SignalkDemoService demo = new SignalkDemoService(true);
 		Thread t = new Thread(demo);
 		t.run();
 		
-		SignalkDemoService demo1 = new SignalkDemoService();
+		SignalkDemoService demo1 = new SignalkDemoService(false);
 		Thread t1 = new Thread(demo1);
 		t1.run();
 	}
