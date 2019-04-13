@@ -21,20 +21,20 @@
  * limitations under the License.
  *
  */
-package nz.co.fortytwo.signalk.artemis.transformer;
+package nz.co.fortytwo.signalk.artemis.handler;
 
-import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE_AIS;
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE;
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE_JSON_DELTA;
 import static nz.co.fortytwo.signalk.artemis.util.Config.MSG_SRC_BUS;
 import static nz.co.fortytwo.signalk.artemis.util.Config.MSG_SRC_TYPE;
-import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE__0183;
+import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_CONTENT_TYPE_N2K;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.UPDATES;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.self_str;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.vessels;
 
 import org.apache.activemq.artemis.api.core.Message;
+import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.core.server.transformer.Transformer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -49,67 +49,76 @@ import nz.co.fortytwo.signalk.artemis.util.SignalkKvConvertor;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
 /**
- * Processes NMEA sentences in the body of a message, firing events to
- * interested listeners Converts the NMEA messages to signalk
+ * Processes N2K messages from canboat or similar. Converts the N2k messages to signalk
  * 
- * @author robert
+ * @author robert 
  * 
  */
 
-public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer {
+public class N2kMsgHandler extends JsBaseHandler {
 
-	private static Logger logger = LogManager.getLogger(NMEAMsgTransformer.class);
+	private static Logger logger = LogManager.getLogger(N2kMsgHandler.class);
 	
-	public NMEAMsgTransformer() throws Exception {
-		logger.info("Started NMEAMsgTransformer with {} JS engine..", pool.getEngineName());
+	
+	public N2kMsgHandler() throws Exception {
+		logger.info("Started N2kMsgTransformer with {} JS engine..", pool.getEngineName());
+		if (logger.isDebugEnabled())
+			logger.debug("Initialising for : {} ", uuid);
+		try {
+
+			// start listening
+			initSession(null, "internal.n2k",RoutingType.ANYCAST);
+		} catch (Exception e) {
+			logger.error(e, e);
+		}
 	}
 
 	@Override
-	public Message transform(Message message) {
+	public void consume(Message message) {
 		
-		if (!(AMQ_CONTENT_TYPE__0183.equals(message.getStringProperty(AMQ_CONTENT_TYPE))|| AMQ_CONTENT_TYPE_AIS.equals(message.getStringProperty(AMQ_CONTENT_TYPE))))
-			return message;
+		if (!AMQ_CONTENT_TYPE_N2K.equals(message.getStringProperty(AMQ_CONTENT_TYPE)))
+			return;
 		
 		String bodyStr = Util.readBodyBufferToString(message.toCore()).trim();
 		if (logger.isDebugEnabled())
-			logger.debug("NMEA Message: " + bodyStr);
+			logger.debug("N2K Message: {}", bodyStr);
 		
-		if (StringUtils.isNotBlank(bodyStr) && bodyStr.startsWith("$")) {
+		if (StringUtils.isNotBlank(bodyStr) ) {
 			try {
-				ContextHolder ctx = pool.borrowObject();
-				//ctx.enter();
-				if (logger.isDebugEnabled()) {
-					logger.debug("Processing NMEA:[" + bodyStr + "]");
-					//logger.debug("Parser inv: {}",ctx.getMember("parser"));
-				}
+				if (logger.isDebugEnabled())
+					logger.debug("Processing N2K: {}",bodyStr);
+				
 				Json json = null;
-				try {
-					Object result =  ctx.invokeMember("parser","parse", bodyStr);
-					
-					if (logger.isDebugEnabled())
-						logger.debug("Processed NMEA: " + result );
+				ContextHolder ctx = pool.borrowObject();
+				try {	
+					Object result = ctx.invokeMember("n2kMapper","toDelta", bodyStr);
 	
+					if (logger.isDebugEnabled())
+						logger.debug("Processed N2K: {} ",result);
+	
+					if (result == null || StringUtils.isBlank(result.toString()) || result.toString().startsWith("Error")) {
+						logger.error("{},{}", bodyStr, result);
+						return;
+					}
 					if (result==null || StringUtils.isBlank(result.toString())|| result.toString().startsWith("WARN")) {
 						logger.warn(bodyStr + "," + result);
-						return message;
+						return;
 					}
-				
-				    json = Json.read(result.toString());
-				
+					
+					json = Json.read(result.toString());
+					
 				}finally {
 					pool.returnObject(ctx);
-				}
-				
-				
-				if(json==null || !json.isObject())return message;
+				}		
+				if(json==null || !json.isObject())return;
 				
 				json.set(SignalKConstants.CONTEXT, vessels + dot + Util.fixSelfKey(self_str));
+				
+				if (logger.isDebugEnabled())
+					logger.debug("Converted N2K msg: {}", json.toString());
 				//add type.bus to source
 				String type = message.getStringProperty(MSG_SRC_TYPE);
 				String bus = message.getStringProperty(MSG_SRC_BUS);
-				//now its a signalk delta msg
-				message.putStringProperty(AMQ_CONTENT_TYPE, AMQ_CONTENT_TYPE_JSON_DELTA);
-			
 				for(Json j:json.at(UPDATES).asJsonList()){
 					Util.convertSource(this, message, j, bus, type);
 					//fix the timestamp for demo
@@ -118,23 +127,21 @@ public class NMEAMsgTransformer extends JsBaseTransformer implements Transformer
 						j.set(SignalKConstants.timestamp, Util.getIsoTimeString());
 					}
 				}
-				
-				if (logger.isDebugEnabled())
-					logger.debug("Converted NMEA msg:" + json.toString());
-				
+				//now its a signalk delta msg
+				message.putStringProperty(AMQ_CONTENT_TYPE, AMQ_CONTENT_TYPE_JSON_DELTA);
 				SignalkKvConvertor.parseDelta(this,message, json);
 				json.clear(true);
-				
-				
 			} catch (Exception e) {
-				
 				logger.error(e, e);
 				
 			}
-			
 		}
-		return message;
+		return;
 	}
 
 	
+
+	
+
+
 }

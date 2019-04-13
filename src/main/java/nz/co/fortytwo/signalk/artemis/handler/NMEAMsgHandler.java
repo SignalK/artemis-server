@@ -62,18 +62,15 @@ import nz.co.fortytwo.signalk.artemis.util.Util;
  * 
  */
 
-public class NMEAMsgHandler extends BaseHandler {
+public class NMEAMsgHandler extends JsBaseHandler {
 
 	private static Logger logger = LogManager.getLogger(NMEAMsgHandler.class);
-	protected static String engineName;
-	protected static GraalPool pool = new GraalPool();
 	
 	public NMEAMsgHandler() throws Exception {
 		logger.info("Started NMEAMsgTransformer with {} JS engine..", pool.getEngineName());
 		if (logger.isDebugEnabled())
 			logger.debug("Initialising for : {} ", uuid);
 		try {
-
 			// start listening
 			initSession(null, "internal.nmea",RoutingType.ANYCAST);
 		} catch (Exception e) {
