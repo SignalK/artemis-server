@@ -54,9 +54,11 @@ import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executors;
@@ -96,7 +98,17 @@ import io.netty.util.internal.logging.Log4J2LoggerFactory;
 import mjson.Json;
 import nz.co.fortytwo.signalk.artemis.handler.AlarmHandler;
 import nz.co.fortytwo.signalk.artemis.handler.AnchorWatchHandler;
+import nz.co.fortytwo.signalk.artemis.handler.AuthHandler;
+import nz.co.fortytwo.signalk.artemis.handler.BaseHandler;
+import nz.co.fortytwo.signalk.artemis.handler.DeltaMsgHandler;
+import nz.co.fortytwo.signalk.artemis.handler.FullMsgHandler;
+import nz.co.fortytwo.signalk.artemis.handler.GetMsgHandler;
 import nz.co.fortytwo.signalk.artemis.handler.InfluxDbHandler;
+
+import nz.co.fortytwo.signalk.artemis.handler.N2kMsgHandler;
+import nz.co.fortytwo.signalk.artemis.handler.NMEAMsgHandler;
+import nz.co.fortytwo.signalk.artemis.handler.SubscribeMsgHandler;
+
 import nz.co.fortytwo.signalk.artemis.handler.TrueWindHandler;
 import nz.co.fortytwo.signalk.artemis.scheduled.DeclinationUpdater;
 import nz.co.fortytwo.signalk.artemis.scheduled.TimeUpdater;
@@ -127,11 +139,9 @@ public final class ArtemisServer {
 	private nz.co.fortytwo.signalk.artemis.server.NettyServer nmeaServer;
 	private ClientSession session;
 	private ClientConsumer consumer;
-	private InfluxDbHandler influxHandler;
-	private TrueWindHandler trueWindHandler;
-	private AnchorWatchHandler anchorWatchHandler;
-	private AlarmHandler alarmHandler;
 
+	private List<BaseHandler> handlerList= new ArrayList<>();
+	
 	public ArtemisServer() throws Exception {
 		init();
 	}
@@ -414,14 +424,23 @@ public final class ArtemisServer {
 
 	private void startKvHandlers() throws Exception {
 
-		influxHandler = new InfluxDbHandler();
-		influxHandler.startConsumer();
-		trueWindHandler = new TrueWindHandler();
-		trueWindHandler.startConsumer();
-		anchorWatchHandler = new AnchorWatchHandler();
-		anchorWatchHandler.startConsumer();
-		alarmHandler = new AlarmHandler();
-		alarmHandler.startConsumer();
+		handlerList.add(new InfluxDbHandler());
+		handlerList.add(new TrueWindHandler());
+		handlerList.add(new AnchorWatchHandler());
+		handlerList.add(new AlarmHandler());
+		handlerList.add(new NMEAMsgHandler());
+		handlerList.add(new N2kMsgHandler());
+		handlerList.add(new GetMsgHandler());
+		handlerList.add(new AuthHandler());
+		handlerList.add(new DeltaMsgHandler());
+		handlerList.add(new FullMsgHandler());
+		handlerList.add(new SubscribeMsgHandler());
+		
+		for(BaseHandler base: handlerList) {
+			base.startConsumer();
+		}
+		
+
 	}
 
 	private static void addShutdownHook(final ArtemisServer server) {
@@ -488,11 +507,8 @@ public final class ArtemisServer {
 	}
 
 	private void stopKvHandlers() {
-		if (influxHandler != null) {
-			influxHandler.stop();
-		}
-		if (trueWindHandler != null) {
-			trueWindHandler.stop();
+		for(BaseHandler base: handlerList) {
+			base.stop();
 		}
 
 	}

@@ -111,65 +111,44 @@
 		<diverts>
 			<divert name="raw-get-divert">
 				<address>incoming.raw</address>
-				<forwarding-address>internal.discard</forwarding-address>
+				<forwarding-address>internal.get</forwarding-address>
 				<filter string="AMQ_content_type='JSON_GET'" />
-				<transformer-class-name>
-					nz.co.fortytwo.signalk.artemis.transformer.GetMsgTransformer
-				</transformer-class-name>
 				<exclusive>true</exclusive>
 			</divert>
 			<divert name="raw-auth-divert">
 				<address>incoming.raw</address>
-				<forwarding-address>internal.discard</forwarding-address>
+				<forwarding-address>internal.auth</forwarding-address>
 				<filter string="AMQ_content_type='JSON_AUTH'" />
-				<transformer-class-name>
-					nz.co.fortytwo.signalk.artemis.transformer.AuthTransformer
-				</transformer-class-name>
 				<exclusive>true</exclusive>
 			</divert>
 			<divert name="raw-subscribe-divert">
 				<address>incoming.raw</address>
-				<forwarding-address>internal.discard</forwarding-address>
+				<forwarding-address>internal.subscribe</forwarding-address>
 				<filter string="AMQ_content_type='JSON_SUBSCRIBE'" />
-				<transformer-class-name>
-					nz.co.fortytwo.signalk.artemis.transformer.SubscribeMsgTransformer
-				</transformer-class-name>
 				<exclusive>true</exclusive>
 			</divert>
 			<divert name="raw-nmea-divert">
 				<address>incoming.raw</address>
 				<forwarding-address>internal.discard</forwarding-address>
 				<filter string="AMQ_content_type='0183'" />
-				<transformer-class-name>
-					nz.co.fortytwo.signalk.artemis.transformer.NMEAMsgTransformer
-				</transformer-class-name>
 				<exclusive>true</exclusive>
 			</divert>
 			<divert name="raw-n2k-divert">
 				<address>incoming.raw</address>
-				<forwarding-address>internal.discard</forwarding-address>
+				<forwarding-address>internal.n2k</forwarding-address>
 				<filter string="AMQ_content_type='N2K'" />
-				<transformer-class-name>
-					nz.co.fortytwo.signalk.artemis.transformer.N2kMsgTransformer
-				</transformer-class-name>
 				<exclusive>true</exclusive>
 			</divert>
 			<divert name="raw-full-divert">
 				<address>incoming.raw</address>
-				<forwarding-address>internal.discard</forwarding-address>
+				<forwarding-address>internal.full</forwarding-address>
 				<filter string="AMQ_content_type='JSON_FULL'" />
-				<transformer-class-name>
-					nz.co.fortytwo.signalk.artemis.transformer.FullMsgTransformer
-				</transformer-class-name>
 				<exclusive>true</exclusive>
 			</divert>
 			<divert name="raw-delta-divert">
 				<address>incoming.raw</address>
-				<forwarding-address>internal.discard</forwarding-address>
+				<forwarding-address>internal.delta</forwarding-address>
 				<filter string="AMQ_content_type='JSON_DELTA'" />
-				<transformer-class-name>
-					nz.co.fortytwo.signalk.artemis.transformer.DeltaMsgTransformer
-				</transformer-class-name>
 				<exclusive>true</exclusive>
 			</divert>
 		</diverts>
