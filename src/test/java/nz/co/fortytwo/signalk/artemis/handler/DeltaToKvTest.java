@@ -1,4 +1,4 @@
-package nz.co.fortytwo.signalk.artemis.transformer;
+package nz.co.fortytwo.signalk.artemis.handler;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.INTERNAL_KV;
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
@@ -23,9 +23,9 @@ import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 
-public class NMEAToKvTest extends BaseServerTest{
+public class DeltaToKvTest extends BaseServerTest{
 	
-	private static Logger logger = LogManager.getLogger(NMEAToKvTest.class);
+	private static Logger logger = LogManager.getLogger(DeltaToKvTest.class);
 
 	
 	@Test
@@ -37,20 +37,23 @@ public class NMEAToKvTest extends BaseServerTest{
 
 	private void readPartialKeys(String user, int expected) throws Exception{
 		try (ClientSession session = Util.getLocalhostClientSession("admin", "admin");
-				ClientProducer producer = session.createProducer();
+				ClientProducer producer = session.createProducer();	
 				){
 			String qName=Config.INTERNAL_KV+dot+UUID.randomUUID().toString();
 			session.createQueue(INTERNAL_KV, RoutingType.MULTICAST, qName);
 			ClientConsumer consumer = session.createConsumer(qName);
 			List<ClientMessage> replies = createListener(session, consumer, qName);
 			session.start();
+		
+			String body = FileUtils.readFileToString(new File("./src/test/resources/samples/delta/docs-data_model_multiple_values.json"));
+			//sendSubsribeMsg(session,producer, "vessels." + self, "navigation","kvQ");
 			String token = SecurityUtils.authenticateUser("admin", "admin");
-			sendMessage(session, producer, "$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78", token);
+			sendMessage(session, producer, body, token);
 			
 			logger.debug("Input sent");
 		
 			logger.debug("Receive started");
-			replies = listen(replies, 3, 10);
+			replies = listen(replies, 3, 20);
 			//assertEquals(expected, replies.size());
 			logger.debug("Received {} replies", replies.size());
 			replies.forEach((m)->{

@@ -15,6 +15,7 @@ import java.io.File;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.client.ClientConsumer;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.api.core.client.ClientProducer;
@@ -44,9 +45,11 @@ public class AlarmHandlerTest extends BaseMsgInterceptorTest {
     private AlarmHandler handler;
 
     @Before
-    public void before(){
+    public void before() throws NoSuchMethodException, SecurityException{
     	handler = partialMockBuilder(AlarmHandler.class)
 	    	.addMockedMethod("sendJson")
+	    	.addMockedMethod(BaseHandler.class.getDeclaredMethod("initSession",String.class))
+	    	.addMockedMethod(BaseHandler.class.getDeclaredMethod("initSession",String.class, String.class,RoutingType.class))
     			.createMock(); 
     }
 	@Test

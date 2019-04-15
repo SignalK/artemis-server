@@ -2,6 +2,7 @@ package nz.co.fortytwo.signalk.artemis.server;
 
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_INFLUX_KEY;
 import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_USER_TOKEN;
+import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.DEMO;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.REST_PORT;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.REST_PORT_SSL;
 import static nz.co.fortytwo.signalk.artemis.util.ConfigConstants.SECURITY_SSL_ENABLE;
@@ -82,6 +83,7 @@ public class BaseServerTest extends EasyMockSupport {
 	@BeforeClass
 	public static void startServer() throws Exception {
 		InfluxDbService.allowWrite=true;
+		Config.setProperty(DEMO, Json.make(false));
 		server = new ArtemisServer(SIGNALK_TEST_DB);
 		
 	}

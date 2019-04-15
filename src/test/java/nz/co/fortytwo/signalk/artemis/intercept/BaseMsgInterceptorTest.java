@@ -1,7 +1,5 @@
 package nz.co.fortytwo.signalk.artemis.intercept;
 
-import static nz.co.fortytwo.signalk.artemis.util.Config.AMQ_USER_TOKEN;
-
 import javax.ws.rs.core.MediaType;
 
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
@@ -15,7 +13,6 @@ import nz.co.fortytwo.signalk.artemis.server.BaseServerTest;
 import nz.co.fortytwo.signalk.artemis.tdb.InfluxDbService;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.ConfigConstants;
-import nz.co.fortytwo.signalk.artemis.util.SecurityUtils;
 import nz.co.fortytwo.signalk.artemis.util.SignalKConstants;
 
 public class BaseMsgInterceptorTest extends EasyMockSupport {

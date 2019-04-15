@@ -30,6 +30,7 @@ import javax.script.ScriptException;
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ICoreMessage;
 import org.apache.activemq.artemis.api.core.Message;
+import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -46,18 +47,12 @@ public class NMEAMsgHandlerTest extends BaseMsgInterceptorTest {
 	
     private NMEAMsgHandler handler ;// 1
 
-    public NMEAMsgHandlerTest() throws Exception {
-    	try {
-			handler  = new NMEAMsgHandler();
-		} catch (FileNotFoundException | NoSuchMethodException | ScriptException e) {
-			logger.error(e,e);
-		}
-	}
     
     @Before
-    public void before(){
+    public void before() throws NoSuchMethodException, SecurityException{
     	handler = partialMockBuilder(NMEAMsgHandler.class)
 	    	.addMockedMethod("sendKvMessage")
+	    	.addMockedMethod(BaseHandler.class.getDeclaredMethod("initSession",String.class, String.class,RoutingType.class))
     			.createMock(); 
     }
     
@@ -79,7 +74,7 @@ public class NMEAMsgHandlerTest extends BaseMsgInterceptorTest {
 		handler.sendKvMessage( anyObject(message.getClass()), anyString(), anyObject(Json.class));
 		expectLastCall().times(4);
 		replayAll();
-		
+		handler.consume(message);
 		verifyAll();
 	}
     
@@ -89,7 +84,7 @@ public class NMEAMsgHandlerTest extends BaseMsgInterceptorTest {
 		handler.sendKvMessage( anyObject(message.getClass()), anyString(), anyObject(Json.class));
 		expectLastCall().times(4);
 		replayAll();
-
+		handler.consume(message);
 		verifyAll();
 		
 	}
@@ -101,7 +96,7 @@ public class NMEAMsgHandlerTest extends BaseMsgInterceptorTest {
 		handler.sendKvMessage( anyObject(message.getClass()), anyString(), anyObject(Json.class));
 		expectLastCall().times(8);
 		replayAll();
-
+		handler.consume(message);
 		verifyAll();
 		
 	}
@@ -110,18 +105,17 @@ public class NMEAMsgHandlerTest extends BaseMsgInterceptorTest {
 	public void shouldProcessRMC() throws ActiveMQException {
 		ClientMessage message = getClientMessage("$GPRMC,144629.20,A,5156.91111,N,00434.80385,E,0.295,,011113,,,A*78", AMQ_CONTENT_TYPE__0183, false); 
 		handler.sendKvMessage( anyObject(message.getClass()), anyString(), anyObject(Json.class));
-		expectLastCall().times(9000000);
+		expectLastCall().times(9);
 		replayAll();
-		long start = System.currentTimeMillis();
-		for (int i = 0; i < 100000; i++) {
+		//long start = System.currentTimeMillis();
+		//for (int i = 0; i < 100000; i++) {
 			message.putStringProperty(AMQ_CONTENT_TYPE, AMQ_CONTENT_TYPE__0183);
-			//handler.transform(message).toCore();
-			
-			if(i%1000==0) {
-				logger.info("Num: {}, {}ms",i,System.currentTimeMillis()-start);
-				start=System.currentTimeMillis();
-			}
-		}
+			handler.consume(message);
+		//	if(i%1000==0) {
+		//		logger.info("Num: {}, {}ms",i,System.currentTimeMillis()-start);
+		//		start=System.currentTimeMillis();
+		//	}
+		//}
 		
 		verifyAll();
 		

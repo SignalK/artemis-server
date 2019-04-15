@@ -3,6 +3,8 @@ package nz.co.fortytwo.signalk.artemis.graal;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.script.ScriptEngine;
+
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.pool2.BasePooledObjectFactory;
@@ -15,9 +17,14 @@ import org.graalvm.polyglot.Engine;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 
+import com.oracle.truffle.js.scriptengine.GraalJSScriptEngine;
+
+import jdk.nashorn.api.scripting.NashornScriptEngine;
+import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
+
 public class GraalPoolFactory extends BasePooledObjectFactory<ContextHolder> {
 	private static Logger logger = LogManager.getLogger(GraalPoolFactory.class);
-	protected static Engine engine = Engine.create();
+	protected static Engine engine = Engine.newBuilder().build();
 	private static Source bundle0183;
 	private static Source bundleN2k;
 	
@@ -49,7 +56,10 @@ public class GraalPoolFactory extends BasePooledObjectFactory<ContextHolder> {
 
     private Context initEngine() throws IOException  {
 		logger.info("create js context");
-		Context context = Context.newBuilder("js").allowHostAccess(true).build();
+		
+		//protected static GraalJSScriptEngine engine = (GraalJSScriptEngine) new GraalJSScriptEngine().getScriptEngine();
+		
+		Context context = Context.newBuilder("js").allowHostAccess(true).engine(engine).build();
 	
 		if(bundleN2k==null) {
 			logger.info("Load n2kMapper: {}", "n2k-signalk/dist/bundle.js");
