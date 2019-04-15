@@ -72,7 +72,7 @@ public class NMEAMsgHandler extends JsBaseHandler {
 			logger.debug("Initialising for : {} ", uuid);
 		try {
 			// start listening
-			initSession(null, "internal.nmea",RoutingType.ANYCAST);
+			initSession((String)null, "internal.nmea",RoutingType.ANYCAST);
 		} catch (Exception e) {
 			logger.error(e, e);
 		}

@@ -1,4 +1,4 @@
-package nz.co.fortytwo.signalk.artemis.transformer;
+package nz.co.fortytwo.signalk.artemis.handler;
 
 import static nz.co.fortytwo.signalk.artemis.util.SignalKConstants.dot;
 import static org.junit.Assert.assertEquals;
@@ -15,6 +15,7 @@ import org.apache.activemq.artemis.api.core.client.ClientSession;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
@@ -23,10 +24,10 @@ import nz.co.fortytwo.signalk.artemis.server.BaseServerTest;
 import nz.co.fortytwo.signalk.artemis.util.Config;
 import nz.co.fortytwo.signalk.artemis.util.Util;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class AuthTransformerTest extends BaseServerTest{
-	private static Logger logger = LogManager.getLogger(AuthTransformerTest.class);
+public class AuthHandlerTest extends BaseServerTest{
+	private static Logger logger = LogManager.getLogger(AuthHandlerTest.class);
 	
-	public AuthTransformerTest() throws Exception {
+	public AuthHandlerTest() throws Exception {
 		
 	}
 

@@ -53,7 +53,7 @@ public class FullMsgHandler extends BaseHandler {
 		try {
 
 			// start listening
-			initSession(null, "internal.full",RoutingType.ANYCAST);
+			initSession((String)null, "internal.full",RoutingType.ANYCAST);
 		} catch (Exception e) {
 			logger.error(e, e);
 		}
