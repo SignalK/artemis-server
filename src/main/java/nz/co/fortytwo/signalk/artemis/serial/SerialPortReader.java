@@ -274,7 +274,7 @@ public class SerialPortReader extends MessageSupport{
 	 * @return
 	 */
 	public boolean isRunning() {
-		if(!portFile.exists())return false;
+		if(portFile==null || !portFile.exists())return false;
 		if (serialPort != null) {
 			return serialPort.isOpen();
 		}
