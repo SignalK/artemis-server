@@ -123,7 +123,6 @@ Installation
 
 The artemis server is normally installed as the server part of signalk-java (https://github.com/SignalK/signalk-java) project, which includes the supporting web interface and misc config UI etc.
 
-The default signalk-java installs the old java server, to get this new version see signalk-java README
 
 Using JMX/Jolokia Diagnostics (via Hawtio)
 ==========================================
@@ -139,6 +138,10 @@ Enter connection data to the artemis server: `http://192.168.43.246:8780/jolokia
 Development
 ===========
 
+The master branch now has all Graal and JDK11 changes merged and should be the preferred source branch. Make a new branch for any fixes/changes, and request a PR via github to merge into master.
+
+There are some annoying tests that seem to be affected by running as part of a full build. They succeed when run individually, you may find skipping tests while building is useful.
+
 Clone this project and signalk-java from github in the normal way. The artemis project uses maven to build, if you use an IDE like eclipse, netbeans, 
 or intelliJ it should build automatically.
 
@@ -146,6 +149,10 @@ If you build from cli, then set JAVA_HOME to your chosen jdk, either jdk8 or jdk
 
 Setup
 -----
+
+Normally you would launch the signalk-java project to run the server, but that makes dev slow as a full build is required between changes and debug is difficult. 
+You can run the artemis-server directly from eclipse by linking or copying the `signalk-static` dir from the signalk-java project into the root of this project. _Dont_ commit it!
+ 
 Running under JDK11 with the Graal compiler requires java options set in eclipse:
 ```
 -Xmx256M -XX:+HeapDumpOnOutOfMemoryError -Dio.netty.leakDetection.level=ADVANCED -XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI --module-path=./target/compiler/graal-sdk.jar:./target/compiler/truffle-api.jar --upgrade-module-path=./target/compiler/compiler.jar
