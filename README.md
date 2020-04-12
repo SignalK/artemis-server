@@ -1,3 +1,5 @@
+This software is no longer under active development.
+---
 Artemis Server
 ==============
 
